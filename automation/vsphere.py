@@ -65,7 +65,7 @@ def main():
     with open(path.join(pardir, "logins.json"), "r") as login_file:
         logins = dump(fp=login_file)["vsphere"]
 
-    server = SmartConnect(logins["host"], logins["port"], logins["user"], logins["password"])
+    server = SmartConnect(logins["host"], logins["port"], logins["user"], logins["pass"])
     register(Disconnect, server)
 
 
