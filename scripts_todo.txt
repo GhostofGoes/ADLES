@@ -1,0 +1,32 @@
+Power off/on all VMs in a folder, acpi shutdown, etc.
+Create/Destroy multiple instances of a VM template based on a name (e.g "SEED" name, make "SEED1", SEED2, SEED3, etc.)
+
+Perform actions across VMs using following methods:
+	Folder
+	Name
+	Host
+Actions:
+	Image:
+		Create from Template
+		Clone existing VM
+		Destroy
+		Move
+		Convert VM to Template
+	Power:
+		Power on
+		Power off
+		ACPI shutdown
+		Reset
+	Devices:
+		Add device
+		Remove device
+		Modify device
+			(Add to vSwitch, Remove from vSwitch)
+	Settings:
+
+
+Network (vSwitches, port groups, dvSwitches):
+	Create
+	Destroy
+    Modify
+
