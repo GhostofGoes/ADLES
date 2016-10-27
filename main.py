@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 # http://multivax.com/last_question.html
 
-"""vsphere
+"""main
 
 Usage:
-    vsphere.py --logins FILE [options]
-    vsphere.py (-i | --interactive) [options]
-    vsphere.py [options]
-    vsphere.py --version
-    vsphere.py (-h | --help)
+    main.py --logins FILE [options]
+    main.py (-i | --interactive) [options]
+    main.py [options]
+    main.py --version
+    main.py (-h | --help)
 
 Options:
     -h, --help      Duh
@@ -29,17 +31,21 @@ from docopt import docopt
 from getpass import getpass
 import atexit
 from pyVim.connect import SmartConnect, Disconnect
+import logging
+
+from automation import vsphere
 
 __version__ = "0.1.0"
 __author__ = "Christopher Goes <cgoes@uidaho.edu>"
 
+logger = logging.getLogger(__name__)
 
-def clone_vm():
 
-
+# NOTE: currently this is built around vSphere, using vCenter server and ESXi 6.0 U2
 def main():
     args = docopt(__doc__, version=__version__, help=True)
 
+    # TODO: could we put server info in the specification file? or have the login filename in the spec file?
     if args["--interactive"]:
         host = input("Hostname of vCenter server: ")
         port = input("Port of vCenter server: ")
@@ -54,8 +60,10 @@ def main():
     atexit.register(Disconnect, server)
 
     if args["-a"]:
-        if args["-a"]:
+        if args["-a"] == "an_action":
             pass
 
+
 if __name__ == '__main__':
+    logging.basicConfig(filename='main.log', level=logging.DEBUG)
     main()

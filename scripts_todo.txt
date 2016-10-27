@@ -30,3 +30,18 @@ Network (vSwitches, port groups, dvSwitches):
 	Destroy
     Modify
 
+
+----
+Docker
+
+
+
+----
+GitLab + Docker Registry integration
+
+
+
+
+
+----
+
