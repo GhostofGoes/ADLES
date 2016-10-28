@@ -1,0 +1,183 @@
+ ---
+name: "PRCCDC Scenario"
+tags: ["prccdc", "competition", "cyber", "buzzword"]
+date-created: "10/12/2016"
+revision: "0.2.0"
+changelog: changelog-filename
+
+system:
+    - server:
+        hostname: "vc01.red.radicl.uidaho.edu"
+        port: 443
+    - login-filename: "logins.json"
+
+teams: # List of Active Directory groups associated with each team instance number
+    - blue-teams:
+        - label: "Blue Team X" # X is replaced with instance number (Which is 1 if only one instance)
+        - groups: "filename" # If string, open file and acquire group names from the file
+        # make sure number of instances is equal to number of groups or something
+    - red-teams: 
+        - label: "Red Team X"
+        - groups: ["RADICL Admins"] # In this instance, Red Team 1 is "RADICL Admins" AD group
+
+nodes:
+    - host-type-a:
+        - template: "PRCCDC Windows 7 Host"
+        - os:
+            name: "Windows 7 Enterprise"
+            version: "7601" # This is what the window's versions should be listed as
+            family: "Windows/NT"
+        - video: yes
+    - host-type-b:
+        - template: "PRCCDC Windows 10 Host"
+        - os:
+            name: "Windows 10 Enterprise"
+            version: "10"
+            family: "Windows/NT"
+        - video: yes
+    - score-bot:
+        - container:
+            name: "prccdc/score-bot"
+            tag: "0.1.2"
+    - firewall:
+        - template: "PRCCDC Firewall"
+        - os: 
+            name: "VyOS"
+            version: "1.1.7"
+            family: "Linux/Debian"
+        - video: no # SSH is used
+    - domain-controller:
+        - template: "PRCCDC Domain Controller"
+        - os:
+            name: "Windows Server 2012 R2 Datacenter"
+            version: "2012 R2"
+            distribution: "Datacenter"
+            family: "Windows/NT"
+        - video: no # RDP is used
+    - web-server:
+        - container: 
+            image: "prccdc/apache-server"
+            tag: "2.4.2"
+        - os:
+            name: "Ubuntu 14.04 LTS"
+            version: "14.04"
+            distribution: "LTS"
+            family: "Linux/Debian"
+    - database-server:
+        - container:
+            image: "prccdc/mysql-server"
+            tag: "7"
+        - os:
+            name: "Oracle SunOS 7"
+            version: "7"
+            family: "Solaris"
+    - file-server:
+        - template: "PRCCDC File Server"
+        - os:
+            name: "Windows Server 2012 R2 Core"
+            version: "2012 R2"
+            distribution: "Core"
+            family: "Windows/NT"
+        - video: no
+    - mail-server:
+        - template: "PRCCDC Mail Server"
+        - os:
+            name: "Windows Server 2003"
+            version: "2003"
+            family: "Windows/NT"
+        - video: no # RDP is used
+    - hvac-server:
+        - container:
+            name: "prccdc/hvac-server"
+            tag: "1"
+        - os:
+            name: "FreeBSD"
+            family: "BSD"
+
+    
+networks:
+    - unique-subnets:
+        - competition: "172.30.0.0/16"
+        - outside-world: "129.134.253.0/24"
+        - management: "10.10.10.0/24"
+    - generic-subnets:
+        - hosts: "10.0.0.0/24"
+    - base-subnets:
+        - services: "192.168.X.0/24" 
+
+
+exercises:
+    - external: 
+        - description: "The open competition network, where red team and the score bot sit" 
+        - instances: 1
+        - nodes:
+            - edge-router: 
+                - description: "Connection to outside internet"
+                - node: firewall
+                - networks: [outside-world, competition, management]
+            - competition-dc: 
+                - description: "Provides DNS and DHCP"
+                - node: domain-controller
+                - networks: [competition, management]
+            - score-bot: 
+                - description: "Used to score teams"
+                - node: score-bot
+                - networks: [competition, management]
+                - instances: 10 # Scorebots communicate over a back-end network to randomly select which team gets pinged from which scorebot
+    - blue-team: # Would simply need to write a script to SSH into each blue host and do basic configuration?
+        - instances: 14
+        - teams: blue-teams
+        - nodes:
+            - hosts:
+                - description: "Hosts the blue team members use to access their services"
+                - instances: "SIZE_OF_TEAM"
+                - node-pool: [host-type-a, host-type-b]
+                    pool-distributions: [0.3, 0.7] # Must add up to 1 herp derp
+                - networks: [hosts] 
+            - gateway: 
+                - description: "Gateway connecting Blue team networks to the larger competition network"
+                - node: firewall
+                - networks: [competition, hosts, services]
+            - dc: 
+                - description: "Domain Controller for Blue Team network. Runs DNS, DHCP, and Active Directory."
+                - node: domain-controller
+                - networks: [services]
+            - web:
+                - description: "Web server hosting the team's page"
+                - node: web-server
+                - networks: [services]
+                - scoring:
+                    - ports: [80, 443]
+                    - protocols: ["http", "https"]
+                    - criteria: "criteria-file"
+            - db:
+                - description: "Database"
+                - node: database-server
+                - networks: [services]
+            - mail:
+                - description: "Mail Server"
+                - node: mail-server
+                - networks: [services]
+                - scoring:
+                    - ports: [25]
+                    - protocols: ["smtp"]
+                    - criteria: "criteria-file"
+            - hvac:
+                - description: "HVAC Server"
+                - node: hvac-server
+                - networks: [services]
+                - scoring:
+                    - ports: [22]
+                    - protocols: ["ssh"]
+                    - criteria: "criteria-file"
+            - file:
+                - description: "File Server"
+                - node: file-server
+                - networks: [services]
+                - scoring:
+                    - ports: [21, 445]
+                    - protocols: ["sftp", "smb"]
+                    - criteria: "criteria-file"
+    - red-team:
+
+...

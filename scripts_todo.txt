@@ -1,3 +1,18 @@
+
+
+----
+Parser
+
+If address info is specified in network, use ipaddress library to parse and determine implicit information, such as IP version.
+
+
+
+
+
+----
+vSphere
+
+
 Power off/on all VMs in a folder, acpi shutdown, etc.
 Create/Destroy multiple instances of a VM template based on a name (e.g "SEED" name, make "SEED1", SEED2, SEED3, etc.)
 
