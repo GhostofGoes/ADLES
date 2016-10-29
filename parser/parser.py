@@ -22,12 +22,14 @@ def parse_file(filename):
 
 def main():
     """ For testing of the parser """
-
-    filename = 'test_example.yaml'
-    doc = parse_file(filename)
-
+    from pprint import pprint
+    testfile = 'test_example.yaml'
+    doc = parse_file(testfile)
     print(doc["name"])
 
+    specfile = '../specification.yaml'
+    spec = parse_file(specfile)
+    pprint(spec)
 
 if __name__ == '__main__':
     main()

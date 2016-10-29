@@ -1,6 +1,6 @@
 ---
 # Specification of syntax for files used to define a virtual environment
-# Format:       YAML 1.1 (This is due to PyYAML's support)
+# Format:       YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Version:      0.1.0
 # Changelog:    N/A until spec is stable
 # Author:       Christopher Goes
@@ -13,87 +13,115 @@
 # "Instances" is assumed to be one unless specified otherwise. They cannot be negative or zero.
 
 # *** Labels for syntactic components ***
-# Note: Children do not have to be specified if parent is not defined
-# Note: If no label is given, "Optional" is implied
-# REQUIRED      Will error upon parsing
-# Suggested     Will give a warning when parsing, but still finish the parse
+# Children do not have to be specified if parent is not defined
+# If no label is given, then context will determine label (Everything should be labeled eventually)
+#
+# REQUIRED      These must be defined. Not doing so is an parse-time error.
+# Suggested     These should be defined. Will give a warning during parsing.
 # Optional      Do not have to be specified
+# Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error.
 
 # *** Definitions ***
 # vm    Virtual Machine
 # ad    Active Directory
 
 
+# ##################################
+# ### Beginning of specification ###
 
-name: "a human-readable title for the specification" # REQUIRED
-description: "a human-readable description of specification" # Optional
-date-created: "date the specification was created" # Suggested
-version: "version of the document" # Optional
+# ** Document Metadata **
+metadata:
+  name: "a human-readable title for the specification" # REQUIRED
+  description: "a human-readable description of specification" # Suggested
+  date-created: "date the specification was created" # Suggested. Should be in UTC format. Example: YYYY-MM-DD (2016-10-12)
+  version: "version of the document" # Optional
+  course: "name of the course/class" # Optional
+  class: "same as course" # Optional
+    # If not defined, default 'infrastructure.yaml' is checked, if not found user is prompted 
+  infrastructure-file: "filename of environment infrastructure info" # Suggested
 
-# If not defined, default 'infrastructure.yaml' is checked, if not found user is prompted 
-infrastructure-file: "filename of environment infrastructure info" # Suggested
 
 
+
+# ** Groups **
 # User groups, such as teams, students, instructors, etc.
-groups: # NOTE: Can also be specified as "teams"
-	- (option A) ad-groups:  {"group-a": "RADICL Users", "group-b": "RADICL Admins"}
-	- (option B) manual-specification: {"group-a", "user-b", "user-c"}
-	- (option C) from-a-file: "filename"
+# NOTE: Can also be specified as "teams"
+# REQUIRED
+groups:
+    # Option A
+  ad-groups:  { group-a: "RADICL Users", group-b: "RADICL Admins" }
+    # Option B
+  inline: 
+  - group-a: { user-a: "password", user-b: "password" }
+    # Option C
+  file: "filename with group and user definitions"
 
 
+# ** Services **
+# Definition of services (nodes) that will be created in the enviornment, such as hosts, servers, and routers.
 # Case insensitive EXCEPT for resources, such as templates or images
 # Template configurations will be overriden if certain options are set
-# If containers are used, a GitLab server or Docker registry must be specified
+# If containers are used, a GitLab server or Docker registry MUST be specified
 # Three types of service: template, container, compose
 # Template:     Templatized VM in vSphere
 # Container:    Docker container
 # Compose:      Docker compose file
 services:
-    - service-label: 
-        - template: "name of template in vSphere"
-            video: yes/no # This will OVERRIDE template
-                accelerate: yes/no
-        - container: # THIS OR TEMPLATE
-            image: "name of the docker image"
-            tag: "tag for the image"
-        - metadata: # OPTIONAL
-            name: "name of the os"
-            version: "version of the os"
-            family: "major family os belongs to"
+- service-label:
+    type: "name of type" # REQUIRED
+    network-interfaces: [] # List of network interfaces and their optional configurations
+- metadata: # Optional
+    name: "name of the os"
+    version: "version of the os"
+    family: "major family os belongs to"
+- template-based-service:   # Option A
+    - template: "name of template in vSphere" # REQUIRED
+    - template-configurations # Optional. Configuration of Template settings specified by name. This will override the template's existing settings.
+- container-based-service:  # Option B
+    - container:                                
+        image: "name of the docker image"   # REQUIRED
+        tag: "tag for the image"            # REQUIRED
+- compose-based-service:    # Option C
+    - compose: "name of compose file"       # REQUIRED                                  
 
 
-# Lab resources that are to be utilized.
+# ** Resources **
+# Lab resources that are to be utilized. These will be attached to folders, networks, or groups as needed
 # Example: access to a specific portion of the power lab. 
 # Example: access to RADICL's  Wireless testbed
 resources:
+  resource-p:
+    lab: "power-lab"
+    resource: "transformer"
+  resource-r:
+    lab: "radicl"
+    resource: "wireless-testbed"
 
-        
+
+# ** Networks **
 # Note: distributed vSwitches are an implementation detail of system, and are not considored as part of the specification.
 # Non-Private (RFC 1918) networks will result in a warning that can be suppressed.
 # VLANs are implicitly defined?
 # Don't NEED IP addresses, just named networks. Addresses only matter if running configuration scripts or adding a pre-configured router
 # IP version is implicitly defined by address (using ipaddress module in python)
 # vSwitches are implicitly defined by networks
+# Syntax: subnet-name: "address/mask"
 networks: 
-    - unique-subnets: # Only one of each of these exists. If specified, any hosts will be added to it.
-        - (Option A) label-a: 
-            - mask: "255.255.255.0"
-            - subnet: "192.168.0.0"
-        - (Option B) label-b: "192.168.1.0/24" # Note CIDR notation
-    - generic-subnets: # Subnets that new instances are created per instance of an exercise
-    - base-subnets: # Subnets that will have any values in network portion of address with X are incremented for each instance 
-
-    - routes: # Do we want this, or just have someone make a router?
+  unique-subnets: # Only one of each of these exists. If specified, any hosts will be added to it.
+    - subnet-name: "192.168.1.0/24" # Address is optional. Subnet is specified using CIDR notation 
+  generic-subnets: # Subnets that new instances are created per instance of an exercise
+    - subnet-name: "192.168.1.0/24"
+  base-subnets: # Subnets that will have any values in network portion of address with X are incremented for each instance 
+    - subnet-name: "192.168.1.0/24"
 
 
-# Groupings of objects defined previously in file
+# ** Folders **
+# Assemblages of objects defined previously in file
 folders:
-    - folder-a:
-        - services:
-            - service-instance-label: 
-                - service: service-label # Defined in services
-                - instances: 2 # Number of instances 
-                - networks: ["subnet-a", "subnet-b"]
-
-
-…
+  folder-a:
+    services: # REQUIRED
+      service-instance-label: 
+        service: service-label # Defined in services
+        instances: 2 # Number of instances 
+        networks: ["subnet-a", "subnet-b"]
+...
