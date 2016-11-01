@@ -122,11 +122,11 @@ resources:
 # Syntax: subnet-name: "address/mask"
 networks: 
   unique-subnets: # Only one of each of these exists. If specified, any hosts will be added to it.
-    - subnet-name: "192.168.1.0/24" # Address is optional. Subnet is specified using CIDR notation 
+    subnet-name: "192.168.1.0/24" # Address is optional. Subnet is specified using CIDR notation 
   generic-subnets: # Subnets that new instances are created per instance of an exercise
-    - subnet-name: "192.168.1.0/24"
+    subnet-name: "192.168.1.0/24"
   base-subnets: # Subnets that will have any values in network portion of address with X are incremented for each instance 
-    - subnet-name: "192.168.1.0/24"
+    subnet-name: "192.168.1.0/24"
 
 
 
