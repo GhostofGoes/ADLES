@@ -1,8 +1,192 @@
 ---
-name: "PRCCDC 2016 Competition Scenario definition"
-version: "0.2.0"
+
+metadata:
+  name: "PRCCDC 2016 Competition Scenario definition"
+  description: "The competition scenario environment that students will use to compete"
+  date-created: "2016-11-01"
+  version: "0.2.0"
+  infrastructure-file: "radicl.yaml"
+
+teams:
+  Blue Team X:
+    type: template
+    copies: 10
+    filename: "blue-team-X.json"
+  Red Team:
+    type: regular
+    ad-group: "Red Team"
+
+services:
+  - host-type-a:
+      template: "PRCCDC Windows 7 Host"
+      os:
+        name: "Windows 7 Enterprise"
+        version: "7601"
+        family: "Windows/NT"
+  - host-type-b:
+      template: "PRCCDC Windows 10 Host"
+      os:
+        name: "Windows 10 Enterprise"
+        version: "10"
+        family: "Windows/NT"
+  - score-bot:
+      container:
+        image: "prccdc/score-bot"
+        tag: "0.1.2"
+  - firewall:
+      template: "PRCCDC Firewall"
+      template-config:
+        video: no
+      os:
+        name: "VyOS"
+        version: "1.1.7"
+        family: "Linux/Debian"
+  - domain-controller:
+      template: "PRCCDC Domain Controller"
+      template-config:
+        video: no # RDP is used
+      os:
+        name: "Windows Server 2012 R2 Datacenter"
+        version: "2012 R2"
+        distribution: "Datacenter"
+        family: "Windows/NT"
+  - web-server:
+      container: 
+        image: "prccdc/apache-server"
+        tag: "2.4.2"
+      os:
+        name: "Ubuntu 14.04 LTS"
+        version: "14.04"
+        distribution: "LTS"
+        family: "Linux/Debian"
+  - database-server:
+      container:
+        image: "prccdc/mysql-server"
+        tag: "7"
+      os:
+        name: "Oracle SunOS 7"
+        version: "7"
+        family: "Solaris"
+  - file-server:
+      template: "PRCCDC File Server"
+      template-config:
+        video: no
+      os:
+        name: "Windows Server 2012 R2 Core"
+        version: "2012 R2"
+        distribution: "Core"
+        family: "Windows/NT"
+  - mail-server:
+      template: "PRCCDC Mail Server"
+      template-config:
+        video: no # RDP is used
+      os:
+        name: "Windows Server 2003"
+        version: "2003"
+        family: "Windows/NT"
+  - hvac-server:
+      container:
+        name: "prccdc/hvac-server"
+        tag: "1"
+      os:
+        name: "FreeBSD"
+        family: "BSD"
 
 
+networks:
+  unique-subnets:
+    competition: "172.30.0.0/16"
+    outside-world: "129.134.253.0/24"
+    management: "10.10.10.0/24"
+  generic-subnets:
+    hosts: "10.0.0.0/24"
+  base-subnets:
+    services: "192.168.X.0/24" 
 
 
+folders:
+  external: 
+    description: "The open competition network, where red team and the score bot sit" 
+    services:
+      edge-router: 
+        description: "Connection to outside internet"
+        service: firewall
+        networks: [outside-world, competition, management]
+      competition-dc: 
+        description: "Provides DNS and DHCP"
+        service: domain-controller
+        networks: [competition, management]
+      # Scorebots communicate over a back-end network to randomly select which team gets pinged from which scorebot
+      score-bot:  
+        description: "Used to score teams"
+        service: score-bot
+        networks: [competition, management]
+        instances: 10
+
+  blue-team:
+    instances: 14
+    teams: Blue Team X
+    services:
+      hosts:
+        description: "Hosts the blue team members use to access their services"
+        instances: 8 # Number of users on blue team
+        service-pool: [host-type-a, host-type-b]
+          pool-distributions: [0.3, 0.7] # Must add up to 1
+        networks: [hosts] 
+      gateway: 
+        description: "Gateway connecting Blue team networks to the larger competition network"
+        service: firewall
+        networks: [competition, hosts, services]
+      dc: 
+        description: "Domain Controller for Blue Team network. Runs DNS, DHCP, and Active Directory."
+        service: domain-controller
+        networks: [services]
+      web:
+        description: "Web server hosting the team's page"
+        service: web-server
+        networks: [services]
+        scoring:
+          ports: [80, 443]
+          protocols: ["http", "https"]
+          criteria: "criteria-file"
+      db:
+        description: "Database"
+        service: database-server
+        networks: [services]
+      mail:
+        description: "Mail Server"
+        service: mail-server
+        networks: [services]
+        scoring:
+          ports: [25]
+          protocols: ["smtp"]
+          criteria: "criteria-file"
+      hvac:
+        description: "HVAC Server"
+        service: hvac-server
+        networks: [services]
+        scoring:
+          ports: [22]
+          protocols: ["ssh"]
+          criteria: "criteria-file"
+      file:
+        description: "File Server"
+        service: file-server
+        networks: [services]
+        scoring:
+          ports: [21, 445]
+          protocols: ["sftp", "smb"]
+          criteria: "criteria-file"
+
+  red-team:
+    teams: Red Team
+    services:
+      windows-hosts:
+        description: "Hosts used by Red Team to attack blue teams"
+        service: host-type-b
+        networks: [competition]
+
+
+      
+      
 ...

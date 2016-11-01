@@ -33,28 +33,37 @@
 metadata:
   name: "a human-readable title for the specification" # REQUIRED
   description: "a human-readable description of specification" # Suggested
-  date-created: "date the specification was created" # Suggested. Should be in UTC format. Example: YYYY-MM-DD (2016-10-12)
+  date-created: "date the specification was created" # Suggested. UTC format: YYYY-MM-DD (2016-10-12)
   version: "version of the document" # Optional
   course: "name of the course/class" # Optional
   class: "same as course" # Optional
-    # If not defined, default 'infrastructure.yaml' is checked, if not found user is prompted 
+
+  # If not defined, default 'infrastructure.yaml' is checked, if not found user is prompted 
   infrastructure-file: "filename of environment infrastructure info" # Suggested
 
 
 
-
-# ** Groups **
+# ** Groups/Teams **
 # User groups, such as teams, students, instructors, etc.
-# NOTE: Can also be specified as "teams"
-# REQUIRED
+# These are used to apply permissions to the resources and machines in the generated virtual environment.
+# Can also be specified as "teams"
 groups:
-    # Option A
-  ad-groups:  { group-a: "RADICL Users", group-b: "RADICL Admins" }
-    # Option B
-  inline: 
-  - group-a: { user-a: "password", user-b: "password" }
-    # Option C
-  file: "filename with group and user definitions"
+  Group Regular Example:
+    # The three different methods of specifying users for a regular group
+    ad-group: "RADICL Users"
+    filename: "users.json"
+    usernames: [ "user A", "user B" ]
+
+  # For creating batch groups from a common template base, the "template" type can be used
+  # Templates use the key letter 'X' to define unique copies of the base
+  Group Template Example X: # Note the capital X
+    # If copies is specified, the group is assumed to be a template
+    copies: 10  # Number of groups created from this template
+
+    # The two differnt methods of specifying users for a template group
+    ad-group: "Group X"
+    filename: "users-X.json"
+
 
 
 # ** Services **
@@ -66,23 +75,25 @@ groups:
 # Template:     Templatized VM in vSphere
 # Container:    Docker container
 # Compose:      Docker compose file
+#
+# network-interfaces: List of network interfaces and their optional configurations
 services:
-- service-label:
-    type: "name of type" # REQUIRED
-    network-interfaces: [] # List of network interfaces and their optional configurations
-- metadata: # Optional
-    name: "name of the os"
-    version: "version of the os"
-    family: "major family os belongs to"
-- template-based-service:   # Option A
-    - template: "name of template in vSphere" # REQUIRED
-    - template-configurations # Optional. Configuration of Template settings specified by name. This will override the template's existing settings.
-- container-based-service:  # Option B
-    - container:                                
-        image: "name of the docker image"   # REQUIRED
-        tag: "tag for the image"            # REQUIRED
-- compose-based-service:    # Option C
-    - compose: "name of compose file"       # REQUIRED                                  
+  all-service-types:
+    network-interfaces: [] # REQUIRED  
+    os: # Optional
+      name: "name of the os"
+      version: "version of the os"
+      family: "major family os belongs to"
+  template-based-service:   # Option A
+    template: "name of template in vSphere" # REQUIRED
+    template-config: [] # Optional. Configuration of Template settings specified by name. This will override the template's existing settings.
+  container-based-service:  # Option B
+    container:
+      image: "name of the docker image"   # REQUIRED
+      tag: "tag for the image"            # REQUIRED
+  compose-based-service:    # Option C
+    compose: "name of compose file"       # REQUIRED                                  
+
 
 
 # ** Resources **
@@ -96,6 +107,9 @@ resources:
   resource-r:
     lab: "radicl"
     resource: "wireless-testbed"
+
+# TODO: monitoring capability specification
+#     need ability to specify data sink(s) and annotate nodes as data sources (e.g we put a tap on this network)
 
 
 # ** Networks **
@@ -115,6 +129,7 @@ networks:
     - subnet-name: "192.168.1.0/24"
 
 
+
 # ** Folders **
 # Assemblages of objects defined previously in file
 folders:
@@ -124,4 +139,6 @@ folders:
         service: service-label # Defined in services
         instances: 2 # Number of instances 
         networks: ["subnet-a", "subnet-b"]
+  folder-b:
+    instances: 10 # if instances is specified, this is a template
 ...
