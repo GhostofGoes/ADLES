@@ -30,9 +30,8 @@ services:
         version: "10"
         family: "Windows/NT"
   - score-bot:
-      container:
-        image: "prccdc/score-bot"
-        tag: "0.1.2"
+      image: "prccdc/score-bot"
+       tag: "0.1.2"
   - firewall:
       template: "PRCCDC Firewall"
       template-config:
@@ -51,18 +50,16 @@ services:
         distribution: "Datacenter"
         family: "Windows/NT"
   - web-server:
-      container: 
-        image: "prccdc/apache-server"
-        tag: "2.4.2"
+      image: "prccdc/apache-server"
+      tag: "2.4.2"
       os:
         name: "Ubuntu 14.04 LTS"
         version: "14.04"
         distribution: "LTS"
         family: "Linux/Debian"
   - database-server:
-      container:
-        image: "prccdc/mysql-server"
-        tag: "7"
+      image: "prccdc/mysql-server"
+      tag: "7"
       os:
         name: "Oracle SunOS 7"
         version: "7"
@@ -85,9 +82,8 @@ services:
         version: "2003"
         family: "Windows/NT"
   - hvac-server:
-      container:
-        name: "prccdc/hvac-server"
-        tag: "1"
+      name: "prccdc/hvac-server"
+      tag: "1"
       os:
         name: "FreeBSD"
         family: "BSD"

@@ -47,6 +47,7 @@ metadata:
 # User groups, such as teams, students, instructors, etc.
 # These are used to apply permissions to the resources and machines in the generated virtual environment.
 # Can also be specified as "teams"
+# TODO: how do we map users in groups to VMs?
 groups:
   Group Regular Example:
     # The three different methods of specifying users for a regular group
@@ -88,11 +89,10 @@ services:
     template: "name of template in vSphere" # REQUIRED
     template-config: [] # Optional. Configuration of Template settings specified by name. This will override the template's existing settings.
   container-based-service:  # Option B
-    container:
-      image: "name of the docker image"   # REQUIRED
-      tag: "tag for the image"            # REQUIRED
+    image: "name of the docker image"   # REQUIRED
+    tag: "tag for the image"            # OPTIONAL [if not specified, "default" is used]
   compose-based-service:    # Option C
-    compose: "name of compose file"       # REQUIRED                                  
+    compose-file: "name of compose file"       # REQUIRED                                  
 
 
 
