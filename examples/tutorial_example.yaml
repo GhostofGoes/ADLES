@@ -1,28 +1,48 @@
 ---
 
 metadata:
-    name: "CS 439 Tutorial 3 - ARP Cache Poisoning"
-    description: "Environment for the ARP Cache Poisoning Tutorial for CS 439" 
-    date-created: "201:6-11-06"
-    course: "CS 439"
+  name: "CS 439 Tutorial 3 - ARP Cache Poisoning"
+  description: "Environment for the ARP Cache Poisoning Tutorial for CS 439" 
+  date-created: "201:6-11-06"
+  course: "CS 439"
 
 groups:
-    Students:
-        ad-group: "RADICL Students"
-    Instructors:
-        filename: "tut3_instructors.json"
+  Students:
+    ad-group: "CS 439 Students"
+  Instructors:
+    filename: "tut3_instructors.json"
 
 services:
-    windows:
-        template: "Windows 7 Enterprise Fully Patched"
-        network-interfaces: ["ARP-LAN"]
-    kalibox:
-        template: "ARP Kalibox"
-        network-interfaces: ["ARP-LAN"]
-    server:
-        image: "arp-poisoning-server"
-        network-interfaces: ["ARP-LAN"]
-    router:
-        template: "VyOS 1.1.7"
-        network-interfaces: ["ARP-LAN"]
+  windows:
+    template: "Windows 7 Enterprise Fully Patched"
+  kalibox:
+    template: "ARP Kalibox"
+  server:
+    image: "arp-poisoning-server"
+  router:
+    template: "VyOS 1.1.7"
+
+networks:
+  generic-subnets:
+    ARP-LAN: "192.168.1.0/24"
+
+folders:
+  exercise:
+    group: Students
+    instances: len(Students)
+    services:
+      host:
+        service: windows
+        networks: ["ARP-LAN"]
+      attacker:
+        service: kalibox
+        networks: ["ARP-LAN"]
+      server:
+        service: server
+        networks: ["ARP-LAN"]
+      router:
+        service: router
+        networks: ["ARP-LAN"]
+        
+            
 ...

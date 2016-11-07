@@ -78,9 +78,11 @@ groups:
 # Compose:      Docker compose file
 #
 # network-interfaces: List of network interfaces and their optional configurations
+# Networks are attached to interfaces in order of their definition, unless explicitly mapped
+# TODO: monitoring + management interface configurations
 services:
   all-service-types:
-    network-interfaces: [] # REQUIRED  
+    network-interfaces: [] # OPTIONAL [default: template or container specific]  
     os: # Optional
       name: "name of the os"
       version: "version of the os"
@@ -89,10 +91,10 @@ services:
     template: "name of template in vSphere" # REQUIRED
     template-config: [] # Optional. Configuration of Template settings specified by name. This will override the template's existing settings.
   container-based-service:  # Option B
-    image: "name of the docker image"   # REQUIRED
-    tag: "tag for the image"            # OPTIONAL [if not specified, "default" is used]
+    image: "name of the docker image"    # REQUIRED
+    tag: "tag for the image"             # OPTIONAL [if not specified, "default" is used]
   compose-based-service:    # Option C
-    compose-file: "name of compose file"       # REQUIRED                                  
+    compose-file: "name of compose file" # REQUIRED                                  
 
 
 
@@ -136,9 +138,10 @@ folders:
   folder-a:
     services: # REQUIRED
       service-instance-label: 
-        service: service-label # Defined in services
-        instances: 2 # Number of instances 
+        service: service-label # As defined in services
+        instances: 2 # OPTONAL [default: 1]
         networks: ["subnet-a", "subnet-b"]
+    group: group # REQUIRED (can also be "team")
   folder-b:
     instances: 10 # if instances is specified, this is a template
 ...
