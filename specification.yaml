@@ -39,7 +39,8 @@ metadata:
   class: "same as course" # Optional
 
   # If not defined, default 'infrastructure.yaml' is checked, if not found user is prompted 
-  infrastructure-file: "filename of environment infrastructure info" # Suggested
+  # TODO: define syntax of this file
+  infrastructure-config-file: "filename of environment infrastructure info" # Suggested
 
 
 
@@ -58,8 +59,8 @@ groups:
   # For creating batch groups from a common template base, the "template" type can be used
   # Templates use the key letter 'X' to define unique copies of the base
   Group Template Example X: # Note the capital X
-    # If copies is specified, the group is assumed to be a template
-    copies: 10  # Number of groups created from this template
+    # If instances is specified, the group is assumed to be a template
+    instances: 10  # Number of groups created from this template
 
     # The two differnt methods of specifying users for a template group
     ad-group: "Group X"
@@ -71,7 +72,7 @@ groups:
 # Definition of services (nodes) that will be created in the enviornment, such as hosts, servers, and routers.
 # Case insensitive EXCEPT for resources, such as templates or images
 # Template configurations will be overriden if certain options are set
-# If containers are used, a GitLab server or Docker registry MUST be specified
+# If containers are used, a GitLab server or Docker registry MUST be specified (TODO: where?)
 # Three types of service: template, container, compose
 # Template:     Templatized VM in vSphere
 # Container:    Docker container
@@ -102,6 +103,7 @@ services:
 # Lab resources that are to be utilized. These will be attached to folders, networks, or groups as needed
 # Example: access to a specific portion of the power lab. 
 # Example: access to RADICL's  Wireless testbed
+# TODO: define better
 resources:
   resource-p:
     lab: "power-lab"
@@ -112,6 +114,8 @@ resources:
 
 # TODO: monitoring capability specification
 #     need ability to specify data sink(s) and annotate nodes as data sources (e.g we put a tap on this network)
+# TODO: Default server for saves?
+# TODO: Specify network interfaces and hosts that monitoring data will be collected from
 
 
 # ** Networks **
@@ -122,6 +126,8 @@ resources:
 # IP version is implicitly defined by address (using ipaddress module in python)
 # vSwitches are implicitly defined by networks
 # Syntax: subnet-name: "address/mask"
+# TODO: monitoring annotations
+# TODO: managment/admin networks?
 networks: 
   unique-subnets: # Only one of each of these exists. If specified, any hosts will be added to it.
     subnet-name: "192.168.1.0/24" # Address is optional. Subnet is specified using CIDR notation 
@@ -134,6 +140,7 @@ networks:
 
 # ** Folders **
 # Assemblages of objects defined previously in file
+# TODO: pool distributions
 folders:
   folder-a:
     services: # REQUIRED
@@ -144,4 +151,5 @@ folders:
     group: group # REQUIRED (can also be "team")
   folder-b:
     instances: 10 # if instances is specified, this is a template
+
 ...

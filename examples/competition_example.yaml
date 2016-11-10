@@ -122,18 +122,20 @@ folders:
   blue-team:
     instances: 14
     teams: Blue Team X
-    services:
-      hosts:
+      service-set:
+        name: team-member-host X
         description: "Hosts the blue team members use to access their services"
         instances: 8 # Number of users on blue team
         service-pool: [host-type-a, host-type-b]
           pool-distributions: [0.3, 0.7] # Must add up to 1
         networks: [hosts] 
-      gateway: 
+      service:
+        name: gateway
         description: "Gateway connecting Blue team networks to the larger competition network"
         service: firewall
         networks: [competition, hosts, services]
-      dc: 
+      service: 
+        name: dc 
         description: "Domain Controller for Blue Team network. Runs DNS, DHCP, and Active Directory."
         service: domain-controller
         networks: [services]
