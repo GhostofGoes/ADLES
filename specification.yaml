@@ -25,6 +25,7 @@
 # vm    Virtual Machine
 # ad    Active Directory
 
+# TODO: "enabled" flags to easily toggle sections on and off without having to comment out
 
 # ##################################
 # ### Beginning of specification ###
