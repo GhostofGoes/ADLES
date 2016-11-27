@@ -1,10 +1,12 @@
 ---
 # Specification of syntax for files used to define a virtual environment
-# Format:       YAML 1.1 (See: http://yaml.org/spec/1.1/)
-# Version:      0.1.0
-# Changelog:    N/A until spec is stable
-# Author:       Christopher Goes
-# Date:         October 12th, 2016
+# Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
+# Author:           Christopher Goes
+# Creation Date:    October 12th, 2016
+# Current Version:  0.2.0
+# Changelog:
+#   0.1.0: Created
+#   0.2.0: Substantial changes
 
 # Syntax inspirations: 
 #   https://docs.docker.com/compose/compose-file/
