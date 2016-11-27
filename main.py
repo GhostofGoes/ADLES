@@ -6,17 +6,16 @@
 """main
 
 Usage:
-    main.py --environment FILE --logins FILE --exercise FILE [Options]
-    main.py --interactive
+    main.py --environment FILE --logins FILE --exercise FILE
+    main.py --interactive --exercise FILE
     main.py --package-dir
-    main.py [Options]
     main.py --version
     main.py (-h | --help)
 
 Options:
     -h, --help          Shows this help
     --version           Prints current version
-    --interactive       Interactive input of needed information
+    --interactive       Interactive input of login information
     --environment FILE  YAML file with environment confirmation information [default: environment.yaml]
     --logins FILE       JSON file with login information for the environment [default: logins.json]
     --exercise FILE     YAML file with the exercise specification [default: exercise.yaml]
@@ -40,6 +39,7 @@ __email__   = "<cgoes@uidaho.edu>"
 logger = logging.getLogger(__name__)
 
 
+# TODO: Make a class?
 # NOTE: currently this is built around vSphere, using vCenter server and ESXi 6.0 U2
 def main():
 
@@ -48,13 +48,24 @@ def main():
         port = input("Port of vCenter server: ")
         user = input("Username to login with: ")
         pswd = getpass("Password to login with: ")
-        server = SmartConnect(host, port, user, pswd)
+    # elif args["--package-dir"]:  # TODO: implement this when we functionalize the parsing
+    # TODO: package structure
     else:
-        from json import dump
+        # TODO: all of this will change to a generic parsing later, handled by function(s)/class(s)
+        from json import load
         # TODO: login file definition
-        server = SmartConnect(args["--host"], args["--port"], args["--user"], args["--password"])
+        with open(args["--logins"], "r") as login_file:
+            logins = load(login_file)
+        user = logins["user"]
+        pswd = logins["password"]
+        # TODO: environment file definition
+        environment = parse_file(args["--environment"])  # We assume environment file is there
+        host = environment["hostname"]
+        port = environment["port"]
 
-    atexit.register(Disconnect, server)
+    server = SmartConnect(host, port, user, pswd)  # Create connection to vSphere
+    atexit.register(Disconnect, server)  # Ensure vSphere connection is severed upon application exit
+    exercise = parse_file(args["--exercise"])
 
 
 if __name__ == '__main__':
