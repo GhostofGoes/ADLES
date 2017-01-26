@@ -63,6 +63,7 @@ def main():
         host = environment["hostname"]
         port = environment["port"]
 
+    # TODO: wrapper to append SAML token if we use automation SDK
     server = SmartConnect(host, port, user, pswd)  # Create connection to vSphere
     atexit.register(Disconnect, server)  # Ensure vSphere connection is severed upon application exit
     exercise = parse_file(args["--exercise"])
