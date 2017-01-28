@@ -37,6 +37,39 @@ class vSphere:
         """ Power on, Power off, ACPI shutdown, Reset """
         pass
 
+    # From: add_nic_to_vm.py in pyvmomi-community-samples
+    def add_nic_to_vm(self, vm, port_group, summary='default'):
+        """ Add a NIC in the specified portgroup to the specified VM.
+        :param vm: Virtual Machine Object
+        :param port_group: Virtual Port Group
+        :param summary: Device Info summary string
+        """
+        nic_spec = vim.vm.device.VirtualDeviceSpec()
+        nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
+
+        nic_spec.device = vim.vm.device.VirtualE1000()
+
+        nic_spec.device.deviceInfo = vim.Description()
+        nic_spec.device.deviceInfo.summary = summary
+
+        nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
+        nic_spec.device.backing.useAutoDetect = False
+        content = self.server.RetrieveContent()
+        nic_spec.device.backing.network = get_obj(content, [vim.Network], port_group)
+        nic_spec.device.backing.deviceName = port_group
+
+        nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
+        nic_spec.device.connectable.startConnected = True
+        nic_spec.device.connectable.allowGuestControl = True
+        nic_spec.device.connectable.connected = False
+        nic_spec.device.connectable.status = 'untried'
+        nic_spec.device.addressType = 'assigned'
+
+        spec = vim.vm.ConfigSpec()
+        spec.deviceChange = [nic_spec]
+        vm.ReconfigVM_Task(spec=spec)
+
+
 
 # Helper functions
 # TODO: doctest
