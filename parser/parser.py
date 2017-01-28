@@ -4,7 +4,11 @@
 
 # Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
 def parse_file(filename):
-    # TODO: doctest
+    """
+    Parses the YAML file and returns a nested dictionary containing it's contents.
+    :param filename:
+    :return:
+    """
     import yaml
     with open(filename, 'r') as f:
         try:

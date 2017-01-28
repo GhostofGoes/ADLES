@@ -9,6 +9,7 @@ from pyVmomi import vim
 
 
 class vSphere:
+    """ Maintains connection, logging, and constants for a vSphere instance """
     def __init__(self, user, password, host, port=443):
         self._log = logging.getLogger(__name__)
         if not password:
@@ -22,7 +23,12 @@ class vSphere:
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
     def create_folder(self, folder, datacenter):
-        """ Creates a VM folder in a datacenter """
+        """
+        Creates a VM folder in a datacenter
+        :param folder:
+        :param datacenter:
+        :return:
+        """
         content = self.server.RetrieveContent()
         dc = get_obj(content, [vim.Datacenter], datacenter)
         if get_obj(content, [vim.Folder], folder):
@@ -34,12 +40,18 @@ class vSphere:
         pass
 
     def change_vm_power_state(self, vm, power_state):
-        """ Power on, Power off, ACPI shutdown, Reset """
+        """
+        Power on, Power off, ACPI shutdown, Reset
+        :param vm:
+        :param power_state:
+        :return:
+        """
         pass
 
     # From: add_nic_to_vm.py in pyvmomi-community-samples
     def add_nic_to_vm(self, vm, port_group, summary='default'):
-        """ Add a NIC in the specified portgroup to the specified VM.
+        """
+        Add a NIC in the specified portgroup to the specified VM.
         :param vm: Virtual Machine Object
         :param port_group: Virtual Port Group
         :param summary: Device Info summary string
@@ -70,10 +82,15 @@ class vSphere:
         vm.ReconfigVM_Task(spec=spec)
 
 
-
 # Helper functions
-# TODO: doctest
 def get_obj(content, vimtype, name):
+    """
+    Finds and returns named object of specified type
+    :param content:
+    :param vimtype:
+    :param name:
+    :return:
+    """
     obj = None
     container = content.viewManager.CreateContainerView(
         content.rootFolder, vimtype, True)
