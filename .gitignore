@@ -1,7 +1,12 @@
+# PyCharm Project files
 .idea/*
+.idea
+.idea/
+
+# Ignore files with login information...for obvious reasons
 logins.json
 */logins.json
-.idea
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
