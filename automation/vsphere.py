@@ -30,18 +30,6 @@ class vSphere:
         else:
             dc.vmFolder.CreateFolder(folder)
 
-    def clone_vm(self, vm, clone_name):
-        pass
-
-    def create_vm_from_template(self):
-        pass
-
-    def destroy_vm(self, vm):
-        pass
-
-    def move_vm(self, vm, dest_folder):
-        pass
-
     def convert_vm_to_template(self, vm, template_name):
         pass
 
@@ -49,26 +37,9 @@ class vSphere:
         """ Power on, Power off, ACPI shutdown, Reset """
         pass
 
-    def add_device_to_vm(self, vm, device_spec):
-        pass
-
-    def remove_device_from_vm(self, vm, device):
-        pass
-
-    def modify_device(self, vm, device_name):
-        pass
-
-    def create_network(self, name, type):
-        pass
-
-    def destroy_network(self, name, type):
-        pass
-
-    def modify_network(self, name, type, modification):
-        pass
-
 
 # Helper functions
+# TODO: doctest
 def get_obj(content, vimtype, name):
     obj = None
     container = content.viewManager.CreateContainerView(

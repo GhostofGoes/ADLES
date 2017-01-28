@@ -20,25 +20,19 @@ See specification.yaml for the exercise YAML 1.1 specification.
 
 # System Requirements
 
-* Python 3.5 (for now)
+## Local system
+* Python 3.6
 * Windows 10
-* vSphere 6
-* ESXi 6
+
+## Platform
+* vSphere >= 6.0
+* ESXi >= 6.0 U2
 
 ### Notes
 * Python packages needed are in requirements.txt
 * Should work on any modern Windows (Vista+) and most other platforms
 * May work under Python 2.7, may need to modify a few things, and may lose a few nice things
 * Will update this when tested elsewhere
-
-### Tested
-* Python
-    * 3.5.2
-* OS
-    * Windows 10 x64 Anniversary
-* Platform
-    * ESXi 6 U2
-    * vSphere 6
     
 
 # Licensing

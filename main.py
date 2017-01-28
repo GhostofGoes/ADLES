@@ -25,11 +25,9 @@ Options:
 
 from docopt import docopt
 from getpass import getpass
-import atexit
-from pyVim.connect import SmartConnect, Disconnect
 import logging
 
-from automation import vsphere
+from automation.vsphere import vSphere
 from parser.parser import parse_file
 
 __version__ = "0.1.0"
@@ -63,10 +61,7 @@ def main():
         host = environment["hostname"]
         port = environment["port"]
 
-    # TODO: wrapper to append SAML token if we use automation SDK
-    server = SmartConnect(host, port, user, pswd)  # Create connection to vSphere
-    atexit.register(Disconnect, server)  # Ensure vSphere connection is severed upon application exit
-    exercise = parse_file(args["--exercise"])
+    server = vSphere(user=user, password=pswd, host=host, port=port)
 
 
 if __name__ == '__main__':

@@ -2,18 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-class Exercise:
-    pass
-
-
-class Environment:
-    pass
-
-
-class Monitoring:
-    pass
-
-
 # Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
 def parse_file(filename):
     # TODO: doctest
