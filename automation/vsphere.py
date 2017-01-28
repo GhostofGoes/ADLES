@@ -103,7 +103,7 @@ def get_obj(content, vimtype, name):
 
 def main():
     """ For testing of vSphere """
-    from json import dump
+    from json import load
     from os import pardir, path
     # from pyVim.connect import SmartConnect, Disconnect
     # from atexit import register
@@ -111,7 +111,7 @@ def main():
     logging.basicConfig(filename='vsphere_testing.log', filemode='w', level=logging.DEBUG)
 
     with open(path.join(pardir, "logins.json"), "r") as login_file:
-        logins = dump(fp=login_file)["vsphere"]
+        logins = load(fp=login_file)["vsphere"]
 
     server = vSphere(logins["user"], logins["pass"], logins["host"], logins["port"])
     # server = SmartConnect(logins["host"], logins["port"], logins["user"], logins["pass"])

@@ -1,6 +1,4 @@
 # PyCharm Project files
-.idea/*
-.idea
 .idea/
 
 # Ignore files with login information...for obvious reasons
