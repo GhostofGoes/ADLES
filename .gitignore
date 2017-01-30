@@ -3,7 +3,7 @@
 
 # Ignore files with login information...for obvious reasons
 logins.json
-*/logins.json
+/logins.json
 
 
 # Byte-compiled / optimized / DLL files

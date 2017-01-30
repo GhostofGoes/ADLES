@@ -22,19 +22,22 @@ class vSphere:
         register(Disconnect, self.server)
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
-    def create_folder(self, folder, datacenter):
+    def create_folder(self, folder_name, datacenter, create_in):
         """
         Creates a VM folder in a datacenter
-        :param folder:
-        :param datacenter:
+        :param folder_name: Name of folder to create
+        :param datacenter: Name of datacenter where folder should be created
+        :param create_in: Name of folder where new folder should be created
         :return:
         """
         content = self.server.RetrieveContent()
-        dc = get_obj(content, [vim.Datacenter], datacenter)
-        if get_obj(content, [vim.Folder], folder):
-            self._log.warning("Folder '%s' already exists" % folder)
+        if get_obj(content, [vim.Folder], folder_name): # TODO: this checks at vCenter level and not DC level?
+            self._log.warning("Folder '%s' already exists" % folder_name)
         else:
-            dc.vmFolder.CreateFolder(folder)
+            dc = get_obj(content, [vim.Datacenter], datacenter)
+            # dc.vmFolder.CreateFolder(folder)
+            parent = get_obj(dc.vmFolder.childEntity, [vim.Folder], create_in)
+            parent.CreateFolder(folder_name)
 
     def convert_vm_to_template(self, vm, template_name):
         pass
@@ -114,8 +117,7 @@ def main():
         logins = load(fp=login_file)["vsphere"]
 
     server = vSphere(logins["user"], logins["pass"], logins["host"], logins["port"])
-    # server = SmartConnect(logins["host"], logins["port"], logins["user"], logins["pass"])
-    # register(Disconnect, server)
+    server.create_folder("testing", "r620", "script_testing")
 
 
 if __name__ == '__main__':
