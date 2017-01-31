@@ -15,28 +15,27 @@ class vSphere:
         if not password:
             from getpass import getpass
             password = getpass(prompt='Enter password for host %s and user %s: ' % (host, user))
-        self.server = SmartConnect(host=host, user=user, pwd=password, port=int(port))
+        self.server = SmartConnect(host=host, user=user, pwd=password, port=int(port))  # Connect to server
         if not self.server:
             print("Could not connect to the specified host using specified username and password")
             raise Exception()
-        register(Disconnect, self.server)
+        register(Disconnect, self.server)  # Ensures connection to server is closed upon script termination
+
+        self.content = self.server.RetrieveContent()
+        self.children = self.content.rootFolder.childEntity
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
-    def create_folder(self, folder_name, datacenter, create_in):
+    def create_folder(self, folder_name, create_in):
         """
         Creates a VM folder in a datacenter
         :param folder_name: Name of folder to create
-        :param datacenter: Name of datacenter where folder should be created
         :param create_in: Name of folder where new folder should be created
         :return:
         """
-        content = self.server.RetrieveContent()
-        if get_obj(content, [vim.Folder], folder_name): # TODO: this checks at vCenter level and not DC level?
+        if get_obj(self.content, [vim.Folder], folder_name):
             self._log.warning("Folder '%s' already exists" % folder_name)
         else:
-            dc = get_obj(content, [vim.Datacenter], datacenter)
-            # dc.vmFolder.CreateFolder(folder)
-            parent = get_obj(dc.vmFolder.childEntity, [vim.Folder], create_in)
+            parent = get_obj(self.content, [vim.Folder], create_in)
             parent.CreateFolder(folder_name)
 
     def convert_vm_to_template(self, vm, template_name):
@@ -84,11 +83,27 @@ class vSphere:
         spec.deviceChange = [nic_spec]
         vm.ReconfigVM_Task(spec=spec)
 
+    def get_folder(self, folder_name):
+        """
+        Finds and returns the named folder
+        :param folder_name:
+        :return:
+        """
+        return get_obj(self.content, [vim.Folder], folder_name)
+
+    def get_vm(self, vm_name):
+        """
+        Finds and returns the named VM
+        :param vm_name:
+        :return:
+        """
+        return get_obj(self.content, [vim.VirtualMachine], vm_name)
+
 
 # Helper functions
 def get_obj(content, vimtype, name):
     """
-    Finds and returns named object of specified type
+    Recursively finds and returns named object of specified type
     :param content:
     :param vimtype:
     :param name:
@@ -108,8 +123,6 @@ def main():
     """ For testing of vSphere """
     from json import load
     from os import pardir, path
-    # from pyVim.connect import SmartConnect, Disconnect
-    # from atexit import register
 
     logging.basicConfig(filename='vsphere_testing.log', filemode='w', level=logging.DEBUG)
 
@@ -117,8 +130,16 @@ def main():
         logins = load(fp=login_file)["vsphere"]
 
     server = vSphere(logins["user"], logins["pass"], logins["host"], logins["port"])
-    server.create_folder("testing", "r620", "script_testing")
 
+    # content = server.server.RetrieveContent()
+    # dc = get_obj(content, [vim.Datacenter], "r620")
+    # f = get_obj(server.content, [vim.Folder], "script_testing")
+    # print(f.name)
+    # f.CreateFolder("lol!")
+    # server.create_folder("testing 1 2 3", "lol!")
+    vm = server.get_vm("dummy")
+    print(vm.name)
+    print(vm.summary)
 
 if __name__ == '__main__':
     main()
