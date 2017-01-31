@@ -7,6 +7,8 @@ from atexit import register
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
+from automation.vsphere_utils import *
+
 
 class vSphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
@@ -100,25 +102,6 @@ class vSphere:
         return get_obj(self.content, [vim.VirtualMachine], vm_name)
 
 
-# Helper functions
-def get_obj(content, vimtype, name):
-    """
-    Recursively finds and returns named object of specified type
-    :param content:
-    :param vimtype:
-    :param name:
-    :return:
-    """
-    obj = None
-    container = content.viewManager.CreateContainerView(
-        content.rootFolder, vimtype, True)
-    for c in container.view:
-        if c.name == name:
-            obj = c
-            break
-    return obj
-
-
 def main():
     """ For testing of vSphere """
     from json import load
@@ -138,8 +121,8 @@ def main():
     # f.CreateFolder("lol!")
     # server.create_folder("testing 1 2 3", "lol!")
     vm = server.get_vm("dummy")
-    print(vm.name)
-    print(vm.summary)
+    print_vm_info(vm)
+
 
 if __name__ == '__main__':
     main()
