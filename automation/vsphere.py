@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import logging
 from atexit import register
 
 from pyVim.connect import SmartConnect, Disconnect
@@ -13,11 +12,18 @@ from automation.vsphere_utils import *
 class vSphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
     def __init__(self, user, password, host, port=443):
-        self._log = logging.getLogger(__name__)
+        from urllib.error import URLError
+        # self._log = logging.getLogger(__name__)
+        # TODO: colored logs (https://pypi.python.org/pypi/coloredlogs/)
         if not password:
             from getpass import getpass
             password = getpass(prompt='Enter password for host %s and user %s: ' % (host, user))
-        self.server = SmartConnect(host=host, user=user, pwd=password, port=int(port))  # Connect to server
+        try:
+            self.server = SmartConnect(host=host, user=user, pwd=password, port=int(port))  # Connect to server
+        except URLError as e:
+            print("Your system does not trust the server's certificate. Follow instructions in the README to "
+                  "install the certificate, or contact a lab administrator.")
+            print("Here is the full error for your enjoyment: ", str(e))
         if not self.server:
             print("Could not connect to the specified host using specified username and password")
             raise Exception()
@@ -45,12 +51,43 @@ class vSphere:
 
     def change_vm_power_state(self, vm, power_state):
         """
-        Power on, Power off, ACPI shutdown, Reset
-        :param vm:
-        :param power_state:
+        Changes a VM power state to the state specified.
+        Options for power_state: on, off, reset, suspend
+        :param vm: vim.VirtualMachine
+        :param power_state: str
         :return:
         """
-        pass
+        print("Changing power state of VM {0} to: '{1}'".format(vm.name, power_state))
+        if power_state.lower() == "on": # TODO: (power on using Datacenter.PowerOnMultiVM, as PowerOnVM is deprecated)
+            pass
+        elif power_state.lower() == "off":
+            vm.PowerOffVM_Task()
+        elif power_state.lower() == "reset":
+            vm.ResetVM_Task()
+        elif power_state.lower() == "suspend":
+            vm.SuspendVM_Task()
+
+    def change_vm_guest_state(self, vm, guest_state):
+        """
+        Changes a VMs guest power state. VMware Tools must be installed on the VM for this to work.
+        Options for guest_state: shutdown, reboot, standby
+        :param vm:  vim.VirtualMachine
+        :param guest_state:  str
+        :return:
+        """
+        print("Changing guest power state of VM {0} to: '{1}'".format(vm.name, guest_state))
+        if vm.summary.guest.toolsStatus == "toolsNotInstalled":
+            print("(ERROR) Cannot change a VM's guest power state without VMware Tools!")
+            return
+
+        if guest_state.lower() == "shutdown":
+            vm.ShutdownGuest()
+        elif guest_state.lower() == "reboot":
+            vm.RebootGuest()
+        elif guest_state.lower() == "standby":
+            vm.StandbyGuest()
+        else:
+            print("(ERROR) Invalid guest_state argument!")
 
     # From: add_nic_to_vm.py in pyvmomi-community-samples
     def add_nic_to_vm(self, vm, port_group, summary='default'):
@@ -107,21 +144,15 @@ def main():
     from json import load
     from os import pardir, path
 
-    logging.basicConfig(filename='vsphere_testing.log', filemode='w', level=logging.DEBUG)
-
     with open(path.join(pardir, "logins.json"), "r") as login_file:
         logins = load(fp=login_file)["vsphere"]
 
     server = vSphere(logins["user"], logins["pass"], logins["host"], logins["port"])
 
-    # content = server.server.RetrieveContent()
-    # dc = get_obj(content, [vim.Datacenter], "r620")
-    # f = get_obj(server.content, [vim.Folder], "script_testing")
-    # print(f.name)
-    # f.CreateFolder("lol!")
-    # server.create_folder("testing 1 2 3", "lol!")
     vm = server.get_vm("dummy")
     print_vm_info(vm)
+    server.change_vm_power_state(vm, "off")
+    server.change_vm_guest_state(vm, "shutdown")
 
 
 if __name__ == '__main__':
