@@ -41,7 +41,7 @@ class vSphere:
         :return:
         """
         if get_obj(self.content, [vim.Folder], folder_name):
-            self._log.warning("Folder '%s' already exists" % folder_name)
+            print("Folder '%s' already exists" % folder_name)
         else:
             parent = get_obj(self.content, [vim.Folder], create_in)
             parent.CreateFolder(folder_name)
@@ -88,6 +88,18 @@ class vSphere:
             vm.StandbyGuest()
         else:
             print("(ERROR) Invalid guest_state argument!")
+
+    @staticmethod
+    def set_vm_note(vm, note):
+        """
+        Sets the note on the VM to note
+        :param vm: vim.VirtualMachine
+        :param note: str
+        :return:
+        """
+        spec = vim.vm.ConfigSpec()
+        spec.annotation = note
+        vm.ReconfigVM_Task(spec)
 
     # From: add_nic_to_vm.py in pyvmomi-community-samples
     def add_nic_to_vm(self, vm, port_group, summary='default'):
@@ -147,12 +159,12 @@ def main():
     with open(path.join(pardir, "logins.json"), "r") as login_file:
         logins = load(fp=login_file)["vsphere"]
 
+    # TODO: task waiting
     server = vSphere(logins["user"], logins["pass"], logins["host"], logins["port"])
 
-    vm = server.get_vm("dummy")
+    vm = server.get_vm("dummy2")
     print_vm_info(vm)
-    server.change_vm_power_state(vm, "off")
-    server.change_vm_guest_state(vm, "shutdown")
+    server.set_vm_note(vm, "HI THIS WORKS")
 
 
 if __name__ == '__main__':
