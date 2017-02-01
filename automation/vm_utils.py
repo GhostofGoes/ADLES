@@ -9,7 +9,6 @@ def clone_vm(vm, folder, name, clone_spec):
     :param folder: vim.Folder object in which to create the clone
     :param name: String name of the new VM
     :param clone_spec: vim.vm.CloneSpec for the new VM
-    :return:
     """
     print("Cloning VM {0} to folder {1} with name {2}".format(vm.name, folder.name, name))
     vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec)  # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
@@ -100,14 +99,13 @@ def create_snapshot(vm, name, memory=False, description="default"):
 # TODO: remove snapshot
 
 
-def revert_to_current_snapshot(vm, suppress_power_on=False):
+def revert_to_current_snapshot(vm):
     """
     Reverts the VM to the most recent snapshot
     :param vm: vim.VirtualMachine object
-    :param suppress_power_on: Prevents the VM from powering on regardless of the snapshot's power state
     """
     print("Reverting VM {0} to the current snapshot".format(vm.name))
-    vm.RevertToCurrentSnapshot_Task(suppress_power_on=suppress_power_on)
+    vm.RevertToCurrentSnapshot_Task()
 
 
 def remove_all_snapshots(vm, consolidate_disks=True):

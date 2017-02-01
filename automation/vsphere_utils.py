@@ -12,7 +12,7 @@ def get_obj(content, vimtype, name):
     :param content:
     :param vimtype:
     :param name:
-    :return:
+    :return: The object found with the specified name, or None if no object was found
     """
     obj = None
     container = content.viewManager.CreateContainerView(
@@ -32,7 +32,6 @@ def wait_for_tasks(service_instance, tasks):
     Given the service instance si and tasks, it returns after all the tasks are complete
     :param service_instance:
     :param tasks:
-    :return:
     """
     property_collector = service_instance.content.propertyCollector
     task_list = [str(task) for task in tasks]
@@ -77,12 +76,29 @@ def wait_for_tasks(service_instance, tasks):
             pcfilter.Destroy()
 
 
+# From: clone_vm.py in pyvmomi-community-samples
+def wait_for_task(task):
+    """
+    Wait for a single vCenter task to finish and return it's result
+    :param task:  vim.Task object of the task to wait for
+    :return:  Task result information
+    """
+    task_done = False
+    while not task_done:
+        if task.info.state == 'success':
+            return task.info.result
+
+        if task.info.state == 'error':
+            print
+            "there was an error"
+            task_done = True
+
+
 # From: getallvms.py in pyvmomi-community-samples
 def print_vm_info(virtual_machine):
     """
     Print human-readable information for a virtual machine object
     :param virtual_machine:
-    :return:
     """
     summary = virtual_machine.summary
     print("Name          : ", summary.config.name)

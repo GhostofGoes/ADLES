@@ -122,6 +122,7 @@ class vSphere:
         return get_obj(self.content, [vim.VirtualMachine], vm_name)
 
 
+# TODO: unit tests
 def main():
     """ For testing of vSphere """
     from json import load
@@ -131,12 +132,14 @@ def main():
         logins = load(fp=login_file)["vsphere"]
 
     # TODO: add capability to wait on tasks and provide status (important for long-running deploys/clones)
+    #   Idea: create a task queue, place all the tasks i need done in-order, then run them all using wait_for_tasks
     server = vSphere("r620", logins["user"], logins["pass"], logins["host"], logins["port"])
 
     vm = server.get_vm("dummy")
     print_vm_info(vm)
     folder = server.get_folder("script_testing")
-    clone_vm(vm, folder, "clone-worked!", server.generate_clone_spec(datastore_name="Datastore"))
+    # clone_vm(vm, folder, "clone-worked!", server.generate_clone_spec(datastore_name="Datastore"))
+    remove_all_snapshots(vm)
 
 if __name__ == '__main__':
     main()
