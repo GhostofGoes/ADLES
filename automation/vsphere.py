@@ -50,8 +50,9 @@ class vSphere:
         :param create_in: Name of folder where new folder should be created
         """
         if get_obj(self.content, [vim.Folder], folder_name):
-            print("Folder '%s' already exists" % folder_name)
+            print("Folder {0} already exists".format(folder_name))
         else:
+            print("Creating folder {0} in folder {1}".format(folder_name, create_in))
             parent = get_obj(self.content, [vim.Folder], create_in)
             parent.CreateFolder(folder_name)
 
@@ -117,7 +118,6 @@ def main():
 
     vm = server.get_vm("dummy")
     print_vm_info(vm)
-    change_power_state(vm, "on", server.datacenter)
 
 
 if __name__ == '__main__':
