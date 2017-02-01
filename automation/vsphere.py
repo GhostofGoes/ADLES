@@ -46,8 +46,18 @@ class vSphere:
             parent = get_obj(self.content, [vim.Folder], create_in)
             parent.CreateFolder(folder_name)
 
-    def convert_vm_to_template(self, vm, template_name):
-        pass
+    @staticmethod
+    def convert_to_template(vm):
+        """
+        Converts a VM to a template
+        :param vm:
+        :param template_name:
+        :return:
+        """
+        try:
+            vm.MarkAsTemplate()
+        except vim.fault.InvalidPowerState:
+            print("(ERROR) VM {0} must be powered off before being converted to a template!".format(vm.name))
 
     def change_vm_power_state(self, vm, power_state):
         """
@@ -164,7 +174,6 @@ def main():
 
     vm = server.get_vm("dummy2")
     print_vm_info(vm)
-    server.set_vm_note(vm, "HI THIS WORKS")
 
 
 if __name__ == '__main__':
