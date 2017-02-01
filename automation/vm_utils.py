@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 
 
-def clone_vm(vm, folder, name, spec):
+def clone_vm(vm, folder, name, clone_spec):
     """
-    Creates a clone of the VM
+    Creates a clone of the VM or Template
     :param vm: vim.VirtualMachine object
     :param folder: vim.Folder object in which to create the clone
     :param name: String name of the new VM
-    :param spec: vim.vm.CloneSpec for the new VM
+    :param clone_spec: vim.vm.CloneSpec for the new VM
     :return:
     """
     print("Cloning VM {0} to folder {1} with name {2}".format(vm.name, folder.name, name))
-    vm.CloneVM_Task(folder, name, spec)  # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
+    vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec)  # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
 
 
 def change_power_state(vm, power_state):

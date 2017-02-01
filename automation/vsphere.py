@@ -56,6 +56,23 @@ class vSphere:
             parent = get_obj(self.content, [vim.Folder], create_in)
             parent.CreateFolder(folder_name)
 
+    def generate_clone_spec(self, datastore_name, pool_name=None):
+        """
+        Generates a clone specification used to clone a VM
+        :param datastore_name: Name of the datastore in which to create the clone's disk
+        :param pool_name: Name of resource pool to use for the clone
+        :return: vim.vm.CloneSpec object
+        """
+        datastore = get_obj(self.content, [vim.Datastore], datastore_name)
+        relospec = vim.vm.RelocateSpec()
+        clonespec = vim.vm.CloneSpec()
+        if pool_name:
+            pool = get_obj(self.content, [vim.ResourcePool], pool_name)
+            relospec.pool = pool
+        relospec.datastore = datastore
+        clonespec.location = relospec
+        return clonespec
+
     # From: add_nic_to_vm.py in pyvmomi-community-samples
     def add_nic_to_vm(self, vm, port_group, summary='default'):
         """
@@ -118,7 +135,8 @@ def main():
 
     vm = server.get_vm("dummy")
     print_vm_info(vm)
-
+    folder = server.get_folder("script_testing")
+    clone_vm(vm, folder, "clone-worked!", server.generate_clone_spec(datastore_name="Datastore"))
 
 if __name__ == '__main__':
     main()
