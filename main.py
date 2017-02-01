@@ -61,7 +61,7 @@ def main():
         host = environment["hostname"]
         port = environment["port"]
 
-    server = vSphere(user=user, password=pswd, host=host, port=port)
+    server = vSphere(username=user, password=pswd, host=host, port=port)
 
 
 if __name__ == '__main__':
