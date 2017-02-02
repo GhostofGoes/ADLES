@@ -86,7 +86,6 @@ def set_note(vm, note):
     vm.ReconfigVM_Task(spec)
 
 
-# *** SNAPSHOTTING ***
 def create_snapshot(vm, name, memory=False, description="default"):
     """
     Create a snapshot of the VM
@@ -98,7 +97,14 @@ def create_snapshot(vm, name, memory=False, description="default"):
     print("Creating snapshot of VM {0} with a name of {1}".format(vm.name, name))
     vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True)
 
-# TODO: remove snapshot
+
+def revert_to_snapshot(vm, snapshot_name):
+    """
+    Reverts VM to the named snapshot
+    :param vm: vim.VirtualMachine object
+    :param snapshot_name: Name of the snapshot to revert to
+    """
+    pass # TODO: implement
 
 
 def revert_to_current_snapshot(vm):
@@ -110,11 +116,74 @@ def revert_to_current_snapshot(vm):
     vm.RevertToCurrentSnapshot_Task()
 
 
+def get_snapshot(vm, snapshot_name):
+    """
+    Retrieves the named snapshot from the VM
+    :param vm: vim.VirtualMachine object
+    :param snapshot_name: Name of the snapshot to get
+    :return: vim.Snapshot object
+    """
+    for snap in get_all_snapshots(vm):
+        if snap.name == snapshot_name:
+            return snap
+    return None
+
+
+def get_current_snapshot(vm):
+    """
+    Retireves the current snapshot from the VM
+    :param vm: vim.VirtualMachine object
+    :return: Current vim.Snapshot object for the VM, or None if there are no snapshots
+    """
+    return vm.snapshot.currentSnapshot
+
+
+def get_all_snapshots(vm):
+    """
+    Retrieves a list of all snapshots of the VM
+    :param vm: vim.VirtualMachine object
+    :return: Nested List of vim.Snapshot objects
+    """
+    return _get_snapshots_recursive(vm.snapshot.rootSnapshotList)
+
+
+# From: https://github.com/imsweb/ezmomi
+def _get_snapshots_recursive(snap_tree):
+    """
+    Recursively finds all snapshots in the tree
+    :param snap_tree:
+    :return: Nested List of vim.Snapshot objects
+    """
+    local_snap = []
+    for snap in snap_tree:
+        local_snap.append(snap)
+    for snap in snap_tree:
+        recurse_snap = _get_snapshots_recursive(snap.childSnapshotList)
+        if recurse_snap:
+            local_snap.extend(recurse_snap)
+    return local_snap
+
+
+def remove_snapshot(vm, snapshot_name, remove_children=True, consolidate_disks=True):
+    """
+    Removes the named snapshot from the VM
+    :param vm: vim.VirtualMachine object
+    :param snapshot_name: Name of the snapshot to remove
+    :param remove_children: (Optional) Removal of the entire snapshot subtree [default: True]
+    :param consolidate_disks: (Optional) Virtual disks of the deleted snapshot will be merged with
+    other disks if possible [default: True]
+    """
+    print("Removing snapshot {0} from VM {1}".format(snapshot_name, vm.name))
+    snapshot = get_snapshot(vm, snapshot_name)
+    snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks)
+
+
 def remove_all_snapshots(vm, consolidate_disks=True):
     """
     Removes all snapshots associated with the VM
     :param vm: vim.VirtualMachine object
-    :param consolidate_disks: If true, virtual disks of the deleted snapshot will be merged with other disks if possible
+    :param consolidate_disks: (Optional) Virtual disks of the deleted snapshot will be merged with
+    other disks if possible [default: True]
     """
     print("Removing ALL snapshots for the VM {0}".format(vm.name))
     vm.RemoveAllSnapshots_Task(consolidate_disks)

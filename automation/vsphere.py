@@ -80,6 +80,7 @@ class vSphere:
         :param port_group: Virtual Port Group
         :param summary: Device Info summary string
         """
+        print("Adding NIC to VM {0}. Port group: {1} Summary: {2}".format(vm.name, port_group.name, summary))
         nic_spec = vim.vm.device.VirtualDeviceSpec()
         nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
 
