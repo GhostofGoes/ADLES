@@ -117,3 +117,11 @@ def move_into_folder(folder, entity_list):
     :param entity_list: List of vim.ManagedEntity
     """
     folder.MoveIntoFolder_Task(entity_list)
+
+
+def destroy_everything(folder):
+    """
+    Unregisters and deletes all VMs and Folders under the given folder
+    :param folder: vim.Folder object
+    """
+    folder.UnregisterAndDestroy_Task()
