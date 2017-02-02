@@ -23,6 +23,22 @@ def get_obj(content, vimtype, name):
             break
     return obj
 
+
+# From: https://github.com/sijis/pyvmomi-examples/vmutils.py
+def get_objs(content, vimtype):
+    """
+    Get ALL the vSphere objects associated with a given type
+    :param content:
+    :param vimtype: vim type to find
+    :return: List of all vimtype objects found
+    """
+    obj = []
+    container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, True)
+    for c in container.view:
+        obj.append(c)
+    return obj
+
+
 # TODO: function to apply a given operation to all objects in a view
 
 

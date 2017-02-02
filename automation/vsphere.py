@@ -136,10 +136,9 @@ def main():
     server = vSphere("r620", logins["user"], logins["pass"], logins["host"], logins["port"])
 
     vm = server.get_vm("dummy")
-    print_vm_info(vm)
-    folder = server.get_folder("script_testing")
-    # clone_vm(vm, folder, "clone-worked!", server.generate_clone_spec(datastore_name="Datastore"))
-    remove_all_snapshots(vm)
+    pool = get_objs(server.content, [vim.ResourcePool])[0]
+    print(pool.name)
+    convert_to_vm(vm, pool)
 
 if __name__ == '__main__':
     main()

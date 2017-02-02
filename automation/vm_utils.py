@@ -64,13 +64,15 @@ def convert_to_template(vm):
         print("(ERROR) VM {0} must be powered off before being converted to a template!".format(vm.name))
 
 
-def convert_to_vm(vm):
+def convert_to_vm(vm, resource_pool, host=None):
     """
     Converts a Template to a Virtual Machine
     :param vm: vim.VirtualMachine object to convert
+    :param resource_pool: vim.ResourcePool to associate with the VM
+    :param host: (optional) vim.HostSystem on which the VM should run
     """
-    print("Converting Template {0} to VM".format(vm.name))
-    vm.MarkAsVirtualMachine()
+    print("Converting Template {0} to VM and assigning to resource pool {1}".format(vm.name, resource_pool.name))
+    vm.MarkAsVirtualMachine(resource_pool, host)
 
 
 def set_note(vm, note):
