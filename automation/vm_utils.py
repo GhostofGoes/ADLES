@@ -86,7 +86,7 @@ def set_note(vm, note):
     vm.ReconfigVM_Task(spec)
 
 
-def create_snapshot(vm, name, memory=False, description="default"):
+def create_snapshot(vm, name, description="default", memory=False):
     """
     Create a snapshot of the VM
     :param vm: vim.VirtualMachine object
@@ -104,7 +104,9 @@ def revert_to_snapshot(vm, snapshot_name):
     :param vm: vim.VirtualMachine object
     :param snapshot_name: Name of the snapshot to revert to
     """
-    pass # TODO: implement
+    print("Reverting VM {0} to the snapshot {1}".format(vm.name, snapshot_name))
+    snap = get_snapshot(vm, snapshot_name)
+    snap.RevertToSnapshot_Task()
 
 
 def revert_to_current_snapshot(vm):
@@ -125,7 +127,7 @@ def get_snapshot(vm, snapshot_name):
     """
     for snap in get_all_snapshots(vm):
         if snap.name == snapshot_name:
-            return snap
+            return snap.snapshot
     return None
 
 

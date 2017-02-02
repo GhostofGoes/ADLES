@@ -167,7 +167,7 @@ def main():
     server = vSphere("r620", logins["user"], logins["pass"], logins["host"], logins["port"])
 
     vm = server.get_vm("dummy")
-    move_into_folder(server.get_folder("lol!"), [vm])
+    remove_all_snapshots(vm)
 
 if __name__ == '__main__':
     main()
