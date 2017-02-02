@@ -16,6 +16,18 @@ def clone_vm(vm, folder, name, clone_spec):
     vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec)  # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
 
 
+# Cheap way to get a pool: pool = get_objs(server.content, [vim.ResourcePool])[0]
+def create_vm(folder, config, pool, host=None):
+    """
+    Creates a VM with the specified configuration in the given folder
+    :param folder: vim.Folder in which to create the VM
+    :param config: vim.vm.ConfigSpec defining the new VM
+    :param pool: vim.ResourcePool to which the virtual machine will be attached
+    :param host: (Optional) vim.HostSystem on which the VM will run
+    """
+    folder.CreateVM_Task(config, pool, host)
+
+
 def destroy_vm(vm):
     """
     Unregisters and deletes the VM
@@ -78,6 +90,7 @@ def convert_to_template(vm):
         print("(ERROR) VM {0} must be powered off before being converted to a template!".format(vm.name))
 
 
+# Cheap way to get a pool: pool = get_objs(server.content, [vim.ResourcePool])[0]
 def convert_to_vm(vm, resource_pool, host=None):
     """
     Converts a Template to a Virtual Machine

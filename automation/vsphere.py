@@ -75,7 +75,7 @@ class vSphere:
     # From: add_nic_to_vm.py in pyvmomi-community-samples
     def add_nic_to_vm(self, vm, port_group, summary='default'):
         """
-        Add a NIC in the specified portgroup to the specified VM.
+        Add a NIC in the specified portgroup to the specified VM
         :param vm: Virtual Machine Object
         :param port_group: Virtual Port Group
         :param summary: Device Info summary string
@@ -166,8 +166,13 @@ def main():
     #   Idea: create a task queue, place all the tasks i need done in-order, then run them all using wait_for_tasks
     server = vSphere("r620", logins["user"], logins["pass"], logins["host"], logins["port"])
 
+    folder = server.get_folder("script_testing")
+    pool = get_objs(server.content, [vim.ResourcePool])[0]
+    file_info = vim.vm.FileInfo()
+    file_info.vmPathName = "[Datastore]"
+    vm_spec = vim.vm.ConfigSpec(name="test_vm", guestId="ubuntuGuest", numCPUs=1, numCoresPerSocket=1,
+                                memoryMB=1024, annotation="it worked!", files=file_info)
+    create_vm(folder, vm_spec, pool)
 
 if __name__ == '__main__':
     main()
-
-
