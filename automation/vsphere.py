@@ -22,7 +22,6 @@ class vSphere:
         :param port: Port used to connect to vCenter instance
         """
         from urllib.error import URLError
-        # self._log = logging.getLogger(__name__)
         # TODO: colored logs (https://pypi.python.org/pypi/coloredlogs/)
         if not password:
             from getpass import getpass
@@ -45,7 +44,7 @@ class vSphere:
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
     def create_folder(self, folder_name, create_in):
         """
-        Creates a VM folder in a datacenter
+        Creates a VM folder in the specified folder
         :param folder_name: Name of folder to create
         :param create_in: Name of folder where new folder should be created
         """
@@ -120,6 +119,37 @@ class vSphere:
         :return: vim.VirtualMachine object
         """
         return get_obj(self.content, [vim.VirtualMachine], vm_name)
+
+    def get_host(self, host_name):
+        """
+        Finds and returns the named host
+        :param host_name: Name of the host
+        :return: vim.HostSystem object
+        """
+        return get_obj(self.content, [vim.HostSystem], host_name)
+
+    def get_datastore(self, datastore_name):
+        """
+        Finds and returns the named datastore
+        :param datastore_name: Name of the datastore
+        :return: vim.Datastore object
+        """
+        return get_obj(self.content, [vim.Datastore], datastore_name)
+
+    def get_pool(self, pool_name):
+        """
+        Finds and returns the named resource pool
+        :param pool_name: Name of the resource pool
+        :return: vim.ResourcePool object
+        """
+        return get_obj(self.content, [vim.ResourcePool], pool_name)
+
+    def get_all_vms(self):
+        """
+        Finds and returns ALL VMs registered in the datacenter
+        :return: List of vim.VirtualMachine objects
+        """
+        return get_objs(self.content, [vim.VirtualMachine])
 
 
 # TODO: unit tests
