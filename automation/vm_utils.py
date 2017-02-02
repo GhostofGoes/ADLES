@@ -40,6 +40,16 @@ def destroy_vm(vm):
     vm.Destroy_Task()
 
 
+def edit_vm(vm, config):
+    """
+    Edit a VM using the given configuration
+    :param vm: vim.VirtualMachine object
+    :param config: vim.vm.ConfigSpec object
+    """
+    print("Reconfiguring VM {0}".format(vm.name))
+    vm.ReconfigVM_Task(config)
+
+
 def change_power_state(vm, power_state):
     """
     Changes a VM power state to the state specified.
@@ -249,3 +259,17 @@ def powered_on(vm):
     :return: Boolean. Do I really need to write a description for this?
     """
     return vm.runtime.powerState == vim.VirtualMachinePowerState.poweredOn
+
+
+# From: cdrom_vm.py in pyvmomi-community-samples
+def find_free_ide_controller(vm):
+    """
+    Finds a free IDE controller to use
+    :param vm: vim.VirtualMachine
+    :return: vim.vm.device.VirtualIDEController
+    """
+    for dev in vm.config.hardware.device:
+        if isinstance(dev, vim.vm.device.VirtualIDEController):
+            if len(dev.device) < 2:  # If there are less than 2 devices attached, we can use it
+                return dev
+    return None
