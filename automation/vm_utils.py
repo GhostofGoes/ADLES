@@ -81,6 +81,7 @@ def set_note(vm, note):
     :param vm: vim.VirtualMachine object
     :param note: String to set the note to
     """
+    print("Setting note of VM {0} to {1}".format(vm.name, note))
     spec = vim.vm.ConfigSpec()
     spec.annotation = note
     vm.ReconfigVM_Task(spec)

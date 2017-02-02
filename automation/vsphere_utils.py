@@ -9,10 +9,10 @@ from pyVmomi import vmodl
 def get_obj(content, vimtype, name):
     """
     Recursively finds and returns named object of specified type
-    :param content:
-    :param vimtype:
-    :param name:
-    :return: The object found with the specified name, or None if no object was found
+    :param content: vim.Content to search in
+    :param vimtype: List of vimtype objects to look for
+    :param name: string name of the object
+    :return: The vimtype object found with the specified name, or None if no object was found
     """
     obj = None
     container = content.viewManager.CreateContainerView(
@@ -28,8 +28,8 @@ def get_obj(content, vimtype, name):
 def get_objs(content, vimtype):
     """
     Get ALL the vSphere objects associated with a given type
-    :param content:
-    :param vimtype: vim type to find
+    :param content: vim.Content to search in
+    :param vimtype: List of vimtype objects to look for
     :return: List of all vimtype objects found
     """
     obj = []
@@ -46,25 +46,20 @@ def get_objs(content, vimtype):
 def wait_for_tasks(service_instance, tasks):
     """
     Given the service instance si and tasks, it returns after all the tasks are complete
-    :param service_instance:
-    :param tasks:
+    :param service_instance: Service instance as returned by pyVim.connect.SmartConnect()
+    :param tasks: List of tasks to wait for
     """
     property_collector = service_instance.content.propertyCollector
     task_list = [str(task) for task in tasks]
-    # Create filter
-    obj_specs = [vmodl.query.PropertyCollector.ObjectSpec(obj=task)
-                 for task in tasks]
-    property_spec = vmodl.query.PropertyCollector.PropertySpec(type=vim.Task,
-                                                               pathSet=[],
-                                                               all=True)
+    obj_specs = [vmodl.query.PropertyCollector.ObjectSpec(obj=task) for task in tasks]  # Create filter
+    property_spec = vmodl.query.PropertyCollector.PropertySpec(type=vim.Task, pathSet=[], all=True)
     filter_spec = vmodl.query.PropertyCollector.FilterSpec()
     filter_spec.objectSet = obj_specs
     filter_spec.propSet = [property_spec]
     pcfilter = property_collector.CreateFilter(filter_spec, True)
     try:
         version, state = None, None
-        # Loop looking for updates till the state moves to a completed state.
-        while len(task_list):
+        while len(task_list):  # Loop looking for updates till the state moves to a completed state
             update = property_collector.WaitForUpdates(version)
             for filter_set in update.filterSet:
                 for obj_set in filter_set.objectSet:
@@ -81,12 +76,10 @@ def wait_for_tasks(service_instance, tasks):
                             continue
 
                         if state == vim.TaskInfo.State.success:
-                            # Remove task from taskList
-                            task_list.remove(str(task))
+                            task_list.remove(str(task))  # Remove task from taskList
                         elif state == vim.TaskInfo.State.error:
                             raise task.info.error
-            # Move to next version
-            version = update.version
+            version = update.version  # Move to next version
     finally:
         if pcfilter:
             pcfilter.Destroy()
@@ -97,16 +90,14 @@ def wait_for_task(task):
     """
     Wait for a single vCenter task to finish and return it's result
     :param task:  vim.Task object of the task to wait for
-    :return:  Task result information
+    :return: Task result information
     """
     task_done = False
     while not task_done:
         if task.info.state == 'success':
             return task.info.result
-
         if task.info.state == 'error':
-            print
-            "there was an error"
+            print("There was an error while completing task ", task.name)
             task_done = True
 
 

@@ -166,8 +166,6 @@ def main():
     #   Idea: create a task queue, place all the tasks i need done in-order, then run them all using wait_for_tasks
     server = vSphere("r620", logins["user"], logins["pass"], logins["host"], logins["port"])
 
-    folder = server.get_folder("testing 1 2 3")
-    destroy_everything(folder)
 
 if __name__ == '__main__':
     main()
