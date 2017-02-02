@@ -38,6 +38,8 @@ logger = logging.getLogger(__name__)
 
 
 # TODO: Make a class?
+# TODO: setup.py file to enable easy installation using pip (see: https://github.com/imsweb/ezmomi/blob/master/setup.py)
+# TODO: license?
 # NOTE: currently this is built around vSphere, using vCenter server and ESXi 6.0 U2
 def main():
 

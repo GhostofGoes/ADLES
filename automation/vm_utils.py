@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from pyVmomi import vim
+
 
 def clone_vm(vm, folder, name, clone_spec):
     """
@@ -12,6 +14,18 @@ def clone_vm(vm, folder, name, clone_spec):
     """
     print("Cloning VM {0} to folder {1} with name {2}".format(vm.name, folder.name, name))
     vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec)  # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
+
+
+def destroy_vm(vm):
+    """
+    Unregisters and deletes the VM
+    :param vm: vim.VirtualMachine object
+    """
+    print("DESTROYING VM {0}".format(vm.name))
+    if powered_on(vm):
+        print("VM is still on, powering off before destroying...")
+        change_power_state(vm, "off")
+    vm.Destroy_Task()
 
 
 def change_power_state(vm, power_state):
@@ -213,3 +227,12 @@ def print_vm_info(virtual_machine):
         print("Question  : ", summary.runtime.question.text)
     if summary.config.annotation:
         print("Annotation    : ", summary.config.annotation)
+
+
+def powered_on(vm):
+    """
+    Determines if a VM is powered on
+    :param vm: vim.VirtualMachine object
+    :return: Boolean. Do I really need to write a description for this?
+    """
+    return vm.runtime.powerState == vim.VirtualMachinePowerState.poweredOn
