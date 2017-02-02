@@ -118,3 +118,26 @@ def remove_all_snapshots(vm, consolidate_disks=True):
     """
     print("Removing ALL snapshots for the VM {0}".format(vm.name))
     vm.RemoveAllSnapshots_Task(consolidate_disks)
+
+
+# From: getallvms.py in pyvmomi-community-samples
+def print_vm_info(virtual_machine):
+    """
+    Print human-readable information for a virtual machine object
+    :param virtual_machine:
+    """
+    summary = virtual_machine.summary
+    print("Name          : ", summary.config.name)
+    print("Template      : ", summary.config.template)
+    print("Path          : ", summary.config.vmPathName)
+    print("Guest         : ", summary.config.guestFullName)
+    print("Instance UUID : ", summary.config.instanceUuid)
+    print("Bios UUID     : ", summary.config.uuid)
+    print("State         : ", summary.runtime.powerState)
+    if summary.guest:
+        print("VMware-tools  : ", summary.guest.toolsStatus)
+        print("IP            : ", summary.guest.ipAddress)
+    if summary.runtime.question:
+        print("Question  : ", summary.runtime.question.text)
+    if summary.config.annotation:
+        print("Annotation    : ", summary.config.annotation)

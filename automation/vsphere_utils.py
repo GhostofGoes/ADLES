@@ -110,24 +110,10 @@ def wait_for_task(task):
             task_done = True
 
 
-# From: getallvms.py in pyvmomi-community-samples
-def print_vm_info(virtual_machine):
+def move_into_folder(folder, entity_list):
     """
-    Print human-readable information for a virtual machine object
-    :param virtual_machine:
+    Moves a list of managed entities into the named folder. The folder's type MUST match those of the entity_list!
+    :param folder: vim.Folder object
+    :param entity_list: List of vim.ManagedEntity
     """
-    summary = virtual_machine.summary
-    print("Name          : ", summary.config.name)
-    print("Template      : ", summary.config.template)
-    print("Path          : ", summary.config.vmPathName)
-    print("Guest         : ", summary.config.guestFullName)
-    print("Instance UUID : ", summary.config.instanceUuid)
-    print("Bios UUID     : ", summary.config.uuid)
-    print("State         : ", summary.runtime.powerState)
-    if summary.guest:
-        print("VMware-tools  : ", summary.guest.toolsStatus)
-        print("IP            : ", summary.guest.ipAddress)
-    if summary.runtime.question:
-        print("Question  : ", summary.runtime.question.text)
-    if summary.config.annotation:
-        print("Annotation    : ", summary.config.annotation)
+    folder.MoveIntoFolder_Task(entity_list)

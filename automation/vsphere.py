@@ -166,9 +166,7 @@ def main():
     server = vSphere("r620", logins["user"], logins["pass"], logins["host"], logins["port"])
 
     vm = server.get_vm("dummy")
-    pool = get_objs(server.content, [vim.ResourcePool])[0]
-    print(pool.name)
-    convert_to_vm(vm, pool)
+    move_into_folder(server.get_folder("lol!"), [vm])
 
 if __name__ == '__main__':
     main()
