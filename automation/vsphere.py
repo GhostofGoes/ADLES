@@ -67,13 +67,28 @@ class vSphere:
         :param num_ports: Number of ports the vSwitch should have
         :param host: (Optional) Name of the host to create on [default: first host in datacenter]
         """
+        print("Creating vSwitch {} with {} ports".format(name, str(num_ports)))
         vswitch_spec = vim.host.VirtualSwitch.Specification()
         vswitch_spec.numPorts = num_ports
         if not host:
             host = get_objs(self.content, [vim.HostSystem])[0]
         else:
             host = get_obj(self.content, [vim.HostSystem], host)  # duck typing ftw
+        print("Adding vSwitch {} to host {}".format(name, host.name))
         host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
+
+    def delete_vswitch(self, name, host=None):
+        """
+        Deletes the named vSwitch from the host
+        :param name: Name of the vSwitch to delete
+        :param host: (Optional) Name of the host to create on [default: first host in datacenter]
+        """
+        if not host:
+            host = get_objs(self.content, [vim.HostSystem])[0]
+        else:
+            host = get_obj(self.content, [vim.HostSystem], host)  # duck typing ftw
+        print("Deleting vSwitch {} from host {}".format(name, host.name))
+        host.configManager.networkSystem.RemoveVirtualSwitch(name)
 
     def generate_clone_spec(self, datastore_name, pool_name=None):
         """
@@ -168,8 +183,7 @@ def main():
     # add_nic(vm, portgroup, "test_summary")
     # delete_nic(vm, 1)
     # server.create_vswitch("test_vswitch", 10)
-    test = get_objs(server.content, [vim.HostSystem])
-    print(test)
+    server.delete_vswitch("test_vswitch")
 
 if __name__ == '__main__':
     main()
