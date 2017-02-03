@@ -85,7 +85,7 @@ class vSphere:
         :param port_group: Name of the port group to use
         :param summary: (Optional) Human-readable device info
         """
-        print("Adding NIC to VM {0}. Port group: {1} Summary: {2}".format(vm.name, port_group.name, summary))
+        print("Adding NIC to VM {0}. Port group: {1} Summary: {2}".format(vm.name, port_group, summary))
         nic_spec = vim.vm.device.VirtualDeviceSpec()
         nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
 
@@ -133,8 +133,6 @@ class vSphere:
         drive_spec.device.connectable.allowGuestControl = True
         drive_spec.device.connectable.startConnected = True
         drive_spec.device.connectable.connected = True
-
-
 
         # cdrom = vim.vm.device.VirtualCdrom()
         # cdrom.controllerKey = find_free_ide_controller(vm).key
@@ -214,7 +212,9 @@ def main():
     # create_vm(folder, vm_spec, pool)
 
     vm = server.get_vm("dummy")
-    server.add_iso_to_vm(vm, "ISO-Images/vyos-1.1.7-amd64.iso")
+    # server.add_iso_to_vm(vm, "ISO-Images/vyos-1.1.7-amd64.iso")
+    # server.add_nic_to_vm(vm, "test_network", "test_summary")
+    delete_nic(vm, 1)
 
 if __name__ == '__main__':
     main()

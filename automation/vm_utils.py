@@ -273,3 +273,38 @@ def find_free_ide_controller(vm):
             if len(dev.device) < 2:  # If there are less than 2 devices attached, we can use it
                 return dev
     return None
+
+
+def remove_device(vm, device):
+    """
+    Removes the device from the VM
+    :param vm: vim.VirtualMachine
+    :param device: vim.vm.device.VirtualDeviceSpec
+    """
+    device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
+    config_spec = vim.vm.ConfigSpec(deviceChange=[device])
+    vm.ReconfigVM_Task(config_spec)
+
+
+# From: delete_nic_from_vm.py in pyvmomi-community-samples
+def delete_nic(vm, nic_number):
+    """ Deletes virtual NIC based on nic number
+    :param vm: vim.VirtualMachine
+    :param nic_number: Unit Number
+    """
+    nic_label = 'Network adapter ' + str(nic_number)
+    print("Removing {} from {}".format(nic_label, vm.name))
+    virtual_nic_device = None
+    for dev in vm.config.hardware.device:
+        if isinstance(dev, vim.vm.device.VirtualEthernetCard) and dev.deviceInfo.label == nic_label:
+            virtual_nic_device = dev
+
+    if not virtual_nic_device:
+        print('Virtual {} could not be found.'.format(nic_label))
+        return
+
+    virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
+    virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
+    virtual_nic_spec.device = virtual_nic_device
+
+    vm.ReconfigVM_Task(spec=vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))
