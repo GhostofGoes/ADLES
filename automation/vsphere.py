@@ -60,6 +60,21 @@ class vSphere:
             parent = get_obj(self.content, [vim.Folder], create_in)
             parent.CreateFolder(folder_name)
 
+    def create_vswitch(self, name, num_ports=1024, host=None):
+        """
+        Creates a vSwitch
+        :param name: Name of the vSwitch to create
+        :param num_ports: Number of ports the vSwitch should have
+        :param host: (Optional) Name of the host to create on [default: first host in datacenter]
+        """
+        vswitch_spec = vim.host.VirtualSwitch.Specification()
+        vswitch_spec.numPorts = num_ports
+        if not host:
+            host = get_objs(self.content, [vim.HostSystem])[0]
+        else:
+            host = get_obj(self.content, [vim.HostSystem], host)  # duck typing ftw
+        host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
+
     def generate_clone_spec(self, datastore_name, pool_name=None):
         """
         Generates a clone specification used to clone a VM
@@ -147,11 +162,14 @@ def main():
     #                             memoryMB=1024, annotation="it worked!", files=file_info)
     # create_vm(folder, vm_spec, pool)
 
-    vm = server.get_vm("dummy")
+    # vm = server.get_vm("dummy")
     # server.add_iso_to_vm(vm, "ISO-Images/vyos-1.1.7-amd64.iso")
-    portgroup = get_obj(server.content, [vim.Network], "test_network")
-    add_nic(vm, portgroup, "test_summary")
+    # portgroup = get_obj(server.content, [vim.Network], "test_network")
+    # add_nic(vm, portgroup, "test_summary")
     # delete_nic(vm, 1)
+    # server.create_vswitch("test_vswitch", 10)
+    test = get_objs(server.content, [vim.HostSystem, vim.ho])
+    print(test)
 
 if __name__ == '__main__':
     main()
