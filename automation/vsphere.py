@@ -60,36 +60,6 @@ class vSphere:
             parent = get_obj(self.content, [vim.Folder], create_in)
             parent.CreateFolder(folder_name)
 
-    def create_vswitch(self, name, num_ports=1024, host=None):
-        """
-        Creates a vSwitch
-        :param name: Name of the vSwitch to create
-        :param num_ports: Number of ports the vSwitch should have
-        :param host: (Optional) Name of the host to create on [default: first host in datacenter]
-        """
-        print("Creating vSwitch {} with {} ports".format(name, str(num_ports)))
-        vswitch_spec = vim.host.VirtualSwitch.Specification()
-        vswitch_spec.numPorts = num_ports
-        if not host:
-            host = get_objs(self.content, [vim.HostSystem])[0]
-        else:
-            host = get_obj(self.content, [vim.HostSystem], host)  # duck typing ftw
-        print("Adding vSwitch {} to host {}".format(name, host.name))
-        host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
-
-    def delete_vswitch(self, name, host=None):
-        """
-        Deletes the named vSwitch from the host
-        :param name: Name of the vSwitch to delete
-        :param host: (Optional) Name of the host to create on [default: first host in datacenter]
-        """
-        if not host:
-            host = get_objs(self.content, [vim.HostSystem])[0]
-        else:
-            host = get_obj(self.content, [vim.HostSystem], host)  # duck typing ftw
-        print("Deleting vSwitch {} from host {}".format(name, host.name))
-        host.configManager.networkSystem.RemoveVirtualSwitch(name)
-
     def generate_clone_spec(self, datastore_name, pool_name=None):
         """
         Generates a clone specification used to clone a VM
@@ -123,29 +93,38 @@ class vSphere:
         """
         return get_obj(self.content, [vim.VirtualMachine], vm_name)
 
-    def get_host(self, host_name):
+    def get_host(self, host_name=None):
         """
         Finds and returns the named host
-        :param host_name: Name of the host
+        :param host_name: (Optiona) Name of the host [default: the first host found in the datacenter]
         :return: vim.HostSystem object
         """
-        return get_obj(self.content, [vim.HostSystem], host_name)
+        if not host_name:
+            return get_objs(self.content, [vim.HostSystem])[0]
+        else:
+            return get_obj(self.content, [vim.HostSystem], host_name)
 
-    def get_datastore(self, datastore_name):
+    def get_datastore(self, datastore_name=None):
         """
         Finds and returns the named datastore
-        :param datastore_name: Name of the datastore
+        :param datastore_name: (Optional) Name of the datastore [default: first datastore found in the datacenter]
         :return: vim.Datastore object
         """
-        return get_obj(self.content, [vim.Datastore], datastore_name)
+        if not datastore_name:
+            return get_objs(self.content, [vim.Datastore])[0]
+        else:
+            return get_obj(self.content, [vim.Datastore], datastore_name)
 
     def get_pool(self, pool_name):
         """
         Finds and returns the named resource pool
-        :param pool_name: Name of the resource pool
+        :param pool_name: (Optional) Name of the resource pool [default: first resource pool found in the datacenter]
         :return: vim.ResourcePool object
         """
-        return get_obj(self.content, [vim.ResourcePool], pool_name)
+        if not pool_name:
+            return get_objs(self.content, [vim.ResourcePool])[0]
+        else:
+            return get_obj(self.content, [vim.ResourcePool], pool_name)
 
     def get_all_vms(self):
         """
@@ -176,14 +155,11 @@ def main():
     # vm_spec = vim.vm.ConfigSpec(name="test_vm", guestId="ubuntuGuest", numCPUs=1, numCoresPerSocket=1,
     #                             memoryMB=1024, annotation="it worked!", files=file_info)
     # create_vm(folder, vm_spec, pool)
-
     # vm = server.get_vm("dummy")
     # server.add_iso_to_vm(vm, "ISO-Images/vyos-1.1.7-amd64.iso")
     # portgroup = get_obj(server.content, [vim.Network], "test_network")
     # add_nic(vm, portgroup, "test_summary")
     # delete_nic(vm, 1)
-    # server.create_vswitch("test_vswitch", 10)
-    server.delete_vswitch("test_vswitch")
 
 if __name__ == '__main__':
     main()
