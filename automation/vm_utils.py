@@ -308,3 +308,66 @@ def delete_nic(vm, nic_number):
     virtual_nic_spec.device = virtual_nic_device
 
     vm.ReconfigVM_Task(spec=vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))
+
+
+# From: add_nic_to_vm.py in pyvmomi-community-samples
+def add_nic(vm, port_group, summary="default"):
+    """
+    Add a NIC in the portgroup to the VM
+    :param vm: vim.VirtualMachine
+    :param port_group: vim.Network port group to attach NIC to
+    :param summary: (Optional) Human-readable device info
+    """
+    print("Adding NIC to VM {0}. Port group: {1} Summary: {2}".format(vm.name, port_group, summary))
+    nic_spec = vim.vm.device.VirtualDeviceSpec()
+    nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
+
+    nic_spec.device = vim.vm.device.VirtualE1000()
+    nic_spec.device.addressType = 'assigned'
+
+    nic_spec.device.deviceInfo = vim.Description()
+    nic_spec.device.deviceInfo.summary = summary
+
+    nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
+    nic_spec.device.backing.useAutoDetect = False
+    nic_spec.device.backing.network = port_group
+    nic_spec.device.backing.deviceName = port_group
+
+    nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
+    nic_spec.device.connectable.startConnected = True
+    nic_spec.device.connectable.allowGuestControl = True
+    nic_spec.device.connectable.connected = False
+    nic_spec.device.connectable.status = 'untried'
+
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))
+
+
+def attach_iso(vm, filename, datastore):
+    """
+    Attaches an ISO image to a VM
+    :param vm: vim.VirtualMachine
+    :param filename: Name of the ISO image to attach
+    :param datastore: vim.Datastore where the ISO resides
+    """
+    print("Adding ISO '{0}' to VM '{1}'".format(filename, vm.name))
+    drive_spec = vim.vm.device.VirtualDeviceSpec()
+    drive_spec.device = vim.vm.device.VirtualCdrom()
+    drive_spec.device.controllerKey = find_free_ide_controller(vm).key
+    drive_spec.device.key = -1
+    drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
+    drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
+    drive_spec.device.backing.datastore = datastore
+    drive_spec.device.backing.fileName = "[{0}] {1}".format(datastore.name, filename)
+    drive_spec.device.unitNumber = 0
+
+    drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
+    drive_spec.device.connectable.allowGuestControl = True
+    drive_spec.device.connectable.startConnected = True
+    drive_spec.device.connectable.connected = True
+
+    # cdrom = vim.vm.device.VirtualCdrom()
+    # cdrom.controllerKey = find_free_ide_controller(vm).key
+    # cdrom.key = -1
+    # cdrom.connectable = connectable
+    # cdrom.backing = backing
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[drive_spec]))

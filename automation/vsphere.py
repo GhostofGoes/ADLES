@@ -77,70 +77,6 @@ class vSphere:
         clonespec.location = relospec
         return clonespec
 
-    # From: add_nic_to_vm.py in pyvmomi-community-samples
-    def add_nic_to_vm(self, vm, port_group, summary="default"):
-        """
-        Add a NIC in the portgroup to the VM
-        :param vm: vim.VirtualMachine
-        :param port_group: Name of the port group to use
-        :param summary: (Optional) Human-readable device info
-        """
-        print("Adding NIC to VM {0}. Port group: {1} Summary: {2}".format(vm.name, port_group, summary))
-        nic_spec = vim.vm.device.VirtualDeviceSpec()
-        nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
-
-        nic_spec.device = vim.vm.device.VirtualE1000()
-        nic_spec.device.addressType = 'assigned'
-
-        nic_spec.device.deviceInfo = vim.Description()
-        nic_spec.device.deviceInfo.summary = summary
-
-        nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
-        nic_spec.device.backing.useAutoDetect = False
-        nic_spec.device.backing.network = get_obj(self.content, [vim.Network], port_group)
-        nic_spec.device.backing.deviceName = port_group
-
-        nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-        nic_spec.device.connectable.startConnected = True
-        nic_spec.device.connectable.allowGuestControl = True
-        nic_spec.device.connectable.connected = False
-        nic_spec.device.connectable.status = 'untried'
-
-        edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))
-
-    def add_iso_to_vm(self, vm, filename, datastore=None):
-        """
-        Attaches an ISO image to a VM
-        :param vm: vim.VirtualMachine
-        :param filename: Name of the ISO image to attach
-        :param datastore: (Optional) vim.Datastore where the ISO resides. Default: class-defined datastore
-        """
-        print("Adding ISO '{0}' to VM '{1}'".format(filename, vm.name))
-        drive_spec = vim.vm.device.VirtualDeviceSpec()
-        drive_spec.device = vim.vm.device.VirtualCdrom()
-        drive_spec.device.controllerKey = find_free_ide_controller(vm).key
-        drive_spec.device.key = -1
-        drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
-        drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
-        if datastore:
-            drive_spec.device.backing.datastore = datastore
-        else:
-            drive_spec.device.backing.datastore = self.datastore
-        drive_spec.device.backing.fileName = "[{0}] {1}".format(drive_spec.device.backing.datastore.name, filename)
-        drive_spec.device.unitNumber = 0
-
-        drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-        drive_spec.device.connectable.allowGuestControl = True
-        drive_spec.device.connectable.startConnected = True
-        drive_spec.device.connectable.connected = True
-
-        # cdrom = vim.vm.device.VirtualCdrom()
-        # cdrom.controllerKey = find_free_ide_controller(vm).key
-        # cdrom.key = -1
-        # cdrom.connectable = connectable
-        # cdrom.backing = backing
-        edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[drive_spec]))
-
     def get_folder(self, folder_name):
         """
         Finds and returns the named folder
@@ -213,8 +149,9 @@ def main():
 
     vm = server.get_vm("dummy")
     # server.add_iso_to_vm(vm, "ISO-Images/vyos-1.1.7-amd64.iso")
-    # server.add_nic_to_vm(vm, "test_network", "test_summary")
-    delete_nic(vm, 1)
+    portgroup = get_obj(server.content, [vim.Network], "test_network")
+    add_nic(vm, portgroup, "test_summary")
+    # delete_nic(vm, 1)
 
 if __name__ == '__main__':
     main()
