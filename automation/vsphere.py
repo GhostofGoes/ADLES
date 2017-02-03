@@ -163,6 +163,7 @@ def main():
     # delete_nic(vm, 1)
     # create_portgroup("test_portgroup", server.get_host(), "test_vswitch")
     # delete_portgroup("test_portgroup", server.get_host())
+    # print_datastore_info(server.get_datastore())
 
 if __name__ == '__main__':
     main()
