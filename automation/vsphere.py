@@ -8,6 +8,7 @@ from pyVmomi import vim
 
 from automation.vsphere_utils import *
 from automation.vm_utils import *
+from automation.network_utils import *
 
 
 class vSphere:
@@ -160,6 +161,8 @@ def main():
     # portgroup = get_obj(server.content, [vim.Network], "test_network")
     # add_nic(vm, portgroup, "test_summary")
     # delete_nic(vm, 1)
+    # create_portgroup("test_portgroup", server.get_host(), "test_vswitch")
+    # delete_portgroup("test_portgroup", server.get_host())
 
 if __name__ == '__main__':
     main()
