@@ -168,7 +168,7 @@ def main():
     # add_nic(vm, portgroup, "test_summary")
     # delete_nic(vm, 1)
     # server.create_vswitch("test_vswitch", 10)
-    test = get_objs(server.content, [vim.HostSystem, vim.ho])
+    test = get_objs(server.content, [vim.HostSystem])
     print(test)
 
 if __name__ == '__main__':

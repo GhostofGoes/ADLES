@@ -14,13 +14,13 @@ def get_obj(content, vimtype, name):
     :param name: string name of the object
     :return: The vimtype object found with the specified name, or None if no object was found
     """
+    container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, True)
     obj = None
-    container = content.viewManager.CreateContainerView(
-        content.rootFolder, vimtype, True)
     for c in container.view:
         if c.name == name:
             obj = c
             break
+    container.Destroy()
     return obj
 
 
@@ -36,6 +36,7 @@ def get_objs(content, vimtype):
     container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, True)
     for c in container.view:
         obj.append(c)
+    container.Destroy()
     return obj
 
 
@@ -115,4 +116,5 @@ def destroy_everything(folder):
     Unregisters and deletes all VMs and Folders under the given folder
     :param folder: vim.Folder object
     """
+    print("Unregistering and deleting EVERYTHING in folder {}".format(folder.name))
     folder.UnregisterAndDestroy_Task()

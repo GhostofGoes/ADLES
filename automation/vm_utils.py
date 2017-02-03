@@ -76,9 +76,7 @@ def change_guest_state(vm, guest_state):
     print("Changing guest power state of VM {0} to: '{1}'".format(vm.name, guest_state))
     if vm.summary.guest.toolsStatus == "toolsNotInstalled":
         print("(ERROR) Cannot change a VM's guest power state without VMware Tools!")
-        return
-
-    if guest_state.lower() == "shutdown":
+    elif guest_state.lower() == "shutdown":
         vm.ShutdownGuest()
     elif guest_state.lower() == "reboot":
         vm.RebootGuest()
