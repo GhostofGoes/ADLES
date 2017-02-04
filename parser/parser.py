@@ -5,9 +5,9 @@
 # Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
 def parse_file(filename):
     """
-    Parses the YAML file and returns a nested dictionary containing it's contents.
-    :param filename:
-    :return:
+    Parses the YAML file and returns a nested dictionary containing it's contents
+    :param filename: Name of YAML file to parse
+    :return: dictionary of parsed file contents
     """
     import yaml
     with open(filename, 'r') as f:
@@ -32,11 +32,11 @@ def main():
     # print(doc["name"])
 
     # specfile = '../specification.yaml'
-    # specfile = '../examples/competition_example.yaml'
+    specfile = '../examples/competition_example.yaml'
     # specfile = '../examples/tutorial_example.yaml'
-    specfile = '../examples/edurange_example.yaml'
+    # specfile = '../examples/edurange_example.yaml'
     spec = parse_file(specfile)
-    pprint(spec)
+    pprint(spec)  # Note that pprint will cause descriptions to go across multiple lines, don't be alarmed
 
 if __name__ == '__main__':
     main()
