@@ -284,48 +284,81 @@ def remove_device(vm, device):
     :param device: vim.vm.device.VirtualDeviceSpec
     """
     device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-    config_spec = vim.vm.ConfigSpec(deviceChange=[device])
-    vm.ReconfigVM_Task(config_spec)
+    vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device]))  # Apply the change to the VM
 
 
 # From: delete_nic_from_vm.py in pyvmomi-community-samples
 def delete_nic(vm, nic_number):
     """
-    Deletes virtual NIC based on nic number
+    Deletes VM NIC based on it's number
     :param vm: vim.VirtualMachine
     :param nic_number: Unit Number
     """
     nic_label = 'Network adapter ' + str(nic_number)
-    print("Removing {} from {}".format(nic_label, vm.name))
+    print("Removing Virtual {} from {}".format(nic_label, vm.name))
     virtual_nic_device = None
     for dev in vm.config.hardware.device:
         if isinstance(dev, vim.vm.device.VirtualEthernetCard) and dev.deviceInfo.label == nic_label:
             virtual_nic_device = dev
 
     if not virtual_nic_device:
-        print('Virtual {} could not be found.'.format(nic_label))
+        print('(ERROR) Virtual {} could not be found!'.format(nic_label))
         return
 
     virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
     virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
     virtual_nic_spec.device = virtual_nic_device
 
-    vm.ReconfigVM_Task(spec=vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply the change to the VM
+
+
+def edit_nic(vm, nic_number, port_group=None, summary=None):
+    """
+    Edits a VM NIC based on it's number
+    :param vm: vim.VirtualMachine
+    :param nic_number:
+    :param port_group:
+    :param summary:
+    """
+    nic_label = 'Network adapter ' + str(nic_number)
+    print("Changing {} on {}".format(nic_label, vm.name))
+    virtual_nic_device = None
+    for dev in vm.config.hardware.device:
+        if isinstance(dev, vim.vm.device.VirtualEthernetCard) and dev.deviceInfo.label == nic_label:
+            virtual_nic_device = dev
+
+    if not virtual_nic_device:
+        print('(ERROR) Virtual {} could not be found!'.format(nic_label))
+        return
+
+    nic_spec = vim.vm.device.VirtualDeviceSpec()
+    nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
+    nic_spec.device = virtual_nic_device
+
+    if summary:
+        print("Changing summary to {}".format(summary))
+
+    if port_group:
+        print("Changing PortGroup to {}".format(port_group.name))
+        nic_spec.device.backing.network = port_group
+        nic_spec.device.backing.deviceName = port_group.name
+
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
 
 
 # From: add_nic_to_vm.py in pyvmomi-community-samples
-def add_nic(vm, port_group, summary="default"):
+def add_nic(vm, port_group, summary="default-summary"):
     """
     Add a NIC in the portgroup to the VM
     :param vm: vim.VirtualMachine
     :param port_group: vim.Network port group to attach NIC to
     :param summary: (Optional) Human-readable device info
     """
-    print("Adding NIC to VM {0}. Port group: {1} Summary: {2}".format(vm.name, port_group, summary))
-    nic_spec = vim.vm.device.VirtualDeviceSpec()
+    print("Adding NIC to VM {0}\nPort group: {1} Summary: {2}".format(vm.name, port_group.name, summary))
+    nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create a base object to add configurations to
     nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
 
-    nic_spec.device = vim.vm.device.VirtualE1000()
+    nic_spec.device = vim.vm.device.VirtualE1000()  # Set the type of network adaptor (Alternative is VMXNET3)
     nic_spec.device.addressType = 'assigned'
 
     nic_spec.device.deviceInfo = vim.Description()
@@ -334,7 +367,7 @@ def add_nic(vm, port_group, summary="default"):
     nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
     nic_spec.device.backing.useAutoDetect = False
     nic_spec.device.backing.network = port_group
-    nic_spec.device.backing.deviceName = port_group
+    nic_spec.device.backing.deviceName = port_group.name
 
     nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
     nic_spec.device.connectable.startConnected = True
@@ -342,7 +375,7 @@ def add_nic(vm, port_group, summary="default"):
     nic_spec.device.connectable.connected = False
     nic_spec.device.connectable.status = 'untried'
 
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
 
 
 def attach_iso(vm, filename, datastore):
@@ -368,4 +401,4 @@ def attach_iso(vm, filename, datastore):
     drive_spec.device.connectable.startConnected = True
     drive_spec.device.connectable.connected = True
 
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[drive_spec]))
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[drive_spec]))  # Apply the change to the VM

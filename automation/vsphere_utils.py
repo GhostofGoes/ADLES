@@ -5,6 +5,7 @@ from pyVmomi import vim
 from pyVmomi import vmodl
 from sys import stdout
 
+
 # From: various files in pyvmomi-community-samples
 def get_obj(content, vimtype, name):
     """
