@@ -3,7 +3,8 @@
 
 from pyVmomi import vim
 from pyVmomi import vmodl
-from sys import stdout
+
+from automation.utils import sizeof_fmt
 
 
 # From: various files in pyvmomi-community-samples
@@ -122,21 +123,6 @@ def destroy_everything(folder):
 
 
 # From: list_dc_datastore_info.py in pyvmomi-community-samples
-# http://stackoverflow.com/questions/1094841/
-def sizeof_fmt(num):
-    """
-    Returns the human readable version of a file size
-    :param num:
-    :return:
-    """
-    for item in ['bytes', 'KB', 'MB', 'GB']:
-        if num < 1024.0:
-            return "%3.1f%s" % (num, item)
-        num /= 1024.0
-    return "%3.1f%s" % (num, 'TB')
-
-
-# From: list_dc_datastore_info.py in pyvmomi-community-samples
 def print_datastore_info(ds_obj):
     """
     Prints human-readable summary of a Datastore
@@ -151,30 +137,14 @@ def print_datastore_info(ds_obj):
     ds_overp_pct = (ds_overp * 100) / ds_capacity if ds_capacity else 0
     print("Name                  : {}".format(summary.name))
     print("URL                   : {}".format(summary.url))
-    print("Capacity              : {} GB".format(sizeof_fmt(ds_capacity)))
-    print("Free Space            : {} GB".format(sizeof_fmt(ds_freespace)))
-    print("Uncommitted           : {} GB".format(sizeof_fmt(ds_uncommitted)))
-    print("Provisioned           : {} GB".format(sizeof_fmt(ds_provisioned)))
+    print("Capacity              : {}".format(sizeof_fmt(ds_capacity)))
+    print("Free Space            : {}".format(sizeof_fmt(ds_freespace)))
+    print("Uncommitted           : {}".format(sizeof_fmt(ds_uncommitted)))
+    print("Provisioned           : {}".format(sizeof_fmt(ds_provisioned)))
     if ds_overp > 0:
-        print("Over-provisioned      : {} GB / {} %".format(sizeof_fmt(ds_overp), ds_overp_pct))
+        print("Over-provisioned      : {} / {} %".format(sizeof_fmt(ds_overp), ds_overp_pct))
     print("Hosts                 : {}".format(len(ds_obj.host)))
     print("Virtual Machines      : {}".format(len(ds_obj.vm)))
 
 
-# From: virtual_machine_power_cycle_and_question.py in pyvmomi-community-samples
-def _create_char_spinner():
-    """ Creates a generator yielding a char based spinner """
-    while True:
-        for c in '|/-\\':
-            yield c
 
-_spinner = _create_char_spinner()
-
-
-def spinner(label=''):
-    """
-    Prints label with a spinner. When called repeatedly from inside a loop this prints a one line CLI spinner.
-    :param label: (Optional) The message to display while spinning (e.g "Loading", or the current percentage)
-    """
-    stdout.write("\r\t%s %s" % (label, next(_spinner)))
-    stdout.flush()
