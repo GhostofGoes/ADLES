@@ -390,15 +390,15 @@ def attach_iso(vm, filename, datastore):
     drive_spec.device = vim.vm.device.VirtualCdrom()
     drive_spec.device.controllerKey = find_free_ide_controller(vm).key
     drive_spec.device.key = -1
-    drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
-    drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
-    drive_spec.device.backing.datastore = datastore
-    drive_spec.device.backing.fileName = "[{0}] {1}".format(datastore.name, filename)
     drive_spec.device.unitNumber = 0
+
+    drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
+    drive_spec.device.backing.fileName = "[{0}] {1}".format(datastore.name, filename)
+    drive_spec.device.backing.datastore = datastore
 
     drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
     drive_spec.device.connectable.allowGuestControl = True
     drive_spec.device.connectable.startConnected = True
-    drive_spec.device.connectable.connected = True
 
+    drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
     edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[drive_spec]))  # Apply the change to the VM

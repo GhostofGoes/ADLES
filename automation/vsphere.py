@@ -156,9 +156,10 @@ def main():
     # vm_spec = vim.vm.ConfigSpec(name="test_vm", guestId="ubuntuGuest", numCPUs=1, numCoresPerSocket=1,
     #                             memoryMB=1024, annotation="it worked!", files=file_info)
     # create_vm(folder, vm_spec, pool)
-    vm = server.get_vm("dummy")
-    # server.add_iso_to_vm(vm, "ISO-Images/vyos-1.1.7-amd64.iso")
-    portgroup = get_obj(server.content, [vim.Network], "test_network")
+    # vm = server.get_vm("test_vm")
+
+    # attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
+    # portgroup = get_obj(server.content, [vim.Network], "test_network")
     # add_nic(vm, portgroup, "test_summary")
     # edit_nic(vm, 2, summary="lol")
     # delete_nic(vm, 1)
