@@ -78,6 +78,14 @@ class vSphere:
         clonespec.location = relospec
         return clonespec
 
+    def set_motd(self, message):
+        """
+        Sets vCenter server Message of the Day (MOTD)
+        :param message:
+        """
+        print("Setting vCenter MOTD to {}".format(message))
+        self.content.sessionManager.UpdateServiceMessage(message=message)
+
     def get_folder(self, folder_name):
         """
         Finds and returns the named folder
