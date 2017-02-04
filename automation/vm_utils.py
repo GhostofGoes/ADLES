@@ -228,24 +228,26 @@ def remove_all_snapshots(vm, consolidate_disks=True):
 
 
 # From: getallvms.py in pyvmomi-community-samples
-def print_vm_info(virtual_machine, uuid=False):
+def print_vm_info(virtual_machine, print_uuids=False):
     """
     Print human-readable information for a VM
     :param virtual_machine: vim.VirtualMachine object
-    :param uuid: (Optional) Whether to print UUID information
+    :param print_uuids: (Optional) Whether to print UUID information
     """
     summary = virtual_machine.summary
     print("Name          : ", summary.config.name)
     print("State         : ", summary.runtime.powerState)
     print("Guest         : ", summary.config.guestFullName)
-    print("CPUs          : ", summary.config.hardware.numCPU)
-    print("Memory (MB)   : ", summary.config.hardware.memoryMB)
-    print("Template      : ", summary.config.template)
+    print("CPUs          : ", summary.config.numCpu)
+    print("Memory (MB)   : ", summary.config.memorySizeMB)
+    print("vNICs         : ", summary.config.numEthernetCards)
+    print("Disks         : ", summary.config.numVirtualDisks)
+    print("IsTemplate    : ", summary.config.template)
     print("Path          : ", summary.config.vmPathName)
     if summary.guest:
-        print("VMware-tools  : ", summary.guest.toolsStatus)
+        print("VMware-Tools  : ", summary.guest.toolsStatus)
         print("IP            : ", summary.guest.ipAddress)
-    if uuid:
+    if print_uuids:
         print("Instance UUID : ", summary.config.instanceUuid)
         print("Bios UUID     : ", summary.config.uuid)
     if summary.runtime.question:
@@ -378,12 +380,13 @@ def add_nic(vm, port_group, summary="default-summary"):
     edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
 
 
-def attach_iso(vm, filename, datastore):
+def attach_iso(vm, filename, datastore, boot=True):
     """
     Attaches an ISO image to a VM
     :param vm: vim.VirtualMachine
     :param filename: Name of the ISO image to attach
     :param datastore: vim.Datastore where the ISO resides
+    :param boot: Set VM to boot from the attached ISO
     """
     print("Adding ISO '{0}' to VM '{1}'".format(filename, vm.name))
     drive_spec = vim.vm.device.VirtualDeviceSpec()
@@ -401,4 +404,11 @@ def attach_iso(vm, filename, datastore):
     drive_spec.device.connectable.startConnected = True
 
     drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[drive_spec]))  # Apply the change to the VM
+    vm_spec = vim.vm.ConfigSpec(deviceChange=[drive_spec])
+
+    if boot:
+        order = [vim.vm.BootOptions.BootableCdromDevice()]
+        order.extend(list(vm.config.bootOptions.bootOrder))
+        vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)
+
+    edit_vm(vm, vm_spec)  # Apply the change to the VM
