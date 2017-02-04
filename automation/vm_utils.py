@@ -228,22 +228,26 @@ def remove_all_snapshots(vm, consolidate_disks=True):
 
 
 # From: getallvms.py in pyvmomi-community-samples
-def print_vm_info(virtual_machine):
+def print_vm_info(virtual_machine, uuid=False):
     """
-    Print human-readable information for a virtual machine object
-    :param virtual_machine:
+    Print human-readable information for a VM
+    :param virtual_machine: vim.VirtualMachine object
+    :param uuid: (Optional) Whether to print UUID information
     """
     summary = virtual_machine.summary
     print("Name          : ", summary.config.name)
+    print("State         : ", summary.runtime.powerState)
+    print("Guest         : ", summary.config.guestFullName)
+    print("CPUs          : ", summary.config.hardware.numCPU)
+    print("Memory (MB)   : ", summary.config.hardware.memoryMB)
     print("Template      : ", summary.config.template)
     print("Path          : ", summary.config.vmPathName)
-    print("Guest         : ", summary.config.guestFullName)
-    print("Instance UUID : ", summary.config.instanceUuid)
-    print("Bios UUID     : ", summary.config.uuid)
-    print("State         : ", summary.runtime.powerState)
     if summary.guest:
         print("VMware-tools  : ", summary.guest.toolsStatus)
         print("IP            : ", summary.guest.ipAddress)
+    if uuid:
+        print("Instance UUID : ", summary.config.instanceUuid)
+        print("Bios UUID     : ", summary.config.uuid)
     if summary.runtime.question:
         print("Question  : ", summary.runtime.question.text)
     if summary.config.annotation:
@@ -286,7 +290,8 @@ def remove_device(vm, device):
 
 # From: delete_nic_from_vm.py in pyvmomi-community-samples
 def delete_nic(vm, nic_number):
-    """ Deletes virtual NIC based on nic number
+    """
+    Deletes virtual NIC based on nic number
     :param vm: vim.VirtualMachine
     :param nic_number: Unit Number
     """
@@ -363,9 +368,4 @@ def attach_iso(vm, filename, datastore):
     drive_spec.device.connectable.startConnected = True
     drive_spec.device.connectable.connected = True
 
-    # cdrom = vim.vm.device.VirtualCdrom()
-    # cdrom.controllerKey = find_free_ide_controller(vm).key
-    # cdrom.key = -1
-    # cdrom.connectable = connectable
-    # cdrom.backing = backing
     edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[drive_spec]))
