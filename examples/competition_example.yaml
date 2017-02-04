@@ -31,7 +31,7 @@ services:
         family: "Windows/NT"
   - score-bot:
       image: "prccdc/score-bot"
-       tag: "0.1.2"
+      tag: "0.1.2"
   - firewall:
       template: "PRCCDC Firewall"
       template-config:
@@ -118,17 +118,16 @@ folders:
         service: score-bot
         networks: [competition, management]
         instances: 10
-
   blue-team:
     instances: 14
     teams: Blue Team X
-      service-set:
-        name: team-member-host X
-        description: "Hosts the blue team members use to access their services"
-        instances: 8 # Number of users on blue team
-        service-pool: [host-type-a, host-type-b]
-          pool-distributions: [0.3, 0.7] # Must add up to 1
-        networks: [hosts] 
+    service-set:
+      name: team-member-host X
+      description: "Hosts the blue team members use to access their services"
+      instances: 8 # Number of users on blue team
+      service-pool: [host-type-a, host-type-b]
+      pool-distributions: [0.3, 0.7] # Must add up to 1
+      networks: [hosts] 
       service:
         name: gateway
         description: "Gateway connecting Blue team networks to the larger competition network"
@@ -175,7 +174,6 @@ folders:
           ports: [21, 445]
           protocols: ["sftp", "smb"]
           criteria: "criteria-file"
-
   red-team:
     teams: Red Team
     services:

@@ -27,11 +27,14 @@ def parse_file(filename):
 def main():
     """ For testing of the parser """
     from pprint import pprint
-    testfile = 'test_example.yaml'
-    doc = parse_file(testfile)
-    print(doc["name"])
+    # testfile = 'test_example.yaml'
+    # doc = parse_file(testfile)
+    # print(doc["name"])
 
-    specfile = '../specification.yaml'
+    # specfile = '../specification.yaml'
+    # specfile = '../examples/competition_example.yaml'
+    # specfile = '../examples/tutorial_example.yaml'
+    specfile = '../examples/edurange_example.yaml'
     spec = parse_file(specfile)
     pprint(spec)
 
