@@ -31,10 +31,10 @@ def main():
     # doc = parse_file(testfile)
     # print(doc["name"])
 
-    # specfile = '../specification.yaml'
-    specfile = '../examples/competition_example.yaml'
-    # specfile = '../examples/tutorial_example.yaml'
     # specfile = '../examples/edurange_example.yaml'
+    # specfile = '../specification.yaml'
+    # specfile = '../examples/competition_example.yaml'
+    specfile = '../examples/tutorial_example.yaml'
     spec = parse_file(specfile)
     pprint(spec)  # Note that pprint will cause descriptions to go across multiple lines, don't be alarmed
 

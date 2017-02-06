@@ -28,6 +28,7 @@
 
 # *** Notes ***
 # "Instances" is assumed to be one unless specified otherwise. They cannot be negative or zero
+# Top-level definitions are only required if used (e.g resources, groups, networks)
 
 
 # TODO: "enabled" flags to easily toggle sections on and off without having to comment out
@@ -47,7 +48,7 @@ metadata:
   class: "Name of the class"                      # Optional    Example: "Applied Security Concepts"
   date-created: "Date specification was created"  # Suggested   UTC format: YYYY-MM-DD (Example: 2016-10-12)
   version: "0.0.0"                                # Optional    Semantic version of the document: major.minor.bugfix  
-  infrastructure-config-file: "filename"          # REQUIRED    YAML file specifying the infrastructure used to create the environment
+  infrastructure-config-file: "filename.yaml"     # REQUIRED    YAML file specifying the infrastructure used to create the environment
 
 
 
@@ -130,25 +131,27 @@ resources:
 # Non-Private (RFC 1918) networks will result in a warning that can be suppressed
 # Subnet IP addresses are not required. They only matter if running configuration scripts or adding a pre-configured router
 # IP version is implicitly defined by address
+# Configurations are the same for all networks, including unique, generic, and base
 # TODO: monitoring annotations
 # TODO: managment/admin networks?
 # TODO: VLANs
 networks: 
   unique-subnets:   # Only one of each of these exists. If specified, any hosts will be added to it
-    subnet-label:                   # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
-      name: "Human-readable name"   # Suggested   Human-readable name used to identify the subnet in the environment
-      subnet: "x.x.x.x/x"           # Suggested    IP subnet address and mask: SUBNET-IP/CIDR
-      vswitch: "name of vswitch"    # Optional    Name of virtual switch used for the subnet (Applies to VMware and related environments)
+    subnet-label:                 # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
+      name: "name"                # REQUIRED    Unique name used to identify the subnet in the environment (Used for PortGroups in VMware environments)
+      description: "description"  # Optional    Human-readable description of subnet
+      subnet: "x.x.x.x/x"         # Suggested   IP subnet address and mask: SUBNET-IP/CIDR
+      vswitch: "name of vswitch"  # Optional    Name of virtual switch used for the subnet (Applies to VMware and related environments)
   generic-subnets:  # Subnets that new instances are created per instance of an exercise
-    subnet-label:                   # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
-      name: "Human-readable name"   # Suggested   Human-readable name used to identify the subnet in the environment
-      subnet: "x.x.x.x/x"           # Suggested    IP subnet address and mask: SUBNET-IP/CIDR
-      vswitch: "name of vswitch"    # Optional    Name of virtual switch used for the subnet (Applies to VMware and related environments)
+    subnet-label:        
+      name: "name"
+      subnet: "x.x.x.x/x"    
+      vswitch: "name of vswitch"
   base-subnets:     # Subnets that will have any values in network portion of address with X are incremented for each instance
-    subnet-label:                   # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
-      name: "Human-readable name"   # Suggested   Human-readable name used to identify the subnet in the environment
-      subnet: "x.x.x.x/x"           # Suggested    IP subnet address and mask: SUBNET-IP/CIDR
-      vswitch: "name of vswitch"    # Optional    Name of virtual switch used for the subnet (Applies to VMware and related environments)
+    subnet-label:  
+      name: "name"
+      subnet: "x.x.x.x/x"
+      vswitch: "name of vswitch"
 
 
 
