@@ -2,7 +2,7 @@
 
 metadata:
   name: "CS 439 Tutorial 3 - ARP Cache Poisoning"
-  description: "Environment for the ARP Cache Poisoning Tutorial for CS 439" 
+  description: "Environment for the ARP Cache Poisoning Tutorial" 
   course: "CS 439"
   class: "Applied Security Concepts"
   date-created: "2016-11-06"
