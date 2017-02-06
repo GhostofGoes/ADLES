@@ -3,6 +3,7 @@
 
 # Ignore files with login information...for obvious reasons
 logins.json
+vsphere.yaml
 /logins.json
 
 

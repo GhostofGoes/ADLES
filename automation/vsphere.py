@@ -150,7 +150,7 @@ def main():
     from os import pardir, path
 
     with open(path.join(pardir, "logins.json"), "r") as login_file:
-        logins = load(fp=login_file)["vsphere"]
+        logins = load(fp=login_file)
 
     # TODO: add capability to wait on tasks and provide status (important for long-running deploys/clones)
     #   Idea: create a task queue, place all the tasks i need done in-order, then run them all using wait_for_tasks
