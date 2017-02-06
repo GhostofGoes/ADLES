@@ -47,8 +47,8 @@ metadata:
   course: "Course number"                         # Optional    Example: "CS 439"
   class: "Name of the class"                      # Optional    Example: "Applied Security Concepts"
   date-created: "Date specification was created"  # Suggested   UTC format: YYYY-MM-DD (Example: 2016-10-12)
-  version: "0.0.0"                                # Optional    Semantic version of the document: major.minor.bugfix  
-  infrastructure-config-file: "filename.yaml"     # REQUIRED    YAML file specifying the infrastructure used to create the environment
+  version: "0.0.0"                                # Optional    Semantic version of the document: major.minor.bugfix
+  infrastructure-config-file: "filename.yaml"     # REQUIRED    YAML file specifying the infrastructure used to create the environment (See: infrastructure-specification.yaml for syntax)
 
 
 

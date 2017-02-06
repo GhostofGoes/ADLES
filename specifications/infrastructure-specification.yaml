@@ -1,3 +1,22 @@
 ---
+# Specification of syntax for file used to define the infrastructure used to create environments
+# Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
+# Author:           Christopher Goes
+# Creation Date:    Febuary 6th, 2017
+
+# *** Labels for syntactic components ***
+# Children do not have to be specified if parent is not defined
+# If no label is given, then context will determine label (Everything should be labeled eventually)
+#
+# REQUIRED      These must be defined. Not doing so is an parse-time error
+# Suggested     These should be defined. Will give a warning during parsing
+# Optional      Do not have to be specified
+# Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
+
+
+platform: "name of platform"    # REQUIRED
+server-hostname: "hostname"     # REQUIRED
+server-port: 0                  # REQUIRED   
+login-file: "filename.json"     # REQUIRED      Filename of JSON file with login information    
 
 ...
