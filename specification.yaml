@@ -108,7 +108,7 @@ services:
 
 # ** Resources **
 # Lab resources that are to be utilized. These will be attached to folders, networks, or groups as needed
-# Example: access to a specific portion of the power lab. 
+# Example: access to a specific portion of the power lab
 # Example: access to RADICL's  Wireless testbed
 # TODO: define better
 resources:
@@ -126,11 +126,9 @@ resources:
 
 
 # ** Networks **
-# Note: distributed vSwitches are an implementation detail of system, and are not considored as part of the specification
 # Non-Private (RFC 1918) networks will result in a warning that can be suppressed
-# Don't NEED IP addresses, just named networks. Addresses only matter if running configuration scripts or adding a pre-configured router
+# Subnet IP addresses are not required. They only matter if running configuration scripts or adding a pre-configured router
 # IP version is implicitly defined by address
-# vSwitches are implicitly defined by networks
 # TODO: monitoring annotations
 # TODO: managment/admin networks?
 # TODO: VLANs
@@ -138,15 +136,18 @@ networks:
   unique-subnets:   # Only one of each of these exists. If specified, any hosts will be added to it
     subnet-label:                   # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
       name: "Human-readable name"   # Suggested   Human-readable name used to identify the subnet in the environment
-      subnet: "x.x.x.x/x"           # REQUIRED    IP subnet address and mask: SUBNET-IP/CIDR
+      subnet: "x.x.x.x/x"           # Suggested    IP subnet address and mask: SUBNET-IP/CIDR
+      vswitch: "name of vswitch"    # Optional    Name of virtual switch used for the subnet (Applies to VMware and related environments)
   generic-subnets:  # Subnets that new instances are created per instance of an exercise
     subnet-label:                   # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
       name: "Human-readable name"   # Suggested   Human-readable name used to identify the subnet in the environment
-      subnet: "x.x.x.x/x"           # REQUIRED    IP subnet address and mask: SUBNET-IP/CIDR
+      subnet: "x.x.x.x/x"           # Suggested    IP subnet address and mask: SUBNET-IP/CIDR
+      vswitch: "name of vswitch"    # Optional    Name of virtual switch used for the subnet (Applies to VMware and related environments)
   base-subnets:     # Subnets that will have any values in network portion of address with X are incremented for each instance
     subnet-label:                   # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
       name: "Human-readable name"   # Suggested   Human-readable name used to identify the subnet in the environment
-      subnet: "x.x.x.x/x"           # REQUIRED    IP subnet address and mask: SUBNET-IP/CIDR
+      subnet: "x.x.x.x/x"           # Suggested    IP subnet address and mask: SUBNET-IP/CIDR
+      vswitch: "name of vswitch"    # Optional    Name of virtual switch used for the subnet (Applies to VMware and related environments)
 
 
 
