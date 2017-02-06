@@ -8,24 +8,26 @@
 #   0.1.0: Created
 #   0.2.0: Substantial changes
 
-# Syntax inspirations: 
-#   https://docs.docker.com/compose/compose-file/
-#   https://docs.ansible.com/ansible/YAMLSyntax.html
-# System specification needs to take into account things such as templates, containers
-# "Instances" is assumed to be one unless specified otherwise. They cannot be negative or zero.
+# *** Syntax inspirations ***
+# https://docs.docker.com/compose/compose-file/
+# https://docs.ansible.com/ansible/YAMLSyntax.html
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
 # If no label is given, then context will determine label (Everything should be labeled eventually)
 #
-# REQUIRED      These must be defined. Not doing so is an parse-time error.
-# Suggested     These should be defined. Will give a warning during parsing.
+# REQUIRED      These must be defined. Not doing so is an parse-time error
+# Suggested     These should be defined. Will give a warning during parsing
 # Optional      Do not have to be specified
-# Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error.
+# Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
 
 # *** Definitions ***
 # vm    Virtual Machine
 # ad    Active Directory
+
+# *** Notes ***
+# "Instances" is assumed to be one unless specified otherwise. They cannot be negative or zero
+
 
 # TODO: "enabled" flags to easily toggle sections on and off without having to comment out
 
@@ -34,22 +36,22 @@
 
 # ** Document Metadata **
 metadata:
-  name: "a human-readable title for the specification" # REQUIRED
-  description: "a human-readable description of specification" # Suggested
-  date-created: "date the specification was created" # Suggested. UTC format: YYYY-MM-DD (2016-10-12)
-  version: "version of the document" # Optional
-  course: "name of the course/class" # Optional
-  class: "same as course" # Optional
+  name: "Title for the specification"             # REQUIRED
+  description: "Description of specification"     # Suggested
+  course: "Course number"                         # Optional    Example: "CS 439"
+  class: "Name of the class"                      # Optional    Example: "Applied Security Concepts"
+  date-created: "Date specification was created"  # Suggested   UTC format: YYYY-MM-DD (Example: 2016-10-12)
+  version: "0.0.0"                                # Optional    Semantic version of the document: major.minor.bugfix
 
-  # If not defined, default 'infrastructure.yaml' is checked, if not found user is prompted 
+  # If not defined, default 'infrastructure.yaml' is checked, if not found user is prompted
   # TODO: define syntax of this file
-  infrastructure-config-file: "filename of environment infrastructure info" # Suggested
+  infrastructure-config-file: "Name of JSON file containing environment infrastructure info" # Suggested
 
 
 
 # ** Groups/Teams **
-# User groups, such as teams, students, instructors, etc.
-# These are used to apply permissions to the resources and machines in the generated virtual environment.
+# User groups, such as teams, students, instructors, etc
+# These are used to apply permissions to the resources and machines in the generated virtual environment
 # Can also be specified as "teams"
 # TODO: how do we map users in groups to VMs?
 groups:
@@ -72,10 +74,10 @@ groups:
 
 
 # ** Services **
-# Definition of services (nodes) that will be created in the enviornment, such as hosts, servers, and routers.
+# Definition of services (nodes) that will be created in the enviornment, such as hosts, servers, and routers
 # Case insensitive EXCEPT for resources, such as templates or images
 # Template configurations will be overriden if certain options are set
-# If containers are used, a GitLab server or Docker registry MUST be specified (TODO: where?)
+# If containers are used, a GitLab server or Docker registry MUST be specified in the infrastructure-config file
 # Three types of service: template, container, compose
 # Template:     Templatized VM in vSphere
 # Container:    Docker container
@@ -86,19 +88,21 @@ groups:
 # TODO: monitoring + management interface configurations
 services:
   all-service-types:
-    network-interfaces: [] # OPTIONAL [default: template or container specific]  
-    os: # Optional
+    note: "Human-readable note visible by end-user, such as default username/password" # Optional
+    network-interfaces: []                  # Optional [default: template or container specific]
+    os:                                     # Optional    Metadata describing the OS. Useful for identifying or configuring services
       name: "name of the os"
       version: "version of the os"
       family: "major family os belongs to"
   template-based-service:   # Option A
     template: "name of template in vSphere" # REQUIRED
-    template-config: [] # Optional. Configuration of Template settings specified by name. This will override the template's existing settings.
+    template-config: []                     # Optional    Configuration of Template settings specified by name. This will override the template's existing settings
+    guest-extensions-required: no           # Optional    If set, guest extensions (e.g VMware Tools) will be installed and enabled
   container-based-service:  # Option B
-    image: "name of the docker image"    # REQUIRED
-    tag: "tag for the image"             # OPTIONAL [if not specified, "default" is used]
+    image: "name of the docker image"       # REQUIRED
+    tag: "tag for the image"                # Optional    If not specified, "default" is used
   compose-based-service:    # Option C
-    compose-file: "name of compose file" # REQUIRED                                  
+    compose-file: "name of compose file"    # REQUIRED
 
 
 
@@ -122,8 +126,8 @@ resources:
 
 
 # ** Networks **
-# Note: distributed vSwitches are an implementation detail of system, and are not considored as part of the specification.
-# Non-Private (RFC 1918) networks will result in a warning that can be suppressed.
+# Note: distributed vSwitches are an implementation detail of system, and are not considored as part of the specification
+# Non-Private (RFC 1918) networks will result in a warning that can be suppressed
 # VLANs are implicitly defined?
 # Don't NEED IP addresses, just named networks. Addresses only matter if running configuration scripts or adding a pre-configured router
 # IP version is implicitly defined by address (using ipaddress module in python)
@@ -132,27 +136,30 @@ resources:
 # TODO: monitoring annotations
 # TODO: managment/admin networks?
 networks: 
-  unique-subnets: # Only one of each of these exists. If specified, any hosts will be added to it.
-    subnet-name: "192.168.1.0/24" # Address is optional. Subnet is specified using CIDR notation 
-  generic-subnets: # Subnets that new instances are created per instance of an exercise
-    subnet-name: "192.168.1.0/24"
-  base-subnets: # Subnets that will have any values in network portion of address with X are incremented for each instance 
-    subnet-name: "192.168.1.0/24"
+  unique-subnets:   # Only one of each of these exists. If specified, any hosts will be added to it
+    name: "Human-readable name"   # Suggested
+    subnet: "x.x.x.x/x"           # REQUIRED
+  generic-subnets:  # Subnets that new instances are created per instance of an exercise
+    name: "Human-readable name"   # Suggested
+    subnet: "x.x.x.x/x"           # REQUIRED
+  base-subnets:     # Subnets that will have any values in network portion of address with X are incremented for each instance
+    name: "Human-readable name"   # Suggested
+    subnet: "x.x.x.x/x"           # REQUIRED
 
 
 
 # ** Folders **
 # Assemblages of objects defined previously in file
-# TODO: pool distributions
+# TODO: resource pool distributions
 folders:
   folder-a:
-    services: # REQUIRED
-      service-instance-label: 
-        service: service-label # As defined in services
-        instances: 2 # OPTONAL [default: 1]
-        networks: ["subnet-a", "subnet-b"]
-    group: group # REQUIRED (can also be "team")
+    services:                                 # REQUIRED (A folder with this name MUST exist)
+      service-instance-name:
+        service: service-label                # REQUIRED  Label as defined in services
+        instances: 2                          # Optional [default: 1]
+        networks: ["subnet-a", "subnet-b"]    # Optional
+    group: group-label                        # REQUIRED  User group or team to apply to
   folder-b:
-    instances: 10 # if instances is specified, this is a template
+    instances: 10 # If instances is specified, this is a template
 
 ...
