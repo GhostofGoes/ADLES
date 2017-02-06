@@ -128,23 +128,25 @@ resources:
 # ** Networks **
 # Note: distributed vSwitches are an implementation detail of system, and are not considored as part of the specification
 # Non-Private (RFC 1918) networks will result in a warning that can be suppressed
-# VLANs are implicitly defined?
 # Don't NEED IP addresses, just named networks. Addresses only matter if running configuration scripts or adding a pre-configured router
-# IP version is implicitly defined by address (using ipaddress module in python)
+# IP version is implicitly defined by address
 # vSwitches are implicitly defined by networks
-# Syntax: subnet-name: "address/mask"
 # TODO: monitoring annotations
 # TODO: managment/admin networks?
+# TODO: VLANs
 networks: 
   unique-subnets:   # Only one of each of these exists. If specified, any hosts will be added to it
-    name: "Human-readable name"   # Suggested
-    subnet: "x.x.x.x/x"           # REQUIRED
+    subnet-label:                   # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
+      name: "Human-readable name"   # Suggested   Human-readable name used to identify the subnet in the environment
+      subnet: "x.x.x.x/x"           # REQUIRED    IP subnet address and mask: SUBNET-IP/CIDR
   generic-subnets:  # Subnets that new instances are created per instance of an exercise
-    name: "Human-readable name"   # Suggested
-    subnet: "x.x.x.x/x"           # REQUIRED
+    subnet-label:                   # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
+      name: "Human-readable name"   # Suggested   Human-readable name used to identify the subnet in the environment
+      subnet: "x.x.x.x/x"           # REQUIRED    IP subnet address and mask: SUBNET-IP/CIDR
   base-subnets:     # Subnets that will have any values in network portion of address with X are incremented for each instance
-    name: "Human-readable name"   # Suggested
-    subnet: "x.x.x.x/x"           # REQUIRED
+    subnet-label:                   # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
+      name: "Human-readable name"   # Suggested   Human-readable name used to identify the subnet in the environment
+      subnet: "x.x.x.x/x"           # REQUIRED    IP subnet address and mask: SUBNET-IP/CIDR
 
 
 
