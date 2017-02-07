@@ -27,7 +27,7 @@ services:
     template: "VyOS 1.1.7 (64-bit)"
 
 networks:
-  generic-subnets:
+  generic-networks:
     ARP-LAN:
       name: "ARP-LAN"
       description: "Used for ARP-spoofing tutorial"

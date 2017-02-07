@@ -35,38 +35,32 @@ def verify_syntax(spec):
     status = True
     if "metadata" in spec:
         if not _verify_metadata_syntax(spec["metadata"]):
-            logging.error("Invalid metadata syntax")
             status = False
     else:
         logging.error("No metadata found!")
         status = False
     if "groups" in spec:
         if not _verify_groups_syntax(spec["groups"]):
-            logging.error("Invalid groups syntax")
             status = False
     else:
         logging.warning("No groups found")
     if "services" in spec:
         if not _verify_services_syntax(spec["services"]):
-            logging.error("Invalid services syntax")
             status = False
     else:
         logging.warning("No services found")
     if "resources" in spec:
         if not _verify_resources_syntax(spec["resources"]):
-            logging.error("Invalid resources syntax")
             status = False
     else:
         logging.warning("No services found")
     if "networks" in spec:
         if not _verify_networks_syntax(spec["networks"]):
-            logging.error("Invalid networks syntax")
             status = False
     else:
         logging.warning("No networks found")
     if "folders" in spec:
         if not _verify_folders_syntax(spec["folders"]):
-            logging.error("Invalid folders syntax")
             status = False
     else:
         logging.error("No folders found")
@@ -86,7 +80,7 @@ def _verify_metadata_syntax(metadata):
         status = False
     if "description" not in metadata:
         logging.warning("Missing description in metadata")
-    if "data-created" not in metadata:
+    if "date-created" not in metadata:
         logging.warning("Missing date-created in metadata")
     if "infrastructure-config-file" not in metadata:
         logging.error("Missing infrastructure-config-file in metadata")
@@ -101,29 +95,29 @@ def _verify_groups_syntax(groups):
     :return: Boolean indicating success or failure
     """
     status = True
-    for group in groups:
-        if " X" in group:  # Templates
-            if "instances" not in group:
-                logging.error("No instances specified for template group %s", group)
+    for key, value in groups.items():
+        if " X" in key:  # Templates
+            if "instances" not in value:
+                logging.error("No instances specified for template group %s", key)
                 status = False
-            if "ad-group" in group:
+            if "ad-group" in value:
                 pass
-            elif "filename" in group:
+            elif "filename" in value:
                 pass
             else:
-                logging.error("Invalid user specification method for group %s", group)
+                logging.error("Invalid user specification method for template group %s", key)
                 status = False
         else:  # Non-templates
-            if "ad-group" in group:
+            if "ad-group" in value:
                 pass
-            elif "filename" in group:
+            elif "filename" in value:
                 pass
-            elif "usernames" in group:
-                if type(group["usernames"]) is not list:
-                    logging.error("Username specification must be a list for group %s", group)
+            elif "usernames" in value:
+                if type(value["usernames"]) is not list:
+                    logging.error("Username specification must be a list for group %s", key)
                     status = False
             else:
-                logging.error("Invalid user specification method for group %s", group)
+                logging.error("Invalid user specification method for group %s", key)
                 status = False
     return status
 
@@ -135,17 +129,17 @@ def _verify_services_syntax(services):
     :return: Boolean indicating success or failure
     """
     status = True
-    for service in services:
-        if service is "all-service-types":
+    for key, value in services.items():
+        if key is "all-service-types":
             pass
-        elif "template" in service:
+        elif "template" in value:
             pass
-        elif "image" in service:
+        elif "image" in value:
             pass
-        elif "compose-file" in service:
+        elif "compose-file" in value:
             pass
         else:
-            logging.error("Invalid service definition: %s", service)
+            logging.error("Invalid service definition: %s", key)
             status = False
     return status
 
@@ -167,27 +161,32 @@ def _verify_networks_syntax(networks):
     :return: Boolean indicating success or failure
     """
     status = True
-    if "unique-networks" in networks:
-        for net in networks["unique-subnets"]:
-            if "name" not in net:
-                logging.error("Network %s does not have a name!", net)
-                status = False
-            if "subnet" not in net:
-                logging.warning("No subnet specified for network %s", net)
-    if "generic-networks" in networks:
-        for net in networks["generic-subnets"]:
-            if "name" not in net:
-                logging.error("Network %s does not have a name!", net)
-                status = False
-            if "subnet" not in net:
-                logging.warning("No subnet specified for network %s", net)
-    if "base-networks" in networks:
-        for net in networks["base-subnets"]:
-            if "name" not in net:
-                logging.error("Network %s does not have a name!", net)
-                status = False
-            if "subnet" not in net:
-                logging.warning("No subnet specified for network %s", net)
+    if "unique-networks" not in networks and "generic-networks" not in networks and "base-networks" not in networks:
+        logging.error("Network specification exists but is empty!")
+        status = False
+    else:
+        if "unique-networks" in networks:
+            for key, value in networks["unique-networks"].items():
+                if "name" not in value:
+                    logging.error("Network %s does not have a name!", key)
+                    status = False
+                if "subnet" not in value:
+                    logging.warning("No subnet specified for network %s", key)
+        if "generic-networks" in networks:
+            for key, value in networks["generic-networks"].items():
+                if "name" not in value:
+                    logging.error("Network %s does not have a name!", key)
+                    status = False
+                if "subnet" not in value:
+                    logging.warning("No subnet specified for network %s", key)
+        if "base-networks" in networks:
+            for key, value in networks["base-networks"].items():
+                if "name" not in value:
+                    logging.error("Network %s does not have a name!", key)
+                    status = False
+                if "subnet" not in value:
+                    logging.warning("No subnet specified for network %s", key)
+
     return status
 
 
@@ -198,12 +197,23 @@ def _verify_folders_syntax(folders):
     :return: Boolean indicating success or failure
     """
     status = True
-    for folder in folders:
-        if "services" not in folder:
-            logging.error("No services specified for folder %s", folder)
+    for key, value in folders.items():
+        if "services" in value:
+            for skey, svalue in value.items():
+                if "service" not in svalue:
+                    logging.error("Service %s is unnamed in folder %s", skey, key)
+                    status = False
+                if "networks" in svalue and type(svalue["networks"]) is not list:
+                    logging.error("Network specifications must be a list for service %s in folder %s", skey, key)
+                    status = False
+        else:
+            logging.error("No services specified for folder %s", key)
             status = False
-        if "group" not in folder:
-            logging.error("No group specified for folder %s", folder)
+        if "group" not in value:
+            logging.error("No group specified for folder %s", key)
+            status = False
+        if "instances" in value and type(value["instances"]) is not int:
+            logging.error("Instances must be a integer for folder %s", key)
             status = False
     return status
 
@@ -212,10 +222,10 @@ def main():
     """ For testing of the parser """
     from pprint import pprint
 
-    # specfile = '../examples/edurange_example.yaml'
+    # specfile = '../examples/edurange.yaml'
     # specfile = '../specification.yaml'
-    # specfile = '../examples/competition_example.yaml'
-    specfile = '../examples/tutorial_example.yaml'
+    # specfile = '../examples/competition.yaml'
+    specfile = '../examples/tutorial.yaml'
     spec = parse_file(specfile)
     pprint(spec)  # Note that pprint will cause descriptions to go across multiple lines, don't be alarmed
 
