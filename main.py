@@ -25,6 +25,7 @@ from docopt import docopt
 from getpass import getpass
 import logging
 import coloredlogs
+coloredlogs.install(level='DEBUG', fmt="[%(asctime)s] (%(levelname)s) %(message)s", datefmt="%H:%M:%S", isatty=True)
 
 from automation.model import Spec
 from automation.parser import parse_file, verify_syntax
@@ -53,10 +54,9 @@ def main():
         else:
             logging.error("Syntax check failed!\nExiting...")
             return 1
-        model = Spec(spec["metadata"])
+        # model = Spec(spec["metadata"])
 
 
 if __name__ == '__main__':
-    coloredlogs.install(level='DEBUG', fmt="[%(asctime)s] (%(levelname)s)  %(message)s", datefmt="%H:%M:%S")
     args = docopt(__doc__, version=__version__, help=True)
     main()

@@ -61,9 +61,9 @@ metadata:
 groups:
   Group Regular Example:
     # The three different methods of specifying users for a regular group
-    ad-group: "RADICL Users"
-    filename: "users.json"
-    usernames: [ "user A", "user B" ]
+    ad-group: "RADICL Users"          # Option A
+    filename: "users.json"            # Option B
+    usernames: [ "user A", "user B" ] # Option C  ( TODO: SPECIFY USERNAME/PASSWORD SYNTAX  )
 
   # For creating batch groups from a common template base, the "template" type can be used
   # Templates use the key letter 'X' to define unique copies of the base
@@ -93,7 +93,7 @@ groups:
 services:
   all-service-types:
     note: "Human-readable note visible by end-user, such as default username/password" # Optional
-    network-interfaces: []                  # Optional [default: template or container specific]
+    network-interfaces: []                  # Optional    [default: template or container specific]
     os:                                     # Optional    Metadata describing the OS. Useful for identifying or configuring services
       name: "name of the os"
       version: "version of the os"
@@ -104,7 +104,7 @@ services:
     guest-extensions-required: no           # Optional    If set, guest extensions (e.g VMware Tools) will be installed and enabled
   container-based-service:  # Option B
     image: "name of the docker image"       # REQUIRED
-    tag: "tag for the image"                # Optional    If not specified, "default" is used
+    tag: "tag for the image"                # Optional    [default: "default"]
   compose-based-service:    # Option C
     compose-file: "name of compose file"    # REQUIRED
 
@@ -137,19 +137,19 @@ resources:
 # TODO: managment/admin networks?
 # TODO: VLANs
 networks: 
-  unique-subnets:   # Only one of each of these exists. If specified, any hosts will be added to it
-    subnet-label:                 # REQUIRED    Label used to identify the subnet (Example: ARP-LAN)
-      name: "name"                # REQUIRED    Unique name used to identify the subnet in the environment (Used for PortGroups in VMware environments)
-      description: "description"  # Optional    Human-readable description of subnet
-      subnet: "x.x.x.x/x"         # Suggested   IP subnet address and mask: SUBNET-IP/CIDR
-      vswitch: "name of vswitch"  # Optional    Name of virtual switch used for the subnet (Applies to VMware and related environments)
-  generic-subnets:  # Subnets that new instances are created per instance of an exercise
-    subnet-label:        
+  unique-networks:   # Only one of each of these exists. If specified, any hosts will be added to it
+    network-label:                # REQUIRED    Label used to identify the network (Example: ARP-LAN)
+      name: "name"                # REQUIRED    Unique name used to identify the network in the environment (Used for PortGroups in VMware environments)
+      description: "description"  # Optional    Human-readable description of network
+      subnet: "x.x.x.x/x"         # Suggested   IP network address and mask: SUBNET-IP/CIDR
+      vswitch: "name of vswitch"  # Optional    Name of virtual switch used for the network (Applies to VMware and related environments)
+  generic-networks:  # Networks that new instances are created per instance of an exercise
+    network-label:
       name: "name"
       subnet: "x.x.x.x/x"    
       vswitch: "name of vswitch"
-  base-subnets:     # Subnets that will have any values in network portion of address with X are incremented for each instance
-    subnet-label:  
+  base-networks:     # Networks that will have any values in network portion of address with X are incremented for each instance
+    network-label:  
       name: "name"
       subnet: "x.x.x.x/x"
       vswitch: "name of vswitch"

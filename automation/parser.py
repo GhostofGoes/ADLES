@@ -40,35 +40,30 @@ def verify_syntax(spec):
     else:
         logging.error("No metadata found!")
         status = False
-
     if "groups" in spec:
         if not _verify_groups_syntax(spec["groups"]):
             logging.error("Invalid groups syntax")
             status = False
     else:
         logging.warning("No groups found")
-
     if "services" in spec:
         if not _verify_services_syntax(spec["services"]):
             logging.error("Invalid services syntax")
             status = False
     else:
         logging.warning("No services found")
-
     if "resources" in spec:
         if not _verify_resources_syntax(spec["resources"]):
             logging.error("Invalid resources syntax")
             status = False
     else:
         logging.warning("No services found")
-
     if "networks" in spec:
         if not _verify_networks_syntax(spec["networks"]):
             logging.error("Invalid networks syntax")
             status = False
     else:
         logging.warning("No networks found")
-
     if "folders" in spec:
         if not _verify_folders_syntax(spec["folders"]):
             logging.error("Invalid folders syntax")
@@ -76,7 +71,6 @@ def verify_syntax(spec):
     else:
         logging.error("No folders found")
         status = False
-
     return status
 
 
@@ -87,10 +81,16 @@ def _verify_metadata_syntax(metadata):
     :return: Boolean indicating success or failure
     """
     status = True
-    if not metadata["name"]:
+    if "name" not in metadata:
         logging.error("Missing name in metadata")
         status = False
-
+    if "description" not in metadata:
+        logging.warning("Missing description in metadata")
+    if "data-created" not in metadata:
+        logging.warning("Missing date-created in metadata")
+    if "infrastructure-config-file" not in metadata:
+        logging.error("Missing infrastructure-config-file in metadata")
+        status = False
     return status
 
 
@@ -101,6 +101,30 @@ def _verify_groups_syntax(groups):
     :return: Boolean indicating success or failure
     """
     status = True
+    for group in groups:
+        if " X" in group:  # Templates
+            if "instances" not in group:
+                logging.error("No instances specified for template group %s", group)
+                status = False
+            if "ad-group" in group:
+                pass
+            elif "filename" in group:
+                pass
+            else:
+                logging.error("Invalid user specification method for group %s", group)
+                status = False
+        else:  # Non-templates
+            if "ad-group" in group:
+                pass
+            elif "filename" in group:
+                pass
+            elif "usernames" in group:
+                if type(group["usernames"]) is not list:
+                    logging.error("Username specification must be a list for group %s", group)
+                    status = False
+            else:
+                logging.error("Invalid user specification method for group %s", group)
+                status = False
     return status
 
 
@@ -111,6 +135,18 @@ def _verify_services_syntax(services):
     :return: Boolean indicating success or failure
     """
     status = True
+    for service in services:
+        if service is "all-service-types":
+            pass
+        elif "template" in service:
+            pass
+        elif "image" in service:
+            pass
+        elif "compose-file" in service:
+            pass
+        else:
+            logging.error("Invalid service definition: %s", service)
+            status = False
     return status
 
 
@@ -131,6 +167,27 @@ def _verify_networks_syntax(networks):
     :return: Boolean indicating success or failure
     """
     status = True
+    if "unique-networks" in networks:
+        for net in networks["unique-subnets"]:
+            if "name" not in net:
+                logging.error("Network %s does not have a name!", net)
+                status = False
+            if "subnet" not in net:
+                logging.warning("No subnet specified for network %s", net)
+    if "generic-networks" in networks:
+        for net in networks["generic-subnets"]:
+            if "name" not in net:
+                logging.error("Network %s does not have a name!", net)
+                status = False
+            if "subnet" not in net:
+                logging.warning("No subnet specified for network %s", net)
+    if "base-networks" in networks:
+        for net in networks["base-subnets"]:
+            if "name" not in net:
+                logging.error("Network %s does not have a name!", net)
+                status = False
+            if "subnet" not in net:
+                logging.warning("No subnet specified for network %s", net)
     return status
 
 
@@ -141,15 +198,19 @@ def _verify_folders_syntax(folders):
     :return: Boolean indicating success or failure
     """
     status = True
+    for folder in folders:
+        if "services" not in folder:
+            logging.error("No services specified for folder %s", folder)
+            status = False
+        if "group" not in folder:
+            logging.error("No group specified for folder %s", folder)
+            status = False
     return status
 
 
 def main():
     """ For testing of the parser """
     from pprint import pprint
-    # testfile = 'test_example.yaml'
-    # doc = parse_file(testfile)
-    # print(doc["name"])
 
     # specfile = '../examples/edurange_example.yaml'
     # specfile = '../specification.yaml'
