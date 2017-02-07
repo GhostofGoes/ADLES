@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import logging
 from pyVmomi import vim
 
 
@@ -11,7 +12,7 @@ def create_vswitch(name, host, num_ports=1024):
     :param host: vim.HostSystem to create the vSwitch on
     :param num_ports: Number of ports the vSwitch should have [default: 1024]
     """
-    print("Creating vSwitch {} with {} ports on host {}".format(name, str(num_ports), host.name))
+    logging.info("Creating vSwitch {} with {} ports on host {}".format(name, str(num_ports), host.name))
     vswitch_spec = vim.host.VirtualSwitch.Specification()
     vswitch_spec.numPorts = num_ports
     host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
@@ -25,7 +26,7 @@ def delete_vswitch(name, host):
     :param name: Name of the vSwitch to delete
     :param host: vim.HostSystem to delete vSwitch from
     """
-    print("Deleting vSwitch {} from host {}".format(name, host.name))
+    logging.info("Deleting vSwitch {} from host {}".format(name, host.name))
     host.configManager.networkSystem.RemoveVirtualSwitch(name)
 
 
@@ -38,8 +39,8 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     :param vlan: (Optional) VLAN ID of the port group [default: 0]
     :param promiscuous: (Optional) Sets the promiscuous mode of the switch, allowing for monitoring [default: False]
     """
-    print("Creating PortGroup {} on vSwitch {} on host {}".format(name, vswitch_name, host.name))
-    print("VLAN ID: {} \t Promiscuous: {}".format(str(vlan), str(promiscuous)))
+    logging.info("Creating PortGroup {} on vSwitch {} on host {}".format(name, vswitch_name, host.name))
+    logging.info("VLAN ID: {} \t Promiscuous: {}".format(str(vlan), str(promiscuous)))
     spec = vim.host.PortGroup.Specification()
     spec.name = name
     spec.vlanId = int(vlan)
@@ -60,5 +61,5 @@ def delete_portgroup(name, host):
     :param name: Name of the portgroup
     :param host: vim.HostSystem with the portgroup
     """
-    print("Deleting PortGroup {} from host {}".format(name, host.name))
+    logging.info("Deleting PortGroup {} from host {}".format(name, host.name))
     host.configManager.networkSystem.RemovePortGroup(name)

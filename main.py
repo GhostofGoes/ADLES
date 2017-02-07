@@ -17,15 +17,12 @@ Options:
     --version               Prints current version
     --spec FILE             YAML file with the environment specification [default: spec.yaml]
     --package-dir           Name of the exercise package directory
-    --interactive           Interactive mode
 
 """
 
 from docopt import docopt
 from getpass import getpass
 import logging
-import coloredlogs
-coloredlogs.install(level='DEBUG', fmt="[%(asctime)s] (%(levelname)s) %(message)s", datefmt="%H:%M:%S", isatty=True)
 
 from automation.model import Spec
 from automation.parser import parse_file, verify_syntax
@@ -48,15 +45,27 @@ def main():
 
     if args["--spec"]:
         spec = parse_file(args["--spec"])
-        logging.info("Successfully ingested specification\nChecking syntax...")
+        logging.info("Successfully ingested specification")
+        logging.info("Checking syntax...")
         if verify_syntax(spec):
             logging.info("Syntax check successful!")
         else:
-            logging.error("Syntax check failed!\nExiting...")
+            logging.error("Syntax check failed!")
             return 1
         # model = Spec(spec["metadata"])
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG,
+                        format="[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s",
+                        datefmt="%y-%m-%d %H:%M:%S",
+                        filename="environment-creator.log",
+                        filemode='w')
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(levelname)-12s %(message)s")
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+
     args = docopt(__doc__, version=__version__, help=True)
     main()

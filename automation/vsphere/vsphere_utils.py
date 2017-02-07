@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import logging
 from pyVmomi import vim
 from pyVmomi import vmodl
 
@@ -100,7 +101,7 @@ def wait_for_task(task):
         if task.info.state == 'success':
             return task.info.result
         if task.info.state == 'error':
-            print("There was an error while completing task ", task.name)
+            logging.error("There was an error while completing task %s", task.name)
             task_done = True
 
 
@@ -118,7 +119,7 @@ def destroy_everything(folder):
     Unregisters and deletes all VMs and Folders under the given folder
     :param folder: vim.Folder object
     """
-    print("Unregistering and deleting EVERYTHING in folder {}".format(folder.name))
+    logging.info("Unregistering and deleting EVERYTHING in folder {}".format(folder.name))
     folder.UnregisterAndDestroy_Task()
 
 
@@ -135,16 +136,16 @@ def print_datastore_info(ds_obj):
     ds_provisioned = ds_capacity - ds_freespace + ds_uncommitted
     ds_overp = ds_provisioned - ds_capacity
     ds_overp_pct = (ds_overp * 100) / ds_capacity if ds_capacity else 0
-    print("Name                  : {}".format(summary.name))
-    print("URL                   : {}".format(summary.url))
-    print("Capacity              : {}".format(sizeof_fmt(ds_capacity)))
-    print("Free Space            : {}".format(sizeof_fmt(ds_freespace)))
-    print("Uncommitted           : {}".format(sizeof_fmt(ds_uncommitted)))
-    print("Provisioned           : {}".format(sizeof_fmt(ds_provisioned)))
+    logging.info("Name                  : {}".format(summary.name))
+    logging.info("URL                   : {}".format(summary.url))
+    logging.info("Capacity              : {}".format(sizeof_fmt(ds_capacity)))
+    logging.info("Free Space            : {}".format(sizeof_fmt(ds_freespace)))
+    logging.info("Uncommitted           : {}".format(sizeof_fmt(ds_uncommitted)))
+    logging.info("Provisioned           : {}".format(sizeof_fmt(ds_provisioned)))
     if ds_overp > 0:
-        print("Over-provisioned      : {} / {} %".format(sizeof_fmt(ds_overp), ds_overp_pct))
-    print("Hosts                 : {}".format(len(ds_obj.host)))
-    print("Virtual Machines      : {}".format(len(ds_obj.vm)))
+        logging.info("Over-provisioned      : {} / {} %".format(sizeof_fmt(ds_overp), ds_overp_pct))
+    logging.info("Hosts                 : {}".format(len(ds_obj.host)))
+    logging.info("Virtual Machines      : {}".format(len(ds_obj.vm)))
 
 
 

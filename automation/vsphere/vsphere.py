@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from atexit import register
+import logging
 
-from automation.vsphere.network_utils import *
-from automation.vsphere.vsphere_utils import *
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
+from automation.vsphere.network_utils import *
+from automation.vsphere.vsphere_utils import *
 from automation.vsphere.vm_utils import *
 
 
@@ -31,11 +32,11 @@ class vSphere:
         try:
             self.server = SmartConnect(host=hostname, user=username, pwd=password, port=int(port))  # Connect to server
         except URLError as e:
-            print("Your system does not trust the server's certificate. Follow instructions in the README to "
-                  "install the certificate, or contact a lab administrator.")
-            print("Here is the full error for your enjoyment: ", str(e))
+            logging.error("Your system does not trust the server's certificate. Follow instructions in the README to "
+                          "install the certificate, or contact a lab administrator. "
+                          "Here is the full error for your enjoyment: %s", str(e))
         if not self.server:
-            print("Could not connect to the specified host using specified username and password")
+            logging.error("Could not connect to host %s using specified username and password", str(hostname))
             raise Exception()
         register(Disconnect, self.server)  # Ensures connection to server is closed upon script termination
 
@@ -55,9 +56,9 @@ class vSphere:
         :param create_in: Name of folder where new folder should be created
         """
         if get_obj(self.content, [vim.Folder], folder_name):
-            print("Folder {0} already exists".format(folder_name))
+            logging.warning("Folder {0} already exists".format(folder_name))
         else:
-            print("Creating folder {0} in folder {1}".format(folder_name, create_in))
+            logging.info("Creating folder {0} in folder {1}".format(folder_name, create_in))
             parent = get_obj(self.content, [vim.Folder], create_in)
             parent.CreateFolder(folder_name)
 
@@ -83,7 +84,7 @@ class vSphere:
         Sets vCenter server Message of the Day (MOTD)
         :param message:
         """
-        print("Setting vCenter MOTD to {}".format(message))
+        logging.info("Setting vCenter MOTD to {}".format(message))
         self.content.sessionManager.UpdateServiceMessage(message=message)
 
     def get_folder(self, folder_name):

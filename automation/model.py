@@ -13,8 +13,8 @@ class Spec:
 
         # Load infrastructure information
         if metadata["infrastructure-config-file"]:
-            import automation.parser as parser
-            self.infra = parser.parse_file(metadata["infrastructure-config-file"])
+            from automation.parser import parse_file
+            self.infra = parse_file(metadata["infrastructure-config-file"])
         else:
             logging.error("No infrastructure configuration file specified!")
             return
