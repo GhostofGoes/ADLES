@@ -5,7 +5,7 @@ metadata:
   course: "CS 439"
   class: "Applied Security Concepts"
   date-created: "2016-11-06"
-  version: "0.2.0"
+  version: "0.3.0"
   infrastructure-config-file: "vsphere.yaml"
 
 groups:

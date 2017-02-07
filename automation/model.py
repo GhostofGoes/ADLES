@@ -2,20 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from automation.interface import Interface
 
 
 class Model:
-    def __init__(self, metadata):
+    def __init__(self, spec):
         """
-        :param metadata: Dict containing metadata for the specification
+        :param spec: Full specification
         """
-        self.metadata = metadata
+        metadata = spec["metadata"]
 
         # Load infrastructure information
         if metadata["infrastructure-config-file"]:
             from automation.parser import parse_file
-            self.infra = parse_file(metadata["infrastructure-config-file"])
+            infrastructure = parse_file(metadata["infrastructure-config-file"])
         else:
             logging.error("No infrastructure configuration file specified!")
             exit(1)
@@ -24,29 +23,19 @@ class Model:
         from json import load
         try:
             logging.debug("Loading login information...")
-            with open(self.infra["login-file"], "r") as login_file:
+            with open(infrastructure["login-file"], "r") as login_file:
                 logins = load(fp=login_file)
         except Exception as e:
-            logging.error("Could not open login file %s. Error: %s", self.infra["login-file"], str(e))
+            logging.error("Could not open login file %s. Error: %s", infrastructure["login-file"], str(e))
             exit(1)
 
-        logging.debug("Initializing interface...")
-        self.interface = Interface(self.infra, logins)
-
-    def load_groups(self, groups):
-        pass
-
-    def load_services(self, services):
-        pass
-
-    def load_resources(self, resources):
-        pass
-
-    def load_networks(self, networks):
-        pass
-
-    def load_folders(self, folders):
-        pass
+        # Select the Interface to use for the platform
+        if infrastructure["platform"] is "vmware vsphere":
+            from automation.vsphere_interface import VsphereInterface
+            self.interface = VsphereInterface(infrastructure, logins, spec)  # Create interface
+        else:
+            logging.error("Invalid platform {}".format(infrastructure["platform"]))
+            exit(1)
 
     def create_masters(self):
         logging.info("Creating Master instances for environment setup...")

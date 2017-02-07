@@ -3,7 +3,7 @@ metadata:
   name: "PRCCDC 2016 Competition Scenario definition"
   description: "The competition scenario environment that students will use to compete"
   date-created: "2016-11-01"
-  version: "0.2.0"
+  version: "0.3.0"
   infrastructure-config-file: "radicl.yaml"
 
 groups:

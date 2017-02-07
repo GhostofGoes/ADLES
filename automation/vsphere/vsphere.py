@@ -25,7 +25,6 @@ class vSphere:
         :param port: Port used to connect to vCenter instance
         """
         from urllib.error import URLError
-        # TODO: colored logs (https://pypi.python.org/pypi/coloredlogs/)
         if not password:
             from getpass import getpass
             password = getpass(prompt='Enter password for host %s and user %s: ' % (hostname, username))
