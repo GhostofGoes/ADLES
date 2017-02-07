@@ -27,7 +27,6 @@ services:
 networks:
   generic-networks:
     ARP-LAN:
-      name: "ARP-LAN"
       description: "Used for ARP-spoofing tutorial"
       subnet: "192.168.1.0/24"
       vswitch: "cs439-vswitch"

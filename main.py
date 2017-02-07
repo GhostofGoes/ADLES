@@ -36,10 +36,11 @@ __email__   = "<goes8945@vandals.uidaho.edu>"
 # TODO: setup.py file to enable easy installation using pip (see: https://github.com/imsweb/ezmomi/blob/master/setup.py)
 # TODO: license?
 def main():
+    from os.path import basename
 
     if args["--spec"]:
         spec = parse_file(args["--spec"])
-        logging.info("Successfully ingested %s", str(args["--spec"]))
+        logging.info("Successfully ingested %s", str(basename(args["--spec"])))
         logging.info("Checking syntax...")
         if verify_syntax(spec):
             logging.info("Syntax check successful!")
@@ -50,7 +51,7 @@ def main():
 
     elif args["--check-syntax"]:
         spec = parse_file(args["--check-syntax"])
-        logging.info("Successfully ingested %s", str(args["--check-syntax"]))
+        logging.info("Successfully ingested %s", str(basename(args["--check-syntax"])))
         logging.info("Checking syntax...")
         if verify_syntax(spec):
             logging.info("Syntax check successful!")

@@ -4,101 +4,105 @@ metadata:
   description: "The competition scenario environment that students will use to compete"
   date-created: "2016-11-01"
   version: "0.2.0"
-  infrastructure-file: "radicl.yaml"
+  infrastructure-config-file: "radicl.yaml"
 
-teams:
+groups:
   Blue Team X:
-    type: template
-    copies: 10
+    instances: 10
     filename: "blue-team-X.json"
   Red Team:
-    type: regular
     ad-group: "Red Team"
 
 services:
-  - host-type-a:
-      template: "PRCCDC Windows 7 Host"
-      os:
-        name: "Windows 7 Enterprise"
-        version: "7601"
-        family: "Windows/NT"
-  - host-type-b:
-      template: "PRCCDC Windows 10 Host"
-      os:
-        name: "Windows 10 Enterprise"
-        version: "10"
-        family: "Windows/NT"
-  - score-bot:
-      image: "prccdc/score-bot"
-      tag: "0.1.2"
-  - firewall:
-      template: "PRCCDC Firewall"
-      template-config:
-        video: no
-      os:
-        name: "VyOS"
-        version: "1.1.7"
-        family: "Linux/Debian"
-  - domain-controller:
-      template: "PRCCDC Domain Controller"
-      template-config:
-        video: no # RDP is used
-      os:
-        name: "Windows Server 2012 R2 Datacenter"
-        version: "2012 R2"
-        distribution: "Datacenter"
-        family: "Windows/NT"
-  - web-server:
-      image: "prccdc/apache-server"
-      tag: "2.4.2"
-      os:
-        name: "Ubuntu 14.04 LTS"
-        version: "14.04"
-        distribution: "LTS"
-        family: "Linux/Debian"
-  - database-server:
-      image: "prccdc/mysql-server"
-      tag: "7"
-      os:
-        name: "Oracle SunOS 7"
-        version: "7"
-        family: "Solaris"
-  - file-server:
-      template: "PRCCDC File Server"
-      template-config:
-        video: no
-      os:
-        name: "Windows Server 2012 R2 Core"
-        version: "2012 R2"
-        distribution: "Core"
-        family: "Windows/NT"
-  - mail-server:
-      template: "PRCCDC Mail Server"
-      template-config:
-        video: no # RDP is used
-      os:
-        name: "Windows Server 2003"
-        version: "2003"
-        family: "Windows/NT"
-  - hvac-server:
-      name: "prccdc/hvac-server"
-      tag: "1"
-      os:
-        name: "FreeBSD"
-        family: "BSD"
+  host-type-a:
+    template: "PRCCDC Windows 7 Host"
+    os:
+      name: "Windows 7 Enterprise"
+      version: "7601"
+      family: "Windows/NT"
+  host-type-b:
+    template: "PRCCDC Windows 10 Host"
+    os:
+      name: "Windows 10 Enterprise"
+      version: "10"
+      family: "Windows/NT"
+  score-bot:
+    image: "prccdc/score-bot"
+    tag: "0.1.2"
+  firewall:
+    template: "PRCCDC Firewall"
+    template-config:
+      video: no
+    os:
+      name: "VyOS"
+      version: "1.1.7"
+      family: "Linux/Debian"
+  domain-controller:
+    template: "PRCCDC Domain Controller"
+    template-config:
+      video: no # RDP is used
+    os:
+      name: "Windows Server 2012 R2 Datacenter"
+      version: "2012 R2"
+      distribution: "Datacenter"
+      family: "Windows/NT"
+  web-server:
+    image: "prccdc/apache-server"
+    tag: "2.4.2"
+    os:
+      name: "Ubuntu 14.04 LTS"
+      version: "14.04"
+      distribution: "LTS"
+      family: "Linux/Debian"
+  database-server:
+    image: "prccdc/mysql-server"
+    tag: "7"
+    os:
+      name: "Oracle SunOS 7"
+      version: "7"
+      family: "Solaris"
+  file-server:
+    template: "PRCCDC File Server"
+    template-config:
+      video: no
+    os:
+      name: "Windows Server 2012 R2 Core"
+      version: "2012 R2"
+      distribution: "Core"
+      family: "Windows/NT"
+  mail-server:
+    template: "PRCCDC Mail Server"
+    template-config:
+      video: no # RDP is used
+    os:
+      name: "Windows Server 2003"
+      version: "2003"
+      family: "Windows/NT"
+  hvac-server:
+    image: "prccdc/hvac-server"
+    tag: "1"
+    os:
+      name: "FreeBSD"
+      family: "BSD"
 
 networks:
-  unique-subnets:
-    competition: "172.30.0.0/16"
-    outside-world: "129.134.253.0/24"
-    management: "10.10.10.0/24"
-  generic-subnets:
-    hosts: "10.0.0.0/24"
-  base-subnets:
-    services: "192.168.X.0/24" 
+  unique-networks:
+    competition:
+      subnet: "172.30.0.0/16"
+    outside-world: 
+      subnet: "129.134.253.0/24"
+    management: 
+      subnet: "10.10.10.0/24"
+  generic-networks:
+    hosts:
+      subnet: "10.0.0.0/24"
+  base-networks:
+    services: 
+      subnet: "192.168.0.0/24" 
 
 folders:
-  external: 
+  external:
+    group: 
     description: "The open competition network, where red team and the score bot sit" 
     services:
       edge-router: 
@@ -117,21 +121,19 @@ folders:
         instances: 10
   blue-team:
     instances: 14
-    teams: Blue Team X
-    service-set:
-      name: team-member-host X
-      description: "Hosts the blue team members use to access their services"
-      instances: 8 # Number of users on blue team
-      service-pool: [host-type-a, host-type-b]
-      pool-distributions: [0.3, 0.7] # Must add up to 1
-      networks: [hosts] 
-      service:
-        name: gateway
+    group: Blue Team X
+    services:
+      # team-member-host:
+        # description: "Hosts the blue team members use to access their services"
+        # instances: 8 # Number of users on blue team
+        # service-pool: [host-type-a, host-type-b]
+        # pool-distributions: [0.3, 0.7] # Must add up to 1
+        # networks: [hosts] 
+      gateway:
         description: "Gateway connecting Blue team networks to the larger competition network"
         service: firewall
         networks: [competition, hosts, services]
-      service: 
-        name: dc 
+      dc: 
         description: "Domain Controller for Blue Team network. Runs DNS, DHCP, and Active Directory."
         service: domain-controller
         networks: [services]
@@ -172,7 +174,7 @@ folders:
           protocols: ["sftp", "smb"]
           criteria: "criteria-file"
   red-team:
-    teams: Red Team
+    group: Red Team
     services:
       windows-hosts:
         description: "Hosts used by Red Team to attack blue teams"

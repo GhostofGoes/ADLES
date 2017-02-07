@@ -168,23 +168,14 @@ def _verify_networks_syntax(networks):
     else:
         if "unique-networks" in networks:
             for key, value in networks["unique-networks"].items():
-                if "name" not in value:
-                    logging.error("Network %s does not have a name!", key)
-                    status = False
                 if "subnet" not in value:
                     logging.warning("No subnet specified for network %s", key)
         if "generic-networks" in networks:
             for key, value in networks["generic-networks"].items():
-                if "name" not in value:
-                    logging.error("Network %s does not have a name!", key)
-                    status = False
                 if "subnet" not in value:
                     logging.warning("No subnet specified for network %s", key)
         if "base-networks" in networks:
             for key, value in networks["base-networks"].items():
-                if "name" not in value:
-                    logging.error("Network %s does not have a name!", key)
-                    status = False
                 if "subnet" not in value:
                     logging.warning("No subnet specified for network %s", key)
 
@@ -213,8 +204,6 @@ def _verify_folders_syntax(folders):
         if "group" not in value:
             logging.error("No group specified for folder %s", key)
             status = False
-        if "instances" in value:
-            pass
     return status
 
 

@@ -95,12 +95,14 @@ services:
     note: "Human-readable note visible by end-user, such as default username/password" # Optional
     network-interfaces: []                  # Optional    [default: template or container specific]
     os:                                     # Optional    Metadata describing the OS. Useful for identifying or configuring services
-      name: "name of the os"
-      version: "version of the os"
+      name: "full name of the os"
+      version: "version"
+      distributions: "distribution"
       family: "major family os belongs to"
   template-based-service:   # Option A
     template: "name of template in vSphere" # REQUIRED
-    template-config: []                     # Optional    Configuration of Template settings specified by name. This will override the template's existing settings
+    template-config:                        # Optional    Configuration of Template settings specified by name. This will override the template's existing settings
+      key: "value"
     guest-extensions-required: no           # Optional    If set, guest extensions (e.g VMware Tools) will be installed and enabled
   container-based-service:  # Option B
     image: "name of the docker image"       # REQUIRED
@@ -138,17 +140,16 @@ resources:
 # TODO: VLANs
 networks: 
   unique-networks:   # Only one of each of these exists. If specified, any hosts will be added to it
-    network-label:                # REQUIRED    Label used to identify the network (Example: ARP-LAN)
-      name: "name"                # REQUIRED    Unique name used to identify the network in the environment (Used for PortGroups in VMware environments)
+    network-label:                # REQUIRED    Unique label used to identify the network (Example: ARP-LAN) (Used for PortGroups in VMware environments)
       description: "description"  # Optional    Human-readable description of network
       subnet: "x.x.x.x/x"         # Suggested   IP network address and mask: SUBNET-IP/CIDR
       vswitch: "name of vswitch"  # Optional    Name of virtual switch used for the network (Applies to VMware and related environments)
-  generic-networks:  # Networks that new instances are created per instance of an exercise
+  generic-networks:  # New identical instances are created per instance of an exercise (subnet doesn't change)
     network-label:
       name: "name"
       subnet: "x.x.x.x/x"    
       vswitch: "name of vswitch"
-  base-networks:     # Networks that will have any values in network portion of address with X are incremented for each instance
+  base-networks:     # Subnet value is incremented per instance of an exercise
     network-label:  
       name: "name"
       subnet: "x.x.x.x/x"
@@ -161,12 +162,19 @@ networks:
 # TODO: resource pool distributions
 folders:
   folder-a:
-    services:                                 # REQUIRED (A folder with this name MUST exist)
+    description: "description"                # Optional    Human-readable description of folder
+    group: group-label                        # REQUIRED    User group or team to apply to
+    services:                                 # REQUIRED
       service-instance-name:
-        service: service-label                # REQUIRED  Label as defined in services
-        instances: 2                          # Optional [default: 1]
+        service: service-label                # REQUIRED    Label as defined in services
+        # TODO: pool distributions
+        instances: 2                          # Optional    [default: 1]
         networks: ["subnet-a", "subnet-b"]    # Optional
-    group: group-label                        # REQUIRED  User group or team to apply to
+        scoring:                              # Optional    Scoring for the service (e.g a competition or homework verification)
+          ports: [0]
+          protocols: ["proto"]
+          criteria: "filename.yaml"
+                          
   folder-b:
     instances: 10 # If instances is specified, this is a template. 
   folder-c:
