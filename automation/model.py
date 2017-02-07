@@ -17,12 +17,16 @@ class Spec:
             self.infra = parse_file(metadata["infrastructure-config-file"])
         else:
             logging.error("No infrastructure configuration file specified!")
-            return
+            exit(1)
 
         # Load login information
         from json import load
-        with open("logins.json", "r") as login_file:
-            logins = load(fp=login_file)
+        try:
+            with open(self.infra["login-file"], "r") as login_file:
+                logins = load(fp=login_file)
+        except Exception as e:
+            logging.error("Could not open login file %s. Error: %s", self.infra["login-file"], str(e))
+            exit(1)
 
         # Select an API to use
         if self.infra["platform"] == "vmware vsphere":
@@ -35,7 +39,19 @@ class Spec:
                                datastore=self.infra["datastore"])
         else:
             logging.error("Invalid platform {}".format(self.infra.platform))
-            return
+            exit(1)
+
+    def load_groups(self):
+        pass
+
+    def load_services(self):
+        pass
+
+    def load_networks(self):
+        pass
+
+    def load_folders(self):
+        pass
 
     def main(self):
         pass

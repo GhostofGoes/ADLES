@@ -47,7 +47,7 @@ def main():
         else:
             logging.error("Syntax check failed!")
             return 1
-        # model = Spec(spec["metadata"])
+        model = Spec(spec["metadata"])
 
     elif args["--check-syntax"]:
         spec = parse_file(args["--check-syntax"])

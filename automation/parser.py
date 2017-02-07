@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from netaddr import IPNetwork
 
 
 # Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
@@ -166,19 +167,40 @@ def _verify_networks_syntax(networks):
         logging.error("Network specification exists but is empty!")
         status = False
     else:
+        # TODO: generalize so not duplicating 3 times here and elsewhere (like in model.py)
         if "unique-networks" in networks:
             for key, value in networks["unique-networks"].items():
                 if "subnet" not in value:
                     logging.warning("No subnet specified for network %s", key)
+                else:
+                    subnet = IPNetwork(value["subnet"])
+                    if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
+                        logging.error("Network %s is in a invalid IP address space", key)
+                        status = False
+                    elif not subnet.is_private():
+                        logging.warning("Non-private subnet used for network %s", key)
         if "generic-networks" in networks:
             for key, value in networks["generic-networks"].items():
                 if "subnet" not in value:
                     logging.warning("No subnet specified for network %s", key)
+                else:
+                    subnet = IPNetwork(value["subnet"])
+                    if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
+                        logging.error("Network %s is in a invalid IP address space", key)
+                        status = False
+                    elif not subnet.is_private():
+                        logging.warning("Non-private subnet used for network %s", key)
         if "base-networks" in networks:
             for key, value in networks["base-networks"].items():
                 if "subnet" not in value:
                     logging.warning("No subnet specified for network %s", key)
-
+                else:
+                    subnet = IPNetwork(value["subnet"])
+                    if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
+                        logging.error("Network %s is in a invalid IP address space", key)
+                        status = False
+                    elif not subnet.is_private():
+                        logging.warning("Non-private subnet used for network %s", key)
     return status
 
 
