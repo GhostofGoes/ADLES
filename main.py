@@ -24,7 +24,7 @@ Options:
 from docopt import docopt
 import logging
 
-from automation.model import Spec
+from automation.model import Model
 from automation.parser import parse_file, verify_syntax
 
 
@@ -47,7 +47,9 @@ def main():
         else:
             logging.error("Syntax check failed!")
             return 1
-        model = Spec(spec["metadata"])
+        model = Model(spec["metadata"])
+        model.create_masters()
+        model.deploy_environment()
 
     elif args["--check-syntax"]:
         spec = parse_file(args["--check-syntax"])
@@ -64,6 +66,8 @@ def main():
 
 
 if __name__ == '__main__':
+    args = docopt(__doc__, version=__version__, help=True)
+
     logging.basicConfig(level=logging.DEBUG,
                         format="[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s",
                         datefmt="%y-%m-%d %H:%M:%S",
@@ -75,5 +79,5 @@ if __name__ == '__main__':
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
-    args = docopt(__doc__, version=__version__, help=True)
+
     main()

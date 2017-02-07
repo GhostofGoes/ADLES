@@ -132,9 +132,7 @@ def _verify_services_syntax(services):
     """
     status = True
     for key, value in services.items():
-        if key is "all-service-types":
-            pass
-        elif "template" in value:
+        if "template" in value:
             pass
         elif "image" in value:
             pass

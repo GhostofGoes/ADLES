@@ -91,8 +91,8 @@ groups:
 # Networks are attached to interfaces in order of their definition, unless explicitly mapped
 # TODO: monitoring + management interface configurations
 services:
-  all-service-types:
-    note: "Human-readable note visible by end-user, such as default username/password" # Optional
+  all-service-types:  # Configurations that can appear in any of three service types
+    note: "A note"                          # Optional    Human-readable note visible by end-user, such as default username/password
     network-interfaces: []                  # Optional    [default: template or container specific]
     os:                                     # Optional    Metadata describing the OS. Useful for identifying or configuring services
       name: "full name of the os"
@@ -131,7 +131,7 @@ resources:
 
 
 # ** Networks **
-# Non-Private (RFC 1918) networks will result in a warning that can be suppressed
+# Non-Private (RFC 1918) networks will result in a warning
 # Subnet IP addresses are not required. They only matter if running configuration scripts or adding a pre-configured router
 # IP version is implicitly defined by address
 # Configurations are the same for all networks, including unique, generic, and base

@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from automation.interface import Interface
 
 
-class Spec:
+class Model:
     def __init__(self, metadata):
         """
         :param metadata: Dict containing metadata for the specification
@@ -22,39 +23,38 @@ class Spec:
         # Load login information
         from json import load
         try:
+            logging.debug("Loading login information...")
             with open(self.infra["login-file"], "r") as login_file:
                 logins = load(fp=login_file)
         except Exception as e:
             logging.error("Could not open login file %s. Error: %s", self.infra["login-file"], str(e))
             exit(1)
 
-        # Select an API to use
-        if self.infra["platform"] == "vmware vsphere":
-            from automation.vsphere.vsphere import vSphere
-            self.api = vSphere(datacenter=self.infra["datacenter"],
-                               username=logins["user"],
-                               password=logins["pass"],
-                               hostname=logins["host"],
-                               port=int(logins["port"]),
-                               datastore=self.infra["datastore"])
-        else:
-            logging.error("Invalid platform {}".format(self.infra.platform))
-            exit(1)
+        logging.debug("Initializing interface...")
+        self.interface = Interface(self.infra, logins)
 
-    def load_groups(self):
+    def load_groups(self, groups):
         pass
 
-    def load_services(self):
+    def load_services(self, services):
         pass
 
-    def load_networks(self):
+    def load_resources(self, resources):
         pass
 
-    def load_folders(self):
+    def load_networks(self, networks):
         pass
 
-    def main(self):
+    def load_folders(self, folders):
         pass
+
+    def create_masters(self):
+        logging.info("Creating Master instances for environment setup...")
+        self.interface.create_masters()
+
+    def deploy_environment(self):
+        logging.info("Deploying environment...")
+        self.interface.deploy_environment()
 
 
 if __name__ == '__main__':
