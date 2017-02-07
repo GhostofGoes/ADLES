@@ -48,18 +48,21 @@ class vSphere:
             self.datastore = get_objs(self.content, [vim.Datastore])[0]
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
-    def create_folder(self, folder_name, create_in):
+    def create_folder(self, folder_name, create_in=None):
         """
         Creates a VM folder in the specified folder
         :param folder_name: Name of folder to create
-        :param create_in: Name of folder where new folder should be created
+        :param create_in: Name of folder where new folder should be created [default: root folder of datacenter]
         """
         if get_obj(self.content, [vim.Folder], folder_name):
             logging.warning("Folder {0} already exists".format(folder_name))
-        else:
+        elif create_in:
             logging.info("Creating folder {0} in folder {1}".format(folder_name, create_in))
             parent = get_obj(self.content, [vim.Folder], create_in)
             parent.CreateFolder(folder_name)
+        else:
+            logging.info("Creating folder {0} in root folder".format(folder_name))
+            self.content.rootFolder.CreateFolder(folder_name)
 
     def generate_clone_spec(self, datastore_name, pool_name=None):
         """
