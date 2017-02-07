@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import logging
+
 
 class Spec:
     def __init__(self, metadata):
@@ -11,10 +13,10 @@ class Spec:
 
         # Load infrastructure information
         if metadata["infrastructure-config-file"]:
-            from parser import parse_file
-            self.infra = parse_file(metadata["infrastructure-config-file"])
+            import automation.parser as parser
+            self.infra = parser.parse_file(metadata["infrastructure-config-file"])
         else:
-            print("(ERROR) No infrastructure configuration file specified!")
+            logging.error("No infrastructure configuration file specified!")
             return
 
         # Load login information
@@ -32,7 +34,7 @@ class Spec:
                                port=int(logins["port"]),
                                datastore=self.infra["datastore"])
         else:
-            print("(ERROR) Invalid platform {}".format(self.infra.platform))
+            logging.error("Invalid platform {}".format(self.infra.platform))
             return
 
     def main(self):

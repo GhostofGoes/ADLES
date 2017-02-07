@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import logging
+
 
 # Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
 def parse_file(filename):
@@ -14,12 +16,12 @@ def parse_file(filename):
         try:
             doc = yaml.safe_load(f)  # Parses the YAML file and creates a python object with it's structure and contents
         except yaml.YAMLError as exc:
-            print("Error parsing config file %s" % filename)
+            logging.error("Could not parse file %s" % filename)
             if hasattr(exc, 'problem_mark'):
                 mark = exc.problem_mark
-                print("Error position: (%s:%s)" % (mark.line + 1, mark.column + 1))
+                logging.error("Error position: (%s:%s)" % (mark.line + 1, mark.column + 1))
             else:
-                print("Error: ", exc)
+                logging.error("Error: ", exc)
             return None  # If there was an error, then there ain't gonna be any markup, so we exit in a obvious way
     return doc
 
@@ -30,52 +32,52 @@ def verify_syntax(spec):
     :param spec: Dictionary of environment specificaiton
     :return: Boolean indicating success or failure
     """
-    failed = False
-    if spec["metadata"]:
+    status = True
+    if "metadata" in spec:
         if not _verify_metadata_syntax(spec["metadata"]):
-            print("(ERROR) Invalid metadata syntax")
-            failed = True
+            logging.error("Invalid metadata syntax")
+            status = False
     else:
-        print("(ERROR) No metadata found!")
-        failed = True
+        logging.error("No metadata found!")
+        status = False
 
-    if spec["groups"]:
+    if "groups" in spec:
         if not _verify_groups_syntax(spec["groups"]):
-            print("(ERROR) Invalid groups syntax")
-            failed = True
+            logging.error("Invalid groups syntax")
+            status = False
     else:
-        print("(WARNING) No groups found")
+        logging.warning("No groups found")
 
-    if spec["services"]:
+    if "services" in spec:
         if not _verify_services_syntax(spec["services"]):
-            print("(ERROR) Invalid services syntax")
-            failed = True
+            logging.error("Invalid services syntax")
+            status = False
     else:
-        print("(WARNING) No services found")
+        logging.warning("No services found")
 
-    if spec["resources"]:
+    if "resources" in spec:
         if not _verify_resources_syntax(spec["resources"]):
-            print("(ERROR) Invalid resources syntax")
-            failed = True
+            logging.error("Invalid resources syntax")
+            status = False
     else:
-        print("(WARNING) No services found")
+        logging.warning("No services found")
 
-    if spec["networks"]:
+    if "networks" in spec:
         if not _verify_networks_syntax(spec["networks"]):
-            print("(ERROR) Invalid networks syntax")
-            failed = True
+            logging.error("Invalid networks syntax")
+            status = False
     else:
-        print("(WARNING) No networks found")
+        logging.warning("No networks found")
 
-    if spec["folders"]:
+    if "folders" in spec:
         if not _verify_folders_syntax(spec["folders"]):
-            print("(ERROR) Invalid folders syntax")
-            failed = True
+            logging.error("Invalid folders syntax")
+            status = False
     else:
-        print("(ERROR) No folders found")
-        failed = True
+        logging.error("No folders found")
+        status = False
 
-    return failed
+    return status
 
 
 def _verify_metadata_syntax(metadata):
@@ -84,11 +86,13 @@ def _verify_metadata_syntax(metadata):
     :param metadata:
     :return: Boolean indicating success or failure
     """
-    failed = False
+    status = True
     if not metadata["name"]:
-        print("(ERROR) Missing name in metadata")
+        logging.error("Missing name in metadata")
+        status = False
 
-    return failed
+    return status
+
 
 def _verify_groups_syntax(groups):
     """
@@ -96,6 +100,8 @@ def _verify_groups_syntax(groups):
     :param groups:
     :return: Boolean indicating success or failure
     """
+    status = True
+    return status
 
 
 def _verify_services_syntax(services):
@@ -104,6 +110,8 @@ def _verify_services_syntax(services):
     :param services:
     :return: Boolean indicating success or failure
     """
+    status = True
+    return status
 
 
 def _verify_resources_syntax(resources):
@@ -112,6 +120,8 @@ def _verify_resources_syntax(resources):
     :param resources:
     :return: Boolean indicating success or failure
     """
+    status = True
+    return status
 
 
 def _verify_networks_syntax(networks):
@@ -120,6 +130,8 @@ def _verify_networks_syntax(networks):
     :param networks:
     :return: Boolean indicating success or failure
     """
+    status = True
+    return status
 
 
 def _verify_folders_syntax(folders):
@@ -128,6 +140,8 @@ def _verify_folders_syntax(folders):
     :param folders:
     :return: Boolean indicating success or failure
     """
+    status = True
+    return status
 
 
 def main():

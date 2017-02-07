@@ -47,13 +47,11 @@ def main():
 
     if args["--spec"]:
         spec = parse_file(args["--spec"])
-        print("Successfully ingested specification\nChecking syntax...")
         logging.info("Successfully ingested specification\nChecking syntax...")
         if verify_syntax(spec):
             logging.info("Syntax check successful!")
-            print("Syntax check successful!")
         else:
-            print("Syntax check failed!\nExiting...")
+            logging.error("Syntax check failed!\nExiting...")
             return 1
         model = Spec(spec["metadata"])
 
