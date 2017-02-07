@@ -2,9 +2,9 @@
 .idea/
 
 # Ignore files with login information...for obvious reasons
-logins.json
-vsphere.yaml
-/logins.json
+automation/logins.json
+automation/vsphere.yaml
+/automation/logins.json
 
 
 # Byte-compiled / optimized / DLL files
