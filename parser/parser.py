@@ -24,6 +24,46 @@ def parse_file(filename):
     return doc
 
 
+def _verify_groups_syntax(groups):
+    """
+    Verifies that the syntax for groups matches the specification
+    :param groups:
+    :return: Boolean indicating success or failure
+    """
+
+
+def _verify_services_syntax(services):
+    """
+    Verifies that the syntax for services matches the specification
+    :param services:
+    :return: Boolean indicating success or failure
+    """
+
+
+def _verify_resources_syntax(resources):
+    """
+    Verifies that the syntax for resources matches the specification
+    :param resources:
+    :return: Boolean indicating success or failure
+    """
+
+
+def _verify_networks_syntax(networks):
+    """
+    Verifies that the syntax for networks matches the specification
+    :param networks:
+    :return: Boolean indicating success or failure
+    """
+
+
+def _verify_folders_syntax(folders):
+    """
+    Verifies that the syntax for folders matches the specification
+    :param folders:
+    :return: Boolean indicating success or failure
+    """
+
+
 def main():
     """ For testing of the parser """
     from pprint import pprint
