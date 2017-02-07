@@ -5,7 +5,8 @@
 automation/logins.json
 automation/vsphere.yaml
 /automation/logins.json
-
+logins.json
+vsphere.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
