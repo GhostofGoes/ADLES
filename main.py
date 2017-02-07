@@ -6,28 +6,28 @@
 """main
 
 Usage:
-    main.py --environment FILE --logins FILE --exercise FILE
-    main.py --interactive --exercise FILE
+    main.py --spec FILE
+    main.py --interactive
     main.py --package-dir
     main.py --version
     main.py (-h | --help)
 
 Options:
-    -h, --help          Shows this help
-    --version           Prints current version
-    --interactive       Interactive input of login information
-    --environment FILE  YAML file with environment confirmation information [default: environment.yaml]
-    --logins FILE       JSON file with login information for the environment [default: logins.json]
-    --exercise FILE     YAML file with the exercise specification [default: exercise.yaml]
-    --package-dir       Name of the exercise package directory
+    -h, --help              Shows this help
+    --version               Prints current version
+    --spec FILE             YAML file with the environment specification [default: spec.yaml]
+    --package-dir           Name of the exercise package directory
+    --interactive           Interactive mode
 
 """
 
 from docopt import docopt
 from getpass import getpass
 import logging
+import coloredlogs
 
 from automation.model import Spec
+from automation.parser import parse_file, verify_syntax
 
 
 __version__ = "0.4.0"
@@ -45,8 +45,20 @@ def main():
         user = input("Username to login with: ")
         pswd = getpass("Password to login with: ")
 
+    if args["--spec"]:
+        spec = parse_file(args["--spec"])
+        print("Successfully ingested specification\nChecking syntax...")
+        logging.info("Successfully ingested specification\nChecking syntax...")
+        if verify_syntax(spec):
+            logging.info("Syntax check successful!")
+            print("Syntax check successful!")
+        else:
+            print("Syntax check failed!\nExiting...")
+            return 1
+        model = Spec(spec["metadata"])
+
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='main.log', level=logging.DEBUG)
+    coloredlogs.install(level='DEBUG', fmt="[%(asctime)s] (%(levelname)s)  %(message)s", datefmt="%H:%M:%S")
     args = docopt(__doc__, version=__version__, help=True)
     main()

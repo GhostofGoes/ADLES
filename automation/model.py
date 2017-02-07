@@ -11,7 +11,7 @@ class Spec:
 
         # Load infrastructure information
         if metadata["infrastructure-config-file"]:
-            from parser.parser import parse_file
+            from parser import parse_file
             self.infra = parse_file(metadata["infrastructure-config-file"])
         else:
             print("(ERROR) No infrastructure configuration file specified!")
@@ -24,7 +24,7 @@ class Spec:
 
         # Select an API to use
         if self.infra["platform"] == "vmware vsphere":
-            from automation.vsphere import vSphere
+            from automation.vsphere.vsphere import vSphere
             self.api = vSphere(datacenter=self.infra["datacenter"],
                                username=logins["user"],
                                password=logins["pass"],

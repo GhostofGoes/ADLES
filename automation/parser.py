@@ -24,6 +24,72 @@ def parse_file(filename):
     return doc
 
 
+def verify_syntax(spec):
+    """
+    Verifies the syntax for the dictionary representation of an environment specificaiton
+    :param spec: Dictionary of environment specificaiton
+    :return: Boolean indicating success or failure
+    """
+    failed = False
+    if spec["metadata"]:
+        if not _verify_metadata_syntax(spec["metadata"]):
+            print("(ERROR) Invalid metadata syntax")
+            failed = True
+    else:
+        print("(ERROR) No metadata found!")
+        failed = True
+
+    if spec["groups"]:
+        if not _verify_groups_syntax(spec["groups"]):
+            print("(ERROR) Invalid groups syntax")
+            failed = True
+    else:
+        print("(WARNING) No groups found")
+
+    if spec["services"]:
+        if not _verify_services_syntax(spec["services"]):
+            print("(ERROR) Invalid services syntax")
+            failed = True
+    else:
+        print("(WARNING) No services found")
+
+    if spec["resources"]:
+        if not _verify_resources_syntax(spec["resources"]):
+            print("(ERROR) Invalid resources syntax")
+            failed = True
+    else:
+        print("(WARNING) No services found")
+
+    if spec["networks"]:
+        if not _verify_networks_syntax(spec["networks"]):
+            print("(ERROR) Invalid networks syntax")
+            failed = True
+    else:
+        print("(WARNING) No networks found")
+
+    if spec["folders"]:
+        if not _verify_folders_syntax(spec["folders"]):
+            print("(ERROR) Invalid folders syntax")
+            failed = True
+    else:
+        print("(ERROR) No folders found")
+        failed = True
+
+    return failed
+
+
+def _verify_metadata_syntax(metadata):
+    """
+    Verifies that the syntax for metadata matches the specification
+    :param metadata:
+    :return: Boolean indicating success or failure
+    """
+    failed = False
+    if not metadata["name"]:
+        print("(ERROR) Missing name in metadata")
+
+    return failed
+
 def _verify_groups_syntax(groups):
     """
     Verifies that the syntax for groups matches the specification
