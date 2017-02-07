@@ -3,12 +3,12 @@
 
 from atexit import register
 
+from automation.vsphere.network_utils import *
+from automation.vsphere.vsphere_utils import *
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
-from automation.vsphere_utils import *
-from automation.vm_utils import *
-from automation.network_utils import *
+from automation.vsphere.vm_utils import *
 
 
 class vSphere:

@@ -33,6 +33,7 @@
 
 # TODO: "enabled" flags to easily toggle sections on and off without having to comment out
 # TODO: define syntax of infrastructure-config-file
+# TODO: use YAML "---" syntax to seperate top levels into seperate "Documents"?
 
 
 
