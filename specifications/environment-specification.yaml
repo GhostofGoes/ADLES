@@ -168,6 +168,7 @@ folders:
         networks: ["subnet-a", "subnet-b"]    # Optional
     group: group-label                        # REQUIRED  User group or team to apply to
   folder-b:
-    instances: 10 # If instances is specified, this is a template
-
+    instances: 10 # If instances is specified, this is a template. 
+  folder-c:
+    instances: sizeof(group-label)  # Alternative template syntax. Number of instances is based off group size
 ...

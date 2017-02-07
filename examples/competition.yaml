@@ -1,5 +1,4 @@
 ---
-
 metadata:
   name: "PRCCDC 2016 Competition Scenario definition"
   description: "The competition scenario environment that students will use to compete"
@@ -88,7 +87,6 @@ services:
         name: "FreeBSD"
         family: "BSD"
 
-
 networks:
   unique-subnets:
     competition: "172.30.0.0/16"
@@ -98,7 +96,6 @@ networks:
     hosts: "10.0.0.0/24"
   base-subnets:
     services: "192.168.X.0/24" 
-
 
 folders:
   external: 
@@ -181,8 +178,4 @@ folders:
         description: "Hosts used by Red Team to attack blue teams"
         service: host-type-b
         networks: [competition]
-
-
-      
-      
 ...

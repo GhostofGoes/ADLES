@@ -1,5 +1,4 @@
 ---
-
 metadata:
   name: "CS 439 Tutorial 3 - ARP Cache Poisoning"
   description: "Environment for the ARP Cache Poisoning Tutorial" 
@@ -8,7 +7,6 @@ metadata:
   date-created: "2016-11-06"
   version: "0.2.0"
   infrastructure-config-file: "vsphere.yaml"
-  
 
 groups:
   Students:
@@ -51,6 +49,5 @@ folders:
       router:
         service: router
         networks: ["ARP-LAN"]
-        
-            
+
 ...

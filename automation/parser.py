@@ -34,6 +34,7 @@ def verify_syntax(spec):
     """
     status = True
     if "metadata" in spec:
+        # TODO: verify infrastructure-spec
         if not _verify_metadata_syntax(spec["metadata"]):
             status = False
     else:
@@ -53,7 +54,7 @@ def verify_syntax(spec):
         if not _verify_resources_syntax(spec["resources"]):
             status = False
     else:
-        logging.warning("No services found")
+        logging.warning("No resources found")
     if "networks" in spec:
         if not _verify_networks_syntax(spec["networks"]):
             status = False
@@ -199,7 +200,7 @@ def _verify_folders_syntax(folders):
     status = True
     for key, value in folders.items():
         if "services" in value:
-            for skey, svalue in value.items():
+            for skey, svalue in value["services"].items():
                 if "service" not in svalue:
                     logging.error("Service %s is unnamed in folder %s", skey, key)
                     status = False
@@ -212,9 +213,8 @@ def _verify_folders_syntax(folders):
         if "group" not in value:
             logging.error("No group specified for folder %s", key)
             status = False
-        if "instances" in value and type(value["instances"]) is not int:
-            logging.error("Instances must be a integer for folder %s", key)
-            status = False
+        if "instances" in value:
+            pass
     return status
 
 

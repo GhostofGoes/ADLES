@@ -1,4 +1,4 @@
- ---
+---
 name: "PRCCDC Scenario"
 tags: ["prccdc", "competition", "cyber", "buzzword"]
 date-created: "10/12/2016"
@@ -179,5 +179,4 @@ exercises:
                     - protocols: ["sftp", "smb"]
                     - criteria: "criteria-file"
     - red-team:
-
 ...
