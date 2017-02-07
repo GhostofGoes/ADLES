@@ -3,25 +3,25 @@
 
 # http://multivax.com/last_question.html
 
-"""main
+"""Program used to create cybersecurity educational environments from formal specifications.
 
 Usage:
+    main.py --check-syntax FILE
     main.py --spec FILE
-    main.py --interactive
-    main.py --package-dir
+    main.py --package-dir NAME
     main.py --version
     main.py (-h | --help)
 
 Options:
-    -h, --help              Shows this help
-    --version               Prints current version
-    --spec FILE             YAML file with the environment specification [default: spec.yaml]
-    --package-dir           Name of the exercise package directory
+    -h, --help                  Shows this help
+    --version                   Prints current version
+    -c, --check-syntax FILE     Validates syntax is valid per specification
+    -s, --spec FILE             YAML file with the environment specification
+    -p, --package-dir NAME      Filepath of the exercise package directory
 
 """
 
 from docopt import docopt
-from getpass import getpass
 import logging
 
 from automation.model import Spec
@@ -37,15 +37,9 @@ __email__   = "<goes8945@vandals.uidaho.edu>"
 # TODO: license?
 def main():
 
-    if args["--interactive"]:
-        host = input("Hostname of vCenter server: ")
-        port = input("Port of vCenter server: ")
-        user = input("Username to login with: ")
-        pswd = getpass("Password to login with: ")
-
     if args["--spec"]:
         spec = parse_file(args["--spec"])
-        logging.info("Successfully ingested specification")
+        logging.info("Successfully ingested %s", str(args["--spec"]))
         logging.info("Checking syntax...")
         if verify_syntax(spec):
             logging.info("Syntax check successful!")
@@ -53,6 +47,19 @@ def main():
             logging.error("Syntax check failed!")
             return 1
         # model = Spec(spec["metadata"])
+
+    elif args["--check-syntax"]:
+        spec = parse_file(args["--check-syntax"])
+        logging.info("Successfully ingested %s", str(args["--check-syntax"]))
+        logging.info("Checking syntax...")
+        if verify_syntax(spec):
+            logging.info("Syntax check successful!")
+        else:
+            logging.error("Syntax check failed!")
+            exit(1)
+
+    elif args["--package-dir"]:
+        logging.error("CURRENTLY UNSUPPORTED")
 
 
 if __name__ == '__main__':
