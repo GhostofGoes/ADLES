@@ -64,14 +64,18 @@ class vSphere:
             logging.info("Creating folder {0} in root folder".format(folder_name))
             self.content.rootFolder.CreateFolder(folder_name)
 
-    def generate_clone_spec(self, datastore_name, pool_name=None):
+    def generate_clone_spec(self, datastore_name=None, pool_name=None):
         """
         Generates a clone specification used to clone a VM
-        :param datastore_name: Name of the datastore in which to create the clone's disk
-        :param pool_name: Name of resource pool to use for the clone
+        :param datastore_name: (Optional) Name of the datastore in which to create the clone's disk
+                                [default: first datastore found]
+        :param pool_name: (Optional) Name of resource pool to use for the clone
         :return: vim.vm.CloneSpec object
         """
-        datastore = get_obj(self.content, [vim.Datastore], datastore_name)
+        if datastore_name:
+            datastore = get_obj(self.content, [vim.Datastore], datastore_name)
+        else:
+            datastore = self.datastore
         relospec = vim.vm.RelocateSpec()
         clonespec = vim.vm.CloneSpec()
         if pool_name:
