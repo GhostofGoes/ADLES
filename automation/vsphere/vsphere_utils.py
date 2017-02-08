@@ -9,15 +9,16 @@ from automation.utils import sizeof_fmt
 
 
 # From: various files in pyvmomi-community-samples
-def get_obj(content, vimtype, name):
+def get_obj(content, vimtype, name, recursive=True):
     """
     Recursively finds and returns named object of specified type
     :param content: vim.Content to search in
     :param vimtype: List of vimtype objects to look for
     :param name: string name of the object
+    :param recursive: Whether to recursively descend or only look in the current level
     :return: The vimtype object found with the specified name, or None if no object was found
     """
-    container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, True)
+    container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, recursive)
     obj = None
     for c in container.view:
         if c.name == name:
@@ -28,15 +29,16 @@ def get_obj(content, vimtype, name):
 
 
 # From: https://github.com/sijis/pyvmomi-examples/vmutils.py
-def get_objs(content, vimtype):
+def get_objs(content, vimtype, recursive=True):
     """
     Get ALL the vSphere objects associated with a given type
     :param content: vim.Content to search in
     :param vimtype: List of vimtype objects to look for
+    :param recursive: Whether to recursively descend or only look in the current level
     :return: List of all vimtype objects found
     """
     obj = []
-    container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, True)
+    container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, recursive)
     for c in container.view:
         obj.append(c)
     container.Destroy()
