@@ -93,13 +93,16 @@ class vSphere:
         logging.info("Setting vCenter MOTD to {}".format(message))
         self.content.sessionManager.UpdateServiceMessage(message=message)
 
-    def get_folder(self, folder_name):
+    def get_folder(self, folder_name=None):
         """
         Finds and returns the named folder
-        :param folder_name: Name of the folder
+        :param folder_name: Name of the folder [default: rootFolder of vCenter instance]
         :return: vim.Folder object
         """
-        return get_obj(self.content, [vim.Folder], folder_name)
+        if folder_name:
+            return get_obj(self.content, [vim.Folder], folder_name)
+        else:
+            return self.content.rootFolder
 
     def get_vm(self, vm_name):
         """
@@ -131,7 +134,7 @@ class vSphere:
         else:
             return get_obj(self.content, [vim.Datastore], datastore_name)
 
-    def get_pool(self, pool_name):
+    def get_pool(self, pool_name=None):
         """
         Finds and returns the named resource pool
         :param pool_name: (Optional) Name of the resource pool [default: first resource pool found in the datacenter]
