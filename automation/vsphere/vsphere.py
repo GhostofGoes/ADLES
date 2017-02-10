@@ -18,8 +18,8 @@ class vSphere:
         """
         Connects to the vCenter server instance and initializes class data members
         :param datacenter: Name of datacenter that will be used (multiple datacenter support is TODO)
-        :param username:
-        :param password:
+        :param username: Username of account to login with
+        :param password: Password of account to login with
         :param hostname: DNS hostname or IPv4 address of vCenter instance
         :param datastore: Name of datastore to use as default for operations. Default: first datastore found
         :param port: Port used to connect to vCenter instance

@@ -28,13 +28,16 @@ class VsphereInterface:
                               datastore=infrastructure["datastore"])
 
         # Create top-level folder for the environment
-        self.root_folder = self.metadata["name"]
+        self.server.create_folder(folder_name=self.metadata["name"], create_in=None)
+        self.root_folder = self.server.get_folder(folder_name=self.metadata["name"])
         self.server.create_folder(folder_name=self.root_folder, create_in="script_testing")
 
     def create_masters(self):
         # Create folder to hold base service instances
-        masters = "MASTER_VM_INSTANCES"
-        self.server.create_folder(masters, self.root_folder)
+        master_folder_name = "MASTER_VM_INSTANCES"
+        self.server.create_folder(folder_name=master_folder_name, create_in=self.root_folder.name)
+        master_folder = get_obj(self.root_folder, [vim.Folder], master_folder_name, recursive=False)
+        logging.info("Created master folder {} under folder {}".format(master_folder_name, self.root_folder.name))
 
         # TODO: apply setup permission
         # TODO: create roles
@@ -43,21 +46,31 @@ class VsphereInterface:
         # Create portgroups
 
         # Create base service instances
-        for key, value in self.services.items():
-            if "template" in value:         # Virtual Machine template
+        logging.info("Creating masters...")
+        master_prefix = "(MASTER) "
+        for service_name, service_config in self.services.items():
+            if "template" in service_config:         # Virtual Machine template
+                logging.info("Creating master for service %s from template %s",
+                             service_name, service_config["template"])
+                vm = self.server.get_vm(service_config["template"])  # TODO: pull from specific location?
+                clone_vm(vm=vm, folder=master_folder, name=master_prefix + service_name,
+                         clone_spec=self.server.generate_clone_spec())  # TODO: resource pools!
+            elif "image" in service_config:          # Docker Container
                 pass
-            elif "image" in value:          # Docker Container
-                pass
-            elif "compose-file" in value:   # Docker Compose file
+            elif "compose-file" in service_config:   # Docker Compose file
                 pass
 
     def deploy_environment(self):
+        # Verify all master's exist
+        # Convert all master's to templates
+        # Verify converted successfully
 
         # Create folder to hold portgroups (for easy deletion later)
         # Create portgroup instances
         pass
 
     def get_service_instance(self, service_name):
+        # TODO
         pass
 
 if __name__ == '__main__':
