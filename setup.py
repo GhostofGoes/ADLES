@@ -3,20 +3,15 @@
 
 from setuptools import setup, find_packages
 
-__version__ = "0.5.0"
-__author__ = "Christopher Goes"
-__email__ = "<goes8945@vandals.uidaho.edu>"
-
-
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setup(
     name='radicl',
-    version=__version__,
+    version="0.5.0",
     packages=find_packages('automation'),
-    author=__author__,
-    author_email=__email__,
+    author="Christopher Goes",
+    author_email="goes8945@vandals.uidaho.edu",
     description='Cybersecurity environment automation using formal specifications',
     url='https://github.com/GhostofGoes/cybersecurity-environment-automation',
     license='License :: OSI Approved :: Apache Software License',

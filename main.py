@@ -45,6 +45,10 @@ import logging
 from automation.model import Model
 from automation.parser import parse_file, verify_syntax
 
+__version__ = "0.5.0"
+__author__ = "Christopher Goes"
+__email__ = "<goes8945@vandals.uidaho.edu>"
+
 
 def main():
     from os.path import basename
@@ -82,7 +86,6 @@ def main():
 
 
 if __name__ == '__main__':
-    from setup import __version__
     args = docopt(__doc__, version=__version__, help=True)
 
     logging.basicConfig(level=logging.DEBUG,
