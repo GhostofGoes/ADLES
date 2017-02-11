@@ -40,13 +40,11 @@ from automation.model import Model
 from automation.parser import parse_file, verify_syntax
 
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __author__  = "Christopher Goes"
 __email__   = "<goes8945@vandals.uidaho.edu>"
 
 
-# TODO: setup.py file to enable easy installation using pip (see: https://github.com/imsweb/ezmomi/blob/master/setup.py)
-# TODO: license?
 def main():
     from os.path import basename
 

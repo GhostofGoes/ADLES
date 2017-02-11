@@ -19,7 +19,6 @@ import logging
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
-from automation.vsphere.network_utils import *
 from automation.vsphere.vsphere_utils import *
 from automation.vsphere.vm_utils import *
 
@@ -165,17 +164,14 @@ class vSphere:
         return get_objs(self.content, [vim.VirtualMachine])
 
 
-# TODO: unit tests
 def main():
-    """ For testing of vSphere """
+    """ For testing of vSphere. Also has examples of wrapper API useage. """
     from json import load
     from os import pardir, path
 
     with open(path.join(pardir, "logins.json"), "r") as login_file:
         logins = load(fp=login_file)
 
-    # TODO: add capability to wait on tasks and provide status (important for long-running deploys/clones)
-    #   Idea: create a task queue, place all the tasks i need done in-order, then run them all using wait_for_tasks
     server = vSphere(datacenter="r620", username=logins["user"], password=logins["pass"], hostname=logins["host"],
                      port=logins["port"], datastore="Datastore")
 

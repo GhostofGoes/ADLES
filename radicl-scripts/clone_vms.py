@@ -30,15 +30,14 @@ Options:
 
 from docopt import docopt
 
-from vsphere import vSphere
-from vm_utils import *
-from utils import *
+from automation.vsphere.vsphere import vSphere
+from automation.vsphere.vm_utils import *
+from automation.utils import *
 
 __version__ = "0.1.0"
 
 args = docopt(__doc__, version=__version__, help=True)
 
-# TODO: use six to allow python 2.7 to be used?
 server = None  # Suppress warnings (sigh)
 if args["--file"]:
     from json import load

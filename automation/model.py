@@ -56,7 +56,3 @@ class Model:
     def deploy_environment(self):
         logging.info("Deploying environment...")
         self.interface.deploy_environment()
-
-
-if __name__ == '__main__':
-    pass  # RUN TESTS

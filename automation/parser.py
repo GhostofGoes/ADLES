@@ -163,6 +163,7 @@ def _verify_resources_syntax(resources):
     :return: Boolean indicating success or failure
     """
     status = True
+    # TODO: implement
     return status
 
 
@@ -239,16 +240,11 @@ def _verify_folders_syntax(folders):
     return status
 
 
-def main():
+if __name__ == '__main__':
     """ For testing of the parser """
     from pprint import pprint
-
-    # specfile = '../examples/edurange.yaml'
-    # specfile = '../specification.yaml'
-    # specfile = '../examples/competition.yaml'
-    specfile = '../examples/tutorial.yaml'
-    spec = parse_file(specfile)
-    pprint(spec)  # Note that pprint will cause descriptions to go across multiple lines, don't be alarmed
-
-if __name__ == '__main__':
-    main()
+    files = ['../examples/edurange.yaml', '../specification.yaml', '../examples/competition.yaml',
+             '../examples/tutorial.yaml', '../examples/research.yaml']
+    for specfile in files:
+        s = parse_file(specfile)
+        pprint(s)  # Note that pprint will cause descriptions to go across multiple lines, don't be alarmed

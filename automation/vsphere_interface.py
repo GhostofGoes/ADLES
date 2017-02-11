@@ -84,6 +84,3 @@ class VsphereInterface:
     def get_service_instance(self, service_name):
         # TODO
         pass
-
-if __name__ == '__main__':
-    pass  # Testing
