@@ -1,0 +1,79 @@
+---
+metadata:
+  name: "Network Security Visualization Data Collection"
+  description: "Testbed for collectiton of realistic network data for Network Security Visualization research"
+  date-created: "2016-02-10"
+  version: "0.1.0"
+  infrastructure-config-file: "vsphere.yaml"
+
+groups:
+  Researchers:
+    ad-group: "CSDS NSV Research Peoples"
+
+services:
+  vyos:
+    template: "VyOS 1.1.7 (64-bit)"
+  pfsense:
+    template: "PFSense 2.2.3 (64-bit)"
+  server2012:
+    template: "Windows Server 2012 R2 IIS (64-bit)"
+  apache:
+    template: "Apache - Ubuntu Server 16.10 (64-bit)"
+  nginx:
+    template: "NGINX Load Balancer"
+  windows:
+    template: "Windows 7 SP2 (64-bit)"
+  kali:
+    template: "Research Kali Linux"
+
+networks:
+  unique-networks:
+    SERVER-NET:
+      description: "Network for testbed servers hosting data accessed by clients"
+      subnet: "10.0.0.0/24"
+    CLIENT-NET:
+      description: "Network for testbed clients accessing the server data"
+      subnet: "192.168.0.0/24"
+    WAN-NET:
+      description: "In-between network that acts as the internet for this simulation"
+      subnet: "172.16.0.0/16"
+
+folders:
+  clients:
+    description: "Clients for the testbed"
+    group: Researchers
+    services:
+      windows-client:
+        service: windows
+        instances: 40
+        networks: ["CLIENT-NET"]
+      linux-client:
+        service: kali
+        instances: 5
+        networks: ["CLIENT-NET"]
+  servers:
+    description: "Servers for the testbed"
+    group: Researchers
+    services:
+      windows-web:
+        service: server2012
+        instances: 15
+        networks: ["SERVER-NET"]
+      apache-web:
+        service: apache
+        instances: 20
+        networks: ["SERVER-NET"]
+      nginix-server:
+        service: nginix
+        networks: ["SERVER-NET"]
+    routers:
+      description: "Routers connecting clients and servers"
+      group: Researchers
+      services:
+        client-router:
+          service: pfsense
+          networks: ["CLIENT-NET", "WAN-NET"]
+        server-router:
+          service: vyos
+          networks: ["SERVER-NET", "WAN-NET"]
+...

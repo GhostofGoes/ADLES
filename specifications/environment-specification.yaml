@@ -7,7 +7,7 @@
 # Changelog:
 #   0.1.0: Created
 #   0.2.0: Substantial changes
-#   0.3.0: Additions to services and networks, signifigant cleanup
+#   0.3.0: Additions to services and networks, significant cleanup
 
 # *** Syntax inspirations ***
 # https://docs.docker.com/compose/compose-file/
@@ -31,11 +31,6 @@
 # Top-level definitions are only required if used (e.g resources, groups, networks)
 
 
-# TODO: "enabled" flags to easily toggle sections on and off without having to comment out
-# TODO: define syntax of infrastructure-config-file
-# TODO: use YAML "---" syntax to seperate top levels into seperate "Documents"?
-
-
 
 # ##################################
 # ### Beginning of specification ###
@@ -44,7 +39,7 @@
 # ** Document Metadata **
 metadata:
   name: "Title for the specification"             # REQUIRED    Human-readable title for the specification
-  description: "Description of specification"     # Suggested   Human-redable detailed description of the specification
+  description: "Description of specification"     # Suggested   Human-readable detailed description of the specification
   course: "Course number"                         # Optional    Example: "CS 439"
   class: "Name of the class"                      # Optional    Example: "Applied Security Concepts"
   date-created: "Date specification was created"  # Suggested   UTC format: YYYY-MM-DD (Example: 2016-10-12)
@@ -57,13 +52,12 @@ metadata:
 # User groups, such as teams, students, instructors, etc
 # These are used to apply permissions to the resources and machines in the generated virtual environment
 # Can also be specified as "teams"
-# TODO: how do we map users in groups to VMs?
 groups:
   Group Regular Example:
     # The three different methods of specifying users for a regular group
     ad-group: "RADICL Users"          # Option A
     filename: "users.json"            # Option B
-    usernames: [ "user A", "user B" ] # Option C  ( TODO: SPECIFY USERNAME/PASSWORD SYNTAX  )
+    usernames: [ "user A", "user B" ] # Option C
 
   # For creating batch groups from a common template base, the "template" type can be used
   # Templates use the key letter 'X' to define unique copies of the base
@@ -71,16 +65,16 @@ groups:
     # If instances is specified, the group is assumed to be a template
     instances: 10  # Number of groups created from this template
 
-    # The two differnt methods of specifying users for a template group
+    # The two different methods of specifying users for a template group
     ad-group: "Group X"
     filename: "users-X.json"
 
 
 
 # ** Services **
-# Definition of services (nodes) that will be created in the enviornment, such as hosts, servers, and routers
+# Definition of services (nodes) that will be created in the environment, such as hosts, servers, and routers
 # Case insensitive EXCEPT for resources, such as templates or images
-# Template configurations will be overriden if certain options are set
+# Template configurations will be overridden if certain options are set
 # If containers are used, a GitLab server or Docker registry MUST be specified in the infrastructure-config file
 # Three types of services: template, container, compose
 # template:     Templatized VM in vSphere
@@ -89,7 +83,6 @@ groups:
 #
 # network-interfaces: List of network interfaces and their optional configurations
 # Networks are attached to interfaces in order of their definition, unless explicitly mapped
-# TODO: monitoring + management interface configurations
 services:
   all-service-types:  # Configurations that can appear in any of three service types
     note: "A note"                          # Optional    Human-readable note visible by end-user, such as default username/password
@@ -124,20 +117,12 @@ resources:
     lab: "radicl"
     resource: "wireless-testbed"
 
-# TODO: monitoring capability specification
-#     need ability to specify data sink(s) and annotate nodes as data sources (e.g we put a tap on this network)
-# TODO: Default server for saves?
-# TODO: Specify network interfaces and hosts that monitoring data will be collected from
-
 
 # ** Networks **
 # Non-Private (RFC 1918) networks will result in a warning
 # Subnet IP addresses are not required. They only matter if running configuration scripts or adding a pre-configured router
 # IP version is implicitly defined by address
 # Configurations are the same for all networks, including unique, generic, and base
-# TODO: monitoring annotations
-# TODO: managment/admin networks?
-# TODO: VLANs
 networks: 
   unique-networks:   # Only one of each of these exists. If specified, any hosts will be added to it
     network-label:                # REQUIRED    Unique label used to identify the network (Example: ARP-LAN) (Used for PortGroups in VMware environments)
@@ -159,7 +144,6 @@ networks:
 
 # ** Folders **
 # Assemblages of objects defined previously in file
-# TODO: resource pool distributions
 folders:
   folder-a:
     description: "description"                # Optional    Human-readable description of folder
@@ -167,7 +151,6 @@ folders:
     services:                                 # REQUIRED
       service-instance-name:
         service: service-label                # REQUIRED    Label as defined in services
-        # TODO: pool distributions
         instances: 2                          # Optional    [default: 1]
         networks: ["subnet-a", "subnet-b"]    # Optional
         scoring:                              # Optional    Scoring for the service (e.g a competition or homework verification)
