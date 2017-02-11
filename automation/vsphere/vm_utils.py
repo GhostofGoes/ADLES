@@ -94,7 +94,7 @@ def tools_status(vm):
     :return: If tools are working or not
     """
     tools = vm.summary.guest.toolsStatus
-    if tools is "toolsOK" or tools is "toolsOld":
+    if tools == "toolsOK" or tools == "toolsOld":
         return True
     else:
         return False

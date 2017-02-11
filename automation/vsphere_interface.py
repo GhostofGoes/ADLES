@@ -27,10 +27,11 @@ class VsphereInterface:
                               port=int(logins["port"]),
                               datastore=infrastructure["datastore"])
 
-        # Create top-level folder for the environment
-        self.server.create_folder(folder_name=self.metadata["name"], create_in=None)
-        self.root_folder = self.server.get_folder(folder_name=self.metadata["name"])
-        self.server.create_folder(folder_name=self.root_folder, create_in="script_testing")
+        # Create root folder for the exercise
+        environment_folder_name = "script_testing"
+        self.root_name = self.metadata["name"]
+        self.server.create_folder(folder_name=self.root_name, create_in=environment_folder_name)
+        self.root_folder = self.server.get_folder(folder_name=self.root_name)
 
     def create_masters(self):
         # Create folder to hold base service instances
@@ -46,7 +47,6 @@ class VsphereInterface:
         # Create portgroups
 
         # Create base service instances
-        logging.info("Creating masters...")
         master_prefix = "(MASTER) "
         for service_name, service_config in self.services.items():
             if "template" in service_config:         # Virtual Machine template

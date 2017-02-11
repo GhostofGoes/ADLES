@@ -30,7 +30,7 @@ class Model:
             exit(1)
 
         # Select the Interface to use for the platform
-        if infrastructure["platform"] is "vmware vsphere":
+        if infrastructure["platform"] == "vmware vsphere":
             from automation.vsphere_interface import VsphereInterface
             self.interface = VsphereInterface(infrastructure, logins, spec)  # Create interface
         else:

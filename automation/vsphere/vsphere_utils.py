@@ -46,6 +46,7 @@ def get_objs(content, vimtype, recursive=True):
 
 
 # TODO: function to apply a given operation to all objects in a view
+# TODO: function to recurse through folder structure for a given vim.Folder childEntity type
 
 
 # From: tools/tasks.py in pyvmomi-community-samples
