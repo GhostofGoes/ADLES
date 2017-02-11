@@ -1,6 +1,8 @@
 # Introduction
 
-Implementation of my thesis research, Cybersecurity Environment Automation.
+Automating the creation of virtualized cybersecurity educational environments and testbeds using a formal specification.
+
+This is the Proof of Concept implementation of my thesis research for a Master of Computer Science at the University of Idaho.
 
 
 # Installation
