@@ -1,6 +1,9 @@
 
 
-# Introduction [![Build Status](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation.svg?branch=master)](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation)
+# Introduction 
+[![Build Status](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation.svg?branch=master)](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation) 
+[![Dependency Status](https://www.versioneye.com/user/projects/589eac206a7781003b24318b/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/589eac206a7781003b24318b)
+[![Code Climate](https://codeclimate.com/github/GhostofGoes/cybersecurity-environment-automation/badges/gpa.svg)](https://codeclimate.com/github/GhostofGoes/cybersecurity-environment-automation)
 
 Automating the creation of virtualized cybersecurity educational environments and testbeds using a formal specification.
 
