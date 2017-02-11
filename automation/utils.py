@@ -37,6 +37,7 @@ def spinner(label=''):
 
 # From: list_dc_datastore_info.py in pyvmomi-community-samples
 # http://stackoverflow.com/questions/1094841/
+# Could also use humanize for this sort of thing: https://pypi.python.org/pypi/humanize/0.5.1
 def sizeof_fmt(num):
     """
     Returns the human readable version of a file size

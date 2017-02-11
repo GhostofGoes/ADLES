@@ -18,18 +18,24 @@
 """Program used to create cybersecurity educational environments from formal specifications.
 
 Usage:
-    main.py --check-syntax FILE
-    main.py --spec FILE
-    main.py --package-dir NAME
+    main.py [-d] --check-syntax FILE
+    main.py [-d] --spec FILE
+    main.py [-d] --package-dir NAME
     main.py --version
     main.py (-h | --help)
 
 Options:
     -h, --help                  Shows this help
     --version                   Prints current version
+    -d, --debug                 Emits debugging logs to terminal in addition to file
     -c, --check-syntax FILE     Validates syntax is valid per specification
     -s, --spec FILE             YAML file with the environment specification
     -p, --package-dir NAME      Filepath of the exercise package directory
+
+Examples:
+    main.py --check-syntax ../examples/tutorial.yaml
+    main.py -d --spec ../examples/research.yaml
+    main.py -s ../examples/competition.yaml
 
 """
 
@@ -40,15 +46,13 @@ from automation.model import Model
 from automation.parser import parse_file, verify_syntax
 
 
-__version__ = "0.5.0"
-__author__  = "Christopher Goes"
-__email__   = "<goes8945@vandals.uidaho.edu>"
-
-
 def main():
     from os.path import basename
+    from os.path import exists
 
     if args["--spec"]:
+        if not exists(args["--spec"]):
+            exit(1)
         spec = parse_file(args["--spec"])
         logging.info("Successfully ingested %s", str(basename(args["--spec"])))
         logging.info("Checking syntax...")
@@ -62,6 +66,8 @@ def main():
         model.deploy_environment()
 
     elif args["--check-syntax"]:
+        if not exists(args["--check-syntax"]):
+            exit(1)
         spec = parse_file(args["--check-syntax"])
         logging.info("Successfully ingested %s", str(basename(args["--check-syntax"])))
         logging.info("Checking syntax...")
@@ -76,6 +82,7 @@ def main():
 
 
 if __name__ == '__main__':
+    from setup import __version__
     args = docopt(__doc__, version=__version__, help=True)
 
     logging.basicConfig(level=logging.DEBUG,
@@ -84,7 +91,10 @@ if __name__ == '__main__':
                         filename="environment-creator.log",
                         filemode='w')
     console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
+    if args["--debug"]:
+        console.setLevel(logging.DEBUG)
+    else:
+        console.setLevel(logging.INFO)
     formatter = logging.Formatter("%(levelname)-12s %(message)s")
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
