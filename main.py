@@ -58,7 +58,7 @@ def main():
             logging.info("Syntax check successful!")
         else:
             logging.error("Syntax check failed!")
-            return 1
+            exit(1)
         model = Model(spec)
         model.create_masters()
         model.deploy_environment()
