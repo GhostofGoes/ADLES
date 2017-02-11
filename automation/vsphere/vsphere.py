@@ -75,6 +75,8 @@ class vSphere:
             logging.info("Creating folder {0} in root folder".format(folder_name))
             self.content.rootFolder.CreateFolder(folder_name)
 
+    # TODO: generate_vm_spec
+
     def generate_clone_spec(self, datastore_name=None, pool_name=None):
         """
         Generates a clone specification used to clone a VM
@@ -194,6 +196,23 @@ def main():
     server = vSphere(datacenter="r620", username=logins["user"], password=logins["pass"], hostname=logins["host"],
                      port=logins["port"], datastore="Datastore")
 
+    logging.basicConfig(level=logging.DEBUG,
+                        format="[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s",
+                        datefmt="%y-%m-%d %H:%M:%S",
+                        filename="environment-creator.log",
+                        filemode='w')
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(levelname)-12s %(message)s")
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+
+    folder = server.get_folder("script_testing")
+    vm = traverse_path(folder, "/Templates/Clients/Linux/", "Kali 2016.2 (64-bit)")
+    print_vm_info(vm)
+    folder = traverse_path(folder, "/Templates/Servers/Windows")
+    print(folder.name)
+
     # folder = server.get_folder("script_testing")
     # pool = get_objs(server.content, [vim.ResourcePool])[0]
     # file_info = vim.vm.FileInfo()
@@ -201,9 +220,8 @@ def main():
     # vm_spec = vim.vm.ConfigSpec(name="test_vm", guestId="ubuntuGuest", numCPUs=1, numCoresPerSocket=1,
     #                             memoryMB=1024, annotation="it worked!", files=file_info)
     # create_vm(folder, vm_spec, pool)
-    vm = server.get_vm("test_vm")
-    print_vm_info(vm)
-
+    # vm = server.get_vm("test_vm")
+    # print_vm_info(vm)
     # attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
     # portgroup = get_obj(server.content, [vim.Network], "test_network")
     # add_nic(vm, portgroup, "test_summary")

@@ -261,25 +261,25 @@ def print_vm_info(virtual_machine, print_uuids=False):
     :param print_uuids: (Optional) Whether to print UUID information
     """
     summary = virtual_machine.summary
-    logging.info("Name          : ", summary.config.name)
-    logging.info("State         : ", summary.runtime.powerState)
-    logging.info("Guest         : ", summary.config.guestFullName)
-    logging.info("CPUs          : ", summary.config.numCpu)
-    logging.info("Memory (MB)   : ", summary.config.memorySizeMB)
-    logging.info("vNICs         : ", summary.config.numEthernetCards)
-    logging.info("Disks         : ", summary.config.numVirtualDisks)
-    logging.info("IsTemplate    : ", summary.config.template)
-    logging.info("Path          : ", summary.config.vmPathName)
+    logging.info("Name          : %s", summary.config.name)
+    logging.info("State         : %s", summary.runtime.powerState)
+    logging.info("Guest         : %s", summary.config.guestFullName)
+    logging.info("CPUs          : %s", summary.config.numCpu)
+    logging.info("Memory (MB)   : %s", summary.config.memorySizeMB)
+    logging.info("vNICs         : %s", summary.config.numEthernetCards)
+    logging.info("Disks         : %s", summary.config.numVirtualDisks)
+    logging.info("IsTemplate    : %s", summary.config.template)
+    logging.info("Path          : %s", summary.config.vmPathName)
     if summary.guest:
-        logging.info("VMware-Tools  : ", summary.guest.toolsStatus)
-        logging.info("IP            : ", summary.guest.ipAddress)
+        logging.info("VMware-Tools  : %s", summary.guest.toolsStatus)
+        logging.info("IP            : %s", summary.guest.ipAddress)
     if print_uuids:
-        logging.info("Instance UUID : ", summary.config.instanceUuid)
-        logging.info("Bios UUID     : ", summary.config.uuid)
+        logging.info("Instance UUID : %s", summary.config.instanceUuid)
+        logging.info("Bios UUID     : %s", summary.config.uuid)
     if summary.runtime.question:
-        logging.info("Question  : ", summary.runtime.question.text)
+        logging.info("Question  : %s", summary.runtime.question.text)
     if summary.config.annotation:
-        logging.info("Annotation    : ", summary.config.annotation)
+        logging.info("Annotation    : %s", summary.config.annotation)
 
 
 def powered_on(vm):
@@ -345,9 +345,9 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
     """
     Edits a VM NIC based on it's number
     :param vm: vim.VirtualMachine
-    :param nic_number:
-    :param port_group:
-    :param summary:
+    :param nic_number: Number of network adapter on VM
+    :param port_group: (Optional) vim.Network object to assign NIC to
+    :param summary: (Optional) Human-readable device info
     """
     nic_label = 'Network adapter ' + str(nic_number)
     logging.info("Changing {} on {}".format(nic_label, vm.name))
@@ -376,33 +376,55 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
 
 
 # From: add_nic_to_vm.py in pyvmomi-community-samples
-def add_nic(vm, port_group, summary="default-summary"):
+def add_nic(vm, port_group, summary="default-summary", model="e1000"):
     """
     Add a NIC in the portgroup to the VM
     :param vm: vim.VirtualMachine
     :param port_group: vim.Network port group to attach NIC to
     :param summary: (Optional) Human-readable device info
+    :param model: (Optional) Model of virtual network adapter. Options: e1000, e1000e, vmxnet, vmxnet2, vmxnet3.
+    e1000 will work on Windows Server 2003+, and e1000e is supported on Windows Server 2012 and newer.
+    VMXNET adapters require VMware Tools to be installed, and will provide significantly enhanced performance,
+    since they remove emulation overhead.
+    Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
     """
     logging.info("Adding NIC to VM {0}\nPort group: {1} Summary: {2}".format(vm.name, port_group.name, summary))
     nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create a base object to add configurations to
     nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
 
-    nic_spec.device = vim.vm.device.VirtualE1000()  # Set the type of network adaptor (Alternative is VMXNET3)
-    nic_spec.device.addressType = 'assigned'
+    # Set the type of network adapter
+    if model == "e1000":
+        nic_spec.device = vim.vm.device.VirtualE1000()
+    elif model == "e1000e":
+        nic_spec.device = vim.vm.device.VirtualE1000e()
+    elif model == "vmxnet":
+        nic_spec.device = vim.vm.device.VirtualVmxnet()
+    elif model == "vmxnet2":
+        nic_spec.device = vim.vm.device.VirtualVmxnet2()
+    elif model == "vmxnet3":
+        nic_spec.device = vim.vm.device.VirtualVmxnet3()
+    else:
+        logging.error("Invalid NIC model: %s", model)
+        return
+
+    nic_spec.device.addressType = 'generated'               # Sets how MAC address is assigned
+    nic_spec.device.wakeOnLanEnabled = False                # Disables Wake-on-lan capabilities
 
     nic_spec.device.deviceInfo = vim.Description()
     nic_spec.device.deviceInfo.summary = summary
 
     nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
     nic_spec.device.backing.useAutoDetect = False
-    nic_spec.device.backing.network = port_group
-    nic_spec.device.backing.deviceName = port_group.name
+    nic_spec.device.backing.network = port_group            # Sets port group to assign adapter to
+    nic_spec.device.backing.deviceName = port_group.name    # Sets name of device on host system
 
     nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-    nic_spec.device.connectable.startConnected = True
-    nic_spec.device.connectable.allowGuestControl = True
-    nic_spec.device.connectable.connected = False
+    nic_spec.device.connectable.startConnected = True       # Ensures adapter is connected at boot
+    nic_spec.device.connectable.allowGuestControl = True    # Allows VM guest OS to control device state
+    nic_spec.device.connectable.connected = True
     nic_spec.device.connectable.status = 'untried'
+
+    # TODO: configure guest IP address if statically assigned
 
     edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
 
@@ -423,12 +445,12 @@ def attach_iso(vm, filename, datastore, boot=True):
     drive_spec.device.unitNumber = 0
 
     drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
-    drive_spec.device.backing.fileName = "[{0}] {1}".format(datastore.name, filename)
-    drive_spec.device.backing.datastore = datastore
+    drive_spec.device.backing.fileName = "[{0}] {1}".format(datastore.name, filename)  # Attach ISO
+    drive_spec.device.backing.datastore = datastore  # Set datastore ISO is in
 
     drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-    drive_spec.device.connectable.allowGuestControl = True
-    drive_spec.device.connectable.startConnected = True
+    drive_spec.device.connectable.allowGuestControl = True  # Allows VM guest OS to control device state
+    drive_spec.device.connectable.startConnected = True  # Ensures ISO is connected at boot
 
     drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
     vm_spec = vim.vm.ConfigSpec(deviceChange=[drive_spec])

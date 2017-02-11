@@ -58,7 +58,34 @@ def get_objs(content, vimtype, recursive=True):
 
 
 # TODO: function to apply a given operation to all objects in a view
-# TODO: function to recurse through folder structure for a given vim.Folder childEntity type
+
+# TODO: specify vimtype of item to find
+def traverse_path(root, path, name=None):
+    """
+    Traverses a folder path to find a object with a specific name
+    :param root: vim.Folder root to search in
+    :param path: String with path in UNIX format (Example: Templates/Servers/Windows/)
+    :param name: Name of object to find (Example: "Windows Server 2012 R2 (64-bit)")
+                 [default: Return folder at end of path]
+    :return: Object found, or None if not found or there was an error
+    """
+    folder_path = [x for x in path.split('/') if x != ""]  # Remove empty values
+
+    current = root
+    for folder in folder_path:
+        for item in current.childEntity:
+            if hasattr(item, "childEntity") and item.name == folder:
+                current = item
+                break
+
+    if name:
+        for item in current.childEntity:
+            if hasattr(item, 'summary') and item.name == name:
+                return item
+    else:
+        return current
+
+    return None
 
 
 # From: tools/tasks.py in pyvmomi-community-samples
