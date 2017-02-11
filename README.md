@@ -1,4 +1,6 @@
-# Introduction
+
+
+# Introduction [![Build Status](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation.svg?branch=master)](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation)
 
 Automating the creation of virtualized cybersecurity educational environments and testbeds using a formal specification.
 
@@ -34,9 +36,10 @@ See specification/specification.yaml for the exercise specification, built on YA
 # Tested Platforms
 
 * Windows 10 Anniversary x64
+* Debian 7
 * vSphere 6.5
 * ESXi 6.5
-* CPython 3.6 runtime
+* CPython 3.3, 3.4, 3.5, 3.6
     
 
 # Licensing
