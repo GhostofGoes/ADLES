@@ -16,7 +16,7 @@ setup(
     version=__version__,
     packages=find_packages('automation'),
     author=__author__,
-    author_email=_-__email__,
+    author_email=__email__,
     description='Cybersecurity environment automation using formal specifications',
     url='https://github.com/GhostofGoes/cybersecurity-environment-automation',
     license='License :: OSI Approved :: Apache Software License',

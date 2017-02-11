@@ -163,6 +163,25 @@ class vSphere:
         """
         return get_objs(self.content, [vim.VirtualMachine])
 
+    def get_obj(self, vimtype, name, recursive=True):
+        """
+        Finds and returns named vSphere object of specified type
+        :param vimtype: List of vimtype objects to look for
+        :param name: string name of the object
+        :param recursive: (Optional) Whether to recursively descend or only look in the current level
+        :return: The vimtype object found with the specified name, or None if no object was found
+        """
+        get_obj(self.content, vimtype, name, recursive)
+
+    def get_objs(self, vimtype, recursive=True):
+        """
+        Get all the vSphere objects associated with a given type
+        :param vimtype: List of vimtype objects to look for
+        :param recursive: (Optional) Whether to recursively descend or only look in the current level
+        :return: List of all vimtype objects found, or None if none were found
+        """
+        get_objs(self.content, vimtype, recursive)
+
 
 def main():
     """ For testing of vSphere. Also has examples of wrapper API useage. """
