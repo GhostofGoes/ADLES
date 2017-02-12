@@ -128,7 +128,7 @@ class vSphere:
     def get_host(self, host_name=None):
         """
         Finds and returns the named host
-        :param host_name: (Optiona) Name of the host [default: the first host found in the datacenter]
+        :param host_name: (Optional) Name of the host [default: the first host found in the datacenter]
         :return: vim.HostSystem object
         """
         if not host_name:

@@ -67,6 +67,7 @@ class VsphereInterface:
                 vm = self.server.get_vm(service_config["template"])  # TODO: pull from specific location?
                 clone_vm(vm=vm, folder=master_folder, name=master_prefix + service_name,
                          clone_spec=self.server.generate_clone_spec())  # TODO: resource pools!
+
             elif "image" in service_config:          # Docker Container
                 pass
             elif "compose-file" in service_config:   # Docker Compose file

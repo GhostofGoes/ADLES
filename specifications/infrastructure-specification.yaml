@@ -21,6 +21,7 @@ login-file: "filename.json"     # REQUIRED      Filename of JSON file with login
 
 
 # VMware vSphere-specific configurations
-datacenter: "name of datacenter"        # Suggested         Name of the Datacenter on which to create environment
-datastore: "name of datastore"          # Suggested         Name of Datastore on which to create environment
+datacenter: "name of datacenter"            # Suggested     Name of the Datacenter on which to create environment
+datastore: "name of datastore"              # Suggested     Name of Datastore on which to create environment
+template-folder: "name of template folder"  # REQUIRED      Name of folder that contains VM templates
 ...
