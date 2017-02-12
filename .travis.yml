@@ -11,6 +11,5 @@ script:
   - python main.py --check-syntax examples/tutorial.yaml
   - python main.py --check-syntax examples/competition.yaml
   - python main.py --check-syntax examples/experiment.yaml
-  - python automation/parser.py
 notifications:
   email: false
