@@ -243,8 +243,8 @@ def _verify_folders_syntax(folders):
 if __name__ == '__main__':
     """ For testing of the parser """
     from pprint import pprint
-    files = ['../examples/edurange.yaml', '../specification.yaml', '../examples/competition.yaml',
-             '../examples/tutorial.yaml', '../examples/research.yaml']
+    files = ['../examples/edurange.yaml', '../specifications/environment-specification.yaml',
+             '../examples/competition.yaml', '../examples/tutorial.yaml', '../examples/experiment.yaml']
     for specfile in files:
         s = parse_file(specfile)
         pprint(s)  # Note that pprint will cause descriptions to go across multiple lines, don't be alarmed
