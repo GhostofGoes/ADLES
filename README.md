@@ -1,6 +1,6 @@
 
 
-# Introduction 
+# Overview 
 [![Build Status](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation.svg?branch=master)](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation) 
 [![Dependency Status](https://www.versioneye.com/user/projects/589eac206a7781003b24318b/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/589eac206a7781003b24318b)
 [![Code Climate](https://codeclimate.com/github/GhostofGoes/cybersecurity-environment-automation/badges/gpa.svg)](https://codeclimate.com/github/GhostofGoes/cybersecurity-environment-automation)
@@ -13,8 +13,8 @@ This is the Proof of Concept implementation of my thesis research for a Master o
 # Installation
 
 ```
-git clone https://github.com/GhostofGoes/thesis-research.git
-cd thesis-research
+git clone https://github.com/GhostofGoes/cybersecurity-environment-automation.git
+cd cybersecurity-environment-automation
 pip3 install -r requirements.txt
 ./main.py --help
 ```
@@ -29,21 +29,19 @@ See specification/specification.yaml for the exercise specification, built on YA
 # System Requirements
 
 ## Local system
-* Python 3.6
+Python: 3.2+
+
+Packages (see requirements.txt for specific versions):
+
+* pyvmomi 
+* docopt
+* pyyaml
+* netaddr
 
 ## Platform
 * vSphere >= 6.0
 * ESXi >= 6.0 U2
 
-
-# Tested Platforms
-
-* Windows 10 Anniversary x64
-* Debian 7
-* vSphere 6.5
-* ESXi 6.5
-* CPython 3.3, 3.4, 3.5, 3.6
-    
 
 # Licensing
 
