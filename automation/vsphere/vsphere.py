@@ -25,6 +25,7 @@ from automation.vsphere.vm_utils import *
 
 class vSphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
+
     def __init__(self, datacenter, username, password, hostname, port=443, datastore=None):
         """
         Connects to the vCenter server instance and initializes class data members
@@ -50,6 +51,8 @@ class vSphere:
             raise Exception()
         register(Disconnect, self.server)  # Ensures connection to server is closed upon script termination
 
+        self.hostname = hostname
+        self.port = port
         self.content = self.server.RetrieveContent()
         self.children = self.content.rootFolder.childEntity
         self.datacenter = get_obj(self.content, [vim.Datacenter], datacenter)
@@ -184,6 +187,13 @@ class vSphere:
         """
         get_objs(self.content, vimtype, recursive)
 
+    def __repr__(self):
+        return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name, self.hostname, self.port)
+
+    def __str__(self):
+        return "Datacenter: {} \tDatastore: {} \tServer: {}:{}".format(self.datacenter.name, self.datastore.name,
+                                                                       self.hostname, self.port)
+
 
 def main():
     """ For testing of vSphere. Also has examples of wrapper API useage. """
@@ -207,11 +217,13 @@ def main():
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
-    folder = server.get_folder("script_testing")
-    vm = traverse_path(folder, "/Templates/Clients/Linux/", "Kali 2016.2 (64-bit)")
-    print_vm_info(vm)
-    folder = traverse_path(folder, "/Templates/Servers/Windows")
-    print(folder.name)
+    # print(str(server))
+    # print(repr(server))
+    # folder = server.get_folder("script_testing")
+    # vm = traverse_path(folder, "/Templates/Clients/Linux/", "Kali 2016.2 (64-bit)")
+    # print_vm_info(vm)
+    # folder = traverse_path(folder, "/Templates/Servers/Windows")
+    # print(folder.name)
 
     # folder = server.get_folder("script_testing")
     # pool = get_objs(server.content, [vim.ResourcePool])[0]
@@ -220,8 +232,8 @@ def main():
     # vm_spec = vim.vm.ConfigSpec(name="test_vm", guestId="ubuntuGuest", numCPUs=1, numCoresPerSocket=1,
     #                             memoryMB=1024, annotation="it worked!", files=file_info)
     # create_vm(folder, vm_spec, pool)
-    # vm = server.get_vm("test_vm")
-    # print_vm_info(vm)
+    vm = server.get_vm("dummy")
+    print_vm_info(vm)
     # attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
     # portgroup = get_obj(server.content, [vim.Network], "test_network")
     # add_nic(vm, portgroup, "test_summary")

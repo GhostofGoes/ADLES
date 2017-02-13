@@ -52,7 +52,7 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     :param promiscuous: (Optional) Sets the promiscuous mode of the switch, allowing for monitoring [default: False]
     """
     logging.info("Creating PortGroup {} on vSwitch {} on host {}".format(name, vswitch_name, host.name))
-    logging.info("VLAN ID: {} \t Promiscuous: {}".format(str(vlan), str(promiscuous)))
+    logging.debug("VLAN ID: {} \t Promiscuous: {}".format(str(vlan), str(promiscuous)))
     spec = vim.host.PortGroup.Specification()
     spec.name = name
     spec.vlanId = int(vlan)

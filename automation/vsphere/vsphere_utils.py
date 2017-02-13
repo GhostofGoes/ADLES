@@ -59,6 +59,32 @@ def get_objs(content, vimtype, recursive=True):
 
 # TODO: function to apply a given operation to all objects in a view
 
+def find_in_folder(folder, name):
+    """
+    Finds and returns an object in a folder
+    :param folder:
+    :param name:
+    :return:
+    """
+    for item in folder.childEntity:
+        if item.name == name:
+            return item
+    return None
+
+
+def check_in_folder(folder, name):
+    """
+    Checks if a object is in a folder
+    :param folder:
+    :param name:
+    :return:
+    """
+    for item in folder.childEntity:
+        if item.name == name:
+            return True
+    return False
+
+
 # TODO: specify vimtype of item to find
 def traverse_path(root, path, name=None):
     """
@@ -69,6 +95,7 @@ def traverse_path(root, path, name=None):
                  [default: Return folder at end of path]
     :return: Object found, or None if not found or there was an error
     """
+    logging.debug("Traversing path. Root: %s\tPath: %s\tName: %s", str(root.name), path, name)
     folder_path = [x for x in path.split('/') if x != ""]  # Remove empty values
 
     current = root
@@ -95,6 +122,7 @@ def wait_for_tasks(service_instance, tasks):
     :param service_instance: Service instance as returned by pyVim.connect.SmartConnect()
     :param tasks: List of tasks to wait for
     """
+    logging.debug("Waiting for tasks. Instance: %s\tTasks: %s", str(service_instance), str(tasks))
     property_collector = service_instance.content.propertyCollector
     task_list = [str(task) for task in tasks]
     obj_specs = [vmodl.query.PropertyCollector.ObjectSpec(obj=task) for task in tasks]  # Create filter
@@ -138,6 +166,7 @@ def wait_for_task(task):
     :param task:  vim.Task object of the task to wait for
     :return: Task result information
     """
+    logging.debug("Waiting for task: %s", str(task.name))
     task_done = False
     while not task_done:
         if task.info.state == 'success':

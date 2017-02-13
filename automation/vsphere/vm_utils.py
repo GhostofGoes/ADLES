@@ -29,7 +29,6 @@ def clone_vm(vm, folder, name, clone_spec):
     vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec)  # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
 
 
-# Cheap way to get a pool: pool = get_objs(server.content, [vim.ResourcePool])[0]
 def create_vm(folder, config, pool, host=None):
     """
     Creates a VM with the specified configuration in the given folder
@@ -69,7 +68,7 @@ def change_power_state(vm, power_state):
     :param vm: vim.VirtualMachine object to change power state of
     :param power_state: on, off, reset, or suspend
     """
-    logging.info("Changing power state of VM {0} to: '{1}'".format(vm.name, power_state))
+    logging.debug("Changing power state of VM {0} to: '{1}'".format(vm.name, power_state))
     if power_state.lower() == "on":
         vm.PowerOnVM_Task()
     elif power_state.lower() == "off":
@@ -86,7 +85,7 @@ def change_guest_state(vm, guest_state):
     :param vm:  vim.VirtualMachine object to change guest state of
     :param guest_state: shutdown, reboot, or standby
     """
-    logging.info("Changing guest power state of VM {0} to: '{1}'".format(vm.name, guest_state))
+    logging.debug("Changing guest power state of VM {0} to: '{1}'".format(vm.name, guest_state))
     if vm.summary.guest.toolsStatus == "toolsNotInstalled":
         logging.error("Cannot change a VM's guest power state without VMware Tools!")
     elif guest_state.lower() == "shutdown":
@@ -106,10 +105,16 @@ def tools_status(vm):
     :return: If tools are working or not
     """
     tools = vm.summary.guest.toolsStatus
-    if tools == "toolsOK" or tools == "toolsOld":
-        return True
-    else:
-        return False
+    return True if tools == "toolsOK" or tools == "toolsOld" else False
+
+
+def is_template(vm):
+    """
+    Checks if VM is a template
+    :param vm: vim.VirtualMachine
+    :return:
+    """
+    return bool(vm.summary.config.template)
 
 
 def convert_to_template(vm):
@@ -118,13 +123,12 @@ def convert_to_template(vm):
     :param vm: vim.VirtualMachine object to convert
     """
     try:
-        logging.info("Converting VM {0} to Template".format(vm.name))
+        logging.debug("Converting VM {0} to Template".format(vm.name))
         vm.MarkAsTemplate()
     except vim.fault.InvalidPowerState:
         logging.error("VM {0} must be powered off before being converted to a template!".format(vm.name))
 
 
-# Cheap way to get a pool: pool = get_objs(server.content, [vim.ResourcePool])[0]
 def convert_to_vm(vm, resource_pool, host=None):
     """
     Converts a Template to a Virtual Machine
@@ -132,7 +136,7 @@ def convert_to_vm(vm, resource_pool, host=None):
     :param resource_pool: vim.ResourcePool to associate with the VM
     :param host: (optional) vim.HostSystem on which the VM should run
     """
-    logging.info("Converting Template {0} to VM and assigning to resource pool {1}".format(vm.name, resource_pool.name))
+    logging.debug("Converting Template {0} to VM and assigning to resource pool {1}".format(vm.name, resource_pool.name))
     vm.MarkAsVirtualMachine(resource_pool, host)
 
 
@@ -142,7 +146,7 @@ def set_note(vm, note):
     :param vm: vim.VirtualMachine object
     :param note: String to set the note to
     """
-    logging.info("Setting note of VM {0} to {1}".format(vm.name, note))
+    logging.debug("Setting note of VM {0} to {1}".format(vm.name, note))
     spec = vim.vm.ConfigSpec()
     spec.annotation = note
     vm.ReconfigVM_Task(spec)
@@ -311,7 +315,7 @@ def remove_device(vm, device):
     :param vm: vim.VirtualMachine
     :param device: vim.vm.device.VirtualDeviceSpec
     """
-    logging.info("Removing device {} from vm {}".format(device.name, vm.name))
+    logging.debug("Removing device {} from vm {}".format(device.name, vm.name))
     device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
     vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device]))  # Apply the change to the VM
 
@@ -324,7 +328,7 @@ def delete_nic(vm, nic_number):
     :param nic_number: Unit Number
     """
     nic_label = 'Network adapter ' + str(nic_number)
-    logging.info("Removing Virtual {} from {}".format(nic_label, vm.name))
+    logging.debug("Removing Virtual {} from {}".format(nic_label, vm.name))
     virtual_nic_device = None
     for dev in vm.config.hardware.device:
         if isinstance(dev, vim.vm.device.VirtualEthernetCard) and dev.deviceInfo.label == nic_label:
@@ -350,7 +354,7 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
     :param summary: (Optional) Human-readable device info
     """
     nic_label = 'Network adapter ' + str(nic_number)
-    logging.info("Changing {} on {}".format(nic_label, vm.name))
+    logging.debug("Changing {} on {}".format(nic_label, vm.name))
     virtual_nic_device = None
     for dev in vm.config.hardware.device:
         if isinstance(dev, vim.vm.device.VirtualEthernetCard) and dev.deviceInfo.label == nic_label:
@@ -388,7 +392,7 @@ def add_nic(vm, port_group, summary="default-summary", model="e1000"):
     since they remove emulation overhead.
     Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
     """
-    logging.info("Adding NIC to VM {0}\nPort group: {1} Summary: {2}".format(vm.name, port_group.name, summary))
+    logging.debug("Adding NIC to VM {0}\nPort group: {1} Summary: {2}".format(vm.name, port_group.name, summary))
     nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create a base object to add configurations to
     nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
 
@@ -437,7 +441,7 @@ def attach_iso(vm, filename, datastore, boot=True):
     :param datastore: vim.Datastore where the ISO resides
     :param boot: Set VM to boot from the attached ISO
     """
-    logging.info("Adding ISO '{0}' to VM '{1}'".format(filename, vm.name))
+    logging.debug("Adding ISO '{0}' to VM '{1}'".format(filename, vm.name))
     drive_spec = vim.vm.device.VirtualDeviceSpec()
     drive_spec.device = vim.vm.device.VirtualCdrom()
     drive_spec.device.controllerKey = find_free_ide_controller(vm).key
