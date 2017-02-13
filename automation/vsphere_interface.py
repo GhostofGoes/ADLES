@@ -45,17 +45,23 @@ class VsphereInterface:
                               datastore=infrastructure["datastore"])
 
         # Create root folder for the exercise
-        environment_folder_name = "script_testing"
+        server_root = "script_testing"  # TODO: put this in infra-spec, default to server root.vmFolder or whatever
+        self.root_path = self.metadata["root-path"]
         self.root_name = self.metadata["name"]
-        self.server.create_folder(folder_name=self.root_name, create_in=environment_folder_name)
-        self.root_folder = self.server.get_folder(folder_name=self.root_name)
+        parent = traverse_path(self.server.get_folder(server_root), self.root_path)
+        self.server.create_folder(folder_name=self.root_name, create_in=parent)
+        self.root_folder = traverse_path(self.server.get_folder(), self.root_path, self.root_name)
 
     def create_masters(self):
         """ Master creation phase """
-        # Create folder to hold base service instances
-        master_folder_name = "MASTER_VM_INSTANCES"
-        self.server.create_folder(folder_name=master_folder_name, create_in=self.root_folder.name)
-        master_folder = get_obj(self.root_folder, [vim.Folder], master_folder_name, recursive=False)
+
+        # Create master folder to hold base service instances
+        # TODO: for the time being, just doing a flat "MASTER_FOLDERS" folder with all the masters, regardless of depth
+        #   Will eventually do hierarchically based on folders and not just the services
+        #   Will write a function to do this, so we can recursively descend for complex environments
+        master_folder_name = "MASTER_FOLDERS"
+        self.server.create_folder(folder_name=master_folder_name, create_in=self.root_folder)
+        master_folder = find_in_folder(self.root_folder, master_folder_name)
         logging.info("Created master folder {} under folder {}".format(master_folder_name, self.root_folder.name))
 
         # TODO: apply setup permission
@@ -65,7 +71,6 @@ class VsphereInterface:
         # Create portgroups
 
         # Create base service instances (Docker containers and compose would be implemented here)
-
         for service_name, service_config in self.services.items():
             if "template" in service_config:         # Virtual Machine template
                 logging.info("Creating master for service %s from template %s",

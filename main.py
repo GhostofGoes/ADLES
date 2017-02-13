@@ -67,6 +67,7 @@ def main():
             exit(1)
         model = Model(spec)
         model.create_masters()
+        input("Masters created. Press any key to continue to Deployment phase...")
         model.deploy_environment()
 
     elif args["--check-syntax"]:
@@ -81,7 +82,7 @@ def main():
             logging.error("Syntax check failed!")
             exit(1)
 
-    elif args["--package-dir"]:
+    elif args["--package-dir"]:  # TODO
         logging.error("CURRENTLY UNSUPPORTED")
 
 

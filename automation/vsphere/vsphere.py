@@ -66,13 +66,16 @@ class vSphere:
         """
         Creates a VM folder in the specified folder
         :param folder_name: Name of folder to create
-        :param create_in: Name of folder where new folder should be created [default: root folder of datacenter]
+        :param create_in: Name of folder or vim.Folder object to create folder in [default: root folder of datacenter]
         """
         if get_obj(self.content, [vim.Folder], folder_name):
             logging.warning("Folder {0} already exists".format(folder_name))
         elif create_in:
             logging.info("Creating folder {0} in folder {1}".format(folder_name, create_in))
-            parent = get_obj(self.content, [vim.Folder], create_in)
+            if type(create_in) is str:
+                parent = get_obj(self.content, [vim.Folder], create_in)
+            else:
+                parent = create_in
             parent.CreateFolder(folder_name)
         else:
             logging.info("Creating folder {0} in root folder".format(folder_name))
