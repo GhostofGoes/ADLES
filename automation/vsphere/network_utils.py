@@ -16,6 +16,8 @@
 import logging
 from pyVmomi import vim
 
+from automation.vsphere.vsphere_utils import get_obj
+
 
 def create_vswitch(name, host, num_ports=1024):
     """
@@ -51,6 +53,7 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     :param vlan: (Optional) VLAN ID of the port group [default: 0]
     :param promiscuous: (Optional) Sets the promiscuous mode of the switch, allowing for monitoring [default: False]
     """
+    # TODO: check if portgroup exists
     logging.info("Creating PortGroup {} on vSwitch {} on host {}".format(name, vswitch_name, host.name))
     logging.debug("VLAN ID: {} \t Promiscuous: {}".format(str(vlan), str(promiscuous)))
     spec = vim.host.PortGroup.Specification()

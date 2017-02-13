@@ -109,9 +109,12 @@ def traverse_path(root, path, name=None):
         for item in current.childEntity:
             if hasattr(item, 'summary') and item.name == name:
                 return item
+            elif hasattr(item, 'childEntity') and item.name == name:
+                return item
     else:
         return current
 
+    logging.error("Could not find item %s while traversing path %s from root %s", name, path, root.name)
     return None
 
 

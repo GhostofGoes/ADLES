@@ -29,7 +29,8 @@ class Model:
 
         # Load infrastructure information
         from automation.parser import parse_file
-        infrastructure = parse_file(metadata["infrastructure-config-file"])
+        # infrastructure = parse_file(metadata["infrastructure-config-file"])
+        infrastructure = parse_file("vsphere.yaml")  # TODO: testing only, either make this a CMD arg or remove
 
         # Load login information
         from json import load

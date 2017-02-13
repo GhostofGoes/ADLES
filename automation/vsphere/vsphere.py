@@ -21,6 +21,7 @@ from pyVmomi import vim
 
 from automation.vsphere.vsphere_utils import *
 from automation.vsphere.vm_utils import *
+from automation.vsphere.network_utils import *
 
 
 class vSphere:
@@ -36,6 +37,7 @@ class vSphere:
         :param datastore: Name of datastore to use as default for operations. Default: first datastore found
         :param port: Port used to connect to vCenter instance
         """
+        logging.debug("Initializing vSphere...")
         from urllib.error import URLError
         if not password:
             from getpass import getpass
@@ -68,15 +70,19 @@ class vSphere:
         :param folder_name: Name of folder to create
         :param create_in: Name of folder or vim.Folder object to create folder in [default: root folder of datacenter]
         """
-        if get_obj(self.content, [vim.Folder], folder_name):
-            logging.warning("Folder {0} already exists".format(folder_name))
-        elif create_in:
-            logging.info("Creating folder {0} in folder {1}".format(folder_name, create_in))
+        # if get_obj(self.content, [vim.Folder], folder_name):
+        #    logging.warning("Folder {0} already exists".format(folder_name))
+        if create_in:
             if type(create_in) is str:
+                logging.debug("Retrieving parent folder %s from server", create_in)
                 parent = get_obj(self.content, [vim.Folder], create_in)
             else:
                 parent = create_in
-            parent.CreateFolder(folder_name)
+            if find_in_folder(parent, folder_name):
+                logging.warning("Folder {0} already exists".format(folder_name))
+            else:
+                logging.info("Creating folder {0} in folder {1}".format(folder_name, parent.name))
+                parent.CreateFolder(folder_name)
         else:
             logging.info("Creating folder {0} in root folder".format(folder_name))
             self.content.rootFolder.CreateFolder(folder_name)
@@ -219,6 +225,8 @@ def main():
     formatter = logging.Formatter("%(levelname)-12s %(message)s")
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
+
+    # create_vswitch("cs439_vswitch", server.get_host())
 
     # vm = server.get_vm("dummy")
     # print_vm_info(vm)

@@ -26,9 +26,10 @@ class VsphereInterface:
 
     # Switches to tweak (these are global to ALL instances of this class)
     master_prefix = "(MASTER) "
+    warn_threshold = 100            # Point at which to warn if many instances are being created
 
     def __init__(self, infrastructure, logins, spec):
-        logging.debug("Initializing interface...")
+        logging.debug("Initializing VsphereInterface...")
         self.spec = spec
         self.metadata = spec["metadata"]
         self.groups = spec["groups"]
@@ -37,6 +38,7 @@ class VsphereInterface:
         self.networks = spec["networks"]
         self.folders = spec["folders"]
 
+        # Create the vSphere object to interact with
         self.server = vSphere(datacenter=infrastructure["datacenter"],
                               username=logins["user"],
                               password=logins["pass"],
@@ -50,7 +52,8 @@ class VsphereInterface:
         self.root_name = self.metadata["name"]
         parent = traverse_path(self.server.get_folder(server_root), self.root_path)
         self.server.create_folder(folder_name=self.root_name, create_in=parent)
-        self.root_folder = traverse_path(self.server.get_folder(), self.root_path, self.root_name)
+        self.root_folder = traverse_path(self.server.get_folder(server_root), self.root_path, self.root_name)
+        print(self.root_folder.name)
 
     def create_masters(self):
         """ Master creation phase """
@@ -64,13 +67,13 @@ class VsphereInterface:
         master_folder = find_in_folder(self.root_folder, master_folder_name)
         logging.info("Created master folder {} under folder {}".format(master_folder_name, self.root_folder.name))
 
-        # TODO: apply setup permission
-        # TODO: create roles
+        # TODO: not creating vswitches yet, assume created and specified
 
-        # NOTE: not creating vswitch currently, assume created
-        # Create portgroups
+        # Create portgroups for networks
+        for net_type in self.networks:
+            self._create_master_networks(net_type)
 
-        # Create base service instances (Docker containers and compose would be implemented here)
+        # Create base service instances (Docker containers and compose will be implemented here)
         for service_name, service_config in self.services.items():
             if "template" in service_config:         # Virtual Machine template
                 logging.info("Creating master for service %s from template %s",
@@ -78,6 +81,16 @@ class VsphereInterface:
                 vm = self.server.get_vm(service_config["template"])  # TODO: traverse path
                 clone_vm(vm=vm, folder=master_folder, name=self.master_prefix + service_name,
                          clone_spec=self.server.generate_clone_spec())  # TODO: resource pools!
+
+        # Apply master-group permissions [default: group permissions]
+
+    def _create_master_networks(self, net_type):
+        for name, config in self.networks[net_type].items():
+            if "vlan" in config:
+                vlan = config["vlan"]
+            else:
+                vlan = 0
+            create_portgroup(name, self.server.get_host(), config["vswitch"], vlan=vlan)
 
     def deploy_environment(self):
         """ Environment deployment phase """
@@ -97,3 +110,5 @@ class VsphereInterface:
 
         # Create folder to hold portgroups (for easy deletion later)
         # Create portgroup instances
+        #   Create generic-networks
+        #   Create base-networks
