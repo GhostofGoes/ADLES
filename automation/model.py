@@ -23,13 +23,13 @@ class Model:
         """
         metadata = spec["metadata"]
 
-        # Load infrastructure information
-        if metadata["infrastructure-config-file"]:
-            from automation.parser import parse_file
-            infrastructure = parse_file(metadata["infrastructure-config-file"])
-        else:
-            logging.error("No infrastructure configuration file specified!")
+        if not metadata["infrastructure-config-file"]:
+            logging.error("No infrastructure configuration file specified! Unable to load Model, exiting...")
             exit(1)
+
+        # Load infrastructure information
+        from automation.parser import parse_file
+        infrastructure = parse_file(metadata["infrastructure-config-file"])
 
         # Load login information
         from json import load
@@ -56,3 +56,8 @@ class Model:
     def deploy_environment(self):
         logging.info("Deploying environment...")
         self.interface.deploy_environment()
+
+    # List of possible useful things
+    #   open_console
+    #   upload_file
+    #   get_status    Status of the overall environment (what VMs are on/off/deploys, what phase, etc.)

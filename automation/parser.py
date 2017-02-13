@@ -47,7 +47,6 @@ def verify_syntax(spec):
     """
     status = True
     if "metadata" in spec:
-        # TODO: verify infrastructure-spec
         if not _verify_metadata_syntax(spec["metadata"]):
             status = False
     else:
@@ -82,24 +81,63 @@ def verify_syntax(spec):
     return status
 
 
+# TODO: I could totally generalize this in the future...basically swagger but domain-specific
+def _checker(value_list, source, data, flag):
+    """
+    Checks if values in the list are in data (Syntax warnings or errors)
+    :param value_list:
+    :param source:
+    :param data:
+    :param flag: "warnings" or "errors"
+    :return: Number of hits (warnings/errors)
+    """
+    num_hits = 0
+    for value in value_list:
+        if value not in data:
+            if flag == "warnings":
+                logging.warning("Missing %s in %s", value, source)
+            elif flag == "errors":
+                logging.error("Missing %s in %s", value, source)
+            else:
+                logging.error("Invalid flag for _checker: %s", flag)
+            num_hits += 1
+    if num_hits > 0:
+        logging.info("Total number of %s in %s: %d", flag, source, num_hits)
+    return num_hits
+
+
 def _verify_metadata_syntax(metadata):
     """
     Verifies that the syntax for metadata matches the specification
     :param metadata:
     :return: Boolean indicating success or failure
     """
-    status = True
-    if "name" not in metadata:
-        logging.error("Missing name in metadata")
-        status = False
-    if "description" not in metadata:
-        logging.warning("Missing description in metadata")
-    if "date-created" not in metadata:
-        logging.warning("Missing date-created in metadata")
-    if "infrastructure-config-file" not in metadata:
-        logging.error("Missing infrastructure-config-file in metadata")
-        status = False
-    return status
+    warnings = ["description", "date-created", "root-path"]
+    errors = ["name", "infrastructure-config-file"]
+
+    num_warnings = _checker(warnings, "metadata", metadata, "warnings")
+    num_errors = _checker(errors, "metadata", metadata, "errors")
+
+    if "infrastructure-config-file" in metadata:
+        infra_contents = parse_file(metadata["infrastructure-config-file"])
+        num_errors += _verify_infra_syntax(infra_contents)
+
+    return False if num_errors > 0 else True
+
+
+def _verify_infra_syntax(infra):
+    """
+    Verifies syntax of infrastructure-config-file
+    :param infra:
+    :return: Number of errors
+    """
+    # TODO: interface-specific syntax and checking
+    warnings = ["datacenter", "datastore"]
+    errors = ["platform", "server-hostname", "server-port", "login-file", "template-folder"]
+
+    num_warnings = _checker(warnings, "infrastructure", infra, "warnings")
+    num_errors = _checker(errors, "infrastructure", infra, "errors")
+    return num_errors
 
 
 def _verify_groups_syntax(groups):
@@ -126,8 +164,8 @@ def _verify_groups_syntax(groups):
                 pass
             elif "filename" in value:
                 pass
-            elif "usernames" in value:
-                if type(value["usernames"]) is not list:
+            elif "user-list" in value:
+                if type(value["user-list"]) is not list:
                     logging.error("Username specification must be a list for group %s", key)
                     status = False
             else:
@@ -162,9 +200,11 @@ def _verify_resources_syntax(resources):
     :param resources:
     :return: Boolean indicating success or failure
     """
-    status = True
-    # TODO: implement
-    return status
+    warnings = []
+    errors = []
+    num_warnings = _checker(warnings, "resources", resources, "warnings")
+    num_errors = _checker(errors, "resources", resources, "errors")
+    return num_errors
 
 
 def _verify_networks_syntax(networks):
@@ -174,44 +214,35 @@ def _verify_networks_syntax(networks):
     :return: Boolean indicating success or failure
     """
     status = True
-    if "unique-networks" not in networks and "generic-networks" not in networks and "base-networks" not in networks:
+    net_types = ["unique-networks", "generic-networks", "base-networks"]
+    if not any(net in networks for net in net_types):
         logging.error("Network specification exists but is empty!")
         status = False
     else:
-        # TODO: generalize so not duplicating 3 times here and elsewhere (like in model.py)
-        if "unique-networks" in networks:
-            for key, value in networks["unique-networks"].items():
-                if "subnet" not in value:
-                    logging.warning("No subnet specified for network %s", key)
-                else:
-                    subnet = IPNetwork(value["subnet"])
-                    if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
-                        logging.error("Network %s is in a invalid IP address space", key)
-                        status = False
-                    elif not subnet.is_private():
-                        logging.warning("Non-private subnet used for network %s", key)
-        if "generic-networks" in networks:
-            for key, value in networks["generic-networks"].items():
-                if "subnet" not in value:
-                    logging.warning("No subnet specified for network %s", key)
-                else:
-                    subnet = IPNetwork(value["subnet"])
-                    if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
-                        logging.error("Network %s is in a invalid IP address space", key)
-                        status = False
-                    elif not subnet.is_private():
-                        logging.warning("Non-private subnet used for network %s", key)
-        if "base-networks" in networks:
-            for key, value in networks["base-networks"].items():
-                if "subnet" not in value:
-                    logging.warning("No subnet specified for network %s", key)
-                else:
-                    subnet = IPNetwork(value["subnet"])
-                    if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
-                        logging.error("Network %s is in a invalid IP address space", key)
-                        status = False
-                    elif not subnet.is_private():
-                        logging.warning("Non-private subnet used for network %s", key)
+        for net in net_types:
+            if net in networks and not _verify_network(net, networks[net]):
+                status = False
+    return status
+
+
+def _verify_network(name, network):
+    """
+    Verifies syntax of a specific network
+    :param name:
+    :param network:
+    :return:
+    """
+    status = True
+    for key, value in network.items():
+        if "subnet" not in value:
+            logging.warning("No subnet specified for %s %s", name, key)
+        else:
+            subnet = IPNetwork(value["subnet"])
+            if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
+                logging.error("%s %s is in a invalid IP address space", name, key)
+                status = False
+            elif not subnet.is_private():
+                logging.warning("Non-private subnet used for %s %s", name, key)
     return status
 
 
@@ -222,8 +253,20 @@ def _verify_folders_syntax(folders):
     :return: Boolean indicating success or failure
     """
     status = True
+
     for key, value in folders.items():
+        if "instances" in value:
+            if "number" in value["instances"]:
+                pass  # TODO: VERIFY INT
+            elif "size-of" in value["instances"]:
+                pass  # TODO: verify group exists
+            else:
+                logging.error("Must specify number of instances for folder %s", key)
+                status = False
         if "services" in value:
+            if "group" not in value:
+                logging.error("No group specified for folder %s", key)
+                status = False
             for skey, svalue in value["services"].items():
                 if "service" not in svalue:
                     logging.error("Service %s is unnamed in folder %s", skey, key)
@@ -231,12 +274,9 @@ def _verify_folders_syntax(folders):
                 if "networks" in svalue and type(svalue["networks"]) is not list:
                     logging.error("Network specifications must be a list for service %s in folder %s", skey, key)
                     status = False
-        else:
-            logging.error("No services specified for folder %s", key)
-            status = False
-        if "group" not in value:
-            logging.error("No group specified for folder %s", key)
-            status = False
+        else:  # It's a parent folder
+            status = _verify_folders_syntax(value)
+
     return status
 
 

@@ -3,11 +3,12 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
 # Creation Date:    October 12th, 2016
-# Current Version:  0.3.0
+# Current Version:  0.4.0
 # Changelog:
-#   0.1.0: Created
-#   0.2.0: Substantial changes
-#   0.3.0: Additions to services and networks, significant cleanup
+#   0.1.0:  Created
+#   0.2.0:  Substantial changes
+#   0.3.0:  Additions to services and networks, significant cleanup
+#   0.4.0:  Significant Folder changes, Added VLANs, Improved groups   (2-12-2017)
 
 # *** Syntax inspirations ***
 # https://docs.docker.com/compose/compose-file/
@@ -25,12 +26,12 @@
 # *** Definitions ***
 # vm    Virtual Machine
 # ad    Active Directory
+# CIDR  Classless Inter-Domain Routing, a concise method of representing subnet masks
 
 # *** Notes ***
 # "Instances" is assumed to be one unless specified otherwise. They cannot be negative or zero
 # Top-level definitions are only required if used (e.g resources, groups, networks)
-
-
+# Details on environment creation steps ("phases") can be found in the descrption for folders
 
 # ##################################
 # ### Beginning of specification ###
@@ -45,7 +46,7 @@ metadata:
   date-created: "Date specification was created"  # Suggested   UTC format: YYYY-MM-DD (Example: 2016-10-12)
   version: "0.0.0"                                # Optional    Semantic version of the document: major.minor.bugfix
   infrastructure-config-file: "filename.yaml"     # REQUIRED    YAML file specifying the infrastructure used to create the environment (See: infrastructure-specification.yaml for syntax)
-
+  root-path: "Path/To/Folder/Root"                # Suggested   Path specifying location of the root folder for environment, relative to infrastructure root.
 
 
 # ** Groups/Teams **
@@ -55,9 +56,9 @@ metadata:
 groups:
   Group Regular Example:
     # The three different methods of specifying users for a regular group
-    ad-group: "RADICL Users"          # Option A
-    filename: "users.json"            # Option B
-    usernames: [ "user A", "user B" ] # Option C
+    ad-group: "Users"                                           # Option A  AD group must exist
+    filename: "a-file.json"                                     # Option B  Format: user-json-specification.json
+    user-list: [ "user-a": "password", "user-b": "password" ]   # Option C  List of usernames and passwords
 
   # For creating batch groups from a common template base, the "template" type can be used
   # Templates use the key letter 'X' to define unique copies of the base
@@ -65,7 +66,7 @@ groups:
     # If instances is specified, the group is assumed to be a template
     instances: 10  # Number of groups created from this template
 
-    # The two different methods of specifying users for a template group
+    # The two different methods of specifying users for a template group (user-lists cannot be used)
     ad-group: "Group X"
     filename: "users-X.json"
 
@@ -119,47 +120,59 @@ resources:
 
 
 # ** Networks **
+# Layer 2/3 virtual networking
 # Non-Private (RFC 1918) networks will result in a warning
-# Subnet IP addresses are not required. They only matter if running configuration scripts or adding a pre-configured router
+# Subnet IP addresses are not required. This will be utilized in future versions to configure hosts and routers.
 # IP version is implicitly defined by address
 # Configurations are the same for all networks, including unique, generic, and base
 networks: 
-  unique-networks:   # Only one of each of these exists. If specified, any hosts will be added to it
+  unique-networks:    # Only one of each of these exists. If specified, any hosts will be added to it
     network-label:                # REQUIRED    Unique label used to identify the network (Example: ARP-LAN) (Used for PortGroups in VMware environments)
       description: "description"  # Optional    Human-readable description of network
-      subnet: "x.x.x.x/x"         # Suggested   IP network address and mask: SUBNET-IP/CIDR
+      subnet: "x.x.x.x/x"         # Suggested   IP network address and mask: SUBNET-IP/CIDR   
+      vlan: 0                     # Optional    VLAN ID of the network. [default: 0]  (0 is essentially "untagged")
       vswitch: "name of vswitch"  # Optional    Name of virtual switch used for the network (Applies to VMware and related environments)
-  generic-networks:  # New identical instances are created per instance of an exercise (subnet doesn't change)
+  generic-networks:   # New identical instances are created per instance of an exercise (subnet doesn't change)
     network-label:
       name: "name"
-      subnet: "x.x.x.x/x"    
+      subnet: "x.x.x.x/x"
+      vlan: 0
       vswitch: "name of vswitch"
-  base-networks:     # Subnet value is incremented per instance of an exercise
-    network-label:  
+  base-networks:      # Subnet value is incremented per instance
+    network-label:
       name: "name"
       subnet: "x.x.x.x/x"
+      vlan: 0         # VLAN is incremented per instance
       vswitch: "name of vswitch"
 
 
 
 # ** Folders **
-# Assemblages of objects defined previously in file
+# Assemblages of objects in a hierarchical structure
+# PHASES - Usually, there are two phases to creation of an environment
+#   Mastering     "Master" instances are created and configured by humans
+#   Deployment    Full deployment of envrionment, using the Master instances created in the Mastering phase
+# PERMISSIONS - Permissions are applied hierarchically, so groups with permissions to parents have permissions to children
 folders:
-  folder-a:
-    description: "description"                # Optional    Human-readable description of folder
-    group: group-label                        # REQUIRED    User group or team to apply to
-    services:                                 # REQUIRED
-      service-instance-name:
-        service: service-label                # REQUIRED    Label as defined in services
-        instances: 2                          # Optional    [default: 1]
-        networks: ["subnet-a", "subnet-b"]    # Optional
-        scoring:                              # Optional    Scoring for the service (e.g a competition or homework verification)
-          ports: [0]
-          protocols: ["proto"]
-          criteria: "filename.yaml"
-                          
-  folder-b:
-    instances: 10 # If instances is specified, this is a template. 
-  folder-c:
-    instances: sizeof(group-label)  # Alternative template syntax. Number of instances is based off group size
+  parent-folder:  # Folders that contain other folders
+    group: group-label                # Optional    User group that will have permissions to the folder
+    instances: same-as-normal-folders # Optional
+    normal-folder:
+      group: group-label              # REQUIRED    User group that will have permissions to the folder
+      master-group: group-label       # Suggested   User group for the pre-deployment masters [default: group specified for the folder]
+      description: "description"      # Optional    Human-readable description of folder
+      instances:                      # Optional    Makes folder a template that is copied N-number of times (Where N is number of instances)
+        number: 10            # OPTION A    Number of instances = integer
+        size-of: group-label  # OPTION B    Number of instances = Size of named group
+        prefix: "prefix"      # Optional    String to prepend to named instance numbers [default: name of folder]
+      services:                       # REQUIRED
+        service-instance-name:
+          service: service-label                # REQUIRED    Label as defined in services
+          instances: 2                          # Optional    [default: 1]
+          networks: ["subnet-a", "subnet-b"]    # Optional
+          scoring:                              # Optional    Scoring for the service (e.g a competition or homework verification)
+            ports: [0]                # REQUIRED
+            protocols: ["proto"]      # REQUIRED
+            criteria: "filename.yaml" # REQUIRED
+
 ...

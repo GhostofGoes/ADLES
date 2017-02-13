@@ -5,8 +5,9 @@ metadata:
   course: "CS 439"
   class: "Applied Security Concepts"
   date-created: "2016-11-06"
-  version: "0.3.0"
+  version: "0.4.0"
   infrastructure-config-file: "vsphere.yaml"
+  root-path: "CS-439/TR-01" # CS 439, Tutorial Round 01
 
 groups:
   Students:
@@ -16,8 +17,10 @@ groups:
 
 services:
   windows:
+    note: "Username: User   Password: Windows1"
     template: "Windows 7 SP2 (64-bit)"
   kalibox:
+    note: "Username: root   Password: toor"
     template: "ARP Kalibox"
   server:
     template: "arp-poisoning-server"
@@ -32,21 +35,32 @@ networks:
       vswitch: "cs439-vswitch"
 
 folders:
-  exercise:
-    group: Students
-    instances: sizeof(Students)
-    services:
-      host:
-        service: windows
-        networks: ["ARP-LAN"]
-      attacker:
-        service: kalibox
-        networks: ["ARP-LAN"]
-      server:
-        service: server
-        networks: ["ARP-LAN"]
-      router:
-        service: router
-        networks: ["ARP-LAN"]
-
+  TU-03:  # Tutorial 03
+    hidden-services:
+      description: "Services for each student that they do not see"
+      group: Instructors
+      instances:
+        size-of: Students
+        prefix: "HIDDEN-SERVICE-"
+      services:
+        server:
+          service: server
+          networks: ["ARP-LAN"]
+        router:
+          service: router
+          networks: ["ARP-LAN"]
+    workstations:
+      description: "Workstations students use for the tutorial"
+      group: Students
+      master-group: Instructors
+      instances: 
+        size-of: Students
+        prefix: "WS-"
+      services:
+        host:
+          service: windows
+          networks: ["ARP-LAN"]
+        attacker:
+          service: kalibox
+          networks: ["ARP-LAN"]
 ...

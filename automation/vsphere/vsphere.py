@@ -209,16 +209,20 @@ def main():
     logging.basicConfig(level=logging.DEBUG,
                         format="[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s",
                         datefmt="%y-%m-%d %H:%M:%S",
-                        filename="environment-creator.log",
+                        filename="vsphere-testing.log",
                         filemode='w')
     console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
+    console.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(levelname)-12s %(message)s")
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+    # vm = server.get_vm("dummy")
+    # print_vm_info(vm)
+
     # print(str(server))
     # print(repr(server))
+
     # folder = server.get_folder("script_testing")
     # vm = traverse_path(folder, "/Templates/Clients/Linux/", "Kali 2016.2 (64-bit)")
     # print_vm_info(vm)
@@ -232,16 +236,15 @@ def main():
     # vm_spec = vim.vm.ConfigSpec(name="test_vm", guestId="ubuntuGuest", numCPUs=1, numCoresPerSocket=1,
     #                             memoryMB=1024, annotation="it worked!", files=file_info)
     # create_vm(folder, vm_spec, pool)
-    vm = server.get_vm("dummy")
-    print_vm_info(vm)
     # attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
+
     # portgroup = get_obj(server.content, [vim.Network], "test_network")
     # add_nic(vm, portgroup, "test_summary")
     # edit_nic(vm, 2, summary="lol")
     # delete_nic(vm, 1)
+
     # create_portgroup("test_portgroup", server.get_host(), "test_vswitch")
     # delete_portgroup("test_portgroup", server.get_host())
-    # print_datastore_info(server.get_datastore())
 
 if __name__ == '__main__':
     main()

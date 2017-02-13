@@ -22,6 +22,8 @@ from automation.vsphere.vm_utils import *
 
 
 class VsphereInterface:
+    """ Generic interface for the VMware vSphere platform """
+
     # Switches to tweak (these are global to ALL instances of this class)
     master_prefix = "(MASTER) "
 
@@ -49,6 +51,7 @@ class VsphereInterface:
         self.root_folder = self.server.get_folder(folder_name=self.root_name)
 
     def create_masters(self):
+        """ Master creation phase """
         # Create folder to hold base service instances
         master_folder_name = "MASTER_VM_INSTANCES"
         self.server.create_folder(folder_name=master_folder_name, create_in=self.root_folder.name)
@@ -72,6 +75,7 @@ class VsphereInterface:
                          clone_spec=self.server.generate_clone_spec())  # TODO: resource pools!
 
     def deploy_environment(self):
+        """ Environment deployment phase """
         # Verify and convert to templates
         logging.info("Verifying masters and converting to templates...")
         for service_name, service_config in self.services.items():
@@ -88,7 +92,3 @@ class VsphereInterface:
 
         # Create folder to hold portgroups (for easy deletion later)
         # Create portgroup instances
-
-    def get_service_instance(self, service_name):
-        # TODO
-        pass

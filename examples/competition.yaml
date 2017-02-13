@@ -3,8 +3,9 @@ metadata:
   name: "PRCCDC 2016 Competition Scenario definition"
   description: "The competition scenario environment that students will use to compete"
   date-created: "2016-11-01"
-  version: "0.3.0"
+  version: "0.4.0"
   infrastructure-config-file: "vsphere.yaml"
+  root-path: "PRCCDC"
 
 groups:
   Blue Team X:
@@ -120,7 +121,9 @@ folders:
         networks: [competition, management]
         instances: 10
   blue-team:
-    instances: 14
+    instances:
+      number: 14
+      prefix: "Blue Team "
     group: Blue Team X
     services:
       # team-member-host:
