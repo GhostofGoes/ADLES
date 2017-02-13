@@ -6,7 +6,7 @@ metadata:
   class: "Applied Security Concepts"
   date-created: "2016-11-06"
   version: "0.4.0"
-  infrastructure-config-file: "vsphere.yaml"
+  infrastructure-config-file: "infra.yaml"
   root-path: "CS-439/TR-01" # CS 439, Tutorial Round 01
 
 groups:

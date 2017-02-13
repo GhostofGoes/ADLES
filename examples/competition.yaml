@@ -4,7 +4,7 @@ metadata:
   description: "The competition scenario environment that students will use to compete"
   date-created: "2016-11-01"
   version: "0.4.0"
-  infrastructure-config-file: "vsphere.yaml"
+  infrastructure-config-file: "infra.yaml"
   root-path: "PRCCDC"
 
 groups:

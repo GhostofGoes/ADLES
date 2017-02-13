@@ -4,7 +4,7 @@ metadata:
   description: "Testbed for collectiton of realistic network data for Network Security Visualization research"
   date-created: "2016-02-10"
   version: "0.1.0"
-  infrastructure-config-file: "vsphere.yaml"
+  infrastructure-config-file: "infra.yaml"
 
 groups:
   Researchers:
