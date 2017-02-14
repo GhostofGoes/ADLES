@@ -32,6 +32,7 @@ def create_vswitch(name, host, num_ports=1024):
     host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
 
 # TODO: edit vswitch
+# TODO: check vswitch
 
 
 def delete_vswitch(name, host):
@@ -68,6 +69,14 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     spec.policy = policy
 
     host.configManager.networkSystem.AddPortGroup(spec)
+
+
+# TODO: edit portgroup
+
+def check_portgroup(name, host):
+
+    host.configManager.networkSystem.RefreshNetworkSystem()
+    portgroups = host.configManager.networkSystem.networkInfo.portgroup
 
 
 def delete_portgroup(name, host):

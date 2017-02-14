@@ -53,7 +53,6 @@ class VsphereInterface:
         parent = traverse_path(self.server.get_folder(server_root), self.root_path)
         self.server.create_folder(folder_name=self.root_name, create_in=parent)
         self.root_folder = traverse_path(self.server.get_folder(server_root), self.root_path, self.root_name)
-        print(self.root_folder.name)
 
     def create_masters(self):
         """ Master creation phase """
