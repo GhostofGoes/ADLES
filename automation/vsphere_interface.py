@@ -107,6 +107,7 @@ class VsphereInterface:
                 else:
                     logging.error("Could not find master %s", service_name)
 
+        # NOTE: use fill_zeros when appending instance number!
         # Create folder to hold portgroups (for easy deletion later)
         # Create portgroup instances
         #   Create generic-networks

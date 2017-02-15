@@ -79,3 +79,13 @@ def prompt_y_n_question(question, default="no"):
             return valid[choice]
         else:
             print("Please, respond with 'yes' or 'no' or 'y' or 'n'.")
+
+
+def fill_zeroes(value, length=2):
+    """
+    Adds leading and trailing ("pads") zeros to value to ensure it is a constant length
+    :param value: integer value to pad
+    :param length: Length to pad to
+    :return: string of padded value
+    """
+    return "{0:0>{width}}".format(value, width=length)
