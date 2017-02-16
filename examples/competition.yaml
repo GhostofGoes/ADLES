@@ -3,7 +3,7 @@ metadata:
   name: "PRCCDC 2016 Competition Scenario definition"
   description: "The competition scenario environment that students will use to compete"
   date-created: "2016-11-01"
-  version: "0.4.0"
+  version: "0.5.0"
   infrastructure-config-file: "infra.yaml"
   root-path: "PRCCDC"
 
@@ -17,12 +17,14 @@ groups:
 services:
   host-type-a:
     template: "PRCCDC Windows 7 Host"
+    note: "Default password is Windows1"
     os:
       name: "Windows 7 Enterprise"
       version: "7601"
       family: "Windows/NT"
   host-type-b:
     template: "PRCCDC Windows 10 Host"
+    note: "Default password is Windows1"
     os:
       name: "Windows 10 Enterprise"
       version: "10"
@@ -32,6 +34,7 @@ services:
     tag: "0.1.2"
   firewall:
     template: "PRCCDC Firewall"
+    note: "Default Username: vyos   Password: vyos"
     template-config:
       video: no
     os:
@@ -40,6 +43,7 @@ services:
       family: "Linux/Debian"
   domain-controller:
     template: "PRCCDC Domain Controller"
+    note: "Default password is Windows1"
     template-config:
       video: no # RDP is used
     os:
@@ -49,6 +53,7 @@ services:
       family: "Windows/NT"
   web-server:
     image: "prccdc/apache-server"
+    note: "Default password is Password1"
     tag: "2.4.2"
     os:
       name: "Ubuntu 14.04 LTS"
@@ -57,6 +62,7 @@ services:
       family: "Linux/Debian"
   database-server:
     image: "prccdc/mysql-server"
+    note: "Default password is Password1"
     tag: "7"
     os:
       name: "Oracle SunOS 7"
@@ -64,6 +70,7 @@ services:
       family: "Solaris"
   file-server:
     template: "PRCCDC File Server"
+    note: "Default password is Windows1"
     template-config:
       video: no
     os:
@@ -73,6 +80,7 @@ services:
       family: "Windows/NT"
   mail-server:
     template: "PRCCDC Mail Server"
+    note: "Default password is Windows1"
     template-config:
       video: no # RDP is used
     os:
@@ -81,6 +89,7 @@ services:
       family: "Windows/NT"
   hvac-server:
     image: "prccdc/hvac-server"
+    note: "Default password is Password1"
     tag: "1"
     os:
       name: "FreeBSD"
@@ -109,16 +118,16 @@ folders:
       edge-router: 
         description: "Connection to outside internet"
         service: firewall
-        networks: [outside-world, competition, management]
+        networks: ["outside-world", "competition", "management"]
       competition-dc: 
         description: "Provides DNS and DHCP"
         service: domain-controller
-        networks: [competition, management]
+        networks: ["competition", "management"]
       # Scorebots communicate over a back-end network to randomly select which team gets pinged from which scorebot
       score-bot:  
         description: "Used to score teams"
         service: score-bot
-        networks: [competition, management]
+        networks: ["competition", "management"]
         instances: 10
   blue-team:
     instances:
@@ -135,15 +144,15 @@ folders:
       gateway:
         description: "Gateway connecting Blue team networks to the larger competition network"
         service: firewall
-        networks: [competition, hosts, services]
+        networks: ["competition", "hosts", "services"]
       dc: 
         description: "Domain Controller for Blue Team network. Runs DNS, DHCP, and Active Directory."
         service: domain-controller
-        networks: [services]
+        networks: ["services"]
       web:
         description: "Web server hosting the team's page"
         service: web-server
-        networks: [services]
+        networks: ["services"]
         scoring:
           ports: [80, 443]
           protocols: ["http", "https"]
@@ -151,11 +160,11 @@ folders:
       db:
         description: "Database"
         service: database-server
-        networks: [services]
+        networks: ["services"]
       mail:
         description: "Mail Server"
         service: mail-server
-        networks: [services]
+        networks: ["services"]
         scoring:
           ports: [25]
           protocols: ["smtp"]
@@ -163,7 +172,7 @@ folders:
       hvac:
         description: "HVAC Server"
         service: hvac-server
-        networks: [services]
+        networks: ["services"]
         scoring:
           ports: [22]
           protocols: ["ssh"]
@@ -171,7 +180,7 @@ folders:
       file:
         description: "File Server"
         service: file-server
-        networks: [services]
+        networks: ["services"]
         scoring:
           ports: [21, 445]
           protocols: ["sftp", "smb"]
@@ -182,5 +191,9 @@ folders:
       windows-hosts:
         description: "Hosts used by Red Team to attack blue teams"
         service: host-type-b
-        networks: [competition]
+        networks: ["competition"]
+      collaboration-server:
+        description: "Server for Red Team collaboration, including Armitage, SFTP, and IRC"
+        service: web-server
+        networks: ["competition"]
 ...

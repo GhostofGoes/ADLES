@@ -26,6 +26,7 @@ services:
     template: "arp-poisoning-server"
   router:
     template: "VyOS 1.1.7 (64-bit)"
+    note: "Username: vyos   Password: vyos"
 
 networks:
   generic-networks:

@@ -27,6 +27,8 @@
 # vm    Virtual Machine
 # ad    Active Directory
 # CIDR  Classless Inter-Domain Routing, a concise method of representing subnet masks
+# YAML  Yaml ain't a markup language, a file format syntax
+# json  JavaScript Object Notation, a file format syntax
 
 # *** Notes ***
 # "Instances" is assumed to be one unless specified otherwise. They cannot be negative or zero

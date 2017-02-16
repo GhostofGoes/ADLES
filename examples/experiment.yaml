@@ -1,10 +1,12 @@
 ---
+# TODO: monitoring annotations are critical for this example, once they're added to environemnt spec
 metadata:
-  name: "Network Security Visualization Data Collection"
+  name: "Network Security Visualization Test Data Collection"
   description: "Testbed for collectiton of realistic network data for Network Security Visualization research"
   date-created: "2016-02-10"
-  version: "0.1.0"
+  version: "0.2.0"
   infrastructure-config-file: "infra.yaml"
+  root-path: "NSV-Research"
 
 groups:
   Researchers:
@@ -13,18 +15,28 @@ groups:
 services:
   vyos:
     template: "VyOS 1.1.7 (64-bit)"
+    note: "Username: vyos   Password: vyos"
   pfsense:
     template: "PFSense 2.2.3 (64-bit)"
+    note: "Web Interface is used to configure this. Username: admin Password: pfsense"
+  dc:
+    template: "Windows Server 2012 R2 - Domain Controller (64-bit)"
+  dns:
+    template: "RHEL 6 - DNS Server (32-bit)"
+  ntp:
+    template: "FreeBSD 10 - NTP Server (32-bit)"
   server2012:
-    template: "Windows Server 2012 R2 IIS (64-bit)"
+    template: "Windows Server 2012 R2 - IIS (64-bit)"
   apache:
-    template: "Apache - Ubuntu Server 16.10 (64-bit)"
+    template: "Ubuntu Server 16.10 - Apache Web Server (64-bit)"
   nginx:
     template: "NGINX Load Balancer"
   windows:
     template: "Windows 7 SP2 (64-bit)"
+    note: "Username: Tester   Password: Windows1"
   kali:
     template: "Research Kali Linux"
+    note: "Username: root     Password: toor"
 
 networks:
   unique-networks:
@@ -37,6 +49,12 @@ networks:
     WAN-NET:
       description: "In-between network that acts as the internet for this simulation"
       subnet: "172.16.0.0/16"
+    SERVER-WAN:
+      description: "Network that connects the SERVER-NET router with the WAN-NET router"
+      subnet: "192.168.100.0/30"
+    CLIENT-WAN:
+      description: "Network that connects the CLIENT-NET router with the WAN-NET router"
+      subnet: "192.168.200.0/30"
 
 folders:
   clients:
@@ -50,6 +68,9 @@ folders:
       linux-client:
         service: kali
         instances: 5
+        networks: ["CLIENT-NET"]
+      domain-controller:
+        service: dc
         networks: ["CLIENT-NET"]
   servers:
     description: "Servers for the testbed"
@@ -66,14 +87,33 @@ folders:
       nginix-server:
         service: nginix
         networks: ["SERVER-NET"]
-    routers:
+      domain-controller:
+        service: dc
+        networks: ["SERVER-NET"]
+    wan:
+      description: "Simulation of services on the Internet, such as DNS and NTP"
+      group: Researchers
+      services:
+        dns-server:
+          service: dns
+          instances: 3
+          networks: ["WAN-NET"]
+        ntp-server:
+          service: ntp
+          instances: 3
+          networks: ["WAN-NET"]
+    routers:  # Ideally, these would use RIPv2 to share routing information
       description: "Routers connecting clients and servers"
       group: Researchers
       services:
         client-router:
           service: pfsense
-          networks: ["CLIENT-NET", "WAN-NET"]
+          networks: ["CLIENT-NET", "CLIENT-WAN"]
         server-router:
           service: vyos
-          networks: ["SERVER-NET", "WAN-NET"]
+          networks: ["SERVER-NET", "SERVER-WAN"]
+        wan-router:
+          service: vyos
+          networks: ["WAN-NET", "CLIENT-WAN", "SERVER-WAN"]
+
 ...
