@@ -1,6 +1,0 @@
----
-platform: "vmware vsphere"
-server-hostname: "red.labname.edu"
-server-port: 443
-login-file: "logins.json"
-...
