@@ -13,7 +13,7 @@ groups:
   Students:
     ad-group: "CS 439 Students"
   Instructors:
-    filename: "tut3_instructors.json"
+    filename: "tutorial_instructors.json"
 
 services:
   windows:
