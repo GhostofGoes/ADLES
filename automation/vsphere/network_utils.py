@@ -16,23 +16,23 @@
 import logging
 from pyVmomi import vim
 
-from automation.vsphere.vsphere_utils import get_obj
 
-
-def create_vswitch(name, host, num_ports=1024):
+def create_vswitch(name, host, num_ports=512):
     """
     Creates a vSwitch
     :param name: Name of the vSwitch to create
     :param host: vim.HostSystem to create the vSwitch on
-    :param num_ports: Number of ports the vSwitch should have [default: 1024]
+    :param num_ports: Number of ports the vSwitch should have [default: 512]
     """
     logging.info("Creating vSwitch {} with {} ports on host {}".format(name, str(num_ports), host.name))
     vswitch_spec = vim.host.VirtualSwitch.Specification()
     vswitch_spec.numPorts = num_ports
-    host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
+    try:
+        host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
+    except vim.fault.AlreadyExists:
+        logging.error("vSwitch %s already exists on host %s", name, host.name)
 
 # TODO: edit vswitch
-# TODO: check vswitch
 
 
 def delete_vswitch(name, host):
@@ -42,7 +42,13 @@ def delete_vswitch(name, host):
     :param host: vim.HostSystem to delete vSwitch from
     """
     logging.info("Deleting vSwitch {} from host {}".format(name, host.name))
-    host.configManager.networkSystem.RemoveVirtualSwitch(name)
+    try:
+        host.configManager.networkSystem.RemoveVirtualSwitch(name)
+    except vim.fault.NotFound:
+        logging.error("Tried to remove a vSwitch %s that does not exist from host %s", name, host.name)
+    except vim.fault.ResourceInUse:
+        logging.error("vSwitch %s can't be removed because there are "
+                      "virtual network adapters associated with it", name)
 
 
 def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
@@ -54,9 +60,8 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     :param vlan: (Optional) VLAN ID of the port group [default: 0]
     :param promiscuous: (Optional) Sets the promiscuous mode of the switch, allowing for monitoring [default: False]
     """
-    # TODO: check if portgroup exists
-    logging.info("Creating PortGroup {} on vSwitch {} on host {}".format(name, vswitch_name, host.name))
-    logging.debug("VLAN ID: {} \t Promiscuous: {}".format(str(vlan), str(promiscuous)))
+    logging.info("Creating PortGroup %s on vSwitch %s on host %s", name, vswitch_name, host.name)
+    logging.debug("VLAN ID: %s \t Promiscuous: %s", str(vlan), str(promiscuous))
     spec = vim.host.PortGroup.Specification()
     spec.name = name
     spec.vlanId = int(vlan)
@@ -68,15 +73,14 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     policy.security.forgedTransmits = False
     spec.policy = policy
 
-    host.configManager.networkSystem.AddPortGroup(spec)
-
+    try:
+        host.configManager.networkSystem.AddPortGroup(spec)
+    except vim.fault.AlreadyExists:
+        logging.error("PortGroup %s already exists on host %s", name, host.name)
+    except vim.fault.NotFound:
+        logging.error("vSwitch %s does not exist on host %s", str(vswitch_name), host.name)
 
 # TODO: edit portgroup
-
-def check_portgroup(name, host):
-
-    host.configManager.networkSystem.RefreshNetworkSystem()
-    portgroups = host.configManager.networkSystem.networkInfo.portgroup
 
 
 def delete_portgroup(name, host):
@@ -85,5 +89,40 @@ def delete_portgroup(name, host):
     :param name: Name of the portgroup
     :param host: vim.HostSystem with the portgroup
     """
-    logging.info("Deleting PortGroup {} from host {}".format(name, host.name))
-    host.configManager.networkSystem.RemovePortGroup(name)
+    logging.info("Deleting PortGroup %s from host %s", name, host.name)
+    try:
+        host.configManager.networkSystem.RemovePortGroup(name)
+    except vim.fault.NotFound:
+        logging.error("Tried to remove a portgroup %s that does not exist from host %s", name, host.name)
+    except vim.fault.ResourceInUse:
+        logging.error("PortGroup %s can't be removed because there are "
+                      "virtual network adapters associated with it", name)
+
+
+def check_networkinfo(name, host, object_type):
+    """
+    Checks if the named network object of the specified type exists on the host
+    :param name: Name of network object
+    :param host: vim.HostSystem
+    :param object_type: Type of object to look for: (portgroup | vswitch | proxyswitch | vnic | pnic)
+    :return: Boolean indicating portgroups existence on the host
+    """
+    host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any changes that might have occurred
+    if object_type == "portgroup":
+        objects = host.configManager.networkSystem.networkInfo.portgroup
+    elif object_type == "vswitch":
+        objects = host.configManager.networkSystem.networkInfo.vswitch
+    elif object_type == "proxyswitch":
+        objects = host.configManager.networkSystem.networkInfo.proxySwitch
+    elif object_type == "vnic ":
+        objects = host.configManager.networkSystem.networkInfo.vnic
+    elif object_type == "pnic ":
+        objects = host.configManager.networkSystem.networkInfo.pnic
+    else:
+        logging.error("Invalid type %s for check_networkinfo", object_type)
+        return False
+
+    for obj in objects:
+        if obj.name == name:
+            return True
+    return False

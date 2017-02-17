@@ -84,15 +84,19 @@ class VsphereInterface:
         # Apply master-group permissions [default: group permissions]
 
     def _create_master_networks(self, net_type):
+        host = self.server.get_host()
+        host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any changes that might have occurred
+
         for name, config in self.networks[net_type].items():
             if "vlan" in config:
                 vlan = config["vlan"]
             else:
                 vlan = 0
-            create_portgroup(name, self.server.get_host(), config["vswitch"], vlan=vlan)
+            create_portgroup(name, host, config["vswitch"], vlan=vlan)
 
     def deploy_environment(self):
         """ Environment deployment phase """
+
         # Verify and convert to templates
         logging.info("Verifying masters and converting to templates...")
         for service_name, service_config in self.services.items():
