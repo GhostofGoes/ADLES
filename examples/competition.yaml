@@ -99,16 +99,21 @@ networks:
   unique-networks:
     competition:
       subnet: "172.30.0.0/16"
+      vswitch: "competition_vswitch"
     outside-world: 
-      subnet: "129.134.253.0/24"
+      subnet: "172.20.0.0/16"
+      vswitch: "competition_vswitch"
     management: 
       subnet: "10.10.10.0/24"
+      vswitch: "competition_vswitch"
   generic-networks:
     hosts:
       subnet: "10.0.0.0/24"
+      vswitch: "competition_vswitch"
   base-networks:
     services: 
-      subnet: "192.168.0.0/24" 
+      subnet: "192.168.0.0/24"
+      vswitch: "competition_vswitch"
 
 folders:
   external:

@@ -94,7 +94,7 @@ class vSphere:
         Generates a clone specification used to clone a VM
         :param datastore_name: (Optional) Name of the datastore in which to create the clone's disk
                                 [default: first datastore found]
-        :param pool_name: (Optional) Name of resource pool to use for the clone
+        :param pool_name: (Optional) Name of resource pool to use for the clone [default: first pool found]
         :return: vim.vm.CloneSpec object
         """
         if datastore_name:
@@ -102,11 +102,10 @@ class vSphere:
         else:
             datastore = self.datastore
         relospec = vim.vm.RelocateSpec()
-        clonespec = vim.vm.CloneSpec()
-        if pool_name:
-            pool = get_obj(self.content, [vim.ResourcePool], pool_name)
-            relospec.pool = pool
+        relospec.pool = self.get_pool(pool_name)
         relospec.datastore = datastore
+
+        clonespec = vim.vm.CloneSpec()
         clonespec.location = relospec
         return clonespec
 
@@ -227,13 +226,13 @@ def main():
     logging.getLogger('').addHandler(console)
 
     # TODO: cleanup function
-    folder = server.get_folder("Tutorial 3 - ARP Cache Poisoning")
-    destroy_everything(folder)
+    if 0:
+        to_destroy = ["Tutorial 3 - ARP Cache Poisoning"]
+        for f in to_destroy:
+            folder = server.get_folder(f)
+            destroy_everything(folder)
 
-    folder = server.get_folder("MASTER_FOLDERS")
-    destroy_everything(folder)
-
-    # create_vswitch("cs439_vswitch", server.get_host())
+    # create_vswitch("competition_vswitch", server.get_host())
 
     # vm = server.get_vm("dummy")
     # print_vm_info(vm)

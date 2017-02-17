@@ -80,12 +80,16 @@ class VsphereInterface:
                 vm_name = self.master_prefix + service_name
                 template = self.server.get_vm(service_config["template"])  # TODO: traverse path
                 clone_vm(vm=template, folder=master_folder, name=vm_name,
-                         clone_spec=self.server.generate_clone_spec())  # TODO: resource pools!
+                         clone_spec=self.server.generate_clone_spec())
 
                 # Snapshot and configure base instance post-clone
                 # This is where any custom configurations or addition NICs are added
                 new_vm = self.server.get_vm(vm_name=vm_name)  # (TODO: traverse path)
+                if not new_vm:
+                    logging.error("Did not successfully clone VM %s", vm_name)
+                    continue
                 create_snapshot(new_vm, "post-clone", "Clean snapshot taken immediately after cloning")
+                # TODO: add NICs to VMs and attach to portgroups
                 if "note" in service_config:
                     set_note(vm=new_vm, note=service_config["note"])
 

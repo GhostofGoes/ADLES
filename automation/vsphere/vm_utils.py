@@ -29,7 +29,10 @@ def clone_vm(vm, folder, name, clone_spec):
     """
     logging.info("Cloning VM %s to folder %s with name %s", vm.name, folder.name, name)
     # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
-    wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
+    if is_template(vm) and not bool(clone_spec.location.pool):
+        logging.error("Cannot clone template %s without specifying a pool", vm.name)
+    else:
+        wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
 
 
 def create_vm(folder, config, pool, host=None):
