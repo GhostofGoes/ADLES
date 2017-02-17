@@ -16,11 +16,11 @@
 import logging
 
 
-class Model:
+class Interface:
+    """ Generic interface used to uniformly interact with platform-specific interface implementations. """
+
     def __init__(self, spec):
-        """
-        :param spec: Full specification
-        """
+        """ :param spec: Full specification """
         from sys import exit
         metadata = spec["metadata"]
 

@@ -25,7 +25,7 @@ def clone_vm(vm, folder, name, clone_spec):
     :param name: String name of the new VM
     :param clone_spec: vim.vm.CloneSpec for the new VM
     """
-    logging.info("Cloning VM {0} to folder {1} with name {2}".format(vm.name, folder.name, name))
+    logging.info("Cloning VM %s to folder %s with name %s", vm.name, folder.name, name)
     vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec)  # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
 
 
@@ -45,7 +45,7 @@ def destroy_vm(vm):
     Unregisters and deletes the VM
     :param vm: vim.VirtualMachine object
     """
-    logging.info("DESTROYING VM {0}".format(vm.name))
+    logging.info("DESTROYING VM %s", vm.name)
     if powered_on(vm):
         logging.info("VM is still on, powering off before destroying...")
         change_power_state(vm, "off")
@@ -58,7 +58,7 @@ def edit_vm(vm, config):
     :param vm: vim.VirtualMachine object
     :param config: vim.vm.ConfigSpec object
     """
-    logging.info("Reconfiguring VM {0}".format(vm.name))
+    logging.info("Reconfiguring VM %s", vm.name)
     vm.ReconfigVM_Task(config)
 
 
@@ -68,7 +68,7 @@ def change_power_state(vm, power_state):
     :param vm: vim.VirtualMachine object to change power state of
     :param power_state: on, off, reset, or suspend
     """
-    logging.debug("Changing power state of VM {0} to: '{1}'".format(vm.name, power_state))
+    logging.debug("Changing power state of VM %s to: '%s'", vm.name, power_state)
     if power_state.lower() == "on":
         vm.PowerOnVM_Task()
     elif power_state.lower() == "off":

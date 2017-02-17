@@ -27,15 +27,15 @@ def parse_file(filename):
     import yaml
     with open(filename, 'r') as f:
         try:
-            doc = yaml.safe_load(f)  # Parses the YAML file and creates a python object with it's structure and contents
+            doc = yaml.safe_load(f)  # Parses the YAML file into a dict
         except yaml.YAMLError as exc:
-            logging.error("Could not parse file %s" % filename)
+            logging.error("Could not parse file %s", filename)
             if hasattr(exc, 'problem_mark'):
                 mark = exc.problem_mark
-                logging.error("Error position: (%s:%s)" % (mark.line + 1, mark.column + 1))
+                logging.error("Error position: (%s:%s)", mark.line + 1, mark.column + 1)
             else:
-                logging.error("Error: ", exc)
-            return None  # If there was an error, then there ain't gonna be any markup, so we exit in a obvious way
+                logging.error("Error: %s", exc)
+            return None
     return doc
 
 
@@ -281,10 +281,9 @@ def _verify_folders_syntax(folders):
 
 
 if __name__ == '__main__':
-    """ For testing of the parser """
     from pprint import pprint
-    files = ['../examples/edurange.yaml', '../specifications/environment-specification.yaml',
+    test_files = ['../specifications/environment-specification.yaml',
              '../examples/competition.yaml', '../examples/tutorial.yaml', '../examples/experiment.yaml']
-    for specfile in files:
+    for specfile in test_files:
         s = parse_file(specfile)
         pprint(s)  # Note that pprint will cause descriptions to go across multiple lines, don't be alarmed

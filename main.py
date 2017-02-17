@@ -42,7 +42,7 @@ Examples:
 from docopt import docopt
 import logging
 
-from automation.model import Model
+from automation.interface import Interface
 from automation.parser import parse_file, verify_syntax
 
 __version__ = "0.5.0"
@@ -66,7 +66,7 @@ def main():
         else:
             logging.error("Syntax check failed!")
             exit(1)
-        model = Model(spec)
+        model = Interface(spec)
         model.create_masters()
         input("Masters created. Press any key to continue to Deployment phase...")
         model.deploy_environment()

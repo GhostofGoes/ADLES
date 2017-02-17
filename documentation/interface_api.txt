@@ -1,0 +1,48 @@
+@startuml
+
+
+package "Core Application" {
+object main
+object parser {
+parse_file(filename)
+verify_syntax(spec)
+}
+}
+
+package "Platform Interfaces" {
+interface Interface {
+__init__(spec)
+create_masters()
+deploy_environment()
+}
+
+
+package "VMware vSphere" {
+class VsphereInterface {
+__init__(infrastructure, logins, spec)
+
+}
+class vSphere
+class pyvmomi
+Interface <|-- VsphereInterface
+VsphereInterface -> vSphere
+vSphere -> pyvmomi
+}
+
+package "Docker" {
+class DockerInterface {
+__init__(infrastructure, logins, spec)
+}
+class Docker
+class dockerpy
+Interface <|-- DockerInterface
+DockerInterface -> Docker
+Docker -> dockerpy
+}
+
+
+}
+main -> Interface
+main -> parser
+
+@enduml

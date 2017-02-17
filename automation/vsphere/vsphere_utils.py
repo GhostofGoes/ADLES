@@ -128,7 +128,7 @@ def wait_for_tasks(service_instance, tasks):
     logging.debug("Waiting for tasks. Instance: %s\tTasks: %s", str(service_instance), str(tasks))
     property_collector = service_instance.content.propertyCollector
     task_list = [str(task) for task in tasks]
-    obj_specs = [vmodl.query.PropertyCollector.ObjectSpec(obj=task) for task in tasks]  # Create filter
+    obj_specs = [vmodl.query.PropertyCollector.ObjectSpec(obj=task) for task in tasks]
     property_spec = vmodl.query.PropertyCollector.PropertySpec(type=vim.Task, pathSet=[], all=True)
     filter_spec = vmodl.query.PropertyCollector.FilterSpec()
     filter_spec.objectSet = obj_specs
@@ -181,8 +181,8 @@ def wait_for_task(task):
 
 def move_into_folder(folder, entity_list):
     """
-    Moves a list of managed entities into the named folder. The folder's type MUST match those of the entity_list!
-    :param folder: vim.Folder object
+    Moves a list of managed entities into the named folder.
+    :param folder: vim.Folder object with type matching the entity list
     :param entity_list: List of vim.ManagedEntity
     """
     folder.MoveIntoFolder_Task(entity_list)
@@ -193,7 +193,7 @@ def destroy_everything(folder):
     Unregisters and deletes all VMs and Folders under the given folder
     :param folder: vim.Folder object
     """
-    logging.info("Unregistering and deleting EVERYTHING in folder {}".format(folder.name))
+    logging.info("Unregistering and deleting EVERYTHING in folder %s", folder.name)
     folder.UnregisterAndDestroy_Task()
 
 
@@ -210,16 +210,16 @@ def print_datastore_info(ds_obj):
     ds_provisioned = ds_capacity - ds_freespace + ds_uncommitted
     ds_overp = ds_provisioned - ds_capacity
     ds_overp_pct = (ds_overp * 100) / ds_capacity if ds_capacity else 0
-    logging.info("Name                  : {}".format(summary.name))
-    logging.info("URL                   : {}".format(summary.url))
-    logging.info("Capacity              : {}".format(sizeof_fmt(ds_capacity)))
-    logging.info("Free Space            : {}".format(sizeof_fmt(ds_freespace)))
-    logging.info("Uncommitted           : {}".format(sizeof_fmt(ds_uncommitted)))
-    logging.info("Provisioned           : {}".format(sizeof_fmt(ds_provisioned)))
+    logging.info("Name                  : %s", summary.name)
+    logging.info("URL                   : %s", summary.url)
+    logging.info("Capacity              : %s", sizeof_fmt(ds_capacity))
+    logging.info("Free Space            : %s", sizeof_fmt(ds_freespace))
+    logging.info("Uncommitted           : %s", sizeof_fmt(ds_uncommitted))
+    logging.info("Provisioned           : %s", sizeof_fmt(ds_provisioned))
     if ds_overp > 0:
-        logging.info("Over-provisioned      : {} / {} %".format(sizeof_fmt(ds_overp), ds_overp_pct))
-    logging.info("Hosts                 : {}".format(len(ds_obj.host)))
-    logging.info("Virtual Machines      : {}".format(len(ds_obj.vm)))
+        logging.info("Over-provisioned      : %s / %s %%", sizeof_fmt(ds_overp), ds_overp_pct)
+    logging.info("Hosts                 : %s", (len(ds_obj.host)))
+    logging.info("Virtual Machines      : %s", (len(ds_obj.vm)))
 
 
 
