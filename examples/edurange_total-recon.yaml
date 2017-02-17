@@ -1,0 +1,77 @@
+---
+metadata:
+  name: "Total Recon"
+  description: "Total Recon is a progressive, story-based game designed to teach nmap network reconnaissance."
+  date-created: "2017-02-16"
+  version: "0.1.0"
+  infrastructure-config-file: "infra.yaml"
+  root-path: "EduRange"
+
+groups:
+  Instructor:
+    user-list: ["instructor": "vLCu3Crf"]
+  Student:
+    user-list: []
+
+services:
+  nat:
+    template: "nat"
+  ubuntu:
+    template: "ubuntu"
+
+networks:
+  unique-networks:
+    Nat_Subnet:
+      subnet: "10.0.129.0/24"
+    Home_Subnet:
+      subnet: "10.0.24.0/24"
+    Earth_Subnet:
+      subnet: "10.0.0.0/24"
+    Mars_Subnet:
+      subnet: "10.0.192.0/18"
+
+folders:
+  Clouds:
+    group: Instructor
+    Cloud_1:
+      Nat:
+        service: nat
+        networks: ["Nat_Subnet"]
+      Home:
+        service: ubuntu
+        networks: ["Home_Subnet"]
+      Rekall:
+        service: ubuntu
+        networks: ["Earth_Subnet"]
+      Subway:
+        service: ubuntu
+        networks: ["Earth_Subnet"]
+      Earth_Aerospace_Port:
+        service: ubuntu
+        networks: ["Earth_Subnet"]
+      Mars_Aerospace_Port:
+        service: ubuntu
+        networks: ["Mars_Subnet"]
+      Venusville:
+        service: ubuntu
+        networks: ["Mars_Subnet"]
+      Last_Resort:
+        service: ubuntu
+        networks: ["Mars_Subnet"]
+      Resistance_Base:
+        service: ubuntu
+        networks: ["Mars_Subnet"]
+      Control_Room:
+        service: ubuntu
+        networks: ["Mars_Subnet"]
+      Stealth_Xmas:
+        service: ubuntu
+        networks: ["Mars_Subnet"]
+      Stealth_Null:
+        service: ubuntu
+        networks: ["Mars_Subnet"]
+      Stealth_Fin:
+        service: ubuntu
+        networks: ["Mars_Subnet"]
+
+...

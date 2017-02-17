@@ -136,13 +136,13 @@ networks:
       vswitch: "name of vswitch"  # Optional    Name of virtual switch used for the network (Applies to VMware and related environments)
   generic-networks:   # New identical instances are created per instance of an exercise (subnet doesn't change)
     network-label:
-      name: "name"
+      description: "description"
       subnet: "x.x.x.x/x"
       vlan: 0
       vswitch: "name of vswitch"
   base-networks:      # Subnet value is incremented per instance
     network-label:
-      name: "name"
+      description: "description"
       subnet: "x.x.x.x/x"
       vlan: 0         # VLAN is incremented per instance
       vswitch: "name of vswitch"
