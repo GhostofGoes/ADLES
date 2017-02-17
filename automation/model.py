@@ -21,11 +21,12 @@ class Model:
         """
         :param spec: Full specification
         """
+        from sys import exit
         metadata = spec["metadata"]
 
         if not metadata["infrastructure-config-file"]:
-            logging.error("No infrastructure configuration file specified! Unable to load Model, exiting...")
-            exit(1)
+            logging.error("No infrastructure configuration file specified!")
+            exit("Unable to load Model: no infra conf file")
 
         # Load infrastructure information
         from automation.parser import parse_file
@@ -40,7 +41,7 @@ class Model:
                 logins = load(fp=login_file)
         except Exception as e:
             logging.error("Could not open login file %s. Error: %s", infrastructure["login-file"], str(e))
-            exit(1)
+            exit("Unable to load Model: couldn't open login file")
 
         # Select the Interface to use for the platform
         if infrastructure["platform"] == "vmware vsphere":
@@ -48,7 +49,7 @@ class Model:
             self.interface = VsphereInterface(infrastructure, logins, spec)  # Create interface
         else:
             logging.error("Invalid platform {}".format(infrastructure["platform"]))
-            exit(1)
+            exit("Unable to load Model: Invalid Platform")
 
     def create_masters(self):
         logging.info("Creating Master instances for environment setup...")

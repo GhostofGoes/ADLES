@@ -53,10 +53,11 @@ __email__ = "<goes8945@vandals.uidaho.edu>"
 def main():
     from os.path import basename
     from os.path import exists
+    from sys import exit
 
     if args["--spec"]:
         if not exists(args["--spec"]):
-            exit(1)
+            exit("Could not find spec file to create environment using")
         spec = parse_file(args["--spec"])
         logging.info("Successfully ingested %s", str(basename(args["--spec"])))
         logging.info("Checking syntax...")
@@ -72,7 +73,7 @@ def main():
 
     elif args["--check-syntax"]:
         if not exists(args["--check-syntax"]):
-            exit(1)
+            exit("Could not find spec file to check syntax of")
         spec = parse_file(args["--check-syntax"])
         logging.info("Successfully ingested %s", str(basename(args["--check-syntax"])))
         logging.info("Checking syntax...")
