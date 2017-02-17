@@ -51,8 +51,8 @@ class VsphereInterface:
         self.root_path = self.metadata["root-path"]
         self.root_name = self.metadata["name"]
         parent = traverse_path(self.server.get_folder(server_root), self.root_path)
-        self.server.create_folder(folder_name=self.root_name, create_in=parent)
-        self.root_folder = traverse_path(self.server.get_folder(server_root), self.root_path, self.root_name)
+        self.root_folder = self.server.create_folder(folder_name=self.root_name, create_in=parent)
+        # self.root_folder = traverse_path(self.server.get_folder(server_root), self.root_path, self.root_name)
 
     def create_masters(self):
         """ Master creation phase """
@@ -62,9 +62,9 @@ class VsphereInterface:
         #   Will eventually do hierarchically based on folders and not just the services
         #   Will write a function to do this, so we can recursively descend for complex environments
         master_folder_name = "MASTER_FOLDERS"
-        self.server.create_folder(folder_name=master_folder_name, create_in=self.root_folder)
-        master_folder = find_in_folder(self.root_folder, master_folder_name)
-        logging.info("Created master folder {} under folder {}".format(master_folder_name, self.root_folder.name))
+        master_folder = self.server.create_folder(folder_name=master_folder_name, create_in=self.root_folder)
+        # master_folder = find_in_folder(self.root_folder, master_folder_name)
+        logging.info("Created master folder %s under folder %s", master_folder_name, self.root_folder.name)
 
         # TODO: not creating vswitches yet, assume created and specified
 

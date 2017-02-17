@@ -171,7 +171,7 @@ def create_snapshot(vm, name, description="default", memory=False):
     :param description: Text description of the snapshot
     """
     logging.info("Creating snapshot of VM %s with a name of %s", vm.name, name)
-    vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True)
+    wait_for_task(vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True))
 
 
 def revert_to_snapshot(vm, snapshot_name):
@@ -182,7 +182,7 @@ def revert_to_snapshot(vm, snapshot_name):
     """
     logging.info("Reverting VM %s to the snapshot %s", vm.name, snapshot_name)
     snap = get_snapshot(vm, snapshot_name)
-    snap.RevertToSnapshot_Task()
+    wait_for_task(snap.RevertToSnapshot_Task())
 
 
 def revert_to_current_snapshot(vm):
@@ -191,7 +191,7 @@ def revert_to_current_snapshot(vm):
     :param vm: vim.VirtualMachine object
     """
     logging.info("Reverting VM %s to the current snapshot", vm.name)
-    vm.RevertToCurrentSnapshot_Task()
+    wait_for_task(vm.RevertToCurrentSnapshot_Task())
 
 
 def get_snapshot(vm, snapshot_name):
@@ -209,7 +209,7 @@ def get_snapshot(vm, snapshot_name):
 
 def get_current_snapshot(vm):
     """
-    Retireves the current snapshot from the VM
+    Retrieves the current snapshot from the VM
     :param vm: vim.VirtualMachine object
     :return: Current vim.Snapshot object for the VM, or None if there are no snapshots
     """
@@ -253,7 +253,7 @@ def remove_snapshot(vm, snapshot_name, remove_children=True, consolidate_disks=T
     """
     logging.info("Removing snapshot %s from VM %s", snapshot_name, vm.name)
     snapshot = get_snapshot(vm, snapshot_name)
-    snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks)
+    wait_for_task(snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks))
 
 
 def remove_all_snapshots(vm, consolidate_disks=True):
@@ -264,7 +264,7 @@ def remove_all_snapshots(vm, consolidate_disks=True):
     other disks if possible [default: True]
     """
     logging.info("Removing ALL snapshots for the VM %s", vm.name)
-    vm.RemoveAllSnapshots_Task(consolidate_disks)
+    wait_for_task(vm.RemoveAllSnapshots_Task(consolidate_disks))
 
 
 # From: getallvms.py in pyvmomi-community-samples
@@ -327,7 +327,7 @@ def remove_device(vm, device):
     """
     logging.debug("Removing device {} from vm {}".format(device.name, vm.name))
     device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-    vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device]))  # Apply the change to the VM
+    wait_for_task(vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device])))  # Apply the change to the VM
 
 
 # From: delete_nic_from_vm.py in pyvmomi-community-samples
@@ -352,7 +352,7 @@ def delete_nic(vm, nic_number):
     virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
     virtual_nic_spec.device = virtual_nic_device
 
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply the change to the VM
+    wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec])))  # Apply the change to the VM
 
 
 def edit_nic(vm, nic_number, port_group=None, summary=None):

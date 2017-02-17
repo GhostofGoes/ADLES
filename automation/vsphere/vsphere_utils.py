@@ -101,15 +101,15 @@ def traverse_path(root, path, name=None):
     current = root
     for folder in folder_path:
         for item in current.childEntity:
-            if hasattr(item, "childEntity") and item.name == folder:
+            if is_folder(item) and item.name == folder:
                 current = item
                 break
 
     if name:
         for item in current.childEntity:
-            if hasattr(item, 'summary') and item.name == name:
+            if is_vm(item) and item.name == name:
                 return item
-            elif hasattr(item, 'childEntity') and item.name == name:
+            elif is_folder(item) and item.name == name:
                 return item
     else:
         return current
@@ -187,7 +187,7 @@ def move_into_folder(folder, entity_list):
     :param folder: vim.Folder object with type matching the entity list
     :param entity_list: List of vim.ManagedEntity
     """
-    folder.MoveIntoFolder_Task(entity_list)
+    wait_for_task(folder.MoveIntoFolder_Task(entity_list))
 
 
 def destroy_everything(folder):
@@ -195,8 +195,11 @@ def destroy_everything(folder):
     Unregisters and deletes all VMs and Folders under the given folder
     :param folder: vim.Folder object
     """
-    logging.info("Unregistering and deleting EVERYTHING in folder %s", folder.name)
-    folder.UnregisterAndDestroy_Task()
+    if not folder:
+        logging.error("Cannot destroy a None object you dummy!")
+    else:
+        logging.info("Unregistering and deleting EVERYTHING in folder %s", folder.name)
+        wait_for_task(folder.UnregisterAndDestroy_Task())
 
 
 # From: list_dc_datastore_info.py in pyvmomi-community-samples
@@ -224,4 +227,19 @@ def print_datastore_info(ds_obj):
     logging.info("Virtual Machines      : %s", (len(ds_obj.vm)))
 
 
+def is_folder(obj):
+    """
+    Checks if object is a vim.Folder
+    :param obj: object to check
+    :return:
+    """
+    return hasattr(obj, "childEntity")
 
+
+def is_vm(obj):
+    """
+    Checks if object is a vim.VirtualMachine
+    :param obj: object to check
+    :return:
+    """
+    return hasattr(obj, "summary")

@@ -20,7 +20,6 @@ from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
 from automation.vsphere.vsphere_utils import *
-from automation.vsphere.vm_utils import *
 from automation.vsphere.network_utils import *
 
 
@@ -69,23 +68,24 @@ class vSphere:
         Creates a VM folder in the specified folder
         :param folder_name: Name of folder to create
         :param create_in: Name of folder or vim.Folder object to create folder in [default: root folder of datacenter]
+        :return: The created vim.Folder object
         """
-        # if get_obj(self.content, [vim.Folder], folder_name):
-        #    logging.warning("Folder {0} already exists".format(folder_name))
         if create_in:
-            if type(create_in) is str:
+            if type(create_in) is str:  # create_in is a string, so we look it up on the server
                 logging.debug("Retrieving parent folder %s from server", create_in)
                 parent = get_obj(self.content, [vim.Folder], create_in)
             else:
-                parent = create_in
-            if find_in_folder(parent, folder_name):
-                logging.warning("Folder {0} already exists".format(folder_name))
+                parent = create_in  # create_in is a vim.Folder object, so we just assign it
+            exists = find_in_folder(parent, folder_name)
+            if exists:
+                logging.warning("Folder %s already exists", folder_name)
+                return exists
             else:
-                logging.info("Creating folder {0} in folder {1}".format(folder_name, parent.name))
-                parent.CreateFolder(folder_name)
+                logging.info("Creating folder %s in folder %s", folder_name, parent.name)
+                return parent.CreateFolder(folder_name)
         else:
-            logging.info("Creating folder {0} in root folder".format(folder_name))
-            self.content.rootFolder.CreateFolder(folder_name)
+            logging.info("Creating folder %s in server root folder", folder_name)
+            return self.content.rootFolder.CreateFolder(folder_name)
 
     # TODO: generate_vm_spec
 
@@ -115,7 +115,7 @@ class vSphere:
         Sets vCenter server Message of the Day (MOTD)
         :param message:
         """
-        logging.info("Setting vCenter MOTD to {}".format(message))
+        logging.info("Setting vCenter MOTD to %s", message)
         self.content.sessionManager.UpdateServiceMessage(message=message)
 
     def get_folder(self, folder_name=None):
@@ -225,6 +225,13 @@ def main():
     formatter = logging.Formatter("%(levelname)-12s %(message)s")
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
+
+    # TODO: cleanup function
+    folder = server.get_folder("Tutorial 3 - ARP Cache Poisoning")
+    destroy_everything(folder)
+
+    folder = server.get_folder("MASTER_FOLDERS")
+    destroy_everything(folder)
 
     # create_vswitch("cs439_vswitch", server.get_host())
 
