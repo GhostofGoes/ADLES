@@ -166,16 +166,18 @@ def wait_for_tasks(service_instance, tasks):
 def wait_for_task(task):
     """
     Wait for a single vCenter task to finish and return it's result
-    :param task:  vim.Task object of the task to wait for
+    :param task: vim.Task object of the task to wait for
     :return: Task result information
     """
-    logging.debug("Waiting for task: %s", str(task.name))
+    if not task:
+        return None
+    logging.debug("Waiting for task: %s", task.info.name)
     task_done = False
     while not task_done:
         if task.info.state == 'success':
             return task.info.result
         if task.info.state == 'error':
-            logging.error("There was an error while completing task %s", task.name)
+            logging.error("There was an error while completing task %s", task.info.name)
             task_done = True
 
 

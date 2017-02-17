@@ -77,9 +77,17 @@ class VsphereInterface:
             if "template" in service_config:         # Virtual Machine template
                 logging.info("Creating master for service %s from template %s",
                              service_name, service_config["template"])
-                vm = self.server.get_vm(service_config["template"])  # TODO: traverse path
-                clone_vm(vm=vm, folder=master_folder, name=self.master_prefix + service_name,
+                vm_name = self.master_prefix + service_name
+                template = self.server.get_vm(service_config["template"])  # TODO: traverse path
+                clone_vm(vm=template, folder=master_folder, name=vm_name,
                          clone_spec=self.server.generate_clone_spec())  # TODO: resource pools!
+
+                # Snapshot and configure base instance post-clone
+                # This is where any custom configurations or addition NICs are added
+                new_vm = self.server.get_vm(vm_name=vm_name)  # (TODO: traverse path)
+                create_snapshot(new_vm, "post-clone", "Clean snapshot taken immediately after cloning")
+                if "note" in service_config:
+                    set_note(vm=new_vm, note=service_config["note"])
 
         # Apply master-group permissions [default: group permissions]
 

@@ -16,6 +16,8 @@
 import logging
 from pyVmomi import vim
 
+from ..vsphere.vsphere_utils import wait_for_task
+
 
 def clone_vm(vm, folder, name, clone_spec):
     """
@@ -26,7 +28,8 @@ def clone_vm(vm, folder, name, clone_spec):
     :param clone_spec: vim.vm.CloneSpec for the new VM
     """
     logging.info("Cloning VM %s to folder %s with name %s", vm.name, folder.name, name)
-    vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec)  # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
+    # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
+    wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
 
 
 def create_vm(folder, config, pool, host=None):
@@ -37,7 +40,8 @@ def create_vm(folder, config, pool, host=None):
     :param pool: vim.ResourcePool to which the virtual machine will be attached
     :param host: (Optional) vim.HostSystem on which the VM will run
     """
-    folder.CreateVM_Task(config, pool, host)
+    logging.info("Creating VM %s in folder %s", config.name, folder.name)
+    wait_for_task(folder.CreateVM_Task(config, pool, host))
 
 
 def destroy_vm(vm):
@@ -48,8 +52,8 @@ def destroy_vm(vm):
     logging.info("DESTROYING VM %s", vm.name)
     if powered_on(vm):
         logging.info("VM is still on, powering off before destroying...")
-        change_power_state(vm, "off")
-    vm.Destroy_Task()
+        wait_for_task(change_power_state(vm, "off"))
+    wait_for_task(vm.Destroy_Task())
 
 
 def edit_vm(vm, config):
@@ -59,7 +63,7 @@ def edit_vm(vm, config):
     :param config: vim.vm.ConfigSpec object
     """
     logging.info("Reconfiguring VM %s", vm.name)
-    vm.ReconfigVM_Task(config)
+    wait_for_task(vm.ReconfigVM_Task(config))
 
 
 def change_power_state(vm, power_state):
@@ -67,16 +71,20 @@ def change_power_state(vm, power_state):
     Changes a VM power state to the state specified.
     :param vm: vim.VirtualMachine object to change power state of
     :param power_state: on, off, reset, or suspend
+    :return: vim.Task
     """
     logging.debug("Changing power state of VM %s to: '%s'", vm.name, power_state)
     if power_state.lower() == "on":
-        vm.PowerOnVM_Task()
+        return vm.PowerOnVM_Task()
     elif power_state.lower() == "off":
-        vm.PowerOffVM_Task()
+        return vm.PowerOffVM_Task()
     elif power_state.lower() == "reset":
-        vm.ResetVM_Task()
+        return vm.ResetVM_Task()
     elif power_state.lower() == "suspend":
-        vm.SuspendVM_Task()
+        return vm.SuspendVM_Task()
+    else:
+        logging.error("Invalid power_state %s for VM %s", power_state, vm.name)
+    return None
 
 
 def change_guest_state(vm, guest_state):
@@ -84,18 +92,20 @@ def change_guest_state(vm, guest_state):
     Changes a VMs guest power state. VMware Tools must be installed on the VM for this to work.
     :param vm:  vim.VirtualMachine object to change guest state of
     :param guest_state: shutdown, reboot, or standby
+    :return: vim.Task
     """
-    logging.debug("Changing guest power state of VM {0} to: '{1}'".format(vm.name, guest_state))
+    logging.debug("Changing guest power state of VM %s to: '%s'", vm.name, guest_state)
     if vm.summary.guest.toolsStatus == "toolsNotInstalled":
         logging.error("Cannot change a VM's guest power state without VMware Tools!")
     elif guest_state.lower() == "shutdown":
-        vm.ShutdownGuest()
+        return vm.ShutdownGuest()
     elif guest_state.lower() == "reboot":
-        vm.RebootGuest()
+        return vm.RebootGuest()
     elif guest_state.lower() == "standby":
-        vm.StandbyGuest()
+        return vm.StandbyGuest()
     else:
-        logging.error("Invalid guest_state argument!")
+        logging.error("Invalid guest_state argument: %s", guest_state.lower())
+    return None
 
 
 def tools_status(vm):
@@ -112,7 +122,7 @@ def is_template(vm):
     """
     Checks if VM is a template
     :param vm: vim.VirtualMachine
-    :return:
+    :return: If VM is a template or not
     """
     return bool(vm.summary.config.template)
 
@@ -123,10 +133,10 @@ def convert_to_template(vm):
     :param vm: vim.VirtualMachine object to convert
     """
     try:
-        logging.debug("Converting VM {0} to Template".format(vm.name))
-        vm.MarkAsTemplate()
+        logging.debug("Converting VM %s to Template", vm.name)
+        wait_for_task(vm.MarkAsTemplate())
     except vim.fault.InvalidPowerState:
-        logging.error("VM {0} must be powered off before being converted to a template!".format(vm.name))
+        logging.error("VM %s must be powered off before being converted to a template!", vm.name)
 
 
 def convert_to_vm(vm, resource_pool, host=None):
@@ -136,8 +146,8 @@ def convert_to_vm(vm, resource_pool, host=None):
     :param resource_pool: vim.ResourcePool to associate with the VM
     :param host: (optional) vim.HostSystem on which the VM should run
     """
-    logging.debug("Converting Template {0} to VM and assigning to resource pool {1}".format(vm.name, resource_pool.name))
-    vm.MarkAsVirtualMachine(resource_pool, host)
+    logging.debug("Converting Template %s to VM and assigning to resource pool %s", vm.name, resource_pool.name)
+    wait_for_task(vm.MarkAsVirtualMachine(resource_pool, host))
 
 
 def set_note(vm, note):
@@ -146,10 +156,10 @@ def set_note(vm, note):
     :param vm: vim.VirtualMachine object
     :param note: String to set the note to
     """
-    logging.debug("Setting note of VM {0} to {1}".format(vm.name, note))
+    logging.debug("Setting note of VM %s to %s", vm.name, note)
     spec = vim.vm.ConfigSpec()
     spec.annotation = note
-    vm.ReconfigVM_Task(spec)
+    wait_for_task(vm.ReconfigVM_Task(spec))
 
 
 def create_snapshot(vm, name, description="default", memory=False):
@@ -160,7 +170,7 @@ def create_snapshot(vm, name, description="default", memory=False):
     :param memory: Memory dump of the VM is included in the snapshot
     :param description: Text description of the snapshot
     """
-    logging.info("Creating snapshot of VM {0} with a name of {1}".format(vm.name, name))
+    logging.info("Creating snapshot of VM %s with a name of %s", vm.name, name)
     vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True)
 
 
@@ -170,7 +180,7 @@ def revert_to_snapshot(vm, snapshot_name):
     :param vm: vim.VirtualMachine object
     :param snapshot_name: Name of the snapshot to revert to
     """
-    logging.info("Reverting VM {0} to the snapshot {1}".format(vm.name, snapshot_name))
+    logging.info("Reverting VM %s to the snapshot %s", vm.name, snapshot_name)
     snap = get_snapshot(vm, snapshot_name)
     snap.RevertToSnapshot_Task()
 
@@ -180,7 +190,7 @@ def revert_to_current_snapshot(vm):
     Reverts the VM to the most recent snapshot
     :param vm: vim.VirtualMachine object
     """
-    logging.info("Reverting VM {0} to the current snapshot".format(vm.name))
+    logging.info("Reverting VM %s to the current snapshot", vm.name)
     vm.RevertToCurrentSnapshot_Task()
 
 
@@ -241,7 +251,7 @@ def remove_snapshot(vm, snapshot_name, remove_children=True, consolidate_disks=T
     :param consolidate_disks: (Optional) Virtual disks of the deleted snapshot will be merged with
     other disks if possible [default: True]
     """
-    logging.info("Removing snapshot {0} from VM {1}".format(snapshot_name, vm.name))
+    logging.info("Removing snapshot %s from VM %s", snapshot_name, vm.name)
     snapshot = get_snapshot(vm, snapshot_name)
     snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks)
 
@@ -253,7 +263,7 @@ def remove_all_snapshots(vm, consolidate_disks=True):
     :param consolidate_disks: (Optional) Virtual disks of the deleted snapshot will be merged with
     other disks if possible [default: True]
     """
-    logging.info("Removing ALL snapshots for the VM {0}".format(vm.name))
+    logging.info("Removing ALL snapshots for the VM %s", vm.name)
     vm.RemoveAllSnapshots_Task(consolidate_disks)
 
 
@@ -328,14 +338,14 @@ def delete_nic(vm, nic_number):
     :param nic_number: Unit Number
     """
     nic_label = 'Network adapter ' + str(nic_number)
-    logging.debug("Removing Virtual {} from {}".format(nic_label, vm.name))
+    logging.debug("Removing Virtual %s from %s", nic_label, vm.name)
     virtual_nic_device = None
     for dev in vm.config.hardware.device:
         if isinstance(dev, vim.vm.device.VirtualEthernetCard) and dev.deviceInfo.label == nic_label:
             virtual_nic_device = dev
 
     if not virtual_nic_device:
-        logging.error('Virtual {} could not be found!'.format(nic_label))
+        logging.error('Virtual %s could not be found!', nic_label)
         return
 
     virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
@@ -354,14 +364,14 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
     :param summary: (Optional) Human-readable device info
     """
     nic_label = 'Network adapter ' + str(nic_number)
-    logging.debug("Changing {} on {}".format(nic_label, vm.name))
+    logging.debug("Changing %s on %s", nic_label, vm.name)
     virtual_nic_device = None
     for dev in vm.config.hardware.device:
         if isinstance(dev, vim.vm.device.VirtualEthernetCard) and dev.deviceInfo.label == nic_label:
             virtual_nic_device = dev
 
     if not virtual_nic_device:
-        logging.error('Virtual {} could not be found!'.format(nic_label))
+        logging.error('Virtual %s could not be found!', nic_label)
         return
 
     nic_spec = vim.vm.device.VirtualDeviceSpec()
@@ -369,10 +379,10 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
     nic_spec.device = virtual_nic_device
 
     if summary:
-        logging.debug("Changing summary to {}".format(summary))
+        logging.debug("Changing summary to %s", summary)
 
     if port_group:
-        logging.debug("Changing PortGroup to {}".format(port_group.name))
+        logging.debug("Changing PortGroup to %s", port_group.name)
         nic_spec.device.backing.network = port_group
         nic_spec.device.backing.deviceName = port_group.name
 
@@ -392,7 +402,7 @@ def add_nic(vm, port_group, summary="default-summary", model="e1000"):
     since they remove emulation overhead.
     Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
     """
-    logging.debug("Adding NIC to VM {0}\nPort group: {1} Summary: {2}".format(vm.name, port_group.name, summary))
+    logging.debug("Adding NIC to VM %s\nPort group: %s Summary: %s", vm.name, port_group.name, summary)
     nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create a base object to add configurations to
     nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
 
@@ -441,7 +451,7 @@ def attach_iso(vm, filename, datastore, boot=True):
     :param datastore: vim.Datastore where the ISO resides
     :param boot: Set VM to boot from the attached ISO
     """
-    logging.debug("Adding ISO '{0}' to VM '{1}'".format(filename, vm.name))
+    logging.debug("Adding ISO '%s' to VM '%s'", filename, vm.name)
     drive_spec = vim.vm.device.VirtualDeviceSpec()
     drive_spec.device = vim.vm.device.VirtualCdrom()
     drive_spec.device.controllerKey = find_free_ide_controller(vm).key

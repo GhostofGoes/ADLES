@@ -44,6 +44,7 @@ import logging
 
 from automation.interface import Interface
 from automation.parser import parse_file, verify_syntax
+from automation.utils import prompt_y_n_question
 
 __version__ = "0.5.0"
 __author__ = "Christopher Goes"
@@ -68,8 +69,8 @@ def main():
             exit(1)
         model = Interface(spec)
         model.create_masters()
-        input("Masters created. Press any key to continue to Deployment phase...")
-        model.deploy_environment()
+        if prompt_y_n_question("Master's created successfully. Would you like to continue to the deployment phase?"):
+            model.deploy_environment()
 
     elif args["--check-syntax"]:
         if not exists(args["--check-syntax"]):
