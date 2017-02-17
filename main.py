@@ -18,24 +18,26 @@
 """Program used to create cybersecurity educational environments from formal specifications.
 
 Usage:
-    main.py [-d] --check-syntax FILE
-    main.py [-d] --spec FILE
-    main.py [-d] --package-dir NAME
+    main.py [--debug] --check-syntax FILE
+    main.py [--debug] (-m | --masters | -d | --deploy) --spec FILE
+    main.py [--debug] --package-dir NAME
     main.py --version
     main.py (-h | --help)
 
 Options:
     -h, --help                  Shows this help
     --version                   Prints current version
-    -d, --debug                 Emits debugging logs to terminal in addition to file
+    --debug                     Emits debugging logs to terminal in addition to a file
     -c, --check-syntax FILE     Validates syntax is valid per specification
     -s, --spec FILE             YAML file with the environment specification
     -p, --package-dir NAME      Filepath of the exercise package directory
+    -m, --master                Master creation phase of specification
+    -d, --deploy                Environment deployment phase of specification (Master's MUST be created first!)
 
 Examples:
     main.py --check-syntax ../examples/tutorial.yaml
-    main.py -d --spec ../examples/research.yaml
-    main.py -s ../examples/competition.yaml
+    main.py --debug --masters --spec ../examples/research.yaml
+    main.py -d -s ../examples/competition.yaml
 
 """
 
@@ -44,7 +46,6 @@ import logging
 
 from automation.interface import Interface
 from automation.parser import parse_file, verify_syntax
-from automation.utils import prompt_y_n_question
 
 __version__ = "0.5.0"
 __author__ = "Christopher Goes"
@@ -68,9 +69,12 @@ def main():
             logging.error("Syntax check failed!")
             exit(1)
         model = Interface(spec)
-        model.create_masters()
-        if prompt_y_n_question("Master's created successfully. Would you like to continue to the deployment phase?"):
+        if args["--masters"]:
+            model.create_masters()
+            logging.info("Finished creation of Masters for environment %s", str(spec["metadata"]["name"]))
+        elif args["--deploy"]:
             model.deploy_environment()
+            logging.info("Finished deployment of environment %s", str(spec["metadata"]["name"]))
 
     elif args["--check-syntax"]:
         if not exists(args["--check-syntax"]):
