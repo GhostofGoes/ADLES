@@ -31,11 +31,11 @@ Options:
 from docopt import docopt
 
 from automation.vsphere.vsphere_utils import traverse_path
-from automation.vsphere.vm_utils import *
+from automation.vsphere.vm_utils import clone_vm
 from automation.utils import prompt_y_n_question
-from .radicl_utils import make_vsphere, warning
+from .radicl_utils import make_vsphere, warning, user_input
 
-__version__ = "0.2.2"
+__version__ = "0.2.4"
 
 args = docopt(__doc__, version=__version__, help=True)
 server = make_vsphere(args["--file"])
@@ -43,18 +43,13 @@ warning()
 
 # this is the ugliest python i hath ever wroten since me early dayz as a nofice
 # Well, it isn't anymore. But the comment was funny so I'm leaving it in for you, the GitHub stalker
-while True:
-    vm_name = input("Name of the VM or template you wish to clone: ")
-    vm = server.get_vm(vm_name=vm_name)  # find vm
-    if vm:
-        break
-    else:
-        print("Couldn't find a VM with name {}. Perhaps try another? ".format(vm_name))
+vm, vm_name = user_input("Name of the VM or template you wish to clone: ", "VM", server.get_vm)
 
 if not vm.config.template:  # check type
     if not prompt_y_n_question("VM {} is not a Template. Do you wish to continue? ".format(vm_name)):
         exit(0)
 
+# well shit this arse of a code block breaks my nice generic functions
 while True:
     folder_name = input("Name of folder or path to folder in which to create VMs: ")
     if '/' in folder_name:

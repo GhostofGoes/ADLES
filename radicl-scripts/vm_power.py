@@ -30,11 +30,11 @@ Options:
 
 from docopt import docopt
 
-from automation.vsphere.vm_utils import *
+from automation.vsphere.vm_utils import change_power_state, change_guest_state, tools_status
 from automation.utils import prompt_y_n_question
-from .radicl_utils import make_vsphere, warning
+from .radicl_utils import make_vsphere, warning, user_input
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 args = docopt(__doc__, version=__version__, help=True)
 server = make_vsphere(args["--file"])
@@ -47,14 +47,8 @@ if guest_check:
     guest_op = input("What guest operation do you wish to be performed [shutdown | reboot | standby]: ")
 
 if prompt_y_n_question("Do you wish to do power operations on multiple VMs? "):
-    while True:
-        folder_name = input("Name of folder which contains the VMs (NOT the path): ")
-        folder = server.get_folder(folder_name=folder_name)  # find folder
-        if folder:
-            break
-        else:
-            print("Couldn't find a folder with name {}. Perhaps try another? ".format(folder_name))
-
+    folder, folder_name = user_input("Name of folder which contains the VMs (NOT the path): ",
+                                     "folder", server.get_folder)
     if prompt_y_n_question("Found {} VMs in folder {}. Do you wish to continue? ".format(len(list(folder.childEntity)),
                                                                                          folder_name)):
         for vm in folder.childEntity:
@@ -64,13 +58,6 @@ if prompt_y_n_question("Do you wish to do power operations on multiple VMs? "):
                 change_power_state(vm, operation)
 
 else:
-    while True:
-        vm_name = input("Name of the VM to do power operation on: ")
-        vm = server.get_vm(vm_name=vm_name)  # find vm
-        if vm:
-            break
-        else:
-            print("Couldn't find a VM with name {}. Perhaps try another? ".format(vm_name))
-
+    vm, vm_name = user_input("Name of the VM to do power operation on: ", "VM", server.get_vm)
     print("Changing power state of VM {} to {}".format(vm_name, operation))
     change_power_state(vm, operation)

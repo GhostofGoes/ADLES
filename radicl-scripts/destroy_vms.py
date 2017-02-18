@@ -32,50 +32,29 @@ Options:
 
 from docopt import docopt
 
-from automation.vsphere.vsphere_utils import *
-from automation.vsphere.vm_utils import *
+from automation.vsphere.vsphere_utils import destroy_everything
+from automation.vsphere.vm_utils import destroy_vm
 from automation.utils import prompt_y_n_question
-from .radicl_utils import make_vsphere, warning
+from .radicl_utils import make_vsphere, warning, user_input
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 args = docopt(__doc__, version=__version__, help=True)
 server = make_vsphere(args["--file"])
 warning()
 
 if prompt_y_n_question("Do you wish to destroy a folder and it's sub-trees? "):
-    while True:
-        folder_name = input("Name of folder to destroy: ")
-        folder = server.get_folder(folder_name=folder_name)  # find folder
-        if folder:
-            break
-        else:
-            print("Couldn't find a folder with name {}. Perhaps try another? ".format(folder_name))
-
-    print("Recursively destroying folder {}".format(folder.name))
+    folder, folder_name = user_input("Name of folder to destroy: ", "folder", server.get_folder)
+    print("Recursively destroying folder {}".format(folder_name))
     destroy_everything(folder)
 
 elif prompt_y_n_question("Do you wish to destroy all VMs in a folder? "):
-    while True:
-        folder_name = input("Name of folder: ")
-        folder = server.get_folder(folder_name=folder_name)  # find folder
-        if folder:
-            break
-        else:
-            print("Couldn't find a folder with name {}. Perhaps try another? ".format(folder_name))
-
+    folder, folder_name = user_input("Name of folder: ", "folder", server.get_folder)
     print("Destroying all VMs in folder {}".format(folder_name))
     for vm in folder.childEntity:
         destroy_vm(vm)
 
 else:
-    while True:
-        vm_name = input("Name of VM to destroy: ")
-        vm = server.get_vm(vm_name=vm_name)  # find folder
-        if vm:
-            break
-        else:
-            print("Couldn't find a VM with name {}. Perhaps try another? ".format(vm_name))
-
+    vm, vm_name = user_input("Name of VM to destroy: ", "VM", server.get_vm)
     print("Destroying VM with name {}".format(vm_name))
     destroy_vm(vm)

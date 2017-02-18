@@ -35,3 +35,21 @@ def warning():
     """ Prints a warning prompt. What do you really want in this docstring... """
     print("You run this script at your own risk. If you break something, it's on YOU. "
           "\nIf you're paranoid, please read the code, and perhaps improve it :)")
+
+
+def user_input(prompt, obj_name, func):
+    """
+    Continually bothers a user for input until we get what we want from them (mehehe)
+    :param prompt: Prompt to bother user with
+    :param obj_name: Name of the type of the object that we seek
+    :param func: The function that shalt be called to discover the object
+    :return: The discovered object and it's human name
+    """
+    while True:
+        item_name = input(prompt)
+        item = func(item_name)
+        if item:
+            break
+        else:
+            print("Couldn't find a {} with name {}. Perhaps try another? ".format(obj_name, item_name))
+    return item, item_name
