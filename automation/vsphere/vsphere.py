@@ -192,12 +192,10 @@ class vSphere:
 
 def main():
     """ For testing of vSphere. Also has examples of wrapper API useage. """
-    from json import load
+    from ..utils import read_json
     from os import pardir, path
 
-    with open(path.join(pardir, "logins.json"), "r") as login_file:
-        logins = load(fp=login_file)
-
+    logins = read_json(path.join(pardir, "logins.json"))
     server = vSphere(datacenter="r620", username=logins["user"], password=logins["pass"], hostname=logins["host"],
                      port=logins["port"], datastore="Datastore")
 

@@ -35,19 +35,15 @@ from docopt import docopt
 from automation.vsphere.vsphere import vSphere
 from automation.vsphere.vsphere_utils import *
 from automation.vsphere.vm_utils import *
-from automation.utils import prompt_y_n_question
+from automation.utils import prompt_y_n_question, read_json
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 args = docopt(__doc__, version=__version__, help=True)
 
 server = None  # Suppress warnings (sigh)
 if args["--file"]:
-    from json import load
-
-    with open(args["--file"], "r") as login_file:
-        info = load(fp=login_file)
-
+    info = read_json(args["--file"])
     server = vSphere(datacenter=info["datacenter"], username=info["username"], password=info["password"],
                      hostname=info["hostname"], port=info["port"], datastore=info["datastore"])
 else:

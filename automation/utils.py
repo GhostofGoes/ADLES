@@ -89,3 +89,14 @@ def fill_zeroes(value, length=2):
     :return: string of padded value
     """
     return "{0:0>{width}}".format(value, width=length)
+
+
+def read_json(filename):
+    """
+    Reads input from a JSON file and returns the contents
+    :param filename:
+    :return:
+    """
+    from json import load
+    with open(filename, "r") as json_file:
+        return load(fp=json_file)

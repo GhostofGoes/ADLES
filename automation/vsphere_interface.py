@@ -52,21 +52,18 @@ class VsphereInterface:
         self.root_name = self.metadata["name"]
         parent = traverse_path(self.server.get_folder(server_root), self.root_path)
         self.root_folder = self.server.create_folder(folder_name=self.root_name, create_in=parent)
-        # self.root_folder = traverse_path(self.server.get_folder(server_root), self.root_path, self.root_name)
 
     def create_masters(self):
         """ Master creation phase """
 
-        # Create master folder to hold base service instances
         # TODO: for the time being, just doing a flat "MASTER_FOLDERS" folder with all the masters, regardless of depth
         #   Will eventually do hierarchically based on folders and not just the services
         #   Will write a function to do this, so we can recursively descend for complex environments
+
+        # Create master folder to hold base service instances
         master_folder_name = "MASTER_FOLDERS"
         master_folder = self.server.create_folder(folder_name=master_folder_name, create_in=self.root_folder)
-        # master_folder = find_in_folder(self.root_folder, master_folder_name)
         logging.info("Created master folder %s under folder %s", master_folder_name, self.root_folder.name)
-
-        # TODO: not creating vswitches yet, assume created and specified
 
         # Create portgroups for networks
         for net_type in self.networks:
@@ -83,7 +80,6 @@ class VsphereInterface:
                          clone_spec=self.server.generate_clone_spec())
 
                 # Snapshot and configure base instance post-clone
-                # This is where any custom configurations or addition NICs are added
                 new_vm = self.server.get_vm(vm_name=vm_name)  # (TODO: traverse path)
                 if not new_vm:
                     logging.error("Did not successfully clone VM %s", vm_name)
