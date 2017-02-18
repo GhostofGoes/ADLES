@@ -47,7 +47,7 @@ import logging
 from automation.interface import Interface
 from automation.parser import parse_file, verify_syntax
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 __author__ = "Christopher Goes"
 __email__ = "<goes8945@vandals.uidaho.edu>"
 

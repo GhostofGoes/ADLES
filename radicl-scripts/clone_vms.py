@@ -31,10 +31,11 @@ Options:
 from docopt import docopt
 
 from automation.vsphere.vsphere import vSphere
+from automation.vsphere.vsphere_utils import traverse_path
 from automation.vsphere.vm_utils import *
-from automation.utils import *
+from automation.utils import prompt_y_n_question
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 args = docopt(__doc__, version=__version__, help=True)
 
@@ -63,6 +64,9 @@ else:
     else:
         server = vSphere(datacenter=datacenter, username=user, password=pswd, hostname=host, port=port)
 
+print("You run this script at your own risk. If you break something, it's on YOU. "
+      "\nThe source code for the script is easily readable, so if you're paranoid feel free to check/improve it :)")
+
 # this is the ugliest python i hath ever wroten since me early dayz as a nofice
 # Well, it isn't anymore. But the comment was funny so I'm leaving it in for you, the GitHub stalker
 while True:
@@ -78,9 +82,13 @@ if not vm.config.template:  # check type
         exit(0)
 
 while True:
-    folder_name = input("Name of folder in which to create VMs (NOT the path!): ")
-    folder = server.get_folder(folder_name=folder_name)  # find folder
+    folder_name = input("Name of folder or path to folder in which to create VMs: ")
+    if '/' in folder_name:
+        folder = traverse_path(server.get_folder(), folder_name)
+    else:
+        folder = server.get_folder(folder_name=folder_name)
     if folder:
+        print("Found folder {}".format(folder.name))
         break
     else:
         print("Couldn't find a folder with name {}. Perhaps try another? ".format(folder_name))

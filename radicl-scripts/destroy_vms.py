@@ -35,9 +35,9 @@ from docopt import docopt
 from automation.vsphere.vsphere import vSphere
 from automation.vsphere.vsphere_utils import *
 from automation.vsphere.vm_utils import *
-from automation.utils import *
+from automation.utils import prompt_y_n_question
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 args = docopt(__doc__, version=__version__, help=True)
 
@@ -65,6 +65,9 @@ else:
                          hostname=host, port=port, datastore=datastore)
     else:
         server = vSphere(datacenter=datacenter, username=user, password=pswd, hostname=host, port=port)
+
+print("You run this script at your own risk. If you break something, it's on YOU. "
+      "\nThe source code for the script is easily readable, so if you're paranoid feel free to check/improve it :)")
 
 if prompt_y_n_question("Do you wish to destroy a folder and it's sub-trees? "):
     while True:
