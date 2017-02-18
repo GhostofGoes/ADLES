@@ -30,38 +30,16 @@ Options:
 
 from docopt import docopt
 
-from automation.vsphere.vsphere import vSphere
 from automation.vsphere.vsphere_utils import traverse_path
 from automation.vsphere.vm_utils import *
-from automation.utils import prompt_y_n_question, read_json
+from automation.utils import prompt_y_n_question
+from .radicl_utils import make_vsphere, warning
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 args = docopt(__doc__, version=__version__, help=True)
-
-server = None  # Suppress warnings (sigh)
-if args["--file"]:
-    info = read_json(args["--file"])
-    server = vSphere(datacenter=info["datacenter"], username=info["username"], password=info["password"],
-                     hostname=info["hostname"], port=info["port"], datastore=info["datastore"])
-else:
-    from getpass import getpass
-    print("Enter information to connect to vSphere environment")
-    host = input("Hostname: ")
-    port = int(input("Port: "))
-    user = input("Username: ")
-    pswd = getpass("Password: ")
-    datacenter = input("vSphere Datacenter (should be one level below the vCenter server instance "
-                       "in the VMs and Templates view): ")
-    if prompt_y_n_question("Would you like to specify the datastore used "):
-        datastore = input("vSphere Datastore: ")
-        server = vSphere(datacenter=datacenter, username=user, password=pswd,
-                         hostname=host, port=port, datastore=datastore)
-    else:
-        server = vSphere(datacenter=datacenter, username=user, password=pswd, hostname=host, port=port)
-
-print("You run this script at your own risk. If you break something, it's on YOU. "
-      "\nThe source code for the script is easily readable, so if you're paranoid feel free to check/improve it :)")
+server = make_vsphere(args["--file"])
+warning()
 
 # this is the ugliest python i hath ever wroten since me early dayz as a nofice
 # Well, it isn't anymore. But the comment was funny so I'm leaving it in for you, the GitHub stalker
@@ -98,7 +76,6 @@ if prompt_y_n_question("Would you like to assign the new VMs to a specific resou
 else:
     pool = server.get_pool().name
     print("Proceeding with default pool {}".format(pool))
-
 
 print("Starting clones...")
 for lol in range(num_instances):
