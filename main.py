@@ -43,31 +43,19 @@ Examples:
 
 from docopt import docopt
 import logging
+from sys import exit
 
 from automation.interface import Interface
 from automation.parser import parse_file, verify_syntax
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 __author__ = "Christopher Goes"
 __email__ = "<goes8945@vandals.uidaho.edu>"
 
 
 def main():
-    from os.path import basename
-    from os.path import exists
-    from sys import exit
-
     if args["--spec"]:
-        if not exists(args["--spec"]):
-            exit("Could not find spec file to create environment using")
-        spec = parse_file(args["--spec"])
-        logging.info("Successfully ingested %s", str(basename(args["--spec"])))
-        logging.info("Checking syntax...")
-        if verify_syntax(spec):
-            logging.info("Syntax check successful!")
-        else:
-            logging.error("Syntax check failed!")
-            exit(1)
+        spec = check_syntax(args["--spec"])
         model = Interface(spec)
         if args["--masters"]:
             model.create_masters()
@@ -77,19 +65,32 @@ def main():
             logging.info("Finished deployment of environment %s", str(spec["metadata"]["name"]))
 
     elif args["--check-syntax"]:
-        if not exists(args["--check-syntax"]):
-            exit("Could not find spec file to check syntax of")
-        spec = parse_file(args["--check-syntax"])
-        logging.info("Successfully ingested %s", str(basename(args["--check-syntax"])))
-        logging.info("Checking syntax...")
-        if verify_syntax(spec):
-            logging.info("Syntax check successful!")
-        else:
-            logging.error("Syntax check failed!")
-            exit(1)
+        check_syntax(args["--check-syntax"])
 
     elif args["--package-dir"]:  # TODO
         logging.error("CURRENTLY UNSUPPORTED")
+
+
+def check_syntax(specfile_path):
+    """
+    Checks the syntax of a specification file
+    :param specfile_path: Path to the specification file
+    :return: The specification
+    """
+    from os.path import exists
+    from os.path import basename
+
+    if not exists(specfile_path):
+        exit("Could not find spec file to create environment using")
+    spec = parse_file(specfile_path)
+    logging.info("Successfully ingested %s", str(basename(specfile_path)))
+    logging.info("Checking syntax...")
+    if verify_syntax(spec):
+        logging.info("Syntax check successful!")
+        return spec
+    else:
+        logging.error("Syntax check failed!")
+        exit(1)
 
 
 if __name__ == '__main__':
