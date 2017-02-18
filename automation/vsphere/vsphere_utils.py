@@ -17,7 +17,7 @@ import logging
 from pyVmomi import vim
 from pyVmomi import vmodl
 
-from automation.utils import sizeof_fmt
+from ..utils import sizeof_fmt
 
 
 # From: various files in pyvmomi-community-samples
@@ -57,7 +57,21 @@ def get_objs(content, vimtype, recursive=True):
     return obj
 
 
+def get_item(content, vimtype, name):
+    """
+    Get a item of specified name and type from content
+    :param content:
+    :param vimtype:
+    :param name:
+    :return:
+    """
+    if not name:
+        return get_objs(content, [vimtype])[0]
+    else:
+        return get_obj(content, [vimtype], name)
+
 # TODO: function to apply a given operation to all objects in a view
+
 
 def find_in_folder(folder, name):
     """

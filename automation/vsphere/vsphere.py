@@ -19,8 +19,7 @@ import logging
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
-from automation.vsphere.vsphere_utils import *
-from automation.vsphere.network_utils import *
+from .vsphere_utils import get_obj, get_objs, get_item, find_in_folder
 
 
 class vSphere:
@@ -57,10 +56,7 @@ class vSphere:
         self.content = self.server.RetrieveContent()
         self.children = self.content.rootFolder.childEntity
         self.datacenter = get_obj(self.content, [vim.Datacenter], datacenter)
-        if datastore:
-            self.datastore = self.get_datastore(datastore_name=datastore)
-        else:
-            self.datastore = get_objs(self.content, [vim.Datastore])[0]
+        self.datastore = self.get_datastore(datastore)
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
     def create_folder(self, folder_name, create_in=None):
@@ -112,7 +108,7 @@ class vSphere:
     def set_motd(self, message):
         """
         Sets vCenter server Message of the Day (MOTD)
-        :param message:
+        :param message: Message to set
         """
         logging.info("Setting vCenter MOTD to %s", message)
         self.content.sessionManager.UpdateServiceMessage(message=message)
@@ -120,7 +116,7 @@ class vSphere:
     def get_folder(self, folder_name=None):
         """
         Finds and returns the named folder
-        :param folder_name: Name of the folder [default: rootFolder of vCenter instance]
+        :param folder_name: (Optional) Name of the folder [default: rootFolder of vCenter instance]
         :return: vim.Folder object
         """
         if folder_name:
@@ -142,10 +138,7 @@ class vSphere:
         :param host_name: (Optional) Name of the host [default: the first host found in the datacenter]
         :return: vim.HostSystem object
         """
-        if not host_name:
-            return get_objs(self.content, [vim.HostSystem])[0]
-        else:
-            return get_obj(self.content, [vim.HostSystem], host_name)
+        return get_item(content=self.content, vimtype=vim.HostSystem, name=host_name)
 
     def get_datastore(self, datastore_name=None):
         """
@@ -153,10 +146,7 @@ class vSphere:
         :param datastore_name: (Optional) Name of the datastore [default: first datastore found in the datacenter]
         :return: vim.Datastore object
         """
-        if not datastore_name:
-            return get_objs(self.content, [vim.Datastore])[0]
-        else:
-            return get_obj(self.content, [vim.Datastore], datastore_name)
+        return get_item(content=self.content, vimtype=vim.Datastore, name=datastore_name)
 
     def get_pool(self, pool_name=None):
         """
@@ -164,10 +154,7 @@ class vSphere:
         :param pool_name: (Optional) Name of the resource pool [default: first resource pool found in the datacenter]
         :return: vim.ResourcePool object
         """
-        if not pool_name:
-            return get_objs(self.content, [vim.ResourcePool])[0]
-        else:
-            return get_obj(self.content, [vim.ResourcePool], pool_name)
+        return get_item(content=self.content, vimtype=vim.ResourcePool, name=pool_name)
 
     def get_all_vms(self):
         """
@@ -227,12 +214,11 @@ def main():
 
     # TODO: cleanup function
     if 0:
+        from .vsphere_utils import destroy_everything
         to_destroy = ["Tutorial 3 - ARP Cache Poisoning"]
         for f in to_destroy:
             folder = server.get_folder(f)
             destroy_everything(folder)
-
-    # create_vswitch("competition_vswitch", server.get_host())
 
     # vm = server.get_vm("dummy")
     # print_vm_info(vm)

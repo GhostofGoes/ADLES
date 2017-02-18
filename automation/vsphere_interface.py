@@ -15,10 +15,10 @@
 
 import logging
 
-from automation.vsphere.vsphere import vSphere
-from automation.vsphere.network_utils import *
-from automation.vsphere.vsphere_utils import *
-from automation.vsphere.vm_utils import *
+from .vsphere.vsphere import vSphere
+from .vsphere.network_utils import *
+from .vsphere.vsphere_utils import *
+from .vsphere.vm_utils import *
 
 
 class VsphereInterface:
