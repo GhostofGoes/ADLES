@@ -30,8 +30,8 @@ Options:
 
 from docopt import docopt
 
-from automation.vsphere.vm_utils import change_power_state, change_guest_state, tools_status
-from automation.utils import prompt_y_n_question
+from ..automation.vsphere.vm_utils import change_power_state, change_guest_state, tools_status
+from ..automation.utils import prompt_y_n_question
 from .radicl_utils import make_vsphere, warning, user_input
 
 __version__ = "0.1.4"
@@ -49,8 +49,8 @@ if guest_check:
 if prompt_y_n_question("Do you wish to do power operations on multiple VMs? "):
     folder, folder_name = user_input("Name of folder which contains the VMs (NOT the path): ",
                                      "folder", server.get_folder)
-    if prompt_y_n_question("Found {} VMs in folder {}. Do you wish to continue? ".format(len(list(folder.childEntity)),
-                                                                                         folder_name)):
+    if prompt_y_n_question("Found {} VMs in folder {}. Do you wish to continue? "
+                           .format(len(list(folder.childEntity)), folder_name)):
         for vm in folder.childEntity:
             if guest_check and tools_status(vm):
                 change_guest_state(vm, guest_op)
