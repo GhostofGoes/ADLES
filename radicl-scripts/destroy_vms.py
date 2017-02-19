@@ -32,9 +32,9 @@ Options:
 
 from docopt import docopt
 
-from ..automation.vsphere.vsphere_utils import destroy_everything
-from ..automation.vsphere.vm_utils import destroy_vm
-from ..automation.utils import prompt_y_n_question
+from automation.vsphere.vsphere_utils import destroy_everything
+from automation.vsphere.vm_utils import destroy_vm
+from automation.utils import prompt_y_n_question
 from .radicl_utils import make_vsphere, warning, user_input
 
 __version__ = "0.1.4"

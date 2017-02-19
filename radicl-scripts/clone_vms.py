@@ -30,9 +30,9 @@ Options:
 
 from docopt import docopt
 
-from ..automation.vsphere.vsphere_utils import traverse_path
-from ..automation.vsphere.vm_utils import clone_vm
-from ..automation.utils import prompt_y_n_question
+from automation.vsphere.vsphere_utils import traverse_path
+from ..vsphere.vm_utils import clone_vm
+from ..utils import prompt_y_n_question
 from .radicl_utils import make_vsphere, warning, user_input
 
 __version__ = "0.2.4"

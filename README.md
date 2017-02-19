@@ -29,6 +29,14 @@ sudo chmod +x main.py
 ./main.py --help
 ```
 
+## Just the RADICL scripts
+```
+git clone https://github.com/GhostofGoes/cybersecurity-environment-automation.git
+cd cybersecurity-environment-automation/automation/radicl-scripts/
+pip install -r radicl-requirements.txt
+python clone_vms.py --help
+```
+
 
 # Getting started
 
