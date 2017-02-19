@@ -76,8 +76,3 @@ class Interface:
         """
         logging.info("Cleaning up environment for %s", self.metadata["name"])
         self.interface.cleanup_masters(network_cleanup=network_cleanup)
-
-    # List of possible useful things
-    #   open_console
-    #   upload_file
-    #   get_status    Status of the overall environment (what VMs are on/off/deploys, what phase, etc.)
