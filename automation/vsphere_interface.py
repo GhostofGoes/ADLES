@@ -26,6 +26,7 @@ class VsphereInterface:
 
     # Switches to tweak (these are global to ALL instances of this class)
     master_prefix = "(MASTER) "
+    master_folder_name = "MASTER_FOLDERS"
     warn_threshold = 100            # Point at which to warn if many instances are being created
 
     def __init__(self, infrastructure, logins, spec):
@@ -61,9 +62,8 @@ class VsphereInterface:
         #   Will write a function to do this, so we can recursively descend for complex environments
 
         # Create master folder to hold base service instances
-        master_folder_name = "MASTER_FOLDERS"
-        master_folder = self.server.create_folder(folder_name=master_folder_name, create_in=self.root_folder)
-        logging.info("Created master folder %s under folder %s", master_folder_name, self.root_folder.name)
+        master_folder = self.server.create_folder(folder_name=self.master_folder_name, create_in=self.root_folder)
+        logging.info("Created master folder %s under folder %s", self.master_folder_name, self.root_folder.name)
 
         # Create portgroups for networks
         for net_type in self.networks:
@@ -124,3 +124,24 @@ class VsphereInterface:
         # Create portgroup instances
         #   Create generic-networks
         #   Create base-networks
+
+    def cleanup_masters(self, network_cleanup=False):
+        """ Cleans up any master instances"""
+
+        # Get the folder to cleanup in
+        master_folder = find_in_folder(self.root_folder, self.master_folder_name)
+        logging.info("Found master folder %s under folder %s, proceeding with cleanup...",
+                     master_folder.name, self.root_folder.name)
+
+        # Recursively descend from master folder, destroying anything with the prefix
+
+        # Cleanup networks
+        if network_cleanup:
+            pass
+
+    def cleanup_environment(self, network_cleanup=False):
+        """ Cleans up a deployed environment """
+
+        # Cleanup networks
+        if network_cleanup:
+            pass

@@ -282,8 +282,8 @@ def _verify_folders_syntax(folders):
 
 if __name__ == '__main__':
     from pprint import pprint
-    test_files = ['../specifications/environment-specification.yaml',
-             '../examples/competition.yaml', '../examples/tutorial.yaml', '../examples/experiment.yaml']
+    test_files = ['specifications/environment-specification.yaml', 'examples/competition.yaml',
+                  'examples/tutorial.yaml', 'examples/experiment.yaml']
     for specfile in test_files:
         s = parse_file(specfile)
         pprint(s)  # Note that pprint will cause descriptions to go across multiple lines, don't be alarmed

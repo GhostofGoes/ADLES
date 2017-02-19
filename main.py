@@ -18,26 +18,31 @@
 """Program used to create cybersecurity educational environments from formal specifications.
 
 Usage:
-    main.py [--debug] --check-syntax FILE
-    main.py [--debug] (-m | --masters | -d | --deploy) --spec FILE
-    main.py [--debug] --package-dir NAME
+    main.py [-v] --check-syntax FILE
+    main.py [-v] (--create-masters | --deploy) -s FILE
+    main.py [-v] --package-dir NAME
+    main.py [-v] (--cleanup-masters | --cleanup-enviro) [--network-cleanup] -s FILE
     main.py --version
-    main.py (-h | --help)
+    main.py --help
 
 Options:
     -h, --help                  Shows this help
     --version                   Prints current version
-    --debug                     Emits debugging logs to terminal in addition to a file
+    -v, --verbose               Emits debugging logs to terminal in addition to a file
     -c, --check-syntax FILE     Validates syntax is valid per specification
     -s, --spec FILE             YAML file with the environment specification
     -p, --package-dir NAME      Filepath of the exercise package directory
-    -m, --master                Master creation phase of specification
+    -m, --create-masters        Master creation phase of specification
     -d, --deploy                Environment deployment phase of specification (Master's MUST be created first!)
+    --cleanup-masters           Cleanup masters and optionally networks created by a specification
+    --cleanup-enviro            Cleanup environment and optionally networkscreated by a specification
+    --network-cleanup           Cleanup networks created during environment or master creation
 
 Examples:
-    main.py --check-syntax ../examples/tutorial.yaml
-    main.py --debug --masters --spec ../examples/research.yaml
-    main.py -d -s ../examples/competition.yaml
+    main.py --check-syntax examples/tutorial.yaml
+    main.py -v --create-masters --spec examples/experiment.yaml
+    main.py -d -s examples/competition.yaml
+    main.py --cleanup-masters --network-cleanup -s examples/competition.yaml
 
 """
 
@@ -48,7 +53,7 @@ from sys import exit
 from automation.interface import Interface
 from automation.parser import parse_file, verify_syntax
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 __author__ = "Christopher Goes"
 __email__ = "<goes8945@vandals.uidaho.edu>"
 
@@ -56,19 +61,28 @@ __email__ = "<goes8945@vandals.uidaho.edu>"
 def main():
     if args["--spec"]:
         spec = check_syntax(args["--spec"])
-        model = Interface(spec)
-        if args["--masters"]:
-            model.create_masters()
+        interface = Interface(spec)
+        if args["--create-masters"]:
+            interface.create_masters()
             logging.info("Finished creation of Masters for environment %s", str(spec["metadata"]["name"]))
         elif args["--deploy"]:
-            model.deploy_environment()
+            interface.deploy_environment()
             logging.info("Finished deployment of environment %s", str(spec["metadata"]["name"]))
+        elif args["--cleanup-masters"]:
+            interface.cleanup_masters(network_cleanup=args["--network-cleanup"])
+        elif args["--cleanup-enviro"]:
+            interface.cleanup_environment(network_cleanup=args["--network-cleanup"])
+        else:
+            logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
 
     elif args["--check-syntax"]:
         check_syntax(args["--check-syntax"])
 
     elif args["--package-dir"]:  # TODO
         logging.error("CURRENTLY UNSUPPORTED")
+
+    else:
+        logging.error("Invalid arguments. Argument dump:\n%s", str(args))
 
 
 def check_syntax(specfile_path):
@@ -102,7 +116,7 @@ if __name__ == '__main__':
                         filename="environment-creator.log",
                         filemode='w')
     console = logging.StreamHandler()
-    if args["--debug"]:
+    if args["--verbose"]:
         console.setLevel(logging.DEBUG)
     else:
         console.setLevel(logging.INFO)

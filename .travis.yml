@@ -8,9 +8,12 @@ python:
     - "pypy3"
 install: "pip install -r requirements.txt"
 script:
-  - python main.py --check-syntax examples/tutorial.yaml
-  - python main.py --check-syntax examples/competition.yaml
-  - python main.py --check-syntax examples/experiment.yaml
+  - python main.py -h
+  - python main.py --version
+  - python main.py -v --check-syntax examples/tutorial.yaml
+  - python main.py -v --check-syntax examples/competition.yaml
+  - python main.py -v --check-syntax examples/experiment.yaml
+  - python automation/parser.py
 notifications:
   email:
     on_success: never

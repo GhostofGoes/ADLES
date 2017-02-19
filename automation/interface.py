@@ -22,9 +22,9 @@ class Interface:
     def __init__(self, spec):
         """ :param spec: Full specification """
         from sys import exit
-        metadata = spec["metadata"]
+        self.metadata = spec["metadata"]
 
-        if not metadata["infrastructure-config-file"]:
+        if not self.metadata["infrastructure-config-file"]:
             logging.error("No infrastructure configuration file specified!")
             exit("Unable to load Model: no infra conf file")
 
@@ -52,12 +52,30 @@ class Interface:
             exit("Unable to load Model: Invalid Platform")
 
     def create_masters(self):
-        logging.info("Creating Master instances for environment setup...")
+        """ Master creation phase """
+        logging.info("Creating Master instances for %s", self.metadata["name"])
         self.interface.create_masters()
 
     def deploy_environment(self):
-        logging.info("Deploying environment...")
+        """ Environment deployment phase """
+        logging.info("Deploying environment for %s", self.metadata["name"])
         self.interface.deploy_environment()
+
+    def cleanup_masters(self, network_cleanup=False):
+        """
+        Cleans up master instances
+        :param network_cleanup: If networks should be cleaned up [default: False]
+        """
+        logging.info("Cleaning up Master instances for %s", self.metadata["name"])
+        self.interface.cleanup_masters(network_cleanup=network_cleanup)
+
+    def cleanup_environment(self, network_cleanup=False):
+        """
+        Cleans up a deployed environment
+        :param network_cleanup: If networks should be cleaned up [default: False]
+        """
+        logging.info("Cleaning up environment for %s", self.metadata["name"])
+        self.interface.cleanup_masters(network_cleanup=network_cleanup)
 
     # List of possible useful things
     #   open_console
