@@ -12,33 +12,44 @@ This is the Proof of Concept implementation of my thesis research for a Master o
 
 # Installation
 
+## Windows
+```cmd
+git clone https://github.com/GhostofGoes/cybersecurity-environment-automation.git
+cd cybersecurity-environment-automation
+pip install -r requirements.txt
+python main.py --help
 ```
+
+## Linux
+```bash
 git clone https://github.com/GhostofGoes/cybersecurity-environment-automation.git
 cd cybersecurity-environment-automation
 pip3 install -r requirements.txt
+sudo chmod +x main.py
 ./main.py --help
 ```
 
 
 # Getting started
 
-Poke through the examples folder and try running a few of them. Use --help on main.py for usage information.
-See specification/specification.yaml for the exercise specification, built on YAML 1.1.
+* Poke through the examples folder and try running a few of them.
+* Run `main.py --help` for usage information.
+* See specification/environment-specification.yaml for the exercise specification, built on YAML 1.1.
 
 
 # System Requirements
 
-## Local system
+### Software
 Python: 3.2+
 
-Packages (see requirements.txt for specific versions):
-
+### Python Packages
+See requirements.txt for specific versions
 * pyvmomi 
 * docopt
 * pyyaml
 * netaddr
 
-## Platform
+### Virtualization Platforms
 * vSphere >= 6.0
 * ESXi >= 6.0 U2
 
