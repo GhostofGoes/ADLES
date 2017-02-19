@@ -30,9 +30,9 @@ Options:
 
 from docopt import docopt
 
-from ..vsphere.vm_utils import change_power_state, change_guest_state, tools_status
-from ..utils import prompt_y_n_question
-from .radicl_utils import make_vsphere, warning, user_input
+from automation.radicl_utils import make_vsphere, warning, user_input
+from automation.utils import prompt_y_n_question
+from automation.vsphere.vm_utils import change_power_state, change_guest_state, tools_status
 
 __version__ = "0.1.4"
 
