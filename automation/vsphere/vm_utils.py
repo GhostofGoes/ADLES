@@ -389,7 +389,7 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
         nic_spec.device.backing.network = port_group
         nic_spec.device.backing.deviceName = port_group.name
 
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
+    wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))  # Apply the change to the VM
 
 
 # From: add_nic_to_vm.py in pyvmomi-community-samples
@@ -399,7 +399,8 @@ def add_nic(vm, port_group, summary="default-summary", model="e1000"):
     :param vm: vim.VirtualMachine
     :param port_group: vim.Network port group to attach NIC to
     :param summary: (Optional) Human-readable device info
-    :param model: (Optional) Model of virtual network adapter. Options: e1000, e1000e, vmxnet, vmxnet2, vmxnet3.
+    :param model: (Optional) Model of virtual network adapter. [default: e1000]
+    Options: e1000, e1000e, vmxnet, vmxnet2, vmxnet3.
     e1000 will work on Windows Server 2003+, and e1000e is supported on Windows Server 2012 and newer.
     VMXNET adapters require VMware Tools to be installed, and will provide significantly enhanced performance,
     since they remove emulation overhead.
@@ -421,8 +422,8 @@ def add_nic(vm, port_group, summary="default-summary", model="e1000"):
     elif model == "vmxnet3":
         nic_spec.device = vim.vm.device.VirtualVmxnet3()
     else:
-        logging.error("Invalid NIC model: %s", model)
-        return
+        logging.error("Invalid NIC model: %s\nDefaulting to e1000...", model)
+        nic_spec.device = vim.vm.device.VirtualE1000()
 
     nic_spec.device.addressType = 'generated'               # Sets how MAC address is assigned
     nic_spec.device.wakeOnLanEnabled = False                # Disables Wake-on-lan capabilities
@@ -443,7 +444,7 @@ def add_nic(vm, port_group, summary="default-summary", model="e1000"):
 
     # TODO: configure guest IP address if statically assigned
 
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
+    wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))  # Apply the change to the VM
 
 
 def attach_iso(vm, filename, datastore, boot=True):
@@ -477,4 +478,13 @@ def attach_iso(vm, filename, datastore, boot=True):
         order.extend(list(vm.config.bootOptions.bootOrder))
         vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)
 
-    edit_vm(vm, vm_spec)  # Apply the change to the VM
+    wait_for_task(edit_vm(vm, vm_spec))  # Apply the change to the VM
+
+
+def get_nics(vm):
+    """
+    Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
+    :param vm: vim.VirtualMachine
+    :return: list of vim.vm.device.VirtualDevice
+    """
+    return [dev for dev in vm.config.hardware.device if isinstance(dev, vim.vm.device.VirtualEthernetCard)]

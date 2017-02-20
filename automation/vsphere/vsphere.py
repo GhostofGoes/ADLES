@@ -132,6 +132,18 @@ class vSphere:
         """
         return get_obj(self.content, [vim.VirtualMachine], vm_name)
 
+    def get_portgroup(self, portgroup_name=None, distributed=False):
+        """
+        Finds and returns the named PortGroup
+        :param portgroup_name: (Optional) Name of the portgroup [default: first portgroup in datacenter]
+        :param distributed: (Optional) If the portgroup is a Distributed PortGroup [default: False]
+        :return: vim.Network or vim.dvs.DistributedVirtualPortgroup object
+        """
+        if not distributed:
+            return get_item(self.content, [vim.Network], portgroup_name)
+        else:
+            return get_item(self.content, [vim.dvs.DistributedVirtualPortgroup], portgroup_name)
+
     def get_host(self, host_name=None):
         """
         Finds and returns the named host

@@ -84,10 +84,24 @@ class VsphereInterface:
                 if not new_vm:
                     logging.error("Did not successfully clone VM %s", vm_name)
                     continue
-                create_snapshot(new_vm, "post-clone", "Clean snapshot taken immediately after cloning")
+
                 # TODO: add NICs to VMs and attach to portgroups
+                # Check if number of networks in spec is same as what's on the VM
+                # NOTE: management interfaces matter here!
+                # TODO: distributed
+                if len(service_config["networks"]) == len(list(new_vm.network)):
+                    # TODO: put this in a function?
+                    for net, i in zip(service_config["networks"], len(service_config["networks"])):
+                        edit_nic(new_vm, nic_number=i, port_group=self.server.get_portgroup(net), summary=net)
+                else:  # Create missing interfaces or remove excess
+                    # TODO: add missing
+                    # TODO: remove excess
+                    pass
+
                 if "note" in service_config:
                     set_note(vm=new_vm, note=service_config["note"])
+
+                create_snapshot(new_vm, "post-clone", "Clean snapshot taken after cloning and configuration.")
 
         # Apply master-group permissions [default: group permissions]
 
@@ -125,6 +139,8 @@ class VsphereInterface:
         #   Create generic-networks
         #   Create base-networks
 
+        # Clone instances (use function for numbering)(use prefix if specified)
+
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
 
@@ -135,13 +151,13 @@ class VsphereInterface:
 
         # Recursively descend from master folder, destroying anything with the prefix
 
-        # Cleanup networks
+        # Cleanup networks (TODO: use network folders to aid in this, during creation phase)
         if network_cleanup:
             pass
 
     def cleanup_environment(self, network_cleanup=False):
         """ Cleans up a deployed environment """
 
-        # Cleanup networks
+        # Cleanup networks (TODO: use network folders to aid in this, during creation phase)
         if network_cleanup:
             pass
