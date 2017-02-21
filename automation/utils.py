@@ -12,13 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from getpass import getpass
 from sys import stdout
 from time import time
 import logging
 
 
 # From: virtual_machine_power_cycle_and_question.py in pyvmomi-community-samples
+from automation.vsphere.vsphere import Vsphere
+
+
 def _create_char_spinner():
     """ Creates a generator yielding a char based spinner """
     while True:
@@ -155,3 +158,54 @@ def time_execution(func):
         logging.debug("Elapsed time for %s: %f seconds", str(func.__name__), float(end_time - start_time))
         return ret
     return wrapper
+
+
+def make_vsphere(filename=None):
+    """
+    Creates a vSphere object using either a JSON file or by prompting the user for input
+    :param filename: (Optional) Name of JSON file with information needed [default: None]
+    :return: vSphere object
+    """
+    if filename:
+        info = read_json(filename)
+        user = (info["username"] if info["username"] else input("Username: "))
+        pswd = (info["password"] if info["password"] else getpass("Password: "))
+        return Vsphere(datacenter=info["datacenter"], username=user, password=pswd,
+                       hostname=info["hostname"], port=info["port"], datastore=info["datastore"])
+    else:
+        logging.info("Enter information to connect to vSphere environment")
+        host = input("Hostname: ")
+        port = int(input("Port: "))
+        user = input("Username: ")
+        pswd = getpass("Password: ")
+        datacenter = input("vSphere Datacenter: ")
+        if prompt_y_n_question("Would you like to specify the datastore used "):
+            datastore = input("vSphere Datastore: ")
+        else:
+            datastore = None
+        return Vsphere(datacenter=datacenter, username=user, password=pswd,
+                       hostname=host, port=port, datastore=datastore)
+
+
+def warning():
+    """ Prints a warning prompt. """
+    logging.info("\nYou run this script at your own risk. If you break something, it's on YOU"
+                 "\nIf you're paranoid, please read the code, and perhaps improve it =)\n")
+
+
+def user_input(prompt, obj_name, func):
+    """
+    Continually bothers a user for input until we get what we want from them
+    :param prompt: Prompt to bother user with
+    :param obj_name: Name of the type of the object that we seek
+    :param func: The function that shalt be called to discover the object
+    :return: The discovered object and it's human name
+    """
+    while True:
+        item_name = input(prompt)
+        item = func(item_name)
+        if item:
+            break
+        else:
+            logging.info("Couldn't find a {} with name {}. Perhaps try another? ".format(obj_name, item_name))
+    return item, item_name

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,8 +43,8 @@ def parse_file(filename):
 @time_execution
 def verify_syntax(spec):
     """
-    Verifies the syntax for the dictionary representation of an environment specificaiton
-    :param spec: Dictionary of environment specificaiton
+    Verifies the syntax for the dictionary representation of an environment specification
+    :param spec: Dictionary of environment specification
     :return: Boolean indicating success or failure
     """
     status = True

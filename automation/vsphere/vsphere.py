@@ -13,6 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""vSphere wrapper class. This entrypoint is used to test the class.
+
+Usage:
+    vsphere.py [-v] [-f FILE]
+    vsphere.py --version
+    vsphere.py (-h | --help)
+
+Options:
+    -h, --help          Shows this help
+    --version           Prints current version
+    -f, --file FILE     JSON file with server connection information
+    -v, --verbose       Emits debugging logs to terminal in addition to a file
+
+"""
+
 from atexit import register
 import logging
 
@@ -22,8 +37,10 @@ from pyVmomi import vim
 # Must always use absolute imports when running as script (aka as '__main__')
 from automation.vsphere.vsphere_utils import get_obj, get_objs, get_item, find_in_folder
 
+__version__ = "0.6.0"
 
-class vSphere:
+
+class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
     def __init__(self, datacenter, username, password, hostname, port=443, datastore=None):
@@ -205,15 +222,15 @@ class vSphere:
 
 
 def main():
-    """ For testing of vSphere. Also has examples of wrapper API useage. """
-    from automation.utils import read_json, setup_logging
-    from os import pardir, path
+    """ For testing of vSphere. Has examples of usage as well. """
+    from docopt import docopt
+    from automation.utils import setup_logging
+    from automation.utils import make_vsphere
     import automation.vsphere.vm_utils as vm_utils  # Must always use absolute imports when running as script (__main__)
 
-    setup_logging(filename='vsphere-testing.log', console_level=logging.DEBUG)
-    logins = read_json(path.join(pardir, "logins.json"))
-    server = vSphere(datacenter="r620", username=logins["user"], password=logins["pass"], hostname=logins["host"],
-                     port=logins["port"], datastore="Datastore")
+    args = docopt(__doc__, version=__version__, help=True)
+    setup_logging(filename='vsphere-testing.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
+    server = make_vsphere(args["--file"])
 
     vm = server.get_vm("dummy")
     vm_utils.print_vm_info(vm)

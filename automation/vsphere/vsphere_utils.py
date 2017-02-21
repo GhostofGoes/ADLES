@@ -182,13 +182,14 @@ def wait_for_task(task):
     """
     if not task:
         return None
-    logging.debug("Waiting for task: %s", task.info.name)
+    logging.debug("Waiting for task: %s", str(task.info.name))
     task_done = False
     while not task_done:
         if task.info.state == 'success':
+            logging.debug("Result: %s", str(task.info.result))
             return task.info.result
         if task.info.state == 'error':
-            logging.error("There was an error while completing task %s", task.info.name)
+            logging.error("There was an error while completing task %s", str(task.info.name))
             task_done = True
 
 

@@ -16,14 +16,14 @@
 """Destroy VMs and Folders in a vSphere environment.
 
 Usage:
-    destroy_vms.py [-v] [Options]
+    destroy_vms.py [-v] [-f FILE]
     destroy_vms.py --version
     destroy_vms.py (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
-    -f, --file FILE     Name of JSON file with server connection and login information
+    -f, --file FILE     Name of JSON file with server connection information
     -v, --verbose       Verbose output of whats going on
 
 """
@@ -31,8 +31,7 @@ Options:
 from docopt import docopt
 import logging
 
-from automation.radicl_utils import make_vsphere, warning, user_input
-from automation.utils import prompt_y_n_question, setup_logging
+from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input
 from automation.vsphere.vm_utils import destroy_vm
 from automation.vsphere.vsphere_utils import destroy_everything
 

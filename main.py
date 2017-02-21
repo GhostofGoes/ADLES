@@ -35,7 +35,7 @@ Options:
     -m, --create-masters        Master creation phase of specification
     -d, --deploy                Environment deployment phase of specification (Master's MUST be created first!)
     --cleanup-masters           Cleanup masters and optionally networks created by a specification
-    --cleanup-enviro            Cleanup environment and optionally networkscreated by a specification
+    --cleanup-enviro            Cleanup environment and optionally networks created by a specification
     --network-cleanup           Cleanup networks created during environment or master creation
 
 Examples:

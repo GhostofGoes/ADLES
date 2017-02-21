@@ -16,7 +16,7 @@
 """Clone multiple Virtual Machines in vSphere.
 
 Usage:
-    clone_vms.py [-v] [Options]
+    clone_vms.py [-v] [-f FILE]
     clone_vms.py --version
     clone_vms.py (-h | --help)
 
@@ -31,8 +31,7 @@ Options:
 from docopt import docopt
 import logging
 
-from automation.radicl_utils import make_vsphere, warning, user_input
-from automation.utils import prompt_y_n_question, setup_logging
+from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input
 from automation.vsphere.vm_utils import clone_vm
 from automation.vsphere.vsphere_utils import traverse_path
 

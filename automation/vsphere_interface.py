@@ -14,7 +14,7 @@
 
 import logging
 
-from automation.vsphere.vsphere import vSphere
+from automation.vsphere.vsphere import Vsphere
 from automation.vsphere.network_utils import *
 from automation.vsphere.vsphere_utils import *
 from automation.vsphere.vm_utils import *
@@ -39,7 +39,7 @@ class VsphereInterface:
         self.folders = spec["folders"]
 
         # Create the vSphere object to interact with
-        self.server = vSphere(datacenter=infrastructure["datacenter"],
+        self.server = Vsphere(datacenter=infrastructure["datacenter"],
                               username=logins["user"],
                               password=logins["pass"],
                               hostname=logins["host"],

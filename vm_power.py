@@ -16,14 +16,14 @@
 """Power operations for Virtual Machines in vSphere.
 
 Usage:
-    vm_power.py [-v] [Options]
+    vm_power.py [-v] [-f FILE]
     vm_power.py --version
     vm_power.py (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
-    -f, --file FILE     Name of JSON file with server connection and login information
+    -f, --file FILE     Name of JSON file with server connection information
     -v, --verbose       Verbose output of whats going on
 
 """
@@ -31,8 +31,7 @@ Options:
 from docopt import docopt
 import logging
 
-from automation.radicl_utils import make_vsphere, warning, user_input
-from automation.utils import prompt_y_n_question, setup_logging
+from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input
 from automation.vsphere.vm_utils import change_power_state, change_guest_state, tools_status
 
 __version__ = "0.1.5"
