@@ -53,7 +53,7 @@ from sys import exit
 from automation.interface import Interface
 from automation.parser import parse_file, verify_syntax
 
-__version__ = "0.5.3"
+__version__ = "0.5.4"
 __author__ = "Christopher Goes"
 __email__ = "<goes8945@vandals.uidaho.edu>"
 
@@ -78,7 +78,7 @@ def main():
     elif args["--check-syntax"]:
         check_syntax(args["--check-syntax"])
 
-    elif args["--package-dir"]:  # TODO
+    elif args["--package-dir"]:
         logging.error("CURRENTLY UNSUPPORTED")
 
     else:
@@ -112,19 +112,3 @@ if __name__ == '__main__':
     from automation.utils import setup_logging
     setup_logging(filename='main.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
     main()
-
-    """
-    logging.basicConfig(level=logging.DEBUG,
-                        format="[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s",
-                        datefmt="%y-%m-%d %H:%M:%S",
-                        filename="environment-creator.log",
-                        filemode='w')
-    console = logging.StreamHandler()
-    if args["--verbose"]:
-        console.setLevel(logging.DEBUG)
-    else:
-        console.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(levelname)-12s %(message)s")
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
-    """

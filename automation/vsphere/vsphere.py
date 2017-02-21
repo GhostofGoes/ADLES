@@ -215,28 +215,6 @@ def main():
     server = vSphere(datacenter="r620", username=logins["user"], password=logins["pass"], hostname=logins["host"],
                      port=logins["port"], datastore="Datastore")
 
-
-    """
-    logging.basicConfig(level=logging.DEBUG,
-                        format="[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s",
-                        datefmt="%y-%m-%d %H:%M:%S",
-                        filename="vsphere-testing.log",
-                        filemode='w')
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(levelname)-12s %(message)s")
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
-    """
-
-    # TODO: cleanup function
-    if 0:
-        from .vsphere_utils import destroy_everything
-        to_destroy = ["Tutorial 3 - ARP Cache Poisoning"]
-        for f in to_destroy:
-            folder = server.get_folder(f)
-            destroy_everything(folder)
-
     vm = server.get_vm("dummy")
     vm_utils.print_vm_info(vm)
 

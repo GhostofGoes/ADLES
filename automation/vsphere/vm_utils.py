@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +16,10 @@ import logging
 from pyVmomi import vim
 
 from automation.vsphere.vsphere_utils import wait_for_task
+from automation.utils import time_execution
 
 
+@time_execution
 def clone_vm(vm, folder, name, clone_spec):
     """
     Creates a clone of the VM or Template
@@ -35,6 +36,7 @@ def clone_vm(vm, folder, name, clone_spec):
         wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
 
 
+@time_execution
 def create_vm(folder, config, pool, host=None):
     """
     Creates a VM with the specified configuration in the given folder
@@ -47,6 +49,7 @@ def create_vm(folder, config, pool, host=None):
     wait_for_task(folder.CreateVM_Task(config, pool, host))
 
 
+@time_execution
 def destroy_vm(vm):
     """
     Unregisters and deletes the VM
@@ -165,6 +168,7 @@ def set_note(vm, note):
     wait_for_task(vm.ReconfigVM_Task(spec))
 
 
+@time_execution
 def create_snapshot(vm, name, description="default", memory=False):
     """
     Create a snapshot of the VM
@@ -177,6 +181,7 @@ def create_snapshot(vm, name, description="default", memory=False):
     wait_for_task(vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True))
 
 
+@time_execution
 def revert_to_snapshot(vm, snapshot_name):
     """
     Reverts VM to the named snapshot
@@ -188,6 +193,7 @@ def revert_to_snapshot(vm, snapshot_name):
     wait_for_task(snap.RevertToSnapshot_Task())
 
 
+@time_execution
 def revert_to_current_snapshot(vm):
     """
     Reverts the VM to the most recent snapshot

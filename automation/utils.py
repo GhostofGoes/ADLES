@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from sys import stdout
+from time import time
 import logging
 
 
@@ -82,7 +83,7 @@ def prompt_y_n_question(question, default="no"):
             print("Please, respond with 'yes' or 'no' or 'y' or 'n'.")
 
 
-def fill_zeroes(value, length=2):
+def pad(value, length=2):
     """
     Adds leading and trailing ("pads") zeros to value to ensure it is a constant length
     :param value: integer value to pad
@@ -114,6 +115,8 @@ def setup_logging(filename, console_level=logging.INFO, file_level=logging.DEBUG
     :param console_level: Level of logs that should be printed to terminal [default: logging.INFO]
     :param file_level: Level of logs that should be written to file [default: logging.DEBUG]
     """
+    with open(filename, 'a') as logfile:
+        logfile.write(5 * '\n')  # Prepend spaces to separate logs from different runs
     base_format = "[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s"
     time_format = "%y-%m-%d %H:%M:%S"
     logging.basicConfig(level=file_level,
@@ -127,3 +130,28 @@ def setup_logging(filename, console_level=logging.INFO, file_level=logging.DEBUG
     formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
+
+    from getpass import getuser
+    from os import getcwd
+    from sys import version, platform
+    logging.debug("Initialized logging, saving logs to %s", filename)
+    logging.debug("Python %s", str(version))
+    logging.debug("Platform: %s", str(platform))
+    logging.debug("Username: %s", str(getuser()))
+    logging.debug("Current directory: %s\n", str(getcwd()))
+
+
+# Credit to: http://stackoverflow.com/a/15707426/2214380
+def time_execution(func):
+    """
+    Wrapper to time the execution of a function and log to debug
+    :param func: The function to time execution of
+    :return: The function (It's a wrapper...)
+    """
+    def wrapper(*args, **kwargs):
+        start_time = time()
+        ret = func(*args, **kwargs)
+        end_time = time()
+        logging.debug("Elapsed time for %s: %f seconds", str(func.__name__), float(end_time - start_time))
+        return ret
+    return wrapper

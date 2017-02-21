@@ -16,6 +16,8 @@
 import logging
 from netaddr import IPNetwork
 
+from automation.utils import time_execution
+
 
 # Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
 def parse_file(filename):
@@ -39,6 +41,7 @@ def parse_file(filename):
     return doc
 
 
+@time_execution
 def verify_syntax(spec):
     """
     Verifies the syntax for the dictionary representation of an environment specificaiton
