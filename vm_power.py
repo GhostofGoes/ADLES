@@ -16,8 +16,7 @@
 """Power operations for Virtual Machines in vSphere.
 
 Usage:
-    vm_power.py
-    vm_power.py -f FILE
+    vm_power.py [-v] [Options]
     vm_power.py --version
     vm_power.py (-h | --help)
 
@@ -25,18 +24,22 @@ Options:
     -h, --help          Prints this page
     --version           Prints current version
     -f, --file FILE     Name of JSON file with server connection and login information
+    -v, --verbose       Verbose output of whats going on
 
 """
 
 from docopt import docopt
+import logging
 
 from automation.radicl_utils import make_vsphere, warning, user_input
-from automation.utils import prompt_y_n_question
+from automation.utils import prompt_y_n_question, setup_logging
 from automation.vsphere.vm_utils import change_power_state, change_guest_state, tools_status
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 args = docopt(__doc__, version=__version__, help=True)
+setup_logging(filename='vm_power.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
+
 server = make_vsphere(args["--file"])
 warning()
 
@@ -59,5 +62,5 @@ if prompt_y_n_question("Do you wish to do power operations on multiple VMs? "):
 
 else:
     vm, vm_name = user_input("Name of the VM to do power operation on: ", "VM", server.get_vm)
-    print("Changing power state of VM {} to {}".format(vm_name, operation))
+    logging.info("Changing power state of VM {} to {}".format(vm_name, operation))
     change_power_state(vm, operation)

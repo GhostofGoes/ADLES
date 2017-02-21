@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from sys import stdout
+import logging
 
 
 # From: virtual_machine_power_cycle_and_question.py in pyvmomi-community-samples
@@ -71,7 +72,7 @@ def prompt_y_n_question(question, default="no"):
         raise ValueError("Invalid default answer: '{}'".format(default))
 
     while True:
-        print(question + prompt)
+        logging.info(question + prompt)
         choice = input().lower()
         if default is not None and choice == '':
             return valid[default]
@@ -98,5 +99,31 @@ def read_json(filename):
     :return:
     """
     from json import load
-    with open(filename, "r") as json_file:
-        return load(fp=json_file)
+    try:
+        with open(filename, "r") as json_file:
+            return load(fp=json_file)
+    except Exception as e:
+        logging.error("Could not open file %s. Error: %s", filename, str(e))
+        return None
+
+
+def setup_logging(filename, console_level=logging.INFO, file_level=logging.DEBUG):
+    """
+    Configures the logging interface used by everything for output
+    :param filename: Name of file that logs should be saved to
+    :param console_level: Level of logs that should be printed to terminal [default: logging.INFO]
+    :param file_level: Level of logs that should be written to file [default: logging.DEBUG]
+    """
+    base_format = "[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s"
+    time_format = "%y-%m-%d %H:%M:%S"
+    logging.basicConfig(level=file_level,
+                        format=base_format,
+                        datefmt=time_format,
+                        filename=str(filename),
+                        filemode='a')
+    from sys import stdout
+    console = logging.StreamHandler(stream=stdout)
+    console.setLevel(console_level)
+    formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)

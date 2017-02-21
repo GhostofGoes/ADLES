@@ -16,28 +16,31 @@
 """Clone multiple Virtual Machines in vSphere.
 
 Usage:
-    clone_vms.py
-    clone_vms.py -f FILE
+    clone_vms.py [-v] [Options]
     clone_vms.py --version
     clone_vms.py (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
-    -f, --file FILE     Name of JSON file with server connection and login information
+    -f, --file FILE     Name of JSON file with server connection information
+    -v, --verbose       Verbose output of whats going on
 
 """
 
 from docopt import docopt
+import logging
 
 from automation.radicl_utils import make_vsphere, warning, user_input
-from automation.utils import prompt_y_n_question
+from automation.utils import prompt_y_n_question, setup_logging
 from automation.vsphere.vm_utils import clone_vm
 from automation.vsphere.vsphere_utils import traverse_path
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 args = docopt(__doc__, version=__version__, help=True)
+setup_logging(filename='clone_vms.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
+
 server = make_vsphere(args["--file"])
 warning()
 
@@ -57,7 +60,7 @@ while True:
     else:
         folder = server.get_folder(folder_name=folder_name)
     if folder:
-        print("Found folder {}".format(folder.name))
+        logging.info("Found folder {}".format(folder.name))
         break
     else:
         print("Couldn't find a folder with name {}. Perhaps try another? ".format(folder_name))
@@ -70,11 +73,11 @@ if prompt_y_n_question("Would you like to assign the new VMs to a specific resou
     pool = input("Resource pool: ")
 else:
     pool = server.get_pool().name
-    print("Proceeding with default pool {}".format(pool))
+    logging.info("Proceeding with default pool {}".format(pool))
 
-print("Starting clones...")
+logging.info("Starting clones...")
 for lol in range(num_instances):
     name = base_name + ' ' + str(lol)
-    print("Cloning {}...".format(name))
+    logging.info("Cloning {}...".format(name))
     spec = server.generate_clone_spec(pool_name=pool)
     clone_vm(vm, folder, name, spec)

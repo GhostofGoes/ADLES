@@ -16,7 +16,7 @@
 import logging
 from pyVmomi import vim
 
-from ..vsphere.vsphere_utils import wait_for_task
+from automation.vsphere.vsphere_utils import wait_for_task
 
 
 def clone_vm(vm, folder, name, clone_spec):

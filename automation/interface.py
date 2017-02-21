@@ -26,7 +26,7 @@ class Interface:
 
         if not self.metadata["infrastructure-config-file"]:
             logging.error("No infrastructure configuration file specified!")
-            exit("Unable to load Model: no infra conf file")
+            exit(1)
 
         # Load infrastructure information
         from automation.parser import parse_file
@@ -34,14 +34,11 @@ class Interface:
         infrastructure = parse_file("vsphere.yaml")  # TODO: testing only, either make this a CMD arg or remove
 
         # Load login information
-        from json import load
-        try:
-            logging.debug("Loading login information...")
-            with open(infrastructure["login-file"], "r") as login_file:
-                logins = load(fp=login_file)
-        except Exception as e:
-            logging.error("Could not open login file %s. Error: %s", infrastructure["login-file"], str(e))
-            exit("Unable to load Model: couldn't open login file")
+        from automation.utils import read_json
+        logging.debug("Loading login information from file %s", infrastructure["login-file"])
+        logins = read_json(infrastructure["login-file"])
+        if not logins:
+            exit(1)
 
         # Select the Interface to use for the platform
         if infrastructure["platform"] == "vmware vsphere":
@@ -49,7 +46,7 @@ class Interface:
             self.interface = VsphereInterface(infrastructure, logins, spec)  # Create interface
         else:
             logging.error("Invalid platform {}".format(infrastructure["platform"]))
-            exit("Unable to load Model: Invalid Platform")
+            exit(1)
 
     def create_masters(self):
         """ Master creation phase """

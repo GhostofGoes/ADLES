@@ -52,6 +52,7 @@ class vSphere:
 
         register(Disconnect, self.server)  # Ensures connection to server is closed upon script termination
 
+        self.user = username
         self.hostname = hostname
         self.port = port
         self.content = self.server.RetrieveContent()
@@ -205,14 +206,17 @@ class vSphere:
 
 def main():
     """ For testing of vSphere. Also has examples of wrapper API useage. """
-    from automation.utils import read_json
+    from automation.utils import read_json, setup_logging
     from os import pardir, path
     import automation.vsphere.vm_utils as vm_utils  # Must always use absolute imports when running as script (__main__)
 
+    setup_logging(filename='vsphere-testing.log', console_level=logging.DEBUG)
     logins = read_json(path.join(pardir, "logins.json"))
     server = vSphere(datacenter="r620", username=logins["user"], password=logins["pass"], hostname=logins["host"],
                      port=logins["port"], datastore="Datastore")
 
+
+    """
     logging.basicConfig(level=logging.DEBUG,
                         format="[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s",
                         datefmt="%y-%m-%d %H:%M:%S",
@@ -223,6 +227,7 @@ def main():
     formatter = logging.Formatter("%(levelname)-12s %(message)s")
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
+    """
 
     # TODO: cleanup function
     if 0:
@@ -232,8 +237,8 @@ def main():
             folder = server.get_folder(f)
             destroy_everything(folder)
 
-    # vm = server.get_vm("test1234")
-    # vm_utils.print_vm_info(vm)
+    vm = server.get_vm("dummy")
+    vm_utils.print_vm_info(vm)
 
     # print(str(server))
     # print(repr(server))

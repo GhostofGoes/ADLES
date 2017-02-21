@@ -16,9 +16,7 @@
 """Destroy VMs and Folders in a vSphere environment.
 
 Usage:
-    destroy_vms.py
-    destroy_vms.py -f FILE
-    destroy_vms.py -f FILE --folder FOLDER
+    destroy_vms.py [-v] [Options]
     destroy_vms.py --version
     destroy_vms.py (-h | --help)
 
@@ -26,35 +24,38 @@ Options:
     -h, --help          Prints this page
     --version           Prints current version
     -f, --file FILE     Name of JSON file with server connection and login information
-    --folder FOLDER     Name of a folder to recursively destroy
+    -v, --verbose       Verbose output of whats going on
 
 """
 
 from docopt import docopt
+import logging
 
 from automation.radicl_utils import make_vsphere, warning, user_input
-from automation.utils import prompt_y_n_question
+from automation.utils import prompt_y_n_question, setup_logging
 from automation.vsphere.vm_utils import destroy_vm
 from automation.vsphere.vsphere_utils import destroy_everything
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 args = docopt(__doc__, version=__version__, help=True)
+setup_logging(filename='destroy_vms.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
+
 server = make_vsphere(args["--file"])
 warning()
 
 if prompt_y_n_question("Do you wish to destroy a folder and it's sub-trees? "):
     folder, folder_name = user_input("Name of folder to destroy: ", "folder", server.get_folder)
-    print("Recursively destroying folder {}".format(folder_name))
+    logging.info("Recursively destroying folder {}".format(folder_name))
     destroy_everything(folder)
 
 elif prompt_y_n_question("Do you wish to destroy all VMs in a folder? "):
     folder, folder_name = user_input("Name of folder: ", "folder", server.get_folder)
-    print("Destroying all VMs in folder {}".format(folder_name))
+    logging.info("Destroying all VMs in folder {}".format(folder_name))
     for vm in folder.childEntity:
         destroy_vm(vm)
 
 else:
     vm, vm_name = user_input("Name of VM to destroy: ", "VM", server.get_vm)
-    print("Destroying VM with name {}".format(vm_name))
+    logging.info("Destroying VM with name {}".format(vm_name))
     destroy_vm(vm)

@@ -4,6 +4,7 @@
 from automation.utils import read_json, prompt_y_n_question
 from automation.vsphere.vsphere import vSphere
 from getpass import getpass
+import logging
 
 
 def make_vsphere(filename=None):
@@ -14,10 +15,12 @@ def make_vsphere(filename=None):
     """
     if filename:
         info = read_json(filename)
-        return vSphere(datacenter=info["datacenter"], username=info["username"], password=info["password"],
+        user = input("Username: ")
+        pswd = getpass("Password: ")
+        return vSphere(datacenter=info["datacenter"], username=user, password=pswd,
                        hostname=info["hostname"], port=info["port"], datastore=info["datastore"])
     else:
-        print("Enter information to connect to vSphere environment")
+        logging.info("Enter information to connect to vSphere environment")
         host = input("Hostname: ")
         port = int(input("Port: "))
         user = input("Username: ")
@@ -33,8 +36,8 @@ def make_vsphere(filename=None):
 
 def warning():
     """ Prints a warning prompt. """
-    print("\nYou run this script at your own risk. If you break something, it's on YOU. "
-          "\nIf you're paranoid, please read the code, and perhaps improve it =)\n")
+    logging.info("\nYou run this script at your own risk. If you break something, it's on YOU"
+                 "\nIf you're paranoid, please read the code, and perhaps improve it =)\n")
 
 
 def user_input(prompt, obj_name, func):
@@ -51,5 +54,5 @@ def user_input(prompt, obj_name, func):
         if item:
             break
         else:
-            print("Couldn't find a {} with name {}. Perhaps try another? ".format(obj_name, item_name))
+            logging.info("Couldn't find a {} with name {}. Perhaps try another? ".format(obj_name, item_name))
     return item, item_name

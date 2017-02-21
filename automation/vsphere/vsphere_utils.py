@@ -17,9 +17,6 @@ import logging
 from pyVmomi import vim
 from pyVmomi import vmodl
 
-from ..utils import sizeof_fmt
-from .vm_utils import destroy_vm
-
 
 # From: various files in pyvmomi-community-samples
 def get_obj(content, vimtype, name, recursive=True):
@@ -213,6 +210,7 @@ def destroy_vms(folder):
     if not folder:
         logging.error("Cann't destroy errything in a Nothing box you dummy!")
     else:
+        from automation.vsphere.vm_utils import destroy_vm
         logging.info("Destroying all VMs in folder %s", folder.name)
         for vm in folder.childEntity:
             destroy_vm(vm)
@@ -226,7 +224,8 @@ def destroy_everything(folder):
     if not folder:
         logging.error("Cannot destroy a None object you dummy!")
     else:
-        logging.info("Destrying EVERYTHING under folder %s", folder.name)
+        from automation.vsphere.vm_utils import destroy_vm
+        logging.info("Destroying EVERYTHING under folder %s", folder.name)
         for item in folder.childEntity:
             if is_vm(item):
                 destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
@@ -245,6 +244,7 @@ def print_datastore_info(ds_obj):
     Prints human-readable summary of a Datastore
     :param ds_obj: vim.Datastore
     """
+    from automation.utils import sizeof_fmt
     summary = ds_obj.summary
     ds_capacity = summary.capacity
     ds_freespace = summary.freeSpace

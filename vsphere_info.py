@@ -16,8 +16,7 @@
 """Query information about a vSphere environment and objects within it.
 
 Usage:
-    vsphere_info.py
-    vsphere_info.py -f FILE
+    vsphere_info.py [-v] [Options]
     vsphere_info.py --version
     vsphere_info.py (-h | --help)
 
@@ -25,18 +24,23 @@ Options:
     -h, --help          Prints this page
     --version           Prints current version
     -f, --file FILE     Name of JSON file with server connection and login information
+    -v, --verbose       Verbose output of whats going on
 
 """
 
 from docopt import docopt
+import logging
 
 from automation.radicl_utils import make_vsphere, warning
+from automation.utils import setup_logging
 from automation.vsphere.vm_utils import print_vm_info
 from automation.vsphere.vsphere_utils import print_datastore_info
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 args = docopt(__doc__, version=__version__, help=True)
+setup_logging(filename='vsphere_info.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
+
 server = make_vsphere(args["--file"])
 warning()
 
@@ -54,4 +58,4 @@ elif thing_type == "datastore":
     ds = server.get_datastore(thing_name)
     print_datastore_info(ds)
 else:
-    print("Invalid type: ", thing_type)
+    logging.info("Invalid type: ", thing_type)

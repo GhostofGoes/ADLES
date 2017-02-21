@@ -109,7 +109,11 @@ def check_syntax(specfile_path):
 
 if __name__ == '__main__':
     args = docopt(__doc__, version=__version__, help=True)
+    from automation.utils import setup_logging
+    setup_logging(filename='main.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
+    main()
 
+    """
     logging.basicConfig(level=logging.DEBUG,
                         format="[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s",
                         datefmt="%y-%m-%d %H:%M:%S",
@@ -123,5 +127,4 @@ if __name__ == '__main__':
     formatter = logging.Formatter("%(levelname)-12s %(message)s")
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
-
-    main()
+    """
