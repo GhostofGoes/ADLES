@@ -20,8 +20,7 @@ Wasted an hour on this, if you want to fix it feel free to open an issue or pull
 
 ```bash
 git clone https://github.com/GhostofGoes/cybersecurity-environment-automation.git
-cd ./cybersecurity-environment-automation/radicl-scripts
-pip3 install -r radicl-requirements.txt
+pip3 install -r script-requirements.txt
 python3 ./<tool>.py --help
 ```
 
