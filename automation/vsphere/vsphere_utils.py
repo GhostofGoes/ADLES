@@ -18,6 +18,7 @@ from pyVmomi import vim
 from pyVmomi import vmodl
 
 from ..utils import sizeof_fmt
+from .vm_utils import destroy_vm
 
 
 # From: various files in pyvmomi-community-samples
@@ -204,16 +205,38 @@ def move_into_folder(folder, entity_list):
     wait_for_task(folder.MoveIntoFolder_Task(entity_list))
 
 
+def destroy_vms(folder):
+    """
+    Destroys all VMs in a folder. This is not recursive, and will not destroy folders.
+    :param folder: vim.Folder object
+    """
+    if not folder:
+        logging.error("Cann't destroy errything in a Nothing box you dummy!")
+    else:
+        logging.info("Destroying all VMs in folder %s", folder.name)
+        for vm in folder.childEntity:
+            destroy_vm(vm)
+
+
 def destroy_everything(folder):
     """
-    Unregisters and deletes all VMs and Folders under the given folder
+    Destroys all VMs and Folders under the given folder.
     :param folder: vim.Folder object
     """
     if not folder:
         logging.error("Cannot destroy a None object you dummy!")
     else:
-        logging.info("Unregistering and deleting EVERYTHING in folder %s", folder.name)
-        wait_for_task(folder.UnregisterAndDestroy_Task())
+        logging.info("Destrying EVERYTHING under folder %s", folder.name)
+        for item in folder.childEntity:
+            if is_vm(item):
+                destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
+            elif is_folder(item):
+                destroy_everything(item)
+            else:
+                logging.warning("Unknown item encountered while destroying everything in folder %s: %s",
+                                folder.name, str(item))
+        # Note: UnregisterAndDestroy does not delete VM files off datastore, which is why previous stuff is done
+        wait_for_task(folder.UnregisterAndDestroy_Task())  # Final cleanup
 
 
 # From: list_dc_datastore_info.py in pyvmomi-community-samples

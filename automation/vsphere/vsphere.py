@@ -19,7 +19,8 @@ import logging
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
-from .vsphere_utils import get_obj, get_objs, get_item, find_in_folder
+# Must always use absolute imports when running as script (aka as '__main__')
+from automation.vsphere.vsphere_utils import get_obj, get_objs, get_item, find_in_folder
 
 
 class vSphere:
@@ -36,19 +37,19 @@ class vSphere:
         :param port: Port used to connect to vCenter instance
         """
         logging.debug("Initializing vSphere...")
-        from urllib.error import URLError
         if not password:
             from getpass import getpass
             password = getpass(prompt='Enter password for host %s and user %s: ' % (hostname, username))
         try:
             self.server = SmartConnect(host=hostname, user=username, pwd=password, port=int(port))  # Connect to server
-        except URLError as e:
-            logging.error("Your system does not trust the server's certificate. Follow instructions in the README to "
-                          "install the certificate, or contact a lab administrator. "
+        except Exception as e:
+            logging.error("Your system likely does not trust the server's certificate. "
+                          "Follow instructions in the README to install the certificate, or contact an administrator.\n"
                           "Here is the full error for your enjoyment: %s", str(e))
         if not self.server:
             logging.error("Could not connect to host %s using specified username and password", str(hostname))
             raise Exception()
+
         register(Disconnect, self.server)  # Ensures connection to server is closed upon script termination
 
         self.hostname = hostname
@@ -204,8 +205,9 @@ class vSphere:
 
 def main():
     """ For testing of vSphere. Also has examples of wrapper API useage. """
-    from ..utils import read_json
+    from automation.utils import read_json
     from os import pardir, path
+    import automation.vsphere.vm_utils as vm_utils  # Must always use absolute imports when running as script (__main__)
 
     logins = read_json(path.join(pardir, "logins.json"))
     server = vSphere(datacenter="r620", username=logins["user"], password=logins["pass"], hostname=logins["host"],
@@ -230,8 +232,8 @@ def main():
             folder = server.get_folder(f)
             destroy_everything(folder)
 
-    # vm = server.get_vm("dummy")
-    # print_vm_info(vm)
+    # vm = server.get_vm("test1234")
+    # vm_utils.print_vm_info(vm)
 
     # print(str(server))
     # print(repr(server))

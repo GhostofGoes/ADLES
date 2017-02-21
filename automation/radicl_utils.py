@@ -32,9 +32,9 @@ def make_vsphere(filename=None):
 
 
 def warning():
-    """ Prints a warning prompt. What do you really want in this docstring... """
-    print("You run this script at your own risk. If you break something, it's on YOU. "
-          "\nIf you're paranoid, please read the code, and perhaps improve it :)")
+    """ Prints a warning prompt. """
+    print("\nYou run this script at your own risk. If you break something, it's on YOU. "
+          "\nIf you're paranoid, please read the code, and perhaps improve it =)\n")
 
 
 def user_input(prompt, obj_name, func):

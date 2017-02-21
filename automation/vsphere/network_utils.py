@@ -99,13 +99,40 @@ def delete_portgroup(name, host):
                       "virtual network adapters associated with it", name)
 
 
-def check_networkinfo(name, host, object_type):
+def get_net_item(host, object_type, name):
     """
-    Checks if the named network object of the specified type exists on the host
-    :param name: Name of network object
+    Retrieves a network object of the specified type and name from a host
     :param host: vim.HostSystem
-    :param object_type: Type of object to look for: (portgroup | vswitch | proxyswitch | vnic | pnic)
-    :return: Boolean indicating portgroups existence on the host
+    :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
+    :param name: (Optional) Name of network object [default: all objects of the type]
+    :return: The network object
+    """
+    if name:
+        return get_net_obj(host, object_type, name)
+    else:
+        return get_net_objs(host, object_type)[0]
+
+
+def get_net_obj(host, object_type, name):
+    """
+    Retrieves a network object of the specified type and name from a host
+    :param host: vim.HostSystem
+    :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
+    :param name: Name of network object
+    :return: The network object
+    """
+    for obj in get_net_objs(host=host, object_type=object_type):
+        if obj.name == name:
+            return obj
+    return None
+
+
+def get_net_objs(host, object_type):
+    """
+    Retrieves all network objects of the specified type from the host
+    :param host: vim.HostSystem
+    :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
+    :return: list of the network objects
     """
     host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any changes that might have occurred
     if object_type == "portgroup":
@@ -119,10 +146,6 @@ def check_networkinfo(name, host, object_type):
     elif object_type == "pnic ":
         objects = host.configManager.networkSystem.networkInfo.pnic
     else:
-        logging.error("Invalid type %s for check_networkinfo", object_type)
-        return False
-
-    for obj in objects:
-        if obj.name == name:
-            return True
-    return False
+        logging.error("Invalid type %s for get_net_obj", object_type)
+        return None
+    return objects
