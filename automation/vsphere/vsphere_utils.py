@@ -202,40 +202,35 @@ def move_into_folder(folder, entity_list):
     wait_for_task(folder.MoveIntoFolder_Task(entity_list))
 
 
-def destroy_vms(folder):
+def cleanup(folder, prefix=None, recursive=False, destroy_folders=False, destroy_self=False):
     """
-    Destroys all VMs in a folder. This is not recursive, and will not destroy folders.
+    Destroys VMs and (optionally) folders under the specified folder.
     :param folder: vim.Folder object
+    :param prefix: Only destroy VMs with names starting with the prefix [default: None]
+    :param recursive: Recursively descend into any sub-folders [default: False]
+    :param destroy_folders: Destroy folders in addition to VMs [default: False]
+    :param destroy_self: Destroy the folder specified [default: False]
     """
-    if not folder:
-        logging.error("Cann't destroy errything in a Nothing box you dummy!")
-    else:
+    if folder:  # Checks to make sure folder is not None
         from automation.vsphere.vm_utils import destroy_vm
-        logging.info("Destroying all VMs in folder %s", folder.name)
-        for vm in folder.childEntity:
-            destroy_vm(vm)
-
-
-def destroy_everything(folder):
-    """
-    Destroys all VMs and Folders under the given folder.
-    :param folder: vim.Folder object
-    """
-    if not folder:
-        logging.error("Cannot destroy a None object you dummy!")
-    else:
-        from automation.vsphere.vm_utils import destroy_vm
-        logging.info("Destroying EVERYTHING under folder %s", folder.name)
+        logging.info("Cleaning folder %s", folder.name)
         for item in folder.childEntity:
-            if is_vm(item):
-                destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
-            elif is_folder(item):
-                destroy_everything(item)
-            else:
+            if is_vm(item):  # Handle VMs
+                if prefix:
+                    if str(item.name).startswith(prefix):  # Only destroy the VM if it begins with the prefix
+                        destroy_vm(item)
+                else:
+                    destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
+            elif is_folder(item):  # Handle folders
+                if recursive or destroy_folders:  # Destroys folder and it's sub-objects
+                    cleanup(item, prefix, recursive, destroy_folders, destroy_self=destroy_folders)
+            else:  # It's not a VM or a folder...
                 logging.warning("Unknown item encountered while destroying everything in folder %s: %s",
                                 folder.name, str(item))
-        # Note: UnregisterAndDestroy does not delete VM files off datastore, which is why previous stuff is done
-        wait_for_task(folder.UnregisterAndDestroy_Task())  # Final cleanup
+        if destroy_self:  # Note: UnregisterAndDestroy does not delete VM files off datastore
+            wait_for_task(folder.UnregisterAndDestroy_Task())  # Final cleanup
+    else:
+        logging.error("Cannot destroy a None object!")
 
 
 # From: list_dc_datastore_info.py in pyvmomi-community-samples

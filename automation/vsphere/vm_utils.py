@@ -52,12 +52,12 @@ def create_vm(folder, config, pool, host=None):
 @time_execution
 def destroy_vm(vm):
     """
-    Unregisters and deletes the VM
+    Destroys a Virtual Machine
     :param vm: vim.VirtualMachine object
     """
-    logging.info("DESTROYING VM %s", vm.name)
+    logging.info("Destroying VM %s", vm.name)
     if powered_on(vm):
-        logging.info("VM is still on, powering off before destroying...")
+        logging.info("VM %s is still on, powering off before destroying...", vm.name)
         wait_for_task(change_power_state(vm, "off"))
     wait_for_task(vm.Destroy_Task())
 
@@ -74,7 +74,7 @@ def edit_vm(vm, config):
 
 def change_power_state(vm, power_state):
     """
-    Changes a VM power state to the state specified.
+    Changes a VM power state to the state specified
     :param vm: vim.VirtualMachine object to change power state of
     :param power_state: on, off, reset, or suspend
     :return: vim.Task
@@ -128,7 +128,7 @@ def is_template(vm):
     """
     Checks if VM is a template
     :param vm: vim.VirtualMachine
-    :return: If VM is a template or not
+    :return: If the VM is a template
     """
     return bool(vm.summary.config.template)
 
@@ -309,9 +309,9 @@ def powered_on(vm):
     """
     Determines if a VM is powered on
     :param vm: vim.VirtualMachine object
-    :return: Boolean. Do I really need to write a description for this?
+    :return: If VM is powered on
     """
-    return vm.runtime.powerState == vim.VirtualMachinePowerState.poweredOn
+    return vm.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn
 
 
 # From: cdrom_vm.py in pyvmomi-community-samples
