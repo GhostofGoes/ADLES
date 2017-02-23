@@ -32,9 +32,9 @@ from docopt import docopt
 import logging
 
 from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input
-from automation.vsphere.vm_utils import change_power_state, change_guest_state, tools_status
+from automation.vsphere.vm_utils import change_vm_state
 
-__version__ = "0.1.5"
+__version__ = "0.2.0"
 
 args = docopt(__doc__, version=__version__, help=True)
 setup_logging(filename='vm_power.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
@@ -43,23 +43,17 @@ server = make_vsphere(args["--file"])
 warning()
 
 operation = input("Enter the power operation you wish to perform [on | off | reset | suspend]: ")
-guest_check = prompt_y_n_question("Do you wish to use guest power operations if VMware Tools is installed? ")
-guest_op = None
-if guest_check:
-    guest_op = input("What guest operation do you wish to be performed [shutdown | reboot | standby]: ")
+attempt_guest = prompt_y_n_question("Use guest operations if available? ")
 
-if prompt_y_n_question("Do you wish to do power operations on multiple VMs? "):
+if prompt_y_n_question("Multiple VMs? "):
     folder, folder_name = user_input("Name of folder which contains the VMs (NOT the path): ",
                                      "folder", server.get_folder)
-    if prompt_y_n_question("Found %s VMs in folder %s. Do you wish to continue? "
+    if prompt_y_n_question("Found %s VMs in folder %s. Continue? "
                            % (len(list(folder.childEntity)), folder_name)):
         for vm in folder.childEntity:
-            if guest_check and tools_status(vm):
-                change_guest_state(vm, guest_op)
-            else:
-                change_power_state(vm, operation)
+            change_vm_state(vm, operation, attempt_guest)
 
 else:
-    vm, vm_name = user_input("Name of the VM to do power operation on: ", "VM", server.get_vm)
+    vm, vm_name = user_input("Name of the VM: ", "VM", server.get_vm)
     logging.info("Changing power state of VM %s to %s", vm_name, operation)
-    change_power_state(vm, operation)
+    change_vm_state(vm, operation, attempt_guest)

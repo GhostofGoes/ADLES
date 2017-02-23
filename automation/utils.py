@@ -212,14 +212,14 @@ def user_input(prompt, obj_name, func):
             print("Couldn't find a %s with name %s. Perhaps try another? " % (obj_name, item_name))
 
 
-def default_prompt(prompt, default):
+def default_prompt(prompt, default=None):
     """
     Prompt the user for input. If they press enter, return the default
     :param prompt: Prompt to display to user. Do not include the default, it will be appended.
     :param default: Default return value
     :return: Value returned
     """
-    value = input(prompt + " [%s]: " % str(default))
+    value = input(prompt + " [default: %s]: " % str(default))
     if value == '':
         return default
     else:

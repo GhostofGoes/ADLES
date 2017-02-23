@@ -78,41 +78,57 @@ def change_power_state(vm, power_state):
     Changes a VM power state to the state specified
     :param vm: vim.VirtualMachine object to change power state of
     :param power_state: on, off, reset, or suspend
-    :return: vim.Task
     """
-    logging.debug("Changing power state of VM %s to: '%s'", vm.name, power_state)
-    if power_state.lower() == "on":
-        return vm.PowerOnVM_Task()
-    elif power_state.lower() == "off":
-        return vm.PowerOffVM_Task()
-    elif power_state.lower() == "reset":
-        return vm.ResetVM_Task()
-    elif power_state.lower() == "suspend":
-        return vm.SuspendVM_Task()
+    state = power_state.lower()
+    if state == "on":
+        task = vm.PowerOnVM_Task()
+    elif state == "off":
+        task = vm.PowerOffVM_Task()
+    elif state == "reset":
+        task = vm.ResetVM_Task()
+    elif state == "suspend":
+        task = vm.SuspendVM_Task()
     else:
-        logging.error("Invalid power_state %s for VM %s", power_state, vm.name)
-    return None
+        logging.error("Invalid power_state %s for VM %s", state, vm.name)
+        return
+    logging.debug("Changing power state of VM %s to: '%s'", vm.name, state)
+    wait_for_task(task)
 
 
 def change_guest_state(vm, guest_state):
     """
     Changes a VMs guest power state. VMware Tools must be installed on the VM for this to work.
     :param vm:  vim.VirtualMachine object to change guest state of
-    :param guest_state: shutdown, reboot, or standby
-    :return: vim.Task
+    :param guest_state: shutdown, reboot, or standby [Alternatives: off, reset, suspend]
     """
-    logging.debug("Changing guest power state of VM %s to: '%s'", vm.name, guest_state)
+    state = guest_state.lower()
     if vm.summary.guest.toolsStatus == "toolsNotInstalled":
         logging.error("Cannot change a VM's guest power state without VMware Tools!")
-    elif guest_state.lower() == "shutdown":
-        return vm.ShutdownGuest()
-    elif guest_state.lower() == "reboot":
-        return vm.RebootGuest()
-    elif guest_state.lower() == "standby":
-        return vm.StandbyGuest()
+        return
+    elif state == "shutdown" or state == "off":
+        task = vm.ShutdownGuest()
+    elif state == "reboot" or state == "reset":
+        task = vm.RebootGuest()
+    elif state == "standby" or state == "suspend":
+        task = vm.StandbyGuest()
     else:
-        logging.error("Invalid guest_state argument: %s", guest_state.lower())
-    return None
+        logging.error("Invalid guest_state argument: %s", state)
+        return
+    logging.debug("Changing guest power state of VM %s to: '%s'", vm.name, state)
+    wait_for_task(task)
+
+
+def change_vm_state(vm, state, attempt_guest=True):
+    """
+    Generic power state change function that uses guest operations if available
+    :param vm:
+    :param state:
+    :param attempt_guest:
+    """
+    if attempt_guest and tools_status(vm) and state.lower() != "off":
+        change_guest_state(vm, state)
+    else:
+        change_power_state(vm, state)
 
 
 def tools_status(vm):
