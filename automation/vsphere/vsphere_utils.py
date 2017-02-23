@@ -128,12 +128,37 @@ def enumerate_folder(folder, recursive=True):
             if recursive:
                 children.append(enumerate_folder(item, recursive))
             else:
-                children.append(item)
+                children.append('- ' + str(item.name))
         elif is_vm(item):
-            children.append(item)
+            children.append('* ' + str(item.name))
         else:
             children.append("UNKNOWN ITEM: %s" % str(item))
-    return {folder.name, children}
+    return '+ ' + str(folder.name), children  # Return tuple of parent and children
+
+
+# Similar to: https://docs.python.org/3/library/pprint.html
+def format_structure(structure, indent=4, _depth=0):
+    """
+    Converts a nested structure of folders into a formatted string
+    :param structure: structure to format
+    :param indent: Number of spaces to indent each level of nesting [default: 4]
+    :param _depth: Current depth (USE INTERNALLY BY FUNCTION)
+    :return: Formatted string
+    """
+    fmat = ""
+    newline = '\n' + str(_depth * str(indent * ' '))
+
+    if type(structure) == tuple:
+        fmat += newline + structure[0]
+        fmat += format_structure(structure[1], indent, _depth + 1)
+    elif type(structure) == list:
+        for item in structure:
+            fmat += format_structure(item, indent, _depth)
+    elif type(structure) == str:
+        fmat += newline + structure
+    else:
+        logging.error("Unexpected type in folder structure for item %s: %s", str(structure), str(type(structure)))
+    return fmat
 
 
 # From: tools/tasks.py in pyvmomi-community-samples

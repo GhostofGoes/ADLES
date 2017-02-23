@@ -34,9 +34,9 @@ from pprint import pprint
 
 from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input, default_prompt
 from automation.vsphere.vm_utils import destroy_vm
-from automation.vsphere.vsphere_utils import cleanup, enumerate_folder, traverse_path
+from automation.vsphere.vsphere_utils import cleanup, enumerate_folder, traverse_path, format_structure
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 args = docopt(__doc__, version=__version__, help=True)
 setup_logging(filename='destroy_vms.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
@@ -59,15 +59,17 @@ if prompt_y_n_question("Do you wish to destroy a single VM? "):
 else:
     folder, fname = user_input("Name of or path to folder to destroy: ", "folder",
                                lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_folder(x))
-    pprint(enumerate_folder(folder))  # Display folder structure
+
+    # Display folder structure
+    logging.info("Folder structure: %s", format_structure(enumerate_folder(folder)))
 
     prefix = default_prompt("What is the prefix of VMs you wish to destroy? Press Enter for none... ", default=None)
     recursive = prompt_y_n_question("Recursively descend into folders? ")
     destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
     destroy_self = prompt_y_n_question("Destroy the folder itself? ")
 
-    logging.info("Destruction options - Prefix: %s\tRecursive: %s\tFolder-destruction: %s\tSelf-destruction: %s",
-                 fname, str(prefix), str(recursive), str(destroy_folders), str(destroy_self))
+    logging.info("Prefix: %s\tRecursive: %s\tFolder-destruction: %s\tSelf-destruction: %s",
+                 str(prefix), str(recursive), str(destroy_folders), str(destroy_self))
     if prompt_y_n_question("Continue with destruction? "):
         logging.info("Destroying...")
         cleanup(folder, prefix=prefix, recursive=recursive, destroy_folders=destroy_folders, destroy_self=destroy_self)

@@ -85,9 +85,9 @@ class VsphereInterface:
                     continue
 
                 # TODO: add NICs to VMs and attach to portgroups
-                # Check if number of networks in spec is same as what's on the VM
                 # NOTE: management interfaces matter here!
                 # TODO: distributed
+                # Check if number of networks in spec is same as what's on the VM
                 if len(service_config["networks"]) == len(list(new_vm.network)):
                     # TODO: put this in a function?
                     for net, i in zip(service_config["networks"], len(service_config["networks"])):
@@ -97,9 +97,11 @@ class VsphereInterface:
                     # TODO: remove excess
                     pass
 
+                # Set VM note if specified
                 if "note" in service_config:
                     set_note(vm=new_vm, note=service_config["note"])
 
+                # Post-creation snapshot
                 create_snapshot(new_vm, "post-clone", "Clean snapshot taken after cloning and configuration.")
 
         # Apply master-group permissions [default: group permissions]
@@ -118,14 +120,19 @@ class VsphereInterface:
     def deploy_environment(self):
         """ Environment deployment phase """
 
-        # Verify and convert to templates
+        # Get the master folder root (TODO: sub-masters or multiple masters?)
+        master_folder = traverse_path(self.root_folder, self.master_folder_name)
+
+        # Verify and convert to templates.
+        # This is to ensure they are preserved throughout creation and execution of exercise.
         logging.info("Verifying masters and converting to templates...")
         for service_name, service_config in self.services.items():
             if "template" in service_config:
-                vm = self.server.get_vm(self.master_prefix + service_name)  # TODO: traverse path
+                vm = traverse_path(master_folder, self.master_prefix + service_name)
                 if vm:  # Verify all masters exist
-                    logging.debug("Verified master %s exists. Converting to template...", service_name)
-                    convert_to_template(vm)  # Convert all masters to templates
+                    logging.debug("Verified master %s exists. Name of VM: %s. Converting to template...",
+                                  service_name, vm.name)
+                    convert_to_template(vm)  # Convert master to template
                     logging.debug("Converted master %s to template. Verifying...", service_name)
                     if not is_template(vm):  # Verify converted successfully
                         logging.error("Master %s did not convert to template!", service_name)
@@ -138,7 +145,21 @@ class VsphereInterface:
         #   Create generic-networks
         #   Create base-networks
 
+        # Create folder structure
+
+        # if "services" in folder: then normal-folder
+        # else: parent-folder
+        # So, need to iterate and create folders.
+        # if "instances" in folder: then create range(instances) folder.name + pad
+        # else: create folder
+
+        # Enumerate folder tree to debugging
+        logging.debug(format_structure(enumerate_folder(self.root_folder)))
+
         # Clone instances (use function for numbering)(use prefix if specified)
+
+        # Enumerate tree with VMs to debugging
+        logging.debug(format_structure(enumerate_folder(self.root_folder)))
 
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
