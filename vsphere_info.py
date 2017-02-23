@@ -35,7 +35,7 @@ from automation.utils import setup_logging, make_vsphere, warning
 from automation.vsphere.vm_utils import print_vm_info
 from automation.vsphere.vsphere_utils import print_datastore_info
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 args = docopt(__doc__, version=__version__, help=True)
 setup_logging(filename='vsphere_info.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
@@ -48,7 +48,7 @@ warning()
 #   upload_file
 #   get_status    Status of the overall environment (what VMs are on/off/deploys, what phase, etc.)
 
-thing_type = input("What type of thing do you want to get information on? (vm | datastore ) ")
+thing_type = input("What type of thing do you want to get information on? (vm | datastore | vsphere) ")
 thing_name = input("What is the name of the thing you want to get information on? ")
 if thing_type == "vm":
     vm = server.get_vm(thing_name)
@@ -56,5 +56,7 @@ if thing_type == "vm":
 elif thing_type == "datastore":
     ds = server.get_datastore(thing_name)
     print_datastore_info(ds)
+elif thing_type == "vsphere":
+    logging.info("%s", str(server.content.about))
 else:
     logging.info("Invalid type: ", thing_type)

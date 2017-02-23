@@ -31,11 +31,11 @@ Options:
 from docopt import docopt
 import logging
 
-from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input
+from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input, default_prompt
 from automation.vsphere.vm_utils import destroy_vm
 from automation.vsphere.vsphere_utils import cleanup
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 args = docopt(__doc__, version=__version__, help=True)
 setup_logging(filename='destroy_vms.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
@@ -43,30 +43,17 @@ setup_logging(filename='destroy_vms.log', console_level=logging.DEBUG if args["-
 server = make_vsphere(args["--file"])
 warning()
 
+# TODO: prompt to destroy templates?
 if prompt_y_n_question("Do you wish to destroy a single VM? "):
     vm, vm_name = user_input("Name of VM to destroy: ", "VM", server.get_vm)
     logging.info("Destroying VM with name %s", vm_name)
     destroy_vm(vm)
 else:
     folder, folder_name = user_input("Name of folder to destroy: ", "folder", server.get_folder)
-    if prompt_y_n_question("Do you wish to destroy VMs with a specific prefix? "):
-        prefix = input("Enter the prefix: ")
-    else:
-        prefix = None
-    if prompt_y_n_question("Do you wish to recursively descend the folder tree? "):
-        recursive = True
-    else:
-        recursive = False
-
-    if prompt_y_n_question("Do you wish to destroy folders in addition to VMs? "):
-        destroy_folders = True
-    else:
-        destroy_folders = False
-
-    if prompt_y_n_question("Do you wish to destroy the folder itself? "):
-        destroy_self = True
-    else:
-        destroy_self = False
+    prefix = default_prompt("Do you wish to destroy VMs with a specific prefix? ", default=None)
+    recursive = prompt_y_n_question("Do you wish to recursively descend the folder tree? ")
+    destroy_folders = prompt_y_n_question("Do you wish to destroy folders in addition to VMs? ")
+    destroy_self = prompt_y_n_question("Do you wish to destroy the folder itself? ")
 
     logging.info("Carrying out destruction of folder %s with following arguments: "
                  "Prefix: %s\tRecursive: %s\tFolder-destruction: %s\tSelf-destruction: %s",

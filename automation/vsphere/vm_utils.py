@@ -33,7 +33,7 @@ def clone_vm(vm, folder, name, clone_spec):
     if is_template(vm) and not bool(clone_spec.location.pool):
         logging.error("Cannot clone template %s without specifying a pool", vm.name)
     else:
-        wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
+        wait_for_task(task=vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec), show_status=True)
 
 
 @time_execution
@@ -46,7 +46,7 @@ def create_vm(folder, config, pool, host=None):
     :param host: (Optional) vim.HostSystem on which the VM will run
     """
     logging.info("Creating VM %s in folder %s", config.name, folder.name)
-    wait_for_task(folder.CreateVM_Task(config, pool, host))
+    wait_for_task(task=folder.CreateVM_Task(config, pool, host), show_status=True)
 
 
 @time_execution
@@ -55,11 +55,12 @@ def destroy_vm(vm):
     Destroys a Virtual Machine
     :param vm: vim.VirtualMachine object
     """
-    logging.info("Destroying VM %s", vm.name)
+    name = vm.name
+    logging.info("Destroying VM %s", name)
     if powered_on(vm):
-        logging.info("VM %s is still on, powering off before destroying...", vm.name)
+        logging.info("VM %s is still on, powering off before destroying...", name)
         wait_for_task(change_power_state(vm, "off"))
-    wait_for_task(vm.Destroy_Task())
+    wait_for_task(task=vm.Destroy_Task(), show_status=True)
 
 
 def edit_vm(vm, config):
@@ -178,7 +179,8 @@ def create_snapshot(vm, name, description="default", memory=False):
     :param description: Text description of the snapshot
     """
     logging.info("Creating snapshot of VM %s with a name of %s", vm.name, name)
-    wait_for_task(vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True))
+    wait_for_task(task=vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True),
+                  show_status=True)
 
 
 @time_execution
@@ -190,7 +192,7 @@ def revert_to_snapshot(vm, snapshot_name):
     """
     logging.info("Reverting VM %s to the snapshot %s", vm.name, snapshot_name)
     snap = get_snapshot(vm, snapshot_name)
-    wait_for_task(snap.RevertToSnapshot_Task())
+    wait_for_task(task=snap.RevertToSnapshot_Task(), show_status=True)
 
 
 @time_execution
@@ -200,7 +202,7 @@ def revert_to_current_snapshot(vm):
     :param vm: vim.VirtualMachine object
     """
     logging.info("Reverting VM %s to the current snapshot", vm.name)
-    wait_for_task(vm.RevertToCurrentSnapshot_Task())
+    wait_for_task(task=vm.RevertToCurrentSnapshot_Task(), show_status=True)
 
 
 def get_snapshot(vm, snapshot_name):

@@ -31,11 +31,11 @@ Options:
 from docopt import docopt
 import logging
 
-from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input
+from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input, pad, default_prompt
 from automation.vsphere.vm_utils import clone_vm
 from automation.vsphere.vsphere_utils import traverse_path
 
-__version__ = "0.2.5"
+__version__ = "0.3.0"
 
 args = docopt(__doc__, version=__version__, help=True)
 setup_logging(filename='clone_vms.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
@@ -43,12 +43,11 @@ setup_logging(filename='clone_vms.log', console_level=logging.DEBUG if args["--v
 server = make_vsphere(args["--file"])
 warning()
 
-# this is the ugliest python i hath ever wroten since me early dayz as a nofice
-# Well, it isn't anymore. But the comment was funny so I'm leaving it in for you, the GitHub stalker
+# TODO: path specifiy VMs
 vm, vm_name = user_input("Name of the VM or template you wish to clone: ", "VM", server.get_vm)
 
 if not vm.config.template:  # check type
-    if not prompt_y_n_question("VM {} is not a Template. Do you wish to continue? ".format(vm_name)):
+    if not prompt_y_n_question("VM %s is not a Template. Do you wish to continue? " % vm_name):
         exit(0)
 
 # well shit this arse of a code block breaks my nice generic functions
@@ -59,24 +58,21 @@ while True:
     else:
         folder = server.get_folder(folder_name=folder_name)
     if folder:
-        logging.info("Found folder {}".format(folder.name))
+        logging.info("Found folder %s", folder.name)
         break
     else:
-        print("Couldn't find a folder with name {}. Perhaps try another? ".format(folder_name))
+        print("Couldn't find a folder with name %s. Perhaps try another? " % folder_name)
 
 base_name = input("Base name for instances to be created: ")
 num_instances = int(input("Number of instances to be created: "))
-pool = None
+# TODO: specify a group of VMs to put into a instance folder, then number of folder group instances
 
-if prompt_y_n_question("Would you like to assign the new VMs to a specific resource pool? "):
-    pool = input("Resource pool: ")
-else:
-    pool = server.get_pool().name
-    logging.info("Proceeding with default pool {}".format(pool))
+pool = server.get_pool().name
+pool = default_prompt(prompt="Resource pool to assign VMs to", default=pool)
 
-logging.info("Starting clones...")
-for lol in range(num_instances):
-    name = base_name + ' ' + str(lol)
-    logging.info("Cloning {}...".format(name))
-    spec = server.generate_clone_spec(pool_name=pool)
-    clone_vm(vm, folder, name, spec)
+logging.info("Cloning %d VMs with a base name of %s", num_instances, base_name)
+for instance in range(num_instances):
+    name = base_name + pad(value=instance, length=2)    # Ensure zeros are being prepended
+    spec = server.generate_clone_spec(pool_name=pool)   # Generate clone specification
+    logging.info("Cloning %s...", name)
+    clone_vm(vm, folder, name, spec)                    # Clone the VM using the generated spec

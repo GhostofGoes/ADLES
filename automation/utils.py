@@ -168,10 +168,14 @@ def make_vsphere(filename=None):
     """
     if filename:
         info = read_json(filename)
-        user = (info["username"] if info["username"] else input("Username: "))
-        pswd = (info["password"] if info["password"] else getpass("Password: "))
-        return Vsphere(datacenter=info["datacenter"], username=user, password=pswd,
-                       hostname=info["hostname"], port=info["port"], datastore=info["datastore"])
+        # TODO: clean this up a bit
+        user = (info["user"] if "user" in info else input("Username: "))
+        pswd = (info["pass"] if "pass" in info else getpass("Password: "))
+        datacenter = (info["datacenter"] if "datacenter" in info else None)
+        datastore = (info["datastore"] if "datastore" in info else None)
+        port = (info["port"] if "port" in info else 443)
+        return Vsphere(datacenter=datacenter, username=user, password=pswd,
+                       hostname=info["host"], port=port, datastore=datastore)
     else:
         logging.info("Enter information to connect to vSphere environment")
         host = input("Hostname: ")
@@ -179,12 +183,9 @@ def make_vsphere(filename=None):
         user = input("Username: ")
         pswd = getpass("Password: ")
         datacenter = input("vSphere Datacenter: ")
-        if prompt_y_n_question("Would you like to specify the datastore used "):
-            datastore = input("vSphere Datastore: ")
-        else:
-            datastore = None
-        return Vsphere(datacenter=datacenter, username=user, password=pswd,
-                       hostname=host, port=port, datastore=datastore)
+        datastore = input("vSphere Datastore: ")
+        return Vsphere(username=user, password=pswd, hostname=host,
+                       datacenter=datacenter, datastore=datastore, port=port)
 
 
 def warning():
@@ -205,7 +206,20 @@ def user_input(prompt, obj_name, func):
         item_name = input(prompt)
         item = func(item_name)
         if item:
-            break
+            return item, item_name
         else:
-            logging.info("Couldn't find a {} with name {}. Perhaps try another? ".format(obj_name, item_name))
-    return item, item_name
+            print("Couldn't find a %s with name %s. Perhaps try another? " % (obj_name, item_name))
+
+
+def default_prompt(prompt, default):
+    """
+    Prompt the user for input. If they press enter, return the default
+    :param prompt: Prompt to display to user. Do not include the default, it will be appended.
+    :param default: Default return value
+    :return: Value returned
+    """
+    value = input(prompt + " [%s]: " % str(default))
+    if value == '':
+        return default
+    else:
+        return value

@@ -13,8 +13,11 @@
 # limitations under the License.
 
 import logging
+from sys import stdout
 from pyVmomi import vim
 from pyVmomi import vmodl
+
+import automation.utils
 
 
 # From: various files in pyvmomi-community-samples
@@ -70,30 +73,20 @@ def get_item(content, vimtype, name):
 # TODO: function to apply a given operation to all objects in a view
 
 
-def find_in_folder(folder, name):
+def find_in_folder(folder, name, recursive=False):
     """
     Finds and returns an object in a folder
-    :param folder:
-    :param name:
-    :return:
+    :param folder: vim.Folder object to search in
+    :param name: Name of the object to find
+    :param recursive: Recurse into sub-folders [default: False]
+    :return: Object found or None if nothing was found
     """
     for item in folder.childEntity:
-        if item.name == name:
+        if hasattr(item, 'name') and item.name == name:  # Check if it has name, and if the name matches
             return item
+        elif recursive and is_folder(item):  # Recurse into sub-folders
+            find_in_folder(folder=item, name=name, recursive=recursive)
     return None
-
-
-def check_in_folder(folder, name):
-    """
-    Checks if a object is in a folder
-    :param folder:
-    :param name:
-    :return:
-    """
-    for item in folder.childEntity:
-        if item.name == name:
-            return True
-    return False
 
 
 # TODO: specify vimtype of item to find
@@ -101,41 +94,41 @@ def traverse_path(root, path, name=None):
     """
     Traverses a folder path to find a object with a specific name
     :param root: vim.Folder root to search in
-    :param path: String with path in UNIX format (Example: Templates/Servers/Windows/)
+    :param path: String with path in POSIX format (Example: Templates/Servers/Windows/)
     :param name: Name of object to find (Example: "Windows Server 2012 R2 (64-bit)")
                  [default: Return folder at end of path]
     :return: Object found, or None if not found or there was an error
     """
-    logging.debug("Traversing path. Root: %s\tPath: %s\tName: %s", str(root.name), path, name)
+    logging.debug("Traversing path. Root: %s\tPath: %s\tName: %s", root.name, path, name)
     folder_path = [x for x in path.split('/') if x != ""]  # Remove empty values
 
     current = root
     for folder in folder_path:
         for item in current.childEntity:
             if is_folder(item) and item.name == folder:
-                current = item
-                break
+                current = item      # Found the next folder in path,
+                break               # Break to check this folder for next part of the path
 
-    if name:
+    if name:  # Look for item with a specific name
         for item in current.childEntity:
-            if is_vm(item) and item.name == name:
+            if (is_vm(item) or is_folder(item)) and item.name == name:
                 return item
-            elif is_folder(item) and item.name == name:
-                return item
-    else:
+        logging.error("Could not find item %s while traversing path %s from root %s", name, path, root.name)
+        return None
+    else:  # Just return whatever we found
         return current
-
-    logging.error("Could not find item %s while traversing path %s from root %s", name, path, root.name)
-    return None
 
 
 # From: tools/tasks.py in pyvmomi-community-samples
 def wait_for_tasks(service_instance, tasks):
     """
-    Given the service instance si and tasks, it returns after all the tasks are complete
+    Waits for a list of tasks to complete
     :param service_instance: Service instance as returned by pyVim.connect.SmartConnect()
     :param tasks: List of tasks to wait for
     """
+    if not tasks:
+        logging.error("No tasks were specified to wait for")
+        return None
     logging.debug("Waiting for tasks. Instance: %s\tTasks: %s", str(service_instance), str(tasks))
     property_collector = service_instance.content.propertyCollector
     task_list = [str(task) for task in tasks]
@@ -174,23 +167,34 @@ def wait_for_tasks(service_instance, tasks):
 
 
 # From: clone_vm.py in pyvmomi-community-samples
-def wait_for_task(task):
+def wait_for_task(task, show_status=False):
     """
-    Wait for a single vCenter task to finish and return it's result
+    Waits for a single vCenter task to finish and return it's result
     :param task: vim.Task object of the task to wait for
+    :param show_status: Display status to user [default: False]
     :return: Task result information
     """
     if not task:
+        logging.error("No task was specified to wait for")
         return None
-    logging.debug("Waiting for task: %s", str(task.info.name))
-    task_done = False
-    while not task_done:
-        if task.info.state == 'success':
-            logging.debug("Result: %s", str(task.info.result))
+    while True:
+        if show_status and task.info.state == 'running':
+            progress = task.info.progress
+            if type(progress) != int:
+                stdout.write("\n")
+            else:
+                stdout.write("\r\t\t\t\tProgress: %s" % str(task.info.progress))
+            stdout.flush()
+        elif task.info.state == 'success':
+            if show_status:
+                stdout.write("\n")
+            logging.debug("Task result: %s", str(task.info.result))
             return task.info.result
-        if task.info.state == 'error':
-            logging.error("There was an error while completing task %s", str(task.info.name))
-            task_done = True
+        elif show_status and task.info.state == 'queued':
+            automation.utils.spinner('Queued:')
+        elif task.info.state == 'error':
+            logging.error("There was an error while completing a task: %s", str(task.info.error.msg))
+            return None
 
 
 def move_into_folder(folder, entity_list):

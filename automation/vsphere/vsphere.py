@@ -37,22 +37,23 @@ from pyVmomi import vim
 # Must always use absolute imports when running as script (aka as '__main__')
 from automation.vsphere.vsphere_utils import get_obj, get_objs, get_item, find_in_folder
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    def __init__(self, datacenter, username, password, hostname, port=443, datastore=None):
+    def __init__(self, username, password, hostname, datacenter=None, datastore=None, port=443):
         """
         Connects to the vCenter server instance and initializes class data members
-        :param datacenter: Name of datacenter that will be used (multiple datacenter support is TODO)
         :param username: Username of account to login with
         :param password: Password of account to login with
         :param hostname: DNS hostname or IPv4 address of vCenter instance
-        :param datastore: Name of datastore to use as default for operations. Default: first datastore found
-        :param port: Port used to connect to vCenter instance
+        :param datastore: Name of datastore to use as default for operations [default: first datastore found on server]
+        :param datacenter: Name of datacenter that will be used [default: First datacenter found on server]
+        :param port: Port used to connect to vCenter instance [default: 443]
         """
+        # TODO: multiple datacenter support
         logging.debug("Initializing vSphere...")
         if not password:
             from getpass import getpass
@@ -74,7 +75,7 @@ class Vsphere:
         self.port = port
         self.content = self.server.RetrieveContent()
         self.children = self.content.rootFolder.childEntity
-        self.datacenter = get_obj(self.content, [vim.Datacenter], datacenter)
+        self.datacenter = get_item(self.content, vim.Datacenter, datacenter)
         self.datastore = self.get_datastore(datastore)
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
@@ -139,9 +140,10 @@ class Vsphere:
         :return: vim.Folder object
         """
         if folder_name:
+            # TODO: specify which root to start (type of folder)
             return get_obj(self.content, [vim.Folder], folder_name)
         else:
-            return self.content.rootFolder
+            return self.datacenter.vmFolder  # S.f.r: pyvmomi/docs/vim/Datacenter.rst
 
     def get_vm(self, vm_name):
         """
