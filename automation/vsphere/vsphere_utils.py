@@ -97,7 +97,6 @@ def traverse_path(root, path):
     logging.debug("Traversing path. Root: %s\tPath: %s", root.name, path)
     folder_path, name = split(path)         # Separate basename, if any
     folder_path = folder_path.split('/')    # Transform into list
-    # folder_path = [x for x in path.split('/') if x != ""]  # Remove empty values
 
     current = root
     for folder in folder_path:
@@ -114,6 +113,27 @@ def traverse_path(root, path):
         return None
     else:  # Just return whatever we found
         return current
+
+
+def enumerate_folder(folder, recursive=True):
+    """
+    Enumerates a folder structure and returns the result as a python object with the same structure
+    :param folder: vim.Folder
+    :param recursive: Whether to recurse into any sub-folders
+    :return: The nested python object with the enumerated folder structure
+    """
+    children = []
+    for item in folder.childEntity:
+        if is_folder(item):
+            if recursive:
+                children.append(enumerate_folder(item, recursive))
+            else:
+                children.append(item)
+        elif is_vm(item):
+            children.append(item)
+        else:
+            children.append("UNKNOWN ITEM: %s" % str(item))
+    return {folder.name, children}
 
 
 # From: tools/tasks.py in pyvmomi-community-samples
