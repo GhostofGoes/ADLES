@@ -59,18 +59,14 @@ groups:
   Group Regular Example:
     # The three different methods of specifying users for a regular group
     ad-group: "Users"                                           # Option A  AD group must exist
-    filename: "a-file.json"                                     # Option B  Format: user-json-specification.json
+    filename: "a-file.json"                                     # Option B  File format: specifications/user-json-specification.json
     user-list: [ "user-a": "password", "user-b": "password" ]   # Option C  List of usernames and passwords
 
   # For creating batch groups from a common template base, the "template" type can be used
-  # Templates use the key letter 'X' to define unique copies of the base
-  Group Template Example X: # Note the capital X
-    # If instances is specified, the group is assumed to be a template
-    instances: 10  # Number of groups created from this template
-
-    # The two different methods of specifying users for a template group (user-lists cannot be used)
-    ad-group: "Group X"
-    filename: "users-X.json"
+  Group Template Example:
+    instances: 10             # REQUIRED  Number of groups created from this template. If instances is specified, the group is a template.
+    ad-group: "Group X"       # Option A  'X' is the instance number. AD group must exist  
+    filename: "users-X.json"  # Option B  'X' is the instance number. File format: specifications/user-json-specification.json
 
 
 

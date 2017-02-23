@@ -150,7 +150,8 @@ class VsphereInterface:
         # if "services" in folder: then normal-folder
         # else: parent-folder
         # So, need to iterate and create folders.
-        # if "instances" in folder: then create range(instances) folder.name + pad
+        # if "instances" in folder: then create range(instances) folder.name + pad + prefix <-- Optional prefix
+        #                                           ^ resolve "size-of" if specified instead of "number"
         # else: create folder
 
         # Enumerate folder tree to debugging

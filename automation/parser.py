@@ -75,7 +75,7 @@ def verify_syntax(spec):
     else:
         logging.warning("No networks found")
     if "folders" in spec:
-        if not _verify_folders_syntax(spec["folders"]):
+        if not _verify_folders_syntax(spec["folders"], spec["groups"]):
             status = False
     else:
         logging.error("No folders found")
@@ -150,9 +150,9 @@ def _verify_groups_syntax(groups):
     """
     status = True
     for key, value in groups.items():
-        if " X" in key:  # Templates
-            if "instances" not in value:
-                logging.error("No instances specified for template group %s", key)
+        if "instances" in value:  # Templates
+            if type(value["instances"]) != int:
+                logging.error("Instances must be an Integer for group %s", key)
                 status = False
             if "ad-group" in value:
                 pass
@@ -248,7 +248,7 @@ def _verify_network(name, network):
     return status
 
 
-def _verify_folders_syntax(folders):
+def _verify_folders_syntax(folders, groups):
     """
     Verifies that the syntax for folders matches the specification
     :param folders:
@@ -257,15 +257,22 @@ def _verify_folders_syntax(folders):
     status = True
 
     for key, value in folders.items():
-        if "instances" in value:
+        if "instances" in value:  # Check instances syntax, regardless of parent or base
             if "number" in value["instances"]:
-                pass  # TODO: VERIFY INT
+                if type(value["instances"]["number"]) != int:
+                    logging.error("Number of instances for folder %s must be an Integer", key)
+                    status = False
             elif "size-of" in value["instances"]:
-                pass  # TODO: verify group exists
+                if value["instances"]["size-of"] not in groups:
+                    logging.error("Cannot use size-of group %s for folder %s: group does not exist",
+                                  value["instances"]["size-of"], key)
+                    status = False
             else:
                 logging.error("Must specify number of instances for folder %s", key)
                 status = False
-        if "services" in value:
+
+        # Check if parent or base
+        if "services" in value:  # It's a base folder
             if "group" not in value:
                 logging.error("No group specified for folder %s", key)
                 status = False
@@ -277,7 +284,7 @@ def _verify_folders_syntax(folders):
                     logging.error("Network specifications must be a list for service %s in folder %s", skey, key)
                     status = False
         else:  # It's a parent folder
-            status = _verify_folders_syntax(value)
+            status = _verify_folders_syntax(value, groups)
 
     return status
 
