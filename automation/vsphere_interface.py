@@ -149,6 +149,8 @@ class VsphereInterface:
                      master_folder.name, self.root_folder.name)
 
         # Recursively descend from master folder, destroying anything with the prefix
+        cleanup(folder=master_folder, prefix=self.master_prefix,
+                recursive=True, destroy_folders=True, destroy_self=True)
 
         # Cleanup networks (TODO: use network folders to aid in this, during creation phase)
         if network_cleanup:

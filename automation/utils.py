@@ -47,7 +47,7 @@ def sizeof_fmt(num):
     """
     Returns the human readable version of a file size
     :param num:
-    :return:
+    :return: Human readable version of a file size
     """
     for item in ['bytes', 'KB', 'MB', 'GB']:
         if num < 1024.0:
@@ -100,7 +100,7 @@ def read_json(filename):
     """
     Reads input from a JSON file and returns the contents
     :param filename:
-    :return:
+    :return: Contents of the JSON file
     """
     from json import load
     try:
@@ -149,7 +149,7 @@ def time_execution(func):
     """
     Wrapper to time the execution of a function and log to debug
     :param func: The function to time execution of
-    :return: The function (It's a wrapper...)
+    :return: The function
     """
     def wrapper(*args, **kwargs):
         start_time = time()

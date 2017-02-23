@@ -87,7 +87,6 @@ def find_in_folder(folder, name, recursive=False):
     return None
 
 
-# TODO: specify vimtype of item to find
 def traverse_path(root, path):
     """
     Traverses a folder path to find a object with a specific name
@@ -215,8 +214,7 @@ def cleanup(folder, prefix=None, recursive=False, destroy_folders=False, destroy
                 if recursive or destroy_folders:  # Destroys folder and it's sub-objects
                     cleanup(item, prefix, recursive, destroy_folders, destroy_self=destroy_folders)
             else:  # It's not a VM or a folder...
-                logging.warning("Unknown item encountered while destroying everything in folder %s: %s",
-                                folder.name, str(item))
+                logging.warning("Unknown item encountered while cleaning in folder %s: %s", folder.name, str(item))
         if destroy_self:  # Note: UnregisterAndDestroy does not delete VM files off datastore
             wait_for_task(folder.UnregisterAndDestroy_Task())  # Final cleanup
     else:
