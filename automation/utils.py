@@ -190,8 +190,8 @@ def make_vsphere(filename=None):
 
 def warning():
     """ Prints a warning prompt. """
-    logging.info("\nYou run this script at your own risk. If you break something, it's on YOU"
-                 "\nIf you're paranoid, please read the code, and perhaps improve it =)\n")
+    print("\n\n\n** YOU RUN THIS SCRIPT AT YOUR OWN RISK **"
+          "\nPlease read the source code or documentation for information on proper script usage\n\n")
 
 
 def user_input(prompt, obj_name, func):
@@ -206,6 +206,7 @@ def user_input(prompt, obj_name, func):
         item_name = input(prompt)
         item = func(item_name)
         if item:
+            logging.debug("Found %s: %s", obj_name, item.name)
             return item, item_name
         else:
             print("Couldn't find a %s with name %s. Perhaps try another? " % (obj_name, item_name))

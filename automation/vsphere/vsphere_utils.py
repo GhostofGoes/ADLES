@@ -13,11 +13,9 @@
 # limitations under the License.
 
 import logging
-from sys import stdout
 from pyVmomi import vim
 from pyVmomi import vmodl
-
-import automation.utils
+from posixpath import split  # We want to always parse as forward-slashes, regardless of platform we're running on
 
 
 # From: various files in pyvmomi-community-samples
@@ -90,17 +88,17 @@ def find_in_folder(folder, name, recursive=False):
 
 
 # TODO: specify vimtype of item to find
-def traverse_path(root, path, name=None):
+def traverse_path(root, path):
     """
     Traverses a folder path to find a object with a specific name
     :param root: vim.Folder root to search in
-    :param path: String with path in POSIX format (Example: Templates/Servers/Windows/)
-    :param name: Name of object to find (Example: "Windows Server 2012 R2 (64-bit)")
-                 [default: Return folder at end of path]
-    :return: Object found, or None if not found or there was an error
+    :param path: String with path in POSIX format (Example: Templates/Servers/Windows/ to get the 'Windows' folder)
+    :return: Object at end of path
     """
-    logging.debug("Traversing path. Root: %s\tPath: %s\tName: %s", root.name, path, name)
-    folder_path = [x for x in path.split('/') if x != ""]  # Remove empty values
+    logging.debug("Traversing path. Root: %s\tPath: %s", root.name, path)
+    folder_path, name = split(path)         # Separate basename, if any
+    folder_path = folder_path.split('/')    # Transform into list
+    # folder_path = [x for x in path.split('/') if x != ""]  # Remove empty values
 
     current = root
     for folder in folder_path:
@@ -167,31 +165,19 @@ def wait_for_tasks(service_instance, tasks):
 
 
 # From: clone_vm.py in pyvmomi-community-samples
-def wait_for_task(task, show_status=False):
+def wait_for_task(task):
     """
     Waits for a single vCenter task to finish and return it's result
     :param task: vim.Task object of the task to wait for
-    :param show_status: Display status to user [default: False]
     :return: Task result information
     """
     if not task:
         logging.error("No task was specified to wait for")
         return None
     while True:
-        if show_status and task.info.state == 'running':
-            progress = task.info.progress
-            if type(progress) != int:
-                stdout.write("\n")
-            else:
-                stdout.write("\r\t\t\t\tProgress: %s" % str(task.info.progress))
-            stdout.flush()
-        elif task.info.state == 'success':
-            if show_status:
-                stdout.write("\n")
+        if task.info.state == 'success':
             logging.debug("Task result: %s", str(task.info.result))
             return task.info.result
-        elif show_status and task.info.state == 'queued':
-            automation.utils.spinner('Queued:')
         elif task.info.state == 'error':
             logging.error("There was an error while completing a task: %s", str(task.info.error.msg))
             return None

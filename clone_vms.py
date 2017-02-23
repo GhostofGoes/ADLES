@@ -35,7 +35,7 @@ from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, w
 from automation.vsphere.vm_utils import clone_vm
 from automation.vsphere.vsphere_utils import traverse_path
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 args = docopt(__doc__, version=__version__, help=True)
 setup_logging(filename='clone_vms.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
@@ -43,25 +43,15 @@ setup_logging(filename='clone_vms.log', console_level=logging.DEBUG if args["--v
 server = make_vsphere(args["--file"])
 warning()
 
-# TODO: path specifiy VMs
-vm, vm_name = user_input("Name of the VM or template you wish to clone: ", "VM", server.get_vm)
+vm, vm_name = user_input("Name of or path to the VM or template you wish to clone: ", "VM",
+                         lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_vm(x))
 
 if not vm.config.template:  # check type
     if not prompt_y_n_question("VM %s is not a Template. Do you wish to continue? " % vm_name):
         exit(0)
 
-# well shit this arse of a code block breaks my nice generic functions
-while True:
-    folder_name = input("Name of folder or path to folder in which to create VMs: ")
-    if '/' in folder_name:
-        folder = traverse_path(server.get_folder(), folder_name)
-    else:
-        folder = server.get_folder(folder_name=folder_name)
-    if folder:
-        logging.info("Found folder %s", folder.name)
-        break
-    else:
-        print("Couldn't find a folder with name %s. Perhaps try another? " % folder_name)
+folder, folder_name = user_input("Name of or path to the folder in which to create VMs: ", "folder",
+                                 lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_folder(x))
 
 base_name = input("Base name for instances to be created: ")
 num_instances = int(input("Number of instances to be created: "))
