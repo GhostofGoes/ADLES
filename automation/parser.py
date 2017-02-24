@@ -114,7 +114,7 @@ def _verify_metadata_syntax(metadata):
     :param metadata:
     :return: Boolean indicating success or failure
     """
-    warnings = ["description", "date-created", "root-path"]
+    warnings = ["description", "date-created", "folder-name", "root-path", "template-path"]
     errors = ["name", "infrastructure-config-file"]
 
     num_warnings = _checker(warnings, "metadata", metadata, "warnings")

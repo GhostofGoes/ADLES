@@ -49,7 +49,10 @@ metadata:
   date-created: "Date specification was created"  # Suggested   UTC format: YYYY-MM-DD (Example: 2016-10-12)
   version: "0.0.0"                                # Optional    Semantic version of the document: major.minor.bugfix
   infrastructure-config-file: "filename.yaml"     # REQUIRED    YAML file specifying the infrastructure used to create the environment (See: infrastructure-specification.yaml for syntax)
-  root-path: "Path/To/Folder/Root"                # Suggested   Path specifying location of the root folder for environment, relative to infrastructure root.
+  folder-name: "foldername"                       # Suggested   Name of folder that will contain the environment
+  root-path: "Path/To/Folder/Root"                # Suggested   Path from server root to location of the root folder for environment, relative to infrastructure root.
+  template-path: "Path/To/Templates"              # Suggested   Path from server root to folder containing templates used to create environment
+
 
 
 # ** Groups/Teams **
@@ -106,16 +109,15 @@ services:
 
 
 # ** Resources **
-# Lab resources that are to be utilized. These will be attached to folders, networks, or groups as needed
-# Example: access to a specific portion of the power lab
-# Example: access to RADICL's  Wireless testbed
+# Cyber-physical resources that are to be utilized. These will be attached to folders, networks, or groups as needed
 resources:
-  resource-p:
+  resource-p:   # Example: access to a specific portion of the power lab
     lab: "power-lab"
     resource: "transformer"
-  resource-r:
+  resource-r:   # Example: access to RADICL's  Wireless testbed
     lab: "radicl"
     resource: "wireless-testbed"
+
 
 
 # ** Networks **

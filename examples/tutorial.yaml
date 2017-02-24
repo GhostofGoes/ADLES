@@ -7,7 +7,9 @@ metadata:
   date-created: "2016-11-06"
   version: "0.4.0"
   infrastructure-config-file: "infra.yaml"
+  folder-name: "TU-03"
   root-path: "CS-439/TR-01" # CS 439, Tutorial Round 01
+  template-path: "Templates"
 
 groups:
   Students:

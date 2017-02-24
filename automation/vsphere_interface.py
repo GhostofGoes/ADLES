@@ -34,7 +34,6 @@ class VsphereInterface:
         self.metadata = spec["metadata"]
         self.groups = spec["groups"]
         self.services = spec["services"]
-        # TODO: how do resources fit in here? Ignoring for now...
         self.networks = spec["networks"]
         self.folders = spec["folders"]
 
@@ -46,12 +45,19 @@ class VsphereInterface:
                               port=int(logins["port"]),
                               datastore=infrastructure["datastore"])
 
-        # Create root folder for the exercise
-        server_root = "script_testing"  # TODO: put this in infra-spec, default to server root.vmFolder or whatever
+        # Set the server root (TODO: put this in infra-spec, default to server root.vmFolder)
+        server_root = "script_testing"  # STATICALLY SETTING FOR NOW WHILE USING TEST ENVIRONMENT
+        self.server_root = self.server.get_folder(server_root)
+
+        # Set root folder for the exercise, or create if it doesn't yet exist
+        self.root_name = (self.metadata["name"] if "folder-name" not in self.metadata else self.metadata["folder-name"])
         self.root_path = self.metadata["root-path"]
-        self.root_name = self.metadata["name"]
-        parent = traverse_path(self.server.get_folder(server_root), self.root_path)
-        self.root_folder = self.server.create_folder(folder_name=self.root_name, create_in=parent)
+        root = traverse_path(self.server_root, self.root_path + self.root_name)
+        if not root:
+            parent = traverse_path(self.server_root, self.root_path)
+            self.root_folder = self.server.create_folder(folder_name=self.root_name, create_in=parent)
+        else:
+            self.root_folder = root
 
     def create_masters(self):
         """ Master creation phase """
@@ -59,6 +65,12 @@ class VsphereInterface:
         # TODO: for the time being, just doing a flat "MASTER_FOLDERS" folder with all the masters, regardless of depth
         #   Will eventually do hierarchically based on folders and not just the services
         #   Will write a function to do this, so we can recursively descend for complex environments
+
+        # Get folder containing templates
+        template_folder = traverse_path(self.server_root, self.metadata["template-path"])
+        if not template_folder:
+            logging.error("Could not find template folder in path %s", self.metadata["template-path"])
+            return
 
         # Create master folder to hold base service instances
         master_folder = self.server.create_folder(folder_name=self.master_folder_name, create_in=self.root_folder)
@@ -71,15 +83,16 @@ class VsphereInterface:
         # Create base service instances (Docker containers and compose will be implemented here)
         for service_name, service_config in self.services.items():
             if "template" in service_config:         # Virtual Machine template
-                logging.info("Creating master for service %s from template %s",
-                             service_name, service_config["template"])
+                logging.info("Creating master for %s from template %s", service_name, service_config["template"])
                 vm_name = self.master_prefix + service_name
-                template = self.server.get_vm(service_config["template"])  # TODO: traverse path
+                template = traverse_path(template_folder, service_config["template"])
+                # template = self.server.get_vm(service_config["template"])
                 clone_vm(vm=template, folder=master_folder, name=vm_name,
                          clone_spec=self.server.generate_clone_spec())
 
-                # Snapshot and configure base instance post-clone
-                new_vm = self.server.get_vm(vm_name=vm_name)  # (TODO: traverse path)
+                # Get new cloned instance
+                new_vm = traverse_path(master_folder, vm_name)
+                # new_vm = self.server.get_vm(vm_name=vm_name)
                 if not new_vm:
                     logging.error("Did not successfully clone VM %s", vm_name)
                     continue
@@ -159,9 +172,7 @@ class VsphereInterface:
 
         # Clone instances (use function for numbering)(use prefix if specified)
 
-
         # Take snapshots post-clone
-
 
         # Enumerate tree with VMs to debugging
         logging.debug(format_structure(enumerate_folder(self.root_folder)))
