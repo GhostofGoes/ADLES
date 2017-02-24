@@ -31,19 +31,19 @@ Options:
 from atexit import register
 import logging
 
-from pyVim.connect import SmartConnect, Disconnect
+from pyVim.connect import SmartConnect, SmartConnectNoSSL,Disconnect
 from pyVmomi import vim
 
 # Must always use absolute imports when running as script (aka as '__main__')
 from automation.vsphere.vsphere_utils import get_obj, get_objs, get_item, find_in_folder
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 
 
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    def __init__(self, username, password, hostname, datacenter=None, datastore=None, port=443):
+    def __init__(self, username, password, hostname, datacenter=None, datastore=None, port=443, use_ssl=False):
         """
         Connects to the vCenter server instance and initializes class data members
         :param username: Username of account to login with
@@ -59,7 +59,10 @@ class Vsphere:
             from getpass import getpass
             password = getpass(prompt='Enter password for host %s and user %s: ' % (hostname, username))
         try:
-            self.server = SmartConnect(host=hostname, user=username, pwd=password, port=int(port))  # Connect to server
+            if use_ssl:  # Connect to server using SSL certificate verification
+                self.server = SmartConnect(host=hostname, user=username, pwd=password, port=int(port))
+            else:
+                self.server = SmartConnectNoSSL(host=hostname, user=username, pwd=password, port=int(port))
         except Exception as e:
             logging.error("Your system likely does not trust the server's certificate. "
                           "Follow instructions in the README to install the certificate, or contact an administrator.\n"

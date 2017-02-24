@@ -3,12 +3,13 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
 # Creation Date:    October 12th, 2016
-# Current Version:  0.4.0
+# Current Version:  0.4.1
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
 #   0.3.0:  Additions to services and networks, significant cleanup
 #   0.4.0:  Significant Folder changes, Added VLANs, Improved groups   (2-12-2017)
+#   0.4.1:  Changed group template syntax (2-23-2017)
 
 # *** Syntax inspirations ***
 # https://docs.docker.com/compose/compose-file/

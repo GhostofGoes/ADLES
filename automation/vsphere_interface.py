@@ -159,6 +159,10 @@ class VsphereInterface:
 
         # Clone instances (use function for numbering)(use prefix if specified)
 
+
+        # Take snapshots post-clone
+
+
         # Enumerate tree with VMs to debugging
         logging.debug(format_structure(enumerate_folder(self.root_folder)))
 
