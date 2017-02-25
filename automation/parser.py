@@ -40,50 +40,6 @@ def parse_file(filename):
     return doc
 
 
-@time_execution
-def verify_syntax(spec):
-    """
-    Verifies the syntax for the dictionary representation of an environment specification
-    :param spec: Dictionary of environment specification
-    :return: Boolean indicating success or failure
-    """
-    status = True
-    if "metadata" in spec:
-        if not _verify_metadata_syntax(spec["metadata"]):
-            status = False
-    else:
-        logging.error("No metadata found!")
-        status = False
-    if "groups" in spec:
-        if not _verify_groups_syntax(spec["groups"]):
-            status = False
-    else:
-        logging.warning("No groups found")
-    if "services" in spec:
-        if not _verify_services_syntax(spec["services"]):
-            status = False
-    else:
-        logging.warning("No services found")
-    if "resources" in spec:
-        if not _verify_resources_syntax(spec["resources"]):
-            status = False
-    else:
-        logging.warning("No resources found")
-    if "networks" in spec:
-        if not _verify_networks_syntax(spec["networks"]):
-            status = False
-    else:
-        logging.warning("No networks found")
-    if "folders" in spec:
-        if not _verify_folders_syntax(spec["folders"], spec["groups"]):
-            status = False
-    else:
-        logging.error("No folders found")
-        status = False
-    return status
-
-
-# TODO: I could totally generalize this in the future...basically swagger but domain-specific
 def _checker(value_list, source, data, flag):
     """
     Checks if values in the list are in data (Syntax warnings or errors)
@@ -112,7 +68,7 @@ def _verify_metadata_syntax(metadata):
     """
     Verifies that the syntax for metadata matches the specification
     :param metadata:
-    :return: Boolean indicating success or failure
+    :return: (Number of errors, Number of warnings)
     """
     warnings = ["description", "date-created", "folder-name", "root-path", "template-path"]
     errors = ["name", "infrastructure-config-file"]
@@ -122,16 +78,18 @@ def _verify_metadata_syntax(metadata):
 
     if "infrastructure-config-file" in metadata:
         infra_contents = parse_file(metadata["infrastructure-config-file"])
-        num_errors += _verify_infra_syntax(infra_contents)
+        e, w = _verify_infra_syntax(infra_contents)
+        num_errors += e
+        num_warnings += w
 
-    return False if num_errors > 0 else True
+    return num_errors, num_warnings
 
 
 def _verify_infra_syntax(infra):
     """
     Verifies syntax of infrastructure-config-file
     :param infra:
-    :return: Number of errors
+    :return: (Number of errors, Number of warnings)
     """
     # TODO: interface-specific syntax and checking
     warnings = ["datacenter", "datastore"]
@@ -139,28 +97,30 @@ def _verify_infra_syntax(infra):
 
     num_warnings = _checker(warnings, "infrastructure", infra, "warnings")
     num_errors = _checker(errors, "infrastructure", infra, "errors")
-    return num_errors
+    return num_errors, num_warnings
 
 
 def _verify_groups_syntax(groups):
     """
     Verifies that the syntax for groups matches the specification
     :param groups:
-    :return: Boolean indicating success or failure
+    :return: (Number of errors, Number of warnings)
     """
-    status = True
+    num_errors = 0
+    num_warnings = 0
+    
     for key, value in groups.items():
         if "instances" in value:  # Templates
             if type(value["instances"]) != int:
                 logging.error("Instances must be an Integer for group %s", key)
-                status = False
+                num_errors += 1
             if "ad-group" in value:
                 pass
             elif "filename" in value:
                 pass
             else:
                 logging.error("Invalid user specification method for template group %s", key)
-                status = False
+                num_errors += 1
         else:  # Non-templates
             if "ad-group" in value:
                 pass
@@ -169,20 +129,22 @@ def _verify_groups_syntax(groups):
             elif "user-list" in value:
                 if type(value["user-list"]) is not list:
                     logging.error("Username specification must be a list for group %s", key)
-                    status = False
+                    num_errors += 1
             else:
                 logging.error("Invalid user specification method for group %s", key)
-                status = False
-    return status
+                num_errors += 1
+    return num_errors, num_warnings
 
 
 def _verify_services_syntax(services):
     """
     Verifies that the syntax for services matches the specification
     :param services:
-    :return: Boolean indicating success or failure
+    :return: (Number of errors, Number of warnings)
     """
-    status = True
+    num_errors = 0
+    num_warnings = 0
+    
     for key, value in services.items():
         if "template" in value:
             pass
@@ -192,39 +154,42 @@ def _verify_services_syntax(services):
             pass
         else:
             logging.error("Invalid service definition: %s", key)
-            status = False
-    return status
+            num_errors += 1
+    return num_errors, num_warnings
 
 
 def _verify_resources_syntax(resources):
     """
     Verifies that the syntax for resources matches the specification
     :param resources:
-    :return: Boolean indicating success or failure
+    :return: (Number of errors, Number of warnings)
     """
     warnings = []
     errors = []
     num_warnings = _checker(warnings, "resources", resources, "warnings")
     num_errors = _checker(errors, "resources", resources, "errors")
-    return num_errors
+    return num_errors, num_warnings
 
 
 def _verify_networks_syntax(networks):
     """
     Verifies that the syntax for networks matches the specification
     :param networks:
-    :return: Boolean indicating success or failure
+    :return: (Number of errors, Number of warnings)
     """
-    status = True
+    num_errors = 0
+    num_warnings = 0
+    
     net_types = ["unique-networks", "generic-networks", "base-networks"]
     if not any(net in networks for net in net_types):
         logging.error("Network specification exists but is empty!")
-        status = False
+        num_errors += 1
     else:
-        for net in net_types:
-            if net in networks and not _verify_network(net, networks[net]):
-                status = False
-    return status
+        for name, network in networks.items():
+            e, w = _verify_network(name, network)
+            num_errors += e
+            num_warnings += w
+    return num_errors, num_warnings
 
 
 def _verify_network(name, network):
@@ -234,59 +199,98 @@ def _verify_network(name, network):
     :param network:
     :return:
     """
-    status = True
+    num_errors = 0
+    num_warnings = 0
+    
     for key, value in network.items():
         if "subnet" not in value:
             logging.warning("No subnet specified for %s %s", name, key)
+            num_warnings += 1
         else:
             subnet = IPNetwork(value["subnet"])
             if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
                 logging.error("%s %s is in a invalid IP address space", name, key)
-                status = False
+                num_errors += 1
             elif not subnet.is_private():
                 logging.warning("Non-private subnet used for %s %s", name, key)
-    return status
+                num_warnings += 1
+    return num_errors, num_warnings
 
 
-def _verify_folders_syntax(folders, groups):
+def _verify_folders_syntax(folders):
     """
     Verifies that the syntax for folders matches the specification
     :param folders:
-    :return: Boolean indicating success or failure
+    :return: (Number of errors, Number of warnings)
     """
-    status = True
+    num_errors = 0
+    num_warnings = 0
 
     for key, value in folders.items():
         if "instances" in value:  # Check instances syntax, regardless of parent or base
             if "number" in value["instances"]:
                 if type(value["instances"]["number"]) != int:
                     logging.error("Number of instances for folder %s must be an Integer", key)
-                    status = False
+                    num_errors += 1
             elif "size-of" in value["instances"]:
-                if value["instances"]["size-of"] not in groups:
-                    logging.error("Cannot use size-of group %s for folder %s: group does not exist",
-                                  value["instances"]["size-of"], key)
-                    status = False
+                pass
             else:
                 logging.error("Must specify number of instances for folder %s", key)
-                status = False
+                num_errors += 1
 
         # Check if parent or base
         if "services" in value:  # It's a base folder
             if "group" not in value:
                 logging.error("No group specified for folder %s", key)
-                status = False
+                num_errors += 1
             for skey, svalue in value["services"].items():
                 if "service" not in svalue:
                     logging.error("Service %s is unnamed in folder %s", skey, key)
-                    status = False
+                    num_errors += 1
                 if "networks" in svalue and type(svalue["networks"]) is not list:
                     logging.error("Network specifications must be a list for service %s in folder %s", skey, key)
-                    status = False
+                    num_errors += 1
         else:  # It's a parent folder
-            status = _verify_folders_syntax(value, groups)
+            num_errors, num_warnings = _verify_folders_syntax(value)
 
-    return status
+    return num_errors, num_warnings
+
+
+@time_execution
+def verify_syntax(spec):
+    """
+    Verifies the syntax for the dictionary representation of an environment specification
+    :param spec: Dictionary of environment specification
+    :return: (errors, warnings)
+    """
+    num_warnings = 0
+    num_errors = 0
+    funcs = {"metadata": _verify_metadata_syntax,
+             "groups": _verify_groups_syntax,
+             "services": _verify_services_syntax,
+             "resources": _verify_resources_syntax,
+             "networks": _verify_networks_syntax,
+             "folders": _verify_folders_syntax}
+
+    required = ["metadata", "groups", "services", "networks", "folders"]
+    optional = ["resources"]
+
+    for key, func in funcs.items():
+        if key not in spec:
+            if key in required:
+                logging.error("Required definition %s was not found", key)
+                num_errors += 1
+            elif key in optional:
+                logging.debug('Optional definition "%s" was not found', key)
+            else:
+                logging.warning("Unknown definition found: %s", key)
+                num_warnings += 1
+        else:
+            w, e = func(spec[key])
+            num_errors += e
+            num_warnings += w
+
+    return num_errors, num_warnings
 
 
 # TODO: basic unit tests

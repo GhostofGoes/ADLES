@@ -53,7 +53,7 @@ from sys import exit
 from automation.interface import Interface
 from automation.parser import parse_file, verify_syntax
 
-__version__ = "0.5.4"
+__version__ = "0.6.0"
 __author__ = "Christopher Goes"
 __email__ = "<goes8945@vandals.uidaho.edu>"
 
@@ -95,15 +95,20 @@ def check_syntax(specfile_path):
     from os.path import basename
 
     if not exists(specfile_path):
-        exit("Could not find spec file to create environment using")
+        logging.error("Could not find specification file in path %s", str(specfile_path))
+        exit(1)
     spec = parse_file(specfile_path)
-    logging.info("Successfully ingested %s", str(basename(specfile_path)))
+    logging.info("Successfully ingested specification file %s", str(basename(specfile_path)))
     logging.info("Checking syntax...")
-    if verify_syntax(spec):
+    errors, warnings = verify_syntax(spec)
+    if errors == 0 and warnings == 0:
         logging.info("Syntax check successful!")
         return spec
+    elif errors == 0:
+        logging.info("Syntax check successful, but there were %d warnings", warnings)
+        return spec
     else:
-        logging.error("Syntax check failed!")
+        logging.error("Syntax check failed! Errors: %d\tWarnings: %d", errors, warnings)
         exit(1)
 
 
