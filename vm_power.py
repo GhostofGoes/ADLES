@@ -33,8 +33,9 @@ import logging
 
 from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input
 from automation.vsphere.vm_utils import change_vm_state
+from automation.vsphere.vsphere_utils import traverse_path
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 args = docopt(__doc__, version=__version__, help=True)
 setup_logging(filename='vm_power.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
@@ -46,14 +47,16 @@ operation = input("Enter the power operation you wish to perform [on | off | res
 attempt_guest = prompt_y_n_question("Use guest operations if available? ")
 
 if prompt_y_n_question("Multiple VMs? "):
-    folder, folder_name = user_input("Name of folder which contains the VMs (NOT the path): ",
-                                     "folder", server.get_folder)
-    if prompt_y_n_question("Found %s VMs in folder %s. Continue? "
-                           % (len(list(folder.childEntity)), folder_name)):
-        for vm in folder.childEntity:
+    folder, folder_name = user_input("Name of or path to the folder: ", "folder",
+                                     lambda x: traverse_path(server.get_folder(), x)
+                                     if '/' in x else server.get_folder(x))
+    vms = [vm for vm in folder if hasattr(vm, "summary")]
+    if prompt_y_n_question("Found %s VMs in folder %s. Continue? " % (len(vms), folder_name)):
+        for vm in vms:
             change_vm_state(vm, operation, attempt_guest)
 
 else:
-    vm, vm_name = user_input("Name of the VM: ", "VM", server.get_vm)
+    vm, vm_name = user_input("Name of or path to the VM: ", "VM",
+                             lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_vm(x))
     logging.info("Changing power state of VM %s to %s", vm_name, operation)
     change_vm_state(vm, operation, attempt_guest)
