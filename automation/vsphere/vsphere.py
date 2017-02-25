@@ -35,7 +35,7 @@ from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim
 
 # Must always use absolute imports when running as script (aka as '__main__')
-from automation.vsphere.vsphere_utils import get_obj, get_objs, get_item, find_in_folder
+from automation.vsphere.vsphere_utils import get_obj, get_objs, get_item, find_in_folder, get_in_dc
 
 __version__ = "0.6.2"
 
@@ -53,7 +53,6 @@ class Vsphere:
         :param datacenter: Name of datacenter that will be used [default: First datacenter found on server]
         :param port: Port used to connect to vCenter instance [default: 443]
         """
-        # TODO: multiple datacenter support
         logging.debug("Initializing vSphere - Host: %s:%d\tUsername: %s\tDatacenter: %s\tDatastore: %s",
                       hostname, int(port), username, datacenter, datastore)
         if not password:
@@ -80,6 +79,8 @@ class Vsphere:
         self.children = self.content.rootFolder.childEntity
         self.datacenter = get_item(self.content, vim.Datacenter, datacenter)
         self.datastore = self.get_datastore(datastore)
+
+        logging.debug("Finished initializing vSphere")
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
     def create_folder(self, folder_name, create_in=None):
@@ -156,17 +157,17 @@ class Vsphere:
         """
         return get_obj(self.content, [vim.VirtualMachine], vm_name)
 
-    def get_portgroup(self, portgroup_name=None, distributed=False):
+    def get_network(self, network_name=None, distributed=False):
         """
         Finds and returns the named PortGroup
-        :param portgroup_name: (Optional) Name of the portgroup [default: first portgroup in datacenter]
+        :param network_name: (Optional) Name of the portgroup [default: first portgroup in datacenter]
         :param distributed: (Optional) If the portgroup is a Distributed PortGroup [default: False]
         :return: vim.Network or vim.dvs.DistributedVirtualPortgroup object
         """
         if not distributed:
-            return get_item(self.content, [vim.Network], portgroup_name)
+            return get_item(self.content, [vim.Network], network_name)
         else:
-            return get_item(self.content, [vim.dvs.DistributedVirtualPortgroup], portgroup_name)
+            return get_item(self.content, [vim.dvs.DistributedVirtualPortgroup], network_name)
 
     def get_host(self, host_name=None):
         """
@@ -174,7 +175,8 @@ class Vsphere:
         :param host_name: (Optional) Name of the host [default: the first host found in the datacenter]
         :return: vim.HostSystem object
         """
-        return get_item(content=self.content, vimtype=vim.HostSystem, name=host_name)
+        # return get_item(content=self.content, vimtype=vim.HostSystem, name=host_name)
+        return get_in_dc(self.datacenter.hostFolder, host_name)
 
     def get_datastore(self, datastore_name=None):
         """
@@ -182,7 +184,8 @@ class Vsphere:
         :param datastore_name: (Optional) Name of the datastore [default: first datastore found in the datacenter]
         :return: vim.Datastore object
         """
-        return get_item(content=self.content, vimtype=vim.Datastore, name=datastore_name)
+        # return get_item(content=self.content, vimtype=vim.Datastore, name=datastore_name)
+        return get_in_dc(self.datacenter.datastoreFolder, datastore_name)
 
     def get_pool(self, pool_name=None):
         """

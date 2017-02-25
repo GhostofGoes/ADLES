@@ -105,7 +105,7 @@ class VsphereInterface:
                 if len(service_config["networks"]) == len(list(new_vm.network)):
                     # TODO: put this in a function?
                     for net, i in zip(service_config["networks"], len(service_config["networks"])):
-                        edit_nic(new_vm, nic_number=i, port_group=self.server.get_portgroup(net), summary=net)
+                        edit_nic(new_vm, nic_number=i, port_group=self.server.get_network(net), summary=net)
                 else:  # Create missing interfaces or remove excess
                     # TODO: add missing
                     # TODO: remove excess

@@ -291,15 +291,3 @@ def verify_syntax(spec):
             num_warnings += w
 
     return num_errors, num_warnings
-
-
-# TODO: basic unit tests
-"""
-if __name__ == '__main__':
-    from pprint import pprint
-    test_files = ['specifications/environment-specification.yaml', 'examples/competition.yaml',
-                  'examples/tutorial.yaml', 'examples/experiment.yaml']
-    for specfile in test_files:
-        s = parse_file(specfile)
-        pprint(s)  # Note that pprint will cause descriptions to go across multiple lines, don't be alarmed
-"""

@@ -17,6 +17,7 @@ from getpass import getpass
 from sys import stdout
 from time import time
 import logging
+import logging.handlers
 
 from automation.vsphere.vsphere import Vsphere
 
@@ -118,22 +119,37 @@ def setup_logging(filename, console_level=logging.INFO, file_level=logging.DEBUG
     :param console_level: Level of logs that should be printed to terminal [default: logging.INFO]
     :param file_level: Level of logs that should be written to file [default: logging.DEBUG]
     """
+
+    # Prepend spaces to separate logs from previous
     with open(filename, 'a') as logfile:
-        logfile.write(5 * '\n')  # Prepend spaces to separate logs from different runs
+        logfile.write(5 * '\n')
+
+    # Format log output so it's human readable yet verbose
     base_format = "[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s"
-    time_format = "%y-%m-%d %H:%M:%S"
+    time_format = "%Y-%m-%d %H:%M:%S"
+    formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
+
+    # Configures the base logger to append to a file
     logging.basicConfig(level=file_level,
                         format=base_format,
                         datefmt=time_format,
                         filename=str(filename),
                         filemode='a')
+
+    # Console output
     from sys import stdout
     console = logging.StreamHandler(stream=stdout)
     console.setLevel(console_level)
-    formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+    # SysLog output (This prevents students from just deleting the log files)
+    syslog = logging.handlers.SysLogHandler()
+    syslog.setLevel(logging.DEBUG)
+    syslog.setFormatter(formatter)
+    logging.getLogger('').addHandler(syslog)
+
+    # Record system information to aid in debugging
     from getpass import getuser
     from os import getcwd
     from sys import version, platform

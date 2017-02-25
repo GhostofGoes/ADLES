@@ -68,6 +68,27 @@ def get_item(content, vimtype, name):
     else:
         return get_obj(content, [vimtype], name)
 
+
+def get_in_dc(folder, name):
+    """
+    Retrievs an item from a datacenter folder
+    :param folder:
+    :param name:
+    :return:
+    """
+    if name:
+        item = find_in_folder(folder, name, recursive=False)
+    else:
+        item = None
+    if not item:
+        if len(folder.childEntity) > 0:
+            return folder.childEntity[0]
+        else:
+            logging.error("Could not get item %s from DataCenter folder %s", name, folder.name)
+            return None
+    else:
+        return item
+
 # TODO: function to apply a given operation to all objects in a view
 
 
