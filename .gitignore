@@ -9,6 +9,11 @@ logins.json
 vsphere.yaml
 server*.json
 
+# Packaging
+pip-packages/
+*.zip
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
