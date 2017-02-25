@@ -247,7 +247,7 @@ def cleanup(folder, prefix=None, recursive=False, destroy_folders=False, destroy
     """
     if folder:  # Checks to make sure folder is not None
         from automation.vsphere.vm_utils import destroy_vm
-        logging.info("Cleaning folder %s", folder.name)
+        logging.debug("Cleaning folder %s", folder.name)
         for item in folder.childEntity:
             if is_vm(item):  # Handle VMs
                 if prefix:

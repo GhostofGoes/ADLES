@@ -52,12 +52,14 @@ from sys import exit
 
 from automation.interface import Interface
 from automation.parser import parse_file, verify_syntax
+from automation.utils import time_execution
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 __author__ = "Christopher Goes"
 __email__ = "<goes8945@vandals.uidaho.edu>"
 
 
+@time_execution
 def main():
     if args["--spec"]:
         spec = check_syntax(args["--spec"])
@@ -85,6 +87,7 @@ def main():
         logging.error("Invalid arguments. Argument dump:\n%s", str(args))
 
 
+@time_execution
 def check_syntax(specfile_path):
     """
     Checks the syntax of a specification file

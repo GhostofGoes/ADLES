@@ -12,16 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from getpass import getpass
 from sys import stdout
 from time import time
 import logging
 
-
-# From: virtual_machine_power_cycle_and_question.py in pyvmomi-community-samples
 from automation.vsphere.vsphere import Vsphere
 
 
+# From: virtual_machine_power_cycle_and_question.py in pyvmomi-community-samples
 def _create_char_spinner():
     """ Creates a generator yielding a char based spinner """
     while True:
@@ -31,10 +31,10 @@ def _create_char_spinner():
 _spinner = _create_char_spinner()
 
 
-def spinner(label=''):
+def spinner(label=""):
     """
     Prints label with a spinner. When called repeatedly from inside a loop this prints a one line CLI spinner.
-    :param label: (Optional) The message to display while spinning (e.g "Loading", or the current percentage)
+    :param label: The message to display while spinning (e.g "Loading", or the current percentage) [default: ""]
     """
     stdout.write("\r\t%s %s" % (label, next(_spinner)))
     stdout.flush()
@@ -73,7 +73,7 @@ def prompt_y_n_question(question, default="no"):
     elif default == "no":
         prompt = " [y/N] "
     else:
-        raise ValueError("Invalid default answer: '{}'".format(default))
+        raise ValueError("Invalid default answer: '%s'", default)
 
     while True:
         logging.info(question + prompt)
@@ -90,7 +90,7 @@ def pad(value, length=2):
     """
     Adds leading and trailing ("pads") zeros to value to ensure it is a constant length
     :param value: integer value to pad
-    :param length: Length to pad to
+    :param length: Length to pad to [default: 2]
     :return: string of padded value
     """
     return "{0:0>{width}}".format(value, width=length)
@@ -99,7 +99,7 @@ def pad(value, length=2):
 def read_json(filename):
     """
     Reads input from a JSON file and returns the contents
-    :param filename:
+    :param filename: Path to JSON file to read
     :return: Contents of the JSON file
     """
     from json import load
@@ -163,7 +163,7 @@ def time_execution(func):
 def make_vsphere(filename=None):
     """
     Creates a vSphere object using either a JSON file or by prompting the user for input
-    :param filename: (Optional) Name of JSON file with information needed [default: None]
+    :param filename: Name of JSON file with information needed [default: None]
     :return: vSphere object
     """
     if filename:

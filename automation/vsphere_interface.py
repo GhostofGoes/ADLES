@@ -18,6 +18,7 @@ from automation.vsphere.vsphere import Vsphere
 from automation.vsphere.network_utils import *
 from automation.vsphere.vsphere_utils import *
 from automation.vsphere.vm_utils import *
+from automation.utils import pad
 
 
 class VsphereInterface:
@@ -26,7 +27,7 @@ class VsphereInterface:
     # Switches to tweak (these are global to ALL instances of this class)
     master_prefix = "(MASTER) "
     master_folder_name = "MASTER_FOLDERS"
-    warn_threshold = 100            # Point at which to warn if many instances are being created
+    warn_threshold = 100  # Point at which to warn if many instances are being created
 
     def __init__(self, infrastructure, logins, spec):
         logging.debug("Initializing VsphereInterface...")
@@ -115,6 +116,7 @@ class VsphereInterface:
                     set_note(vm=new_vm, note=service_config["note"])
 
                 # Post-creation snapshot
+                logging.debug("Creating post-clone snapshot")
                 create_snapshot(new_vm, "post-clone", "Clean snapshot taken after cloning and configuration.")
 
         # Apply master-group permissions [default: group permissions]
@@ -128,6 +130,7 @@ class VsphereInterface:
                 vlan = config["vlan"]
             else:
                 vlan = 0
+            logging.debug("Creating portgroup %s", name)
             create_portgroup(name, host, config["vswitch"], vlan=vlan)
 
     def deploy_environment(self):
@@ -135,6 +138,7 @@ class VsphereInterface:
 
         # Get the master folder root (TODO: sub-masters or multiple masters?)
         master_folder = traverse_path(self.root_folder, self.master_folder_name)
+        logging.debug("Master folder name: %s\tPrefix: %s", master_folder.name, self.master_prefix)
 
         # Verify and convert to templates.
         # This is to ensure they are preserved throughout creation and execution of exercise.
@@ -143,12 +147,13 @@ class VsphereInterface:
             if "template" in service_config:
                 vm = traverse_path(master_folder, self.master_prefix + service_name)
                 if vm:  # Verify all masters exist
-                    logging.debug("Verified master %s exists. Name of VM: %s. Converting to template...",
-                                  service_name, vm.name)
+                    logging.debug("Verified master %s exists as %s. Converting to template...", service_name, vm.name)
                     convert_to_template(vm)  # Convert master to template
                     logging.debug("Converted master %s to template. Verifying...", service_name)
                     if not is_template(vm):  # Verify converted successfully
                         logging.error("Master %s did not convert to template!", service_name)
+                    else:
+                        logging.debug("Verified!")
                 else:
                     logging.error("Could not find master %s", service_name)
 
@@ -159,13 +164,15 @@ class VsphereInterface:
         #   Create base-networks
 
         # Create folder structure
-
         # if "services" in folder: then normal-folder
         # else: parent-folder
         # So, need to iterate and create folders.
         # if "instances" in folder: then create range(instances) folder.name + pad + prefix <-- Optional prefix
         #                                           ^ resolve "size-of" if specified instead of "number"
         # else: create folder
+        #       Creating functions for normal and parent folders that can call each other
+        #       Need to also figure out when/how to apply permissions
+        self._folder_gen(self.folders, self.root_folder)
 
         # Enumerate folder tree to debugging
         logging.debug(format_structure(enumerate_folder(self.root_folder)))
@@ -176,6 +183,69 @@ class VsphereInterface:
 
         # Enumerate tree with VMs to debugging
         logging.debug(format_structure(enumerate_folder(self.root_folder)))
+
+    def _normal_folder_gen(self, folder, spec):
+        for key, value in spec:
+            if key == "instances" or key == "master-group":
+                pass
+            elif key == "group":
+                pass  # TODO: apply group permissions
+            elif key == "description":
+                pass  # TODO: ?
+            elif key == "services":
+                pass  # TODO: services?
+            else:
+                logging.error("Unknown key in normal-type folder %s: %s", folder.name, key)
+
+    def _parent_folder_gen(self, folder, spec):
+        for sub_name, sub_value in spec.items():
+            if sub_name == "instances":
+                pass
+            elif sub_name == "group":
+                pass  # TODO: apply group permissions
+            else:
+                self._folder_gen(sub_value, folder)
+
+    def _folder_gen(self, folders, parent):
+        for name, value in folders.items():
+            num_instances = self._instances_handler(value["instances"])
+            logging.debug("Generating folder %s", name)
+            for instance in range(num_instances):
+                instance_name = name + (" " + pad(instance) if num_instances > 1 else "")
+                folder = self.server.create_folder(folder_name=instance_name, create_in=parent)
+                if "services" in value:  # It's a base folder
+                    logging.debug("Generating base-type folder %s", instance_name)
+                    self._normal_folder_gen(folder, value)
+                else:  # It's a parent folder
+                    logging.debug("Generating parent-type folder %s", instance_name)
+                    self._parent_folder_gen(folder, value)
+
+    def _instances_handler(self, instances):
+        """
+        Determines number of instances in accordance with the specification
+        :param instances:
+        :return: number of instances
+        """
+        # TODO: interface_utils file possibly?
+        if "instances" in instances:
+            if "number" in instances["instances"]:
+                return int(instances["instances"]["number"])
+            elif "size-of" in instances["instances"]:
+                return int(self._group_size(self.groups[instances["instances"]["size-of"]]))
+            else:
+                logging.error("Unknown instances specification")
+                return 0
+        else:
+            return 1  # Default value
+
+    def _group_size(self, group):
+        """
+        Determines number of individuals in a group
+        :param group:
+        :return: int
+        """
+        # TODO: move into parent class? or utils?
+        return 1  # TODO: IMPLEMENT
 
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""

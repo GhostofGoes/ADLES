@@ -351,7 +351,7 @@ def remove_device(vm, device):
     :param vm: vim.VirtualMachine
     :param device: vim.vm.device.VirtualDeviceSpec
     """
-    logging.debug("Removing device {} from vm {}".format(device.name, vm.name))
+    logging.debug("Removing device %s from vm %s", device.name, vm.name)
     device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
     wait_for_task(vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device])))  # Apply the change to the VM
 

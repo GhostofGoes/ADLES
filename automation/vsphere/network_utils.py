@@ -23,7 +23,7 @@ def create_vswitch(name, host, num_ports=512):
     :param host: vim.HostSystem to create the vSwitch on
     :param num_ports: Number of ports the vSwitch should have [default: 512]
     """
-    logging.info("Creating vSwitch {} with {} ports on host {}".format(name, str(num_ports), host.name))
+    logging.info("Creating vSwitch %s with %s ports on host %s", name, str(num_ports), host.name)
     vswitch_spec = vim.host.VirtualSwitch.Specification()
     vswitch_spec.numPorts = num_ports
     try:
@@ -40,14 +40,13 @@ def delete_vswitch(name, host):
     :param name: Name of the vSwitch to delete
     :param host: vim.HostSystem to delete vSwitch from
     """
-    logging.info("Deleting vSwitch {} from host {}".format(name, host.name))
+    logging.info("Deleting vSwitch %s from host %s", name, host.name)
     try:
         host.configManager.networkSystem.RemoveVirtualSwitch(name)
     except vim.fault.NotFound:
         logging.error("Tried to remove a vSwitch %s that does not exist from host %s", name, host.name)
     except vim.fault.ResourceInUse:
-        logging.error("vSwitch %s can't be removed because there are "
-                      "virtual network adapters associated with it", name)
+        logging.error("vSwitch %s can't be removed because there are virtual network adapters associated with it", name)
 
 
 def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):

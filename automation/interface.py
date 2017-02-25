@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+from .utils import time_execution
 
 
 class Interface:
@@ -44,19 +45,22 @@ class Interface:
             from automation.vsphere_interface import VsphereInterface
             self.interface = VsphereInterface(infrastructure, logins, spec)  # Create interface
         else:
-            logging.error("Invalid platform {}".format(infrastructure["platform"]))
+            logging.error("Invalid platform %s", infrastructure["platform"])
             exit(1)
 
+    @time_execution
     def create_masters(self):
         """ Master creation phase """
         logging.info("Creating Master instances for %s", self.metadata["name"])
         self.interface.create_masters()
 
+    @time_execution
     def deploy_environment(self):
         """ Environment deployment phase """
         logging.info("Deploying environment for %s", self.metadata["name"])
         self.interface.deploy_environment()
 
+    @time_execution
     def cleanup_masters(self, network_cleanup=False):
         """
         Cleans up master instances
@@ -65,6 +69,7 @@ class Interface:
         logging.info("Cleaning up Master instances for %s", self.metadata["name"])
         self.interface.cleanup_masters(network_cleanup=network_cleanup)
 
+    @time_execution
     def cleanup_environment(self, network_cleanup=False):
         """
         Cleans up a deployed environment
