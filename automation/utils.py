@@ -168,7 +168,6 @@ def make_vsphere(filename=None):
     """
     if filename:
         info = read_json(filename)
-        # TODO: clean this up a bit
         user = (info["user"] if "user" in info else input("Username: "))
         pswd = (info["pass"] if "pass" in info else getpass("Password: "))
         datacenter = (info["datacenter"] if "datacenter" in info else None)

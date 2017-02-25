@@ -30,7 +30,6 @@ Options:
 
 from docopt import docopt
 import logging
-from pprint import pprint
 
 from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input, default_prompt
 from automation.vsphere.vm_utils import destroy_vm

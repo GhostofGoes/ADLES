@@ -31,7 +31,7 @@ Options:
 from atexit import register
 import logging
 
-from pyVim.connect import SmartConnect, SmartConnectNoSSL,Disconnect
+from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim
 
 # Must always use absolute imports when running as script (aka as '__main__')
@@ -54,21 +54,21 @@ class Vsphere:
         :param port: Port used to connect to vCenter instance [default: 443]
         """
         # TODO: multiple datacenter support
-        logging.debug("Initializing vSphere...")
+        logging.debug("Initializing vSphere - Host: %s:%d\tUsername: %s\tDatacenter: %s\tDatastore: %s",
+                      hostname, int(port), username, datacenter, datastore)
         if not password:
             from getpass import getpass
-            password = getpass(prompt='Enter password for host %s and user %s: ' % (hostname, username))
+            password = getpass('Enter password for host %s and user %s: ' % (hostname, username))
         try:
             if use_ssl:  # Connect to server using SSL certificate verification
                 self.server = SmartConnect(host=hostname, user=username, pwd=password, port=int(port))
             else:
                 self.server = SmartConnectNoSSL(host=hostname, user=username, pwd=password, port=int(port))
         except Exception as e:
-            logging.error("Your system likely does not trust the server's certificate. "
-                          "Follow instructions in the README to install the certificate, or contact an administrator.\n"
-                          "Here is the full error for your enjoyment: %s", str(e))
+            logging.error("Error occurred while trying to connect to vCenter: %s", str(e))
+
         if not self.server:
-            logging.error("Could not connect to host %s using specified username and password", str(hostname))
+            logging.error("Could not connect to host %s using specified username and password", hostname)
             raise Exception()
 
         register(Disconnect, self.server)  # Ensures connection to server is closed upon script termination
@@ -244,7 +244,7 @@ def main():
     # print(repr(server))
 
     # folder = server.get_folder("script_testing")
-    # vm = traverse_path(folder, "/Templates/Clients/Linux/", "Kali 2016.2 (64-bit)")
+    # vm = traverse_path(folder, "/Templates/Routers/VyOS 1.1.7 (64-bit)")
     # print_vm_info(vm)
     # folder = traverse_path(folder, "/Templates/Servers/Windows")
     # print(folder.name)
