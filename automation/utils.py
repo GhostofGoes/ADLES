@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from getpass import getpass
 from sys import stdout
 from time import time
 import logging
@@ -137,7 +136,6 @@ def setup_logging(filename, console_level=logging.INFO, file_level=logging.DEBUG
                         filemode='a')
 
     # Console output
-    from sys import stdout
     console = logging.StreamHandler(stream=stdout)
     console.setLevel(console_level)
     console.setFormatter(formatter)
@@ -182,6 +180,7 @@ def make_vsphere(filename=None):
     :param filename: Name of JSON file with information needed [default: None]
     :return: vSphere object
     """
+    from getpass import getpass
     if filename:
         info = read_json(filename)
         user = (info["user"] if "user" in info else input("Username: "))

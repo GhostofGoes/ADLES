@@ -15,8 +15,6 @@
 import logging
 from netaddr import IPNetwork
 
-from automation.utils import time_execution
-
 
 # Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
 def parse_file(filename):
@@ -256,7 +254,6 @@ def _verify_folders_syntax(folders):
     return num_errors, num_warnings
 
 
-@time_execution
 def verify_syntax(spec):
     """
     Verifies the syntax for the dictionary representation of an environment specification

@@ -15,9 +15,9 @@
 import logging
 
 from automation.vsphere.vsphere import Vsphere
-from automation.vsphere.network_utils import *
-from automation.vsphere.vsphere_utils import *
-from automation.vsphere.vm_utils import *
+from automation.vsphere.network_utils import create_portgroup
+import automation.vsphere.vsphere_utils as vutils
+import automation.vsphere.vm_utils as vm_utils
 from automation.utils import pad
 
 
@@ -53,9 +53,9 @@ class VsphereInterface:
         # Set root folder for the exercise, or create if it doesn't yet exist
         self.root_name = (self.metadata["name"] if "folder-name" not in self.metadata else self.metadata["folder-name"])
         self.root_path = self.metadata["root-path"]
-        root = traverse_path(self.server_root, self.root_path + self.root_name)
+        root = vutils.traverse_path(self.server_root, self.root_path + self.root_name)
         if not root:
-            parent = traverse_path(self.server_root, self.root_path)
+            parent = vutils.traverse_path(self.server_root, self.root_path)
             self.root_folder = self.server.create_folder(folder_name=self.root_name, create_in=parent)
         else:
             self.root_folder = root
@@ -68,7 +68,7 @@ class VsphereInterface:
         #   Will write a function to do this, so we can recursively descend for complex environments
 
         # Get folder containing templates
-        template_folder = traverse_path(self.server_root, self.metadata["template-path"])
+        template_folder = vutils.traverse_path(self.server_root, self.metadata["template-path"])
         if not template_folder:
             logging.error("Could not find template folder in path %s", self.metadata["template-path"])
             return
@@ -86,13 +86,13 @@ class VsphereInterface:
             if "template" in service_config:         # Virtual Machine template
                 logging.info("Creating master for %s from template %s", service_name, service_config["template"])
                 vm_name = self.master_prefix + service_name
-                template = traverse_path(template_folder, service_config["template"])
+                template = vutils.traverse_path(template_folder, service_config["template"])
                 # template = self.server.get_vm(service_config["template"])
-                clone_vm(vm=template, folder=master_folder, name=vm_name,
-                         clone_spec=self.server.generate_clone_spec())
+                vm_utils.clone_vm(vm=template, folder=master_folder, name=vm_name,
+                                  clone_spec=self.server.generate_clone_spec())
 
                 # Get new cloned instance
-                new_vm = traverse_path(master_folder, vm_name)
+                new_vm = vutils.traverse_path(master_folder, vm_name)
                 # new_vm = self.server.get_vm(vm_name=vm_name)
                 if not new_vm:
                     logging.error("Did not successfully clone VM %s", vm_name)
@@ -105,7 +105,7 @@ class VsphereInterface:
                 if len(service_config["networks"]) == len(list(new_vm.network)):
                     # TODO: put this in a function?
                     for net, i in zip(service_config["networks"], len(service_config["networks"])):
-                        edit_nic(new_vm, nic_number=i, port_group=self.server.get_network(net), summary=net)
+                        vm_utils.edit_nic(new_vm, nic_number=i, port_group=self.server.get_network(net), summary=net)
                 else:  # Create missing interfaces or remove excess
                     # TODO: add missing
                     # TODO: remove excess
@@ -113,11 +113,11 @@ class VsphereInterface:
 
                 # Set VM note if specified
                 if "note" in service_config:
-                    set_note(vm=new_vm, note=service_config["note"])
+                    vm_utils.set_note(vm=new_vm, note=service_config["note"])
 
                 # Post-creation snapshot
                 logging.debug("Creating post-clone snapshot")
-                create_snapshot(new_vm, "post-clone", "Clean snapshot taken after cloning and configuration.")
+                vm_utils.create_snapshot(new_vm, "post-clone", "Clean snapshot taken after cloning and configuration.")
 
         # Apply master-group permissions [default: group permissions]
 
@@ -137,7 +137,7 @@ class VsphereInterface:
         """ Environment deployment phase """
 
         # Get the master folder root (TODO: sub-masters or multiple masters?)
-        master_folder = traverse_path(self.root_folder, self.master_folder_name)
+        master_folder = vutils.traverse_path(self.root_folder, self.master_folder_name)
         logging.debug("Master folder name: %s\tPrefix: %s", master_folder.name, self.master_prefix)
 
         # Verify and convert to templates.
@@ -145,12 +145,12 @@ class VsphereInterface:
         logging.info("Verifying masters and converting to templates...")
         for service_name, service_config in self.services.items():
             if "template" in service_config:
-                vm = traverse_path(master_folder, self.master_prefix + service_name)
+                vm = vutils.traverse_path(master_folder, self.master_prefix + service_name)
                 if vm:  # Verify all masters exist
                     logging.debug("Verified master %s exists as %s. Converting to template...", service_name, vm.name)
-                    convert_to_template(vm)  # Convert master to template
+                    vm_utils.convert_to_template(vm)  # Convert master to template
                     logging.debug("Converted master %s to template. Verifying...", service_name)
-                    if not is_template(vm):  # Verify converted successfully
+                    if not vm_utils.is_template(vm):  # Verify converted successfully
                         logging.error("Master %s did not convert to template!", service_name)
                     else:
                         logging.debug("Verified!")
@@ -175,14 +175,14 @@ class VsphereInterface:
         self._folder_gen(self.folders, self.root_folder)
 
         # Enumerate folder tree to debugging
-        logging.debug(format_structure(enumerate_folder(self.root_folder)))
+        logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
 
         # Clone instances (use function for numbering)(use prefix if specified)
 
         # Take snapshots post-clone
 
         # Enumerate tree with VMs to debugging
-        logging.debug(format_structure(enumerate_folder(self.root_folder)))
+        logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
 
     def _normal_folder_gen(self, folder, spec):
         for key, value in spec:
@@ -251,12 +251,12 @@ class VsphereInterface:
         """ Cleans up any master instances"""
 
         # Get the folder to cleanup in
-        master_folder = find_in_folder(self.root_folder, self.master_folder_name)
+        master_folder = vutils.find_in_folder(self.root_folder, self.master_folder_name)
         logging.info("Found master folder %s under folder %s, proceeding with cleanup...",
                      master_folder.name, self.root_folder.name)
 
         # Recursively descend from master folder, destroying anything with the prefix
-        cleanup(folder=master_folder, prefix=self.master_prefix,
+        vutils.cleanup(folder=master_folder, prefix=self.master_prefix,
                 recursive=True, destroy_folders=True, destroy_self=True)
 
         # Cleanup networks (TODO: use network folders to aid in this, during creation phase)

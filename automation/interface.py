@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from .utils import time_execution
+from automation.utils import time_execution
 
 
 class Interface:

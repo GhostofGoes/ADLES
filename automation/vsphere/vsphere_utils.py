@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import logging
-from pyVmomi import vim
-from pyVmomi import vmodl
 from posixpath import split  # We want to always parse as forward-slashes, regardless of platform we're running on
 
 
@@ -180,53 +178,6 @@ def format_structure(structure, indent=4, _depth=0):
     else:
         logging.error("Unexpected type in folder structure for item %s: %s", str(structure), str(type(structure)))
     return fmat
-
-
-# From: tools/tasks.py in pyvmomi-community-samples
-def wait_for_tasks(service_instance, tasks):
-    """
-    Waits for a list of tasks to complete
-    :param service_instance: Service instance as returned by pyVim.connect.SmartConnect()
-    :param tasks: List of tasks to wait for
-    """
-    if not tasks:
-        logging.error("No tasks were specified to wait for")
-        return None
-    logging.debug("Waiting for tasks. Instance: %s\tTasks: %s", str(service_instance), str(tasks))
-    property_collector = service_instance.content.propertyCollector
-    task_list = [str(task) for task in tasks]
-    obj_specs = [vmodl.query.PropertyCollector.ObjectSpec(obj=task) for task in tasks]
-    property_spec = vmodl.query.PropertyCollector.PropertySpec(type=vim.Task, pathSet=[], all=True)
-    filter_spec = vmodl.query.PropertyCollector.FilterSpec()
-    filter_spec.objectSet = obj_specs
-    filter_spec.propSet = [property_spec]
-    pcfilter = property_collector.CreateFilter(filter_spec, True)
-    try:
-        version, state = None, None
-        while len(task_list):  # Loop looking for updates till the state moves to a completed state
-            update = property_collector.WaitForUpdates(version)
-            for filter_set in update.filterSet:
-                for obj_set in filter_set.objectSet:
-                    task = obj_set.obj
-                    for change in obj_set.changeSet:
-                        if change.name == 'info':
-                            state = change.val.state
-                        elif change.name == 'info.state':
-                            state = change.val
-                        else:
-                            continue
-
-                        if not str(task) in task_list:
-                            continue
-
-                        if state == vim.TaskInfo.State.success:
-                            task_list.remove(str(task))  # Remove task from taskList
-                        elif state == vim.TaskInfo.State.error:
-                            raise task.info.error
-            version = update.version  # Move to next version
-    finally:
-        if pcfilter:
-            pcfilter.Destroy()
 
 
 # From: clone_vm.py in pyvmomi-community-samples
