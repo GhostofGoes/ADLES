@@ -14,6 +14,21 @@
 
 import logging
 from posixpath import split  # We want to always parse as forward-slashes, regardless of platform we're running on
+from pyVmomi import vim
+
+
+def check_folder(func):
+    """
+    Wrapper that checks that folder type is properly defined
+    :param func: Function to wrap
+    :return: Wrapped function
+    """
+    def wrapper(*args, **kwargs):
+        if type(args[0]) == vim.Folder:
+            return func(*args, **kwargs)
+        else:
+            logging.error("Invalid type for a folder passed to func %s: %s", str(func.__name__), str(type(args[0])))
+    return wrapper
 
 
 # From: various files in pyvmomi-community-samples
@@ -67,6 +82,7 @@ def get_item(content, vimtype, name):
         return get_obj(content, [vimtype], name)
 
 
+@check_folder
 def get_in_dc(folder, name):
     """
     Retrievs an item from a datacenter folder
@@ -90,6 +106,7 @@ def get_in_dc(folder, name):
 # TODO: function to apply a given operation to all objects in a view
 
 
+@check_folder
 def find_in_folder(folder, name, recursive=False):
     """
     Finds and returns an object in a folder
@@ -106,6 +123,7 @@ def find_in_folder(folder, name, recursive=False):
     return None
 
 
+@check_folder
 def traverse_path(root, path):
     """
     Traverses a folder path to find a object with a specific name
@@ -134,6 +152,7 @@ def traverse_path(root, path):
         return current
 
 
+@check_folder
 def enumerate_folder(folder, recursive=True):
     """
     Enumerates a folder structure and returns the result as a python object with the same structure
@@ -199,6 +218,7 @@ def wait_for_task(task):
             return None
 
 
+@check_folder
 def move_into_folder(folder, entity_list):
     """
     Moves a list of managed entities into the named folder.
@@ -208,6 +228,7 @@ def move_into_folder(folder, entity_list):
     wait_for_task(folder.MoveIntoFolder_Task(entity_list))
 
 
+@check_folder
 def cleanup(folder, prefix=None, recursive=False, destroy_folders=False, destroy_self=False):
     """
     Destroys VMs and (optionally) folders under the specified folder.
@@ -217,25 +238,53 @@ def cleanup(folder, prefix=None, recursive=False, destroy_folders=False, destroy
     :param destroy_folders: Destroy folders in addition to VMs [default: False]
     :param destroy_self: Destroy the folder specified [default: False]
     """
-    if folder:  # Checks to make sure folder is not None
-        from automation.vsphere.vm_utils import destroy_vm
-        logging.debug("Cleaning folder %s", folder.name)
-        for item in folder.childEntity:
-            if is_vm(item):  # Handle VMs
-                if prefix:
-                    if str(item.name).startswith(prefix):  # Only destroy the VM if it begins with the prefix
-                        destroy_vm(item)
-                else:
-                    destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
-            elif is_folder(item):  # Handle folders
-                if recursive or destroy_folders:  # Destroys folder and it's sub-objects
-                    cleanup(item, prefix, recursive, destroy_folders, destroy_self=destroy_folders)
-            else:  # It's not a VM or a folder...
-                logging.warning("Unknown item encountered while cleaning in folder %s: %s", folder.name, str(item))
-        if destroy_self:  # Note: UnregisterAndDestroy does not delete VM files off datastore
-            wait_for_task(folder.UnregisterAndDestroy_Task())  # Final cleanup
-    else:
-        logging.error("Cannot destroy a None object!")
+    logging.debug("Cleaning folder %s", folder.name)
+    from automation.vsphere.vm_utils import destroy_vm
+    for item in folder.childEntity:
+        if is_vm(item):  # Handle VMs
+            if prefix:
+                if str(item.name).startswith(prefix):  # Only destroy the VM if it begins with the prefix
+                    destroy_vm(item)
+            else:
+                destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
+        elif is_folder(item):  # Handle folders
+            if recursive or destroy_folders:  # Destroys folder and it's sub-objects
+                cleanup(item, prefix, recursive, destroy_folders, destroy_self=destroy_folders)
+        else:  # It's not a VM or a folder...
+            logging.warning("Unknown item encountered while cleaning in folder %s: %s", folder.name, str(item))
+    if destroy_self:  # Note: UnregisterAndDestroy does not delete VM files off datastore
+        wait_for_task(folder.UnregisterAndDestroy_Task())  # Final cleanup
+
+
+@check_folder
+def retrieve_items(folder, prefix=None, recursive=False):
+    """
+    Retrieves VMs and folders from a folder structure
+    :param folder: vim.Folder to begin search in (is NOT returned in list of folders)
+    :param prefix: Prefix to search for [default: None]
+    :param recursive: Recursively descend into sub-folders [default: False]
+    :return: ([VMs], [folders])
+    """
+    vms = []
+    folders = []
+
+    for item in folder.childEntity:
+        if prefix:
+            if is_vm(item) and str(item.name).startswith(prefix):
+                vms.append(item)
+            elif is_folder(item) and str(item.name).startswith(prefix):
+                folders.append(item)
+        else:
+            if is_vm(item):
+                vms.append(item)
+            elif is_folder(item):
+                folders.append(item)
+
+        if recursive and is_folder(item):
+            v, f = retrieve_items(item, prefix, recursive)
+            vms.extend(v)
+            folders.extend(f)
+    return vms, folders
 
 
 # From: list_dc_datastore_info.py in pyvmomi-community-samples

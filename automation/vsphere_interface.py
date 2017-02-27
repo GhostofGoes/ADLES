@@ -99,7 +99,7 @@ class VsphereInterface:
 
                 # Configure VM networks
                 # NOTE: management interfaces matter here!
-                self._edit_service_nics(vm=new_vm, networks=service_config["networks"])
+                self._configure_nics(vm=new_vm, networks=service_config["networks"])
 
                 # Set VM note if specified
                 if "note" in service_config:
@@ -112,6 +112,10 @@ class VsphereInterface:
         # Apply master-group permissions [default: group permissions]
 
     def _create_master_networks(self, net_type):
+        """
+        Creates a network as part of the Master phase
+        :param net_type:
+        """
         host = self.server.get_host()
         host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any changes that might have occurred
 
@@ -123,7 +127,13 @@ class VsphereInterface:
             logging.debug("Creating portgroup %s", name)
             create_portgroup(name, host, config["vswitch"], vlan=vlan)
 
-    def _edit_service_nics(self, vm, networks):
+    def _configure_nics(self, vm, networks):
+        """
+        Configures Network Interfaces for a service instance
+        :param vm:
+        :param networks:
+        :return:
+        """
         num_nics = len(list(vm.network))
         num_nets = len(networks)
         nets = networks  # Copy the passed variable, in case we have to deal with NIC deficiencies
@@ -200,6 +210,11 @@ class VsphereInterface:
         logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
 
     def _normal_folder_gen(self, folder, spec):
+        """
+        Generates normal-type folder trees
+        :param folder: vim.Folder
+        :param spec:
+        """
         for key, value in spec:
             if key == "instances" or key == "master-group":
                 pass
@@ -213,6 +228,11 @@ class VsphereInterface:
                 logging.error("Unknown key in normal-type folder %s: %s", folder.name, key)
 
     def _parent_folder_gen(self, folder, spec):
+        """
+        Generates parent-type folder trees
+        :param folder: vim.Folder
+        :param spec:
+        """
         for sub_name, sub_value in spec.items():
             if sub_name == "instances":
                 pass
@@ -222,6 +242,11 @@ class VsphereInterface:
                 self._folder_gen(sub_value, folder)
 
     def _folder_gen(self, folders, parent):
+        """
+        Generates folder tree for deployment stage
+        :param folders: dict of folders
+        :param parent: Parent vim.Folder
+        """
         for name, value in folders.items():
             num_instances = self._instances_handler(value["instances"])
             logging.debug("Generating folder %s", name)

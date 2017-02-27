@@ -33,9 +33,9 @@ import logging
 
 from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input, default_prompt
 from automation.vsphere.vm_utils import destroy_vm
-from automation.vsphere.vsphere_utils import cleanup, enumerate_folder, traverse_path, format_structure
+from automation.vsphere.vsphere_utils import cleanup, enumerate_folder, traverse_path, format_structure, retrieve_items
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 args = docopt(__doc__, version=__version__, help=True)
 setup_logging(filename='destroy_vms.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
@@ -56,7 +56,7 @@ if prompt_y_n_question("Do you wish to destroy a single VM? "):
     else:
         logging.info("Destruction cancelled")
 else:
-    folder, fname = user_input("Name of or path to folder to destroy: ", "folder",
+    folder, fname = user_input("Name of or path to the folder that has the VMs/folders you want to destroy: ", "folder",
                                lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_folder(x))
 
     # Display folder structure
@@ -67,8 +67,10 @@ else:
     destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
     destroy_self = prompt_y_n_question("Destroy the folder itself? ")
 
-    logging.info("Prefix: %s\tRecursive: %s\tFolder-destruction: %s\tSelf-destruction: %s",
-                 str(prefix), str(recursive), str(destroy_folders), str(destroy_self))
+    logging.info("Prefix: %s\tRecursive: %s", str(prefix), str(recursive))
+    logging.info("Folder-destruction: %s\tSelf-destruction: %s", str(destroy_folders), str(destroy_self))
+    v, f = retrieve_items(folder, prefix, True)
+    logging.info("%d VMs and %d folders match the options", int(len(v)), int(len(f)))
     if prompt_y_n_question("Continue with destruction? "):
         logging.info("Destroying...")
         cleanup(folder, prefix=prefix, recursive=recursive, destroy_folders=destroy_folders, destroy_self=destroy_self)
