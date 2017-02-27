@@ -87,29 +87,19 @@ class VsphereInterface:
                 logging.info("Creating master for %s from template %s", service_name, service_config["template"])
                 vm_name = self.master_prefix + service_name
                 template = vutils.traverse_path(template_folder, service_config["template"])
-                # template = self.server.get_vm(service_config["template"])
                 vm_utils.clone_vm(vm=template, folder=master_folder, name=vm_name,
                                   clone_spec=self.server.generate_clone_spec())
 
                 # Get new cloned instance
                 new_vm = vutils.traverse_path(master_folder, vm_name)
-                # new_vm = self.server.get_vm(vm_name=vm_name)
-                if not new_vm:
-                    logging.error("Did not successfully clone VM %s", vm_name)
-                    continue
 
-                # TODO: add NICs to VMs and attach to portgroups
+                if not new_vm:
+                    logging.error("Did not successfully clone VM %s for service %s", vm_name, service_name)
+                    continue  # Skip to the next service, so one error doesn't stop the whole show
+
+                # Configure VM networks
                 # NOTE: management interfaces matter here!
-                # TODO: distributed
-                # Check if number of networks in spec is same as what's on the VM
-                if len(service_config["networks"]) == len(list(new_vm.network)):
-                    # TODO: put this in a function?
-                    for net, i in zip(service_config["networks"], len(service_config["networks"])):
-                        vm_utils.edit_nic(new_vm, nic_number=i, port_group=self.server.get_network(net), summary=net)
-                else:  # Create missing interfaces or remove excess
-                    # TODO: add missing
-                    # TODO: remove excess
-                    pass
+                self._edit_service_nics(vm=new_vm, networks=service_config["networks"])
 
                 # Set VM note if specified
                 if "note" in service_config:
@@ -132,6 +122,31 @@ class VsphereInterface:
                 vlan = 0
             logging.debug("Creating portgroup %s", name)
             create_portgroup(name, host, config["vswitch"], vlan=vlan)
+
+    def _edit_service_nics(self, vm, networks):
+        num_nics = len(list(vm.network))
+        num_nets = len(networks)
+        nets = networks  # Copy the passed variable, in case we have to deal with NIC deficiencies
+        logging.debug("Editing NICs for VM %s", vm.name)
+
+        # Ensure number of NICs on VM matches number of networks configured for the service
+        # Note that monitoring interfaces will be counted and included in the networks list (hopfully)
+        if num_nics > num_nets:  # Remove excess interfaces
+            diff = int(num_nics - num_nets)
+            logging.debug("VM %s has %d extra NICs, removing...", vm.name, diff)
+            # TODO: verify NIC numbers start at 0
+            for i, nic in zip(range(diff), reversed(range(num_nics))):
+                vm_utils.delete_nic(vm=vm, nic_number=nic)
+        elif num_nics < num_nets:  # Create missing interfaces
+            diff = int(num_nets - num_nics)
+            logging.debug("VM %s is deficient %d NICs, adding...", vm.name, diff)
+            for i in range(diff):  # Add NICs to VM and pop them from the list of networks
+                vm_utils.add_nic(vm=vm, port_group=self.server.get_network(nets.pop()), model="e1000")
+            num_nets = len(networks)
+
+        # Edit the interfaces. NOTE: any NICs that were added earlier should not be affected by this...
+        for net, i in zip(networks, num_nets):  # TODO: traverse folder to get network?
+            vm_utils.edit_nic(vm=vm, nic_number=i, port_group=self.server.get_network(net), summary=net)
 
     def deploy_environment(self):
         """ Environment deployment phase """
