@@ -44,7 +44,7 @@ def get_obj(content, vimtype, name, recursive=True):
     container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, recursive)
     obj = None
     for c in container.view:
-        if c.name == name:
+        if c.name.lower() == name.lower():
             obj = c
             break
     container.Destroy()
@@ -116,7 +116,7 @@ def find_in_folder(folder, name, recursive=False):
     :return: Object found or None if nothing was found
     """
     for item in folder.childEntity:
-        if hasattr(item, 'name') and item.name == name:  # Check if it has name, and if the name matches
+        if hasattr(item, 'name') and item.name.lower() == name.lower():  # Check if it has name, and if the name matches
             return item
         elif recursive and is_folder(item):  # Recurse into sub-folders
             find_in_folder(folder=item, name=name, recursive=recursive)
@@ -133,18 +133,18 @@ def traverse_path(root, path):
     """
     logging.debug("Traversing path. Root: %s\tPath: %s", root.name, path)
     folder_path, name = split(path)         # Separate basename, if any
-    folder_path = folder_path.split('/')    # Transform into list
+    folder_path = folder_path.lower().split('/')    # Transform into list
 
     current = root
     for folder in folder_path:
         for item in current.childEntity:
-            if is_folder(item) and item.name == folder:
+            if is_folder(item) and item.name.lower() == folder:
                 current = item      # Found the next folder in path,
                 break               # Break to check this folder for next part of the path
 
     if name:  # Look for item with a specific name
         for item in current.childEntity:
-            if (is_vm(item) or is_folder(item)) and item.name == name:
+            if (is_vm(item) or is_folder(item)) and item.name.lower() == name.lower():
                 return item
         logging.error("Could not find item %s while traversing path %s from root %s", name, path, root.name)
         return None

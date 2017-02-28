@@ -21,6 +21,7 @@ import automation.vsphere.vm_utils as vm_utils
 from automation.utils import pad
 
 
+# TODO: separate interfaces module
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 

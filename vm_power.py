@@ -46,6 +46,8 @@ warning()
 operation = input("Enter the power operation you wish to perform [on | off | reset | suspend]: ")
 attempt_guest = prompt_y_n_question("Use guest operations if available? ")
 
+# TODO: prefixes
+# TODO: nesting
 if prompt_y_n_question("Multiple VMs? "):
     folder, folder_name = user_input("Name of or path to the folder: ", "folder",
                                      lambda x: traverse_path(server.get_folder(), x)

@@ -62,7 +62,7 @@ else:
     # Display folder structure
     logging.info("Folder structure: %s", format_structure(enumerate_folder(folder)))
 
-    prefix = default_prompt("What is the prefix of VMs you wish to destroy? Press Enter for none... ", default=None)
+    prefix = default_prompt("Prefix of VMs you wish to destroy? (CASE SENSITIVE!) Press Enter for none... ", default=None)
     recursive = prompt_y_n_question("Recursively descend into folders? ")
     destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
     destroy_self = prompt_y_n_question("Destroy the folder itself? ")
