@@ -26,13 +26,12 @@ def clone_vm(vm, folder, name, clone_spec):
     :param vm: vim.VirtualMachine object
     :param folder: vim.Folder object in which to create the clone
     :param name: String name of the new VM
-    :param clone_spec: vim.vm.CloneSpec for the new VM
+    :param clone_spec: vim.vm.CloneSpec for the new VM ( CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst )
     """
-    logging.info("Cloning VM %s to folder %s with name %s", vm.name, folder.name, name)
-    # CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst
     if is_template(vm) and not bool(clone_spec.location.pool):
-        logging.error("Cannot clone template %s without specifying a pool", vm.name)
+        logging.error("Cannot clone Template %s without specifying a resource pool", vm.name)
     else:
+        logging.info("Cloning VM %s to folder %s with name %s", vm.name, folder.name, name)
         wait_for_task(task=vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
 
 

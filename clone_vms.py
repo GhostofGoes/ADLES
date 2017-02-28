@@ -33,9 +33,9 @@ import logging
 
 from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input, pad, default_prompt
 from automation.vsphere.vm_utils import clone_vm
-from automation.vsphere.vsphere_utils import traverse_path
+from automation.vsphere.vsphere_utils import traverse_path, retrieve_items, format_structure
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 args = docopt(__doc__, version=__version__, help=True)
 setup_logging(filename='clone_vms.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
@@ -43,26 +43,53 @@ setup_logging(filename='clone_vms.log', console_level=logging.DEBUG if args["--v
 server = make_vsphere(args["--file"])
 warning()
 
-vm, vm_name = user_input("Name of or path to the VM or template you wish to clone: ", "VM",
-                         lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_vm(x))
+vm = None
+folder_from = None
+vms = []
+vm_names = []
 
-if not vm.config.template:  # check type
-    if not prompt_y_n_question("VM %s is not a Template. Do you wish to continue? " % vm_name):
-        exit(0)
+# Single-vm source
+if prompt_y_n_question("Do you want to clone from a single VM?"):
+    v, v_name = user_input("Name of or path to the VM or template you wish to clone: ", "VM",
+                            lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_vm(x))
+    vms.append(v)
+    vm_names.append(input("Base name for instances to be created: "))
 
-folder, folder_name = user_input("Name of or path to the folder in which to create VMs: ", "folder",
-                                 lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_folder(x))
+# Multi-VM source
+else:
+    folder_from, from_name = user_input("Name of or path to the folder you want to clone all VMs in: ", "folder",
+                            lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_folder(x))
+    v, _ = retrieve_items(folder_from)  # Get VMs in the folder, ignore any folders
+    vms.extend(v)
+    logging.info("%d VMs found in source folder %s\n%s", len(v), from_name, format_structure(v))
+    if not prompt_y_n_question("Keep the same names or change them? "):
+        names = []
+        for i in range(len(v)):
+            names.append(input("Enter base name for VM %d"))
+    else:
+        names = list(map(lambda x: x.name, v))  # Same names as sources
+    vm_names.extend(names)
 
-base_name = input("Base name for instances to be created: ")
+create_in, create_in_name = user_input("Name of or path to the folder in which to create VMs: ", "folder",
+                             lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_folder(x))
+
+instance_folder_base = None
+if prompt_y_n_question("Do you want to create a folder for each instance? "):
+    instance_folder_base = input("Enter instance folder base name: ")
+
 num_instances = int(input("Number of instances to be created: "))
-# TODO: specify a group of VMs to put into a instance folder, then number of folder group instances
 
 pool = server.get_pool().name
 pool = default_prompt(prompt="Resource pool to assign VMs to", default=pool)
 
-logging.info("Cloning %d VMs with a base name of %s", num_instances, base_name)
+logging.info("Creating %d instances under folder %s", num_instances, create_in_name)
 for instance in range(num_instances):
-    name = base_name + pad(value=instance, length=2)    # Ensure zeros are being prepended
-    spec = server.generate_clone_spec(pool_name=pool)   # Generate clone specification
-    logging.info("Cloning %s...", name)
-    clone_vm(vm, folder, name, spec)                    # Clone the VM using the generated spec
+    for vm, name in vms, vm_names:
+        if instance_folder_base:  # Create instance folders for a nested clone
+            f = server.create_folder(instance_folder_base + pad(instance), create_in=create_in)
+            vm_name = name
+        else:
+            vm_name = name + pad(value=instance, length=2)  # Append instance number, since it's a flat clone
+        spec = server.generate_clone_spec(pool_name=pool)   # Generate clone specification
+        logging.info("Cloning %s...", name)
+        clone_vm(vm, create_in, vm_name, spec)              # Clone the VM using the generated spec

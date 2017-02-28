@@ -140,7 +140,7 @@ class VsphereInterface:
         logging.debug("Editing NICs for VM %s", vm.name)
 
         # Ensure number of NICs on VM matches number of networks configured for the service
-        # Note that monitoring interfaces will be counted and included in the networks list (hopfully)
+        # Note that monitoring interfaces will be counted and included in the networks list (hopefully)
         if num_nics > num_nets:  # Remove excess interfaces
             diff = int(num_nics - num_nets)
             logging.debug("VM %s has %d extra NICs, removing...", vm.name, diff)
