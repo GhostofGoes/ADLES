@@ -38,6 +38,20 @@ sudo chmod +x main.py
 * See specification/environment-specification.yaml for the exercise specification, built on YAML 1.1.
 
 
+# Building a portable package
+There are several scripts to support importing the system into RADICL, which is isolated. Currently, there are build scripts for Windows (cmd) and Linux (Bash), and a install script for Linux (Bash).
+
+The build scripts:
+
+* Download the neccessary python modules and their dependancies from PyPI
+* Package the system code and python modules into a ZIP file
+
+The install scripts:
+
+* Unzip the package
+* Install the python modules
+
+
 # System Requirements
 
 ### Software
