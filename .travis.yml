@@ -11,10 +11,10 @@ install: "pip install -r requirements.txt"
 script:
   - python main.py -h
   - python main.py --version
-  - python -m scripts.clone_vms.py -h
-  - python -m scripts.destroy_vms.py -h
-  - python -m scripts.vm_power.py -h
-  - python -m scripts.vsphere_info.py -h
+  - python scripts/clone_vms.py -h
+  - python scripts/destroy_vms.py -h
+  - python scripts/vm_power.py -h
+  - python scripts/vsphere_info.py -h
   - python main.py -v --check-syntax examples/tutorial.yaml
   - python main.py -v -c examples/competition.yaml
   - python main.py --verbose --check-syntax examples/experiment.yaml

@@ -32,18 +32,15 @@ import logging
 
 from docopt import docopt
 
-from adles.automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, \
-    user_input, pad, default_prompt
+from script_utils import script_setup
+__version__ = "0.5.0"
+args = docopt(__doc__, version=__version__, help=True)
+server = script_setup('clone_vms.log', args)
+
+from adles.automation.utils import prompt_y_n_question, user_input, pad, default_prompt
 from adles.vsphere.vm_utils import clone_vm
 from adles.vsphere.vsphere_utils import traverse_path, retrieve_items, format_structure
 
-__version__ = "0.5.0"
-
-args = docopt(__doc__, version=__version__, help=True)
-setup_logging(filename='clone_vms.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
-
-server = make_vsphere(args["--file"])
-warning()
 
 vm = None
 folder_from = None

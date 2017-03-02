@@ -203,12 +203,6 @@ def make_vsphere(filename=None):
                        datacenter=datacenter, datastore=datastore, port=port)
 
 
-def warning():
-    """ Prints a warning prompt. """
-    print("\n\n\n** YOU RUN THIS SCRIPT AT YOUR OWN RISK **"
-          "\nPlease read the source code or documentation for information on proper script usage\n\n")
-
-
 def user_input(prompt, obj_name, func):
     """
     Continually bothers a user for input until we get what we want from them

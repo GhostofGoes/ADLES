@@ -13,27 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""vSphere wrapper class. This entrypoint is used to test the class.
-
-Usage:
-    vsphere.py [-v] [-f FILE]
-    vsphere.py --version
-    vsphere.py (-h | --help)
-
-Options:
-    -h, --help          Shows this help
-    --version           Prints current version
-    -f, --file FILE     JSON file with server connection information
-    -v, --verbose       Emits debugging logs to terminal in addition to a file
-
-"""
-
 import logging
 
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim
 
-from adles.vsphere.vsphere_utils import get_obj, get_objs, get_item, find_in_folder, get_in_dc
+from .vsphere_utils import get_obj, get_objs, get_item, find_in_folder, get_in_dc
 
 __version__ = "0.6.2"
 
@@ -226,48 +211,3 @@ class Vsphere:
     def __str__(self):
         return "Datacenter: {} \tDatastore: {} \tServer: {}:{}".format(self.datacenter.name, self.datastore.name,
                                                                        self.hostname, self.port)
-
-
-def main():
-    """ For testing of vSphere. Has examples of usage as well. """
-
-    from adles.automation.utils import setup_logging, make_vsphere
-    from adles.vsphere import vm_utils
-
-    setup_logging(filename='vsphere-testing.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
-    server = make_vsphere(args["--file"])
-
-    vm = server.get_vm("dummy")
-    vm_utils.print_vm_info(vm)
-
-    # print(str(server))
-    # print(repr(server))
-
-    # folder = server.get_folder("script_testing")
-    # vm = traverse_path(folder, "/Templates/Routers/VyOS 1.1.7 (64-bit)")
-    # print_vm_info(vm)
-    # folder = traverse_path(folder, "/Templates/Servers/Windows")
-    # print(folder.name)
-
-    # folder = server.get_folder("script_testing")
-    # pool = get_objs(server.content, [vim.ResourcePool])[0]
-    # file_info = vim.vm.FileInfo()
-    # file_info.vmPathName = "[Datastore]"
-    # vm_spec = vim.vm.ConfigSpec(name="test_vm", guestId="ubuntuGuest", numCPUs=1, numCoresPerSocket=1,
-    #                             memoryMB=1024, annotation="it worked!", files=file_info)
-    # create_vm(folder, vm_spec, pool)
-    # attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
-
-    # portgroup = get_obj(server.content, [vim.Network], "test_network")
-    # add_nic(vm, portgroup, "test_summary")
-    # edit_nic(vm, 2, summary="lol")
-    # delete_nic(vm, 1)
-
-    # create_portgroup("test_portgroup", server.get_host(), "test_vswitch")
-    # delete_portgroup("test_portgroup", server.get_host())
-
-if __name__ == '__main__':
-
-    from docopt import docopt
-    args = docopt(__doc__, version=__version__, help=True)
-    main()
