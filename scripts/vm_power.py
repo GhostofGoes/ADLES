@@ -28,12 +28,13 @@ Options:
 
 """
 
-from docopt import docopt
 import logging
 
-from automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input
-from automation.vsphere.vm_utils import change_vm_state
-from automation.vsphere.vsphere_utils import traverse_path
+from docopt import docopt
+
+from adles.automation.utils import prompt_y_n_question, setup_logging, make_vsphere, warning, user_input
+from adles.vsphere.vm_utils import change_vm_state
+from adles.vsphere.vsphere_utils import traverse_path
 
 __version__ = "0.3.0"
 

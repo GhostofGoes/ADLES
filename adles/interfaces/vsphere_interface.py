@@ -14,11 +14,11 @@
 
 import logging
 
-from automation.vsphere.vsphere import Vsphere
-from automation.vsphere.network_utils import create_portgroup
-import automation.vsphere.vsphere_utils as vutils
-import automation.vsphere.vm_utils as vm_utils
-from automation.utils import pad
+from adles.automation.utils import pad
+import adles.vsphere.vm_utils as vm_utils
+import adles.vsphere.vsphere_utils as vutils
+from adles.vsphere import Vsphere
+from adles.vsphere.network_utils import create_portgroup
 
 
 # TODO: separate interfaces module
@@ -298,7 +298,7 @@ class VsphereInterface:
 
         # Recursively descend from master folder, destroying anything with the prefix
         vutils.cleanup(folder=master_folder, prefix=self.master_prefix,
-                recursive=True, destroy_folders=True, destroy_self=True)
+                       recursive=True, destroy_folders=True, destroy_self=True)
 
         # Cleanup networks (TODO: use network folders to aid in this, during creation phase)
         if network_cleanup:

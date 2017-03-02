@@ -5,9 +5,9 @@
 automation/logins.json
 automation/vsphere.yaml
 /automation/logins.json
-logins.json
-vsphere.yaml
-server*.json
+**/logins.json
+**/vsphere.yaml
+**/server*.json
 
 # Packaging
 pip-packages/

@@ -28,14 +28,12 @@ Options:
 
 """
 
-from atexit import register
 import logging
 
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim
 
-# Must always use absolute imports when running as script (aka as '__main__')
-from automation.vsphere.vsphere_utils import get_obj, get_objs, get_item, find_in_folder, get_in_dc
+from adles.vsphere.vsphere_utils import get_obj, get_objs, get_item, find_in_folder, get_in_dc
 
 __version__ = "0.6.2"
 
@@ -70,6 +68,7 @@ class Vsphere:
             logging.error("Could not connect to host %s using specified username and password", hostname)
             raise Exception()
 
+        from atexit import register
         register(Disconnect, self.server)  # Ensures connection to server is closed upon script termination
 
         self.user = username
@@ -231,12 +230,10 @@ class Vsphere:
 
 def main():
     """ For testing of vSphere. Has examples of usage as well. """
-    from docopt import docopt
-    from automation.utils import setup_logging
-    from automation.utils import make_vsphere
-    import automation.vsphere.vm_utils as vm_utils  # Must always use absolute imports when running as script (__main__)
 
-    args = docopt(__doc__, version=__version__, help=True)
+    from adles.automation.utils import setup_logging, make_vsphere
+    from adles.vsphere import vm_utils
+
     setup_logging(filename='vsphere-testing.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
     server = make_vsphere(args["--file"])
 
@@ -270,4 +267,7 @@ def main():
     # delete_portgroup("test_portgroup", server.get_host())
 
 if __name__ == '__main__':
+
+    from docopt import docopt
+    args = docopt(__doc__, version=__version__, help=True)
     main()

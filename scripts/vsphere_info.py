@@ -28,12 +28,12 @@ Options:
 
 """
 
-from docopt import docopt
 import logging
 
-from automation.utils import setup_logging, make_vsphere, warning
-from automation.vsphere.vm_utils import print_vm_info
-from automation.vsphere.vsphere_utils import print_datastore_info
+from docopt import docopt
+
+from adles.automation.utils import setup_logging, make_vsphere, warning
+from adles.vsphere import *
 
 __version__ = "0.3.0"
 
@@ -52,10 +52,10 @@ thing_type = input("What type of thing do you want to get information on? (vm | 
 thing_name = input("What is the name of the thing you want to get information on? ")
 if thing_type == "vm":
     vm = server.get_vm(thing_name)
-    print_vm_info(vm, print_uuids=True)
+    vm_utils.print_vm_info(vm, print_uuids=True)
 elif thing_type == "datastore":
     ds = server.get_datastore(thing_name)
-    print_datastore_info(ds)
+    vsphere_utils.print_datastore_info(ds)
 elif thing_type == "vsphere":
     logging.info("%s", str(server.content.about))
 else:

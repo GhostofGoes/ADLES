@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import logging
+
 from pyVmomi import vim
 
-from automation.vsphere.vsphere_utils import wait_for_task
-from automation.utils import time_execution
+from .vsphere_utils import wait_for_task
+from adles.automation.utils import time_execution
 
 
 @time_execution

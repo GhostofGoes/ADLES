@@ -16,6 +16,7 @@ The system is a Proof of Concept implementation of my thesis research for a Mast
 
 ## Windows
 ```cmd
+
 git clone https://github.com/GhostofGoes/ADLES.git
 cd ADLES
 pip install -r requirements.txt
@@ -24,6 +25,7 @@ python main.py --help
 
 ## Linux
 ```bash
+
 git clone https://github.com/GhostofGoes/ADLES.git
 cd ADLES
 pip3 install -r requirements.txt

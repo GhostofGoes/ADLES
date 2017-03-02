@@ -14,6 +14,7 @@
 
 import logging
 from posixpath import split  # We want to always parse as forward-slashes, regardless of platform we're running on
+
 from pyVmomi import vim
 
 
@@ -239,7 +240,7 @@ def cleanup(folder, prefix=None, recursive=False, destroy_folders=False, destroy
     :param destroy_self: Destroy the folder specified [default: False]
     """
     logging.debug("Cleaning folder %s", folder.name)
-    from automation.vsphere.vm_utils import destroy_vm
+    from adles.vsphere.vm_utils import destroy_vm
     for item in folder.childEntity:
         if is_vm(item):  # Handle VMs
             if prefix:
@@ -293,7 +294,7 @@ def print_datastore_info(ds_obj):
     Prints human-readable summary of a Datastore
     :param ds_obj: vim.Datastore
     """
-    from automation.utils import sizeof_fmt
+    from adles.automation.utils import sizeof_fmt
     summary = ds_obj.summary
     ds_capacity = summary.capacity
     ds_freespace = summary.freeSpace

@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from automation.utils import time_execution
+
+from adles.automation.utils import time_execution
 
 
 class Interface:
@@ -29,12 +30,12 @@ class Interface:
             exit(1)
 
         # Load infrastructure information
-        from automation.parser import parse_file
+        from adles.automation.parser import parse_file
         # infrastructure = parse_file(metadata["infrastructure-config-file"])
         infrastructure = parse_file("vsphere.yaml")  # TODO: testing only, either make this a CMD arg or remove
 
         # Load login information
-        from automation.utils import read_json
+        from adles.automation.utils import read_json
         logging.debug("Loading login information from file %s", infrastructure["login-file"])
         logins = read_json(infrastructure["login-file"])
         if not logins:
@@ -42,7 +43,7 @@ class Interface:
 
         # Select the Interface to use for the platform
         if infrastructure["platform"] == "vmware vsphere":
-            from automation.vsphere_interface import VsphereInterface
+            from .vsphere_interface import VsphereInterface
             self.interface = VsphereInterface(infrastructure, logins, spec)  # Create interface
         else:
             logging.error("Invalid platform %s", infrastructure["platform"])

@@ -11,13 +11,13 @@ install: "pip install -r requirements.txt"
 script:
   - python main.py -h
   - python main.py --version
-  - python clone_vms.py -h
-  - python destroy_vms.py -h
-  - python vm_power.py -h
-  - python vsphere_info.py -h
+  - python -m scripts.clone_vms.py -h
+  - python -m scripts.destroy_vms.py -h
+  - python -m scripts.vm_power.py -h
+  - python -m scripts.vsphere_info.py -h
   - python main.py -v --check-syntax examples/tutorial.yaml
-  - python main.py -v --check-syntax examples/competition.yaml
-  - python main.py -v --check-syntax examples/experiment.yaml
+  - python main.py -v -c examples/competition.yaml
+  - python main.py --verbose --check-syntax examples/experiment.yaml
 notifications:
   email:
     on_success: never

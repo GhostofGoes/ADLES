@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sys import stdout
-from time import time
 import logging
 import logging.handlers
 
-from automation.vsphere.vsphere import Vsphere
+from sys import stdout
+from time import time
+
+from adles.vsphere import Vsphere
 
 
 # From: virtual_machine_power_cycle_and_question.py in pyvmomi-community-samples

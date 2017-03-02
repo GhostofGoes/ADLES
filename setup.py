@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
+from adles import __version__, __email__, __author__, __url__, __license__
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setup(
-    name='radicl',
-    version="0.5.0",
-    packages=find_packages('automation'),
-    author="Christopher Goes",
-    author_email="goes8945@vandals.uidaho.edu",
-    description='Cybersecurity environment automation using formal specifications',
-    url='https://github.com/GhostofGoes/cybersecurity-environment-automation',
-    license='License :: OSI Approved :: Apache Software License',
+    name='adles',
+    version=__version__,
+    packages=find_packages('adles'),
+    author=__author__,
+    author_email=__email__,
+    description='Automated Deployment of Lab Environments System',
+    url=__url__,
+    license=__license__,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
