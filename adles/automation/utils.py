@@ -136,17 +136,38 @@ def setup_logging(filename, console_level=logging.INFO, file_level=logging.DEBUG
                         filename=str(filename),
                         filemode='a')
 
+    # Gets the root logger
+    logger = logging.getLogger('')
+
     # Console output
     console = logging.StreamHandler(stream=stdout)
     console.setLevel(console_level)
     console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
+    logger.addHandler(console)
 
-    # SysLog output (This prevents students from just deleting the log files)
-    syslog = logging.handlers.SysLogHandler()
-    syslog.setLevel(logging.DEBUG)
-    syslog.setFormatter(formatter)
-    logging.getLogger('').addHandler(syslog)
+    import os
+    if os.name == 'posix':  # Linux systems
+        # SysLog output (This prevents students from just deleting the log files)
+        syslog = logging.handlers.SysLogHandler()
+        syslog.setLevel(logging.DEBUG)
+        syslog.setFormatter(formatter)
+        logger.addHandler(syslog)
+        logging.debug("Configured logging to SysLog")
+    elif os.name == 'nt':  # Windows systems
+        # Windows Event output, if pywin32 is installed
+        try:
+            import win32evtlog
+            win_events = True
+        except ImportError:
+            logging.warning("System logging cannot be performed on Windows without pywin32 installed")
+            win_events = False
+
+        if win_events:
+            winlog = logging.handlers.NTEventLogHandler(appname=filename)
+            winlog.setLevel(logging.DEBUG)
+            winlog.setFormatter(formatter)
+            logger.addHandler(winlog)
+            logging.debug("Configured logging to NT Event Log")
 
     # Record system information to aid in debugging
     from getpass import getuser

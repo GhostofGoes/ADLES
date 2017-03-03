@@ -406,6 +406,7 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
 
     if summary:
         logging.debug("Changing summary to %s", summary)
+        nic_spec.device.deviceInfo.summary = summary
 
     if port_group:
         logging.debug("Changing PortGroup to %s", port_group.name)
