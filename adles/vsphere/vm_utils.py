@@ -194,7 +194,7 @@ def create_snapshot(vm, name, description="default", memory=False):
     :param memory: Memory dump of the VM is included in the snapshot
     :param description: Text description of the snapshot
     """
-    logging.info("Creating snapshot of VM %s with a name of %s", vm.name, name)
+    logging.info("Creating snapshot %s of VM %s. Description: %s", name, vm.name, description)
     wait_for_task(task=vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True))
 
 
@@ -294,6 +294,7 @@ def remove_all_snapshots(vm, consolidate_disks=True):
 
 
 # From: getallvms.py in pyvmomi-community-samples
+# TODO: refactor to return a string instead of a bunch of log entries
 def print_vm_info(virtual_machine, print_uuids=False):
     """
     Print human-readable information for a VM

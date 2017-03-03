@@ -73,16 +73,18 @@ class VsphereInterface:
         if not template_folder:
             logging.error("Could not find template folder in path %s", self.metadata["template-path"])
             return
+        else:
+            logging.debug("Found template folder %s", template_folder.name)
 
         # Create master folder to hold base service instances
-        master_folder = self.server.create_folder(folder_name=self.master_folder_name, create_in=self.root_folder)
-        logging.info("Created master folder %s under folder %s", self.master_folder_name, self.root_folder.name)
+        master_folder = self.server.create_folder(VsphereInterface.master_folder_name, self.root_folder)
+        logging.info("Created master folder %s under folder %s", VsphereInterface.master_folder_name, self.root_name)
 
         # Create portgroups for networks
         for net_type in self.networks:
             self._create_master_networks(net_type)
 
-        # Create base service instances (Docker containers and compose will be implemented here)
+        # Create base service instances (Docker containers and compose will be implemented here...someday :/ )
         for service_name, service_config in self.services.items():
             if "template" in service_config:         # Virtual Machine template
                 logging.info("Creating master for %s from template %s", service_name, service_config["template"])
@@ -100,6 +102,8 @@ class VsphereInterface:
 
                 # Configure VM networks
                 # NOTE: management interfaces matter here!
+                # TODO: networks won't exist since this is creating master's from SERVICES and not FOLDERS!
+                #   Need to be pulling information from both folders and services
                 self._configure_nics(vm=new_vm, networks=service_config["networks"])
 
                 # Set VM note if specified
@@ -107,10 +111,9 @@ class VsphereInterface:
                     vm_utils.set_note(vm=new_vm, note=service_config["note"])
 
                 # Post-creation snapshot
-                logging.debug("Creating post-clone snapshot")
                 vm_utils.create_snapshot(new_vm, "post-clone", "Clean snapshot taken after cloning and configuration.")
 
-        # Apply master-group permissions [default: group permissions]
+        # TODO: Apply master-group permissions [default: group permissions]
 
     def _create_master_networks(self, net_type):
         """
@@ -163,15 +166,15 @@ class VsphereInterface:
         """ Environment deployment phase """
 
         # Get the master folder root (TODO: sub-masters or multiple masters?)
-        master_folder = vutils.traverse_path(self.root_folder, self.master_folder_name)
-        logging.debug("Master folder name: %s\tPrefix: %s", master_folder.name, self.master_prefix)
+        self.master_folder = vutils.traverse_path(self.root_folder, VsphereInterface.master_folder_name)
+        logging.debug("Master folder name: %s\tPrefix: %s", self.master_folder.name, VsphereInterface.master_prefix)
 
         # Verify and convert to templates.
         # This is to ensure they are preserved throughout creation and execution of exercise.
         logging.info("Verifying masters and converting to templates...")
         for service_name, service_config in self.services.items():
             if "template" in service_config:
-                vm = vutils.traverse_path(master_folder, self.master_prefix + service_name)
+                vm = vutils.traverse_path(self.master_folder, VsphereInterface.master_prefix + service_name)
                 if vm:  # Verify all masters exist
                     logging.debug("Verified master %s exists as %s. Converting to template...", service_name, vm.name)
                     vm_utils.convert_to_template(vm)  # Convert master to template
@@ -183,50 +186,38 @@ class VsphereInterface:
                 else:
                     logging.error("Could not find master %s", service_name)
 
-        # NOTE: use fill_zeros when appending instance number!
-        # Create folder to hold portgroups (for easy deletion later)
-        # Create portgroup instances
+        # Networks
+        #   Create folder to hold portgroups (for easy deletion later)
+        #   Create portgroup instances (ensure appending pad() to end of names)
         #   Create generic-networks
         #   Create base-networks
+        # TODO: networks
 
-        # Create folder structure
-        # if "services" in folder: then normal-folder
-        # else: parent-folder
-        # So, need to iterate and create folders.
-        # if "instances" in folder: then create range(instances) folder.name + pad + prefix <-- Optional prefix
-        #                                           ^ resolve "size-of" if specified instead of "number"
-        # else: create folder
-        #       Creating functions for normal and parent folders that can call each other
-        #       Need to also figure out when/how to apply permissions
+        # Deployment
+        #   Create folder structure
+        #   Apply permissions (TODO: Need to figure out when/how to apply permissions)
+        #   Clone instances
         self._folder_gen(self.folders, self.root_folder)
 
-        # Enumerate folder tree to debugging
+        # Output fully deployed environment tree to debugging
         logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
 
-        # Clone instances (use function for numbering)(use prefix if specified)
-
-        # Take snapshots post-clone
-
-        # Enumerate tree with VMs to debugging
-        logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
-
-    def _normal_folder_gen(self, folder, spec):
+    # TODO: need a service lookup table to map service names to their configured master instances
+    def _gen_services(self, folder, services):
         """
-        Generates normal-type folder trees
+        Generates the services in a folder
         :param folder: vim.Folder
-        :param spec:
+        :param services: The "services" dict in a folder
         """
-        for key, value in spec:
-            if key == "instances" or key == "master-group":
-                pass
-            elif key == "group":
-                pass  # TODO: apply group permissions
-            elif key == "description":
-                pass  # TODO: ?
-            elif key == "services":
-                pass  # TODO: services?
-            else:
-                logging.error("Unknown key in normal-type folder %s: %s", folder.name, key)
+        # NOTE: ideally, everything is already done during master creation, so all we have to do here is clone...
+        for service_name, value in services.items():
+            num_instances, prefix = self._instances_handler(value)
+            service = vutils.traverse_path(self.master_folder, VsphereInterface.master_prefix + value["service"])
+            logging.debug("Generating service %s in folder %s", service_name, folder.name)
+            for instance in range(num_instances):
+                instance_name = prefix + service_name + (" " + pad(instance) if num_instances > 1 else "")
+                vm_utils.clone_vm(vm=service, folder=folder, name=instance_name,
+                                  clone_spec=self.server.generate_clone_spec())
 
     def _parent_folder_gen(self, folder, spec):
         """
@@ -249,35 +240,40 @@ class VsphereInterface:
         :param parent: Parent vim.Folder
         """
         for name, value in folders.items():
-            num_instances = self._instances_handler(value["instances"])
+            num_instances, prefix = self._instances_handler(value)
             logging.debug("Generating folder %s", name)
             for instance in range(num_instances):
-                instance_name = name + (" " + pad(instance) if num_instances > 1 else "")
+                instance_name = prefix + name + (" " + pad(instance) if num_instances > 1 else "")
                 folder = self.server.create_folder(folder_name=instance_name, create_in=parent)
+                # TODO: apply group permissions
                 if "services" in value:  # It's a base folder
                     logging.debug("Generating base-type folder %s", instance_name)
-                    self._normal_folder_gen(folder, value)
+                    self._gen_services(folder, value["services"])
                 else:  # It's a parent folder
                     logging.debug("Generating parent-type folder %s", instance_name)
                     self._parent_folder_gen(folder, value)
 
-    def _instances_handler(self, instances):
+    # TODO: implement prefix that I added to spec for instances
+    def _instances_handler(self, value):
         """
         Determines number of instances in accordance with the specification
-        :param instances:
+        :param value:
         :return: number of instances
         """
-        # TODO: interface_utils file possibly?
-        if "instances" in instances:
-            if "number" in instances["instances"]:
-                return int(instances["instances"]["number"])
-            elif "size-of" in instances["instances"]:
-                return int(self._group_size(self.groups[instances["instances"]["size-of"]]))
+        num = 1
+        prefix = ""
+        if "instances" in value:
+            if "prefix" in value["instances"]:
+                prefix = value["instances"]["prefix"]
+
+            if "number" in value["instances"]:
+                num = int(value["instances"]["number"])
+            elif "size-of" in value["instances"]:
+                num = int(self._group_size(self.groups[value["instances"]["size-of"]]))
             else:
                 logging.error("Unknown instances specification")
-                return 0
-        else:
-            return 1  # Default value
+                num = 0
+        return num, prefix
 
     def _group_size(self, group):
         """
