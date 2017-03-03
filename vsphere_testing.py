@@ -27,7 +27,6 @@ Options:
     -v, --verbose       Emits debugging logs to terminal in addition to a file
 
 """
-
 import logging
 
 from docopt import docopt
@@ -37,17 +36,17 @@ from adles.vsphere import vm_utils
 from script_utils import script_setup
 
 args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('vsphere-testing.log', args )
+server = script_setup('vsphere-testing.log', args)
 
 vm = server.get_vm("dummy")
-vm_utils.print_vm_info(vm)
+logging.info(vm_utils.get_vm_info(vm))
 
 # print(str(server))
 # print(repr(server))
 
 # folder = server.get_folder("script_testing")
 # vm = traverse_path(folder, "/Templates/Routers/VyOS 1.1.7 (64-bit)")
-# print_vm_info(vm)
+# get_vm_info(vm)
 # folder = traverse_path(folder, "/Templates/Servers/Windows")
 # print(folder.name)
 

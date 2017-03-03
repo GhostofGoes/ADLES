@@ -21,7 +21,6 @@ from adles.vsphere import Vsphere
 from adles.vsphere.network_utils import create_portgroup
 
 
-# TODO: separate interfaces module
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
@@ -31,6 +30,11 @@ class VsphereInterface:
     warn_threshold = 100  # Point at which to warn if many instances are being created
 
     def __init__(self, infrastructure, logins, spec):
+        """
+        :param infrastructure:
+        :param logins:
+        :param spec:
+        """
         logging.debug("Initializing VsphereInterface...")
         self.spec = spec
         self.metadata = spec["metadata"]

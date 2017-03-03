@@ -156,6 +156,7 @@ def setup_logging(filename, console_level=logging.INFO, file_level=logging.DEBUG
     elif os.name == 'nt':  # Windows systems
         # Windows Event output, if pywin32 is installed
         try:
+            # noinspection PyUnresolvedReferences
             import win32evtlog
             win_events = True
         except ImportError:

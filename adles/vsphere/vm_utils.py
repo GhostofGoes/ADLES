@@ -294,33 +294,38 @@ def remove_all_snapshots(vm, consolidate_disks=True):
 
 
 # From: getallvms.py in pyvmomi-community-samples
-# TODO: refactor to return a string instead of a bunch of log entries
-def print_vm_info(virtual_machine, print_uuids=False):
+def get_vm_info(vm, print_uuids=False):
     """
-    Print human-readable information for a VM
-    :param virtual_machine: vim.VirtualMachine object
+    Get human-readable information for a VM
+    :param vm: vim.VirtualMachine object
     :param print_uuids: (Optional) Whether to print UUID information
+    :return: String with the VM information
     """
-    summary = virtual_machine.summary
-    logging.info("Name          : %s", summary.config.name)
-    logging.info("State         : %s", summary.runtime.powerState)
-    logging.info("Guest         : %s", summary.config.guestFullName)
-    logging.info("CPUs          : %s", summary.config.numCpu)
-    logging.info("Memory (MB)   : %s", summary.config.memorySizeMB)
-    logging.info("vNICs         : %s", summary.config.numEthernetCards)
-    logging.info("Disks         : %s", summary.config.numVirtualDisks)
-    logging.info("IsTemplate    : %s", summary.config.template)
-    logging.info("Path          : %s", summary.config.vmPathName)
+    if not vm:
+        logging.error("No VM was given to get_vm_info!")
+        return None
+    info_string = "\n"
+    summary = vm.summary
+    info_string += "Name          : %s\n" % summary.config.name
+    info_string += "State         : %s\n" % summary.runtime.powerState
+    info_string += "Guest         : %s\n" % summary.config.guestFullName
+    info_string += "CPUs          : %s\n" % summary.config.numCpu
+    info_string += "Memory (MB)   : %s\n" % summary.config.memorySizeMB
+    info_string += "vNICs         : %s\n" % summary.config.numEthernetCards
+    info_string += "Disks         : %s\n" % summary.config.numVirtualDisks
+    info_string += "IsTemplate    : %s\n" % summary.config.template
+    info_string += "Path          : %s\n" % summary.config.vmPathName
     if summary.guest:
-        logging.info("VMware-Tools  : %s", summary.guest.toolsStatus)
-        logging.info("IP            : %s", summary.guest.ipAddress)
+        info_string += "VMware-Tools  : %s\n" % summary.guest.toolsStatus
+        info_string += "IP            : %s\n" % summary.guest.ipAddress
     if print_uuids:
-        logging.info("Instance UUID : %s", summary.config.instanceUuid)
-        logging.info("Bios UUID     : %s", summary.config.uuid)
+        info_string += "Instance UUID : %s\n" % summary.config.instanceUuid
+        info_string += "Bios UUID     : %s\n" % summary.config.uuid
     if summary.runtime.question:
-        logging.info("Question  : %s", summary.runtime.question.text)
+        info_string += "Question  : %s\n" % summary.runtime.question.text
     if summary.config.annotation:
-        logging.info("Annotation    : %s", summary.config.annotation)
+        info_string += "Annotation    : %s\n" % summary.config.annotation
+    return info_string
 
 
 def powered_on(vm):
