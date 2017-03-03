@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from .automation import *
-from .interfaces import *
-from .vsphere import *
-
 __all__ = ['automation', 'interfaces', 'vsphere']
 
 __version__ = "0.6.1"

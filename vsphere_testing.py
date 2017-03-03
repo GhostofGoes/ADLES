@@ -34,11 +34,10 @@ from docopt import docopt
 
 from adles.vsphere.vsphere_class import __version__
 from adles.vsphere import vm_utils
-from adles.automation.utils import setup_logging, make_vsphere
+from script_utils import script_setup
 
 args = docopt(__doc__, version=__version__, help=True)
-setup_logging(filename='vsphere-testing.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
-server = make_vsphere(args["--file"])
+server = script_setup('vsphere-testing.log', args )
 
 vm = server.get_vm("dummy")
 vm_utils.print_vm_info(vm)

@@ -32,14 +32,14 @@ import logging
 
 from docopt import docopt
 
-from script_utils import script_setup
-__version__ = "0.3.1"
-args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('vm_power.log', args)
-
 from adles.automation.utils import prompt_y_n_question, user_input
 from adles.vsphere.vm_utils import change_vm_state
 from adles.vsphere.vsphere_utils import traverse_path
+from script_utils import script_setup
+
+__version__ = "0.3.1"
+args = docopt(__doc__, version=__version__, help=True)
+server = script_setup('vm_power.log', args)
 
 operation = input("Enter the power operation you wish to perform [on | off | reset | suspend]: ")
 attempt_guest = prompt_y_n_question("Use guest operations if available? ")

@@ -20,15 +20,5 @@ if(sysadmin):
 ```bash
 
 git clone https://github.com/GhostofGoes/ADLES.git
-cd ./scripts
 pip3 install -r script-requirements.txt
 ```
-
-# Usage
-
-```bash
-
-python3 -m scripts.<script>.py -h
-```
-
-

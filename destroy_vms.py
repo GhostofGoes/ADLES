@@ -32,15 +32,14 @@ import logging
 
 from docopt import docopt
 
-from script_utils import script_setup
-__version__ = "0.3.2"
-args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('destroy_vms.log', args)
-
 from adles.automation.utils import prompt_y_n_question, user_input, default_prompt
 from adles.vsphere.vm_utils import destroy_vm
 from adles.vsphere.vsphere_utils import cleanup, enumerate_folder, traverse_path, format_structure, retrieve_items
+from script_utils import script_setup
 
+__version__ = "0.3.2"
+args = docopt(__doc__, version=__version__, help=True)
+server = script_setup('destroy_vms.log', args)
 
 if prompt_y_n_question("Do you wish to destroy a single VM? "):
     # TODO: VM at path + folder at path utility func

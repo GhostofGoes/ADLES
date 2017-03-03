@@ -30,10 +30,6 @@ def script_setup(logging_filename, args):
     :return: vSphere object
     """
 
-    # Fix module imports
-    import sys
-    sys.path.append('../')
-
     # Setup logging
     from adles.automation.utils import setup_logging, make_vsphere
     setup_logging(filename=logging_filename, console_level=logging.DEBUG if args["--verbose"] else logging.INFO)

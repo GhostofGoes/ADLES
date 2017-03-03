@@ -32,12 +32,12 @@ import logging
 
 from docopt import docopt
 
+from adles.vsphere import *
 from script_utils import script_setup
+
 __version__ = "0.3.1"
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('vsphere_info.log', args)
-
-from adles.vsphere import *
 
 # List of possible useful things
 #   open_console
