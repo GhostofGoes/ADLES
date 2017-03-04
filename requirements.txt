@@ -2,3 +2,4 @@ pyyaml >= 3.12
 pyvmomi >= 6.0
 docopt >= 0.6.2
 netaddr >= 0.7.19
+colorlog >= 2.10.0

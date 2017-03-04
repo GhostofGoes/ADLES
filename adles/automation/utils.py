@@ -112,12 +112,13 @@ def read_json(filename):
         return None
 
 
-def setup_logging(filename, console_level=logging.INFO, file_level=logging.DEBUG):
+def setup_logging(filename, colors=True, console_level=logging.INFO, server=('localhost', 514)):
     """
     Configures the logging interface used by everything for output
     :param filename: Name of file that logs should be saved to
+    :param colors: Whether log output on terminal should be colored (requires colorlog package) [default: True]
     :param console_level: Level of logs that should be printed to terminal [default: logging.INFO]
-    :param file_level: Level of logs that should be written to file [default: logging.DEBUG]
+    :param server: (address, port) of a SysLog server to forward logs to [default: (localhost, 514)]
     """
 
     # Prepend spaces to separate logs from previous
@@ -130,55 +131,45 @@ def setup_logging(filename, console_level=logging.INFO, file_level=logging.DEBUG
     formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
 
     # Configures the base logger to append to a file
-    logging.basicConfig(level=file_level,
+    logging.basicConfig(level=logging.DEBUG,
                         format=base_format,
                         datefmt=time_format,
                         filename=str(filename),
                         filemode='a')
 
-    # Gets the root logger
-    logger = logging.getLogger('')
+    # Get the global root logger
+    logger = logging.root
 
-    # Console output
+    # Configure logging to a SysLog server (This prevents students from deleting the log files)
+    syslog = logging.handlers.SysLogHandler(address=server)
+    syslog.setLevel(logging.DEBUG)
+    syslog.setFormatter(formatter)
+    logger.addHandler(syslog)
+    logging.debug("Configured system logging to SysLog")
+
+    # Configure console output
     console = logging.StreamHandler(stream=stdout)
+    if colors:  # Colored console output
+        from colorlog import ColoredFormatter
+        console.setFormatter(ColoredFormatter(fmt=base_format, datefmt=time_format, reset=True,
+                                              log_colors={'DEBUG': 'white', 'INFO': 'blue',
+                                                          'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'red'}))
+        logging.debug("Configured COLORED console logging output")
+    else:  # Bland console output
+        console.setFormatter(formatter)
+        logging.debug("Configured STANDARD console logging output")
     console.setLevel(console_level)
-    console.setFormatter(formatter)
     logger.addHandler(console)
 
-    import os
-    if os.name == 'posix':  # Linux systems
-        # SysLog output (This prevents students from just deleting the log files)
-        syslog = logging.handlers.SysLogHandler()
-        syslog.setLevel(logging.DEBUG)
-        syslog.setFormatter(formatter)
-        logger.addHandler(syslog)
-        logging.debug("Configured logging to SysLog")
-    elif os.name == 'nt':  # Windows systems
-        # Windows Event output, if pywin32 is installed
-        try:
-            # noinspection PyUnresolvedReferences
-            import win32evtlog
-            win_events = True
-        except ImportError:
-            logging.warning("System logging cannot be performed on Windows without pywin32 installed")
-            win_events = False
-
-        if win_events:
-            winlog = logging.handlers.NTEventLogHandler(appname=filename)
-            winlog.setLevel(logging.DEBUG)
-            winlog.setFormatter(formatter)
-            logger.addHandler(winlog)
-            logging.debug("Configured logging to NT Event Log")
-
-    # Record system information to aid in debugging
+    # Record system information to aid in auditing and debugging
     from getpass import getuser
     from os import getcwd
     from sys import version, platform
-    logging.debug("Initialized logging, saving logs to %s", filename)
-    logging.debug("Python %s", str(version))
-    logging.debug("Platform: %s", str(platform))
-    logging.debug("Username: %s", str(getuser()))
-    logging.debug("Current directory: %s\n", str(getcwd()))
+    logging.debug("Initialized logging, saving logs to %s", str(filename))
+    logging.debug("Python               %s", str(version))
+    logging.debug("Platform:            %s", str(platform))
+    logging.debug("Username:            %s", str(getuser()))
+    logging.debug("Current directory:   %s\n", str(getcwd()))
 
 
 # Credit to: http://stackoverflow.com/a/15707426/2214380
