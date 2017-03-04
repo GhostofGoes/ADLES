@@ -18,9 +18,9 @@ import logging
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim
 
-from .vsphere_utils import get_obj, get_objs, get_item, get_in_dc, create_folder
+from .vsphere_utils import get_obj, get_objs, get_item, get_in_folder, create_folder
 
-__version__ = "0.6.3"
+__version__ = "0.6.4"
 
 
 class Vsphere:
@@ -28,7 +28,7 @@ class Vsphere:
 
     def __init__(self, username, password, hostname, datacenter=None, datastore=None, port=443, use_ssl=False):
         """
-        Connects to the vCenter server instance and initializes class data members
+        Connects to a vCenter server and initializes a class instance.
         :param username: Username of account to login with
         :param password: Password of account to login with
         :param hostname: DNS hostname or IPv4 address of vCenter instance
@@ -118,11 +118,10 @@ class Vsphere:
     def get_folder(self, folder_name=None):
         """
         Finds and returns the named Folder
-        :param folder_name: (Optional) Name of the folder [default: rootFolder of vCenter instance]
+        :param folder_name: Name of the folder [default: Datacenter vmFolder]
         :return: vim.Folder object
         """
         if folder_name:
-            # TODO: specify which root to start (type of folder)
             return get_obj(self.content, [vim.Folder], folder_name)
         else:
             return self.datacenter.vmFolder  # S.f.r: pyvmomi/docs/vim/Datacenter.rst
@@ -133,7 +132,7 @@ class Vsphere:
         :param vm_name: Name of the VM
         :return: vim.VirtualMachine object
         """
-        return get_obj(self.content, [vim.VirtualMachine], vm_name)
+        return get_in_folder(self.datacenter.vmFolder, vm_name, vim.VirtualMachine)
 
     def get_network(self, network_name=None, distributed=False):
         """
@@ -153,7 +152,7 @@ class Vsphere:
         :param host_name: Name of the host [default: the first host found in the datacenter]
         :return: vim.HostSystem object
         """
-        return get_in_dc(self.datacenter.hostFolder, host_name, vim.HostSystem)
+        return get_in_folder(self.datacenter.hostFolder, host_name, vim.HostSystem)
 
     def get_cluster(self, cluster_name=None):
         """
@@ -161,7 +160,7 @@ class Vsphere:
         :param cluster_name: Name of the cluster [default: first cluster found in the datacenter]
         :return: vim.ClusterComputeResource object
         """
-        return get_in_dc(self.datacenter.hostFolder, cluster_name, vim.ClusterComputeResource)
+        return get_in_folder(self.datacenter.hostFolder, cluster_name, vim.ClusterComputeResource)
 
     def get_datastore(self, datastore_name=None):
         """
@@ -169,7 +168,7 @@ class Vsphere:
         :param datastore_name: Name of the datastore [default: first datastore found in the datacenter]
         :return: vim.Datastore object
         """
-        return get_in_dc(self.datacenter.datastoreFolder, datastore_name)
+        return get_in_folder(self.datacenter.datastoreFolder, datastore_name)
 
     def get_pool(self, pool_name=None):
         """
@@ -177,33 +176,35 @@ class Vsphere:
         :param pool_name: Name of the resource pool [default: first resource pool found in the datacenter]
         :return: vim.ResourcePool object
         """
-        return get_item(content=self.content, vimtype=vim.ResourcePool, name=pool_name)
+        return get_item(self.content, vim.ResourcePool, pool_name)
 
     def get_all_vms(self):
         """
-        Finds and returns ALL VMs registered in the Datacenter
+        Finds and returns all VMs registered in the Datacenter
         :return: List of vim.VirtualMachine objects
         """
-        return get_objs(self.content, [vim.VirtualMachine])
+        return get_objs(self.content, [vim.VirtualMachine], container=self.datacenter.vmFolder, recursive=True)
 
-    def get_obj(self, vimtype, name, recursive=True):
+    def get_obj(self, vimtype, name, container=None, recursive=True):
         """
         Finds and returns named vSphere object of specified type
         :param vimtype: List of vimtype objects to look for
         :param name: string name of the object
-        :param recursive: (Optional) Whether to recursively descend or only look in the current level
+        :param container: Container to search in [default: content.rootFolder]
+        :param recursive: Recursively descend or only look in the current level [default: True]
         :return: The vimtype object found with the specified name, or None if no object was found
         """
-        get_obj(self.content, vimtype, name, recursive)
+        get_obj(self.content, vimtype, name, container, recursive)
 
-    def get_objs(self, vimtype, recursive=True):
+    def get_objs(self, vimtype, container=None, recursive=True):
         """
         Get all the vSphere objects associated with a given type
         :param vimtype: List of vimtype objects to look for
-        :param recursive: (Optional) Whether to recursively descend or only look in the current level
+        :param container: Container to search in [default: content.rootFolder]
+        :param recursive: Recursively descend or only look in the current level [default: True]
         :return: List of all vimtype objects found, or None if none were found
         """
-        get_objs(self.content, vimtype, recursive)
+        get_objs(self.content, vimtype, container, recursive)
 
     def __repr__(self):
         return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name, self.hostname, self.port)

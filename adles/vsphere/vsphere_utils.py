@@ -33,16 +33,18 @@ def check_folder(func):
 
 
 # From: various files in pyvmomi-community-samples
-def get_obj(content, vimtype, name, recursive=True):
+def get_obj(content, vimtype, name, container=None, recursive=True):
     """
     Finds and returns named vSphere object of specified type
     :param content: vim.Content to search in
     :param vimtype: List of vimtype objects to look for
     :param name: string name of the object
-    :param recursive: (Optional) Whether to recursively descend or only look in the current level
+    :param container: Container to search in [default: content.rootFolder]
+    :param recursive: Recursively descend or only look in the current level [default: True]
     :return: The vimtype object found with the specified name, or None if no object was found
     """
-    container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, recursive)
+    container = content.viewManager.CreateContainerView(container if container else content.rootFolder,
+                                                        vimtype, recursive)
     obj = None
     for c in container.view:
         if c.name.lower() == name.lower():
@@ -53,16 +55,18 @@ def get_obj(content, vimtype, name, recursive=True):
 
 
 # From: https://github.com/sijis/pyvmomi-examples/vmutils.py
-def get_objs(content, vimtype, recursive=True):
+def get_objs(content, vimtype, container=None, recursive=True):
     """
     Get all the vSphere objects associated with a given type
     :param content: vim.Content to search in
     :param vimtype: List of vimtype objects to look for
-    :param recursive: (Optional) Whether to recursively descend or only look in the current level
+    :param container: Container to search in [default: content.rootFolder]
+    :param recursive: Recursively descend or only look in the current level [default: True]
     :return: List of all vimtype objects found, or None if none were found
     """
     obj = []
-    container = content.viewManager.CreateContainerView(content.rootFolder, vimtype, recursive)
+    container = content.viewManager.CreateContainerView(container if container else content.rootFolder,
+                                                        vimtype, recursive)
     for c in container.view:
         obj.append(c)
     container.Destroy()
@@ -72,10 +76,10 @@ def get_objs(content, vimtype, recursive=True):
 def get_item(content, vimtype, name):
     """
     Get a item of specified name and type from content
-    :param content:
-    :param vimtype:
-    :param name:
-    :return:
+    :param content: Content to search in
+    :param vimtype: Type of item
+    :param name: Name of item
+    :return: The item found
     """
     if not name:
         return get_objs(content, [vimtype])[0]
@@ -83,8 +87,28 @@ def get_item(content, vimtype, name):
         return get_obj(content, [vimtype], name)
 
 
+def map_objs(content, vimtype, func, name=None, container=None, recursive=True):
+    """
+    Apply a function to item(s)
+    :param content: vim.Content to search in
+    :param vimtype: List of vimtype objects to look for
+    :param func: Function to apply
+    :param name: Name of item to apply to [default: None]
+    :param container: Container to search in [default: content.rootFolder]
+    :param recursive: Recursively descend or only look in the current level [default: True]
+    """
+    container = content.viewManager.CreateContainerView(container if container else content.rootFolder,
+                                                        vimtype, recursive)
+    for item in container.view:
+        if name:
+            if hasattr(item, 'name') and item.name.lower() == name.lower():
+                func(item)
+        else:
+            func(item)
+
+
 @check_folder
-def get_in_dc(folder, name, vimtype=None):
+def get_in_folder(folder, name, vimtype=None):
     """
     Retrieves an item from a datacenter folder
     :param folder: vim.Folder to search in
@@ -100,18 +124,16 @@ def get_in_dc(folder, name, vimtype=None):
         if len(folder.childEntity) > 0:
             return folder.childEntity[0]
         else:
-            logging.error("There are no items in the datacenter folder %s", folder.name)
+            logging.error("There are no items in folder %s", folder.name)
             return None
     else:
         return item
-
-# TODO: function to apply a given operation to all objects in a view
 
 
 @check_folder
 def find_in_folder(folder, name, recursive=False, vimtype=None):
     """
-    Finds and returns an object in a folder
+    Finds and returns an specific object in a folder
     :param folder: vim.Folder object to search in
     :param name: Name of the object to find
     :param recursive: Recurse into sub-folders [default: False]
@@ -124,7 +146,7 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
                 continue
             return item
         elif recursive and is_folder(item):  # Recurse into sub-folders
-            find_in_folder(folder=item, name=name, recursive=recursive)
+            find_in_folder(folder=item, name=name, recursive=recursive, vimtype=vimtype)
     return None
 
 
@@ -162,7 +184,7 @@ def enumerate_folder(folder, recursive=True):
     """
     Enumerates a folder structure and returns the result as a python object with the same structure
     :param folder: vim.Folder
-    :param recursive: Whether to recurse into any sub-folders
+    :param recursive: Whether to recurse into any sub-folders [default: True]
     :return: The nested python object with the enumerated folder structure
     """
     children = []
