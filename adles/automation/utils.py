@@ -151,9 +151,10 @@ def setup_logging(filename, colors=True, console_level=logging.INFO, server=('lo
     console = logging.StreamHandler(stream=stdout)
     if colors:  # Colored console output
         from colorlog import ColoredFormatter
-        console.setFormatter(ColoredFormatter(fmt=base_format, datefmt=time_format, reset=True,
-                                              log_colors={'DEBUG': 'white', 'INFO': 'blue',
-                                                          'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'red'}))
+        console.setFormatter(ColoredFormatter(fmt="%(log_color)s" + base_format,
+                                              datefmt=time_format, reset=True, log_colors={
+                                                            'DEBUG': 'white', 'INFO': 'green',
+                                                            'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'red'}))
         logging.debug("Configured COLORED console logging output")
     else:  # Bland console output
         console.setFormatter(formatter)
