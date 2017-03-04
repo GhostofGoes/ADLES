@@ -17,7 +17,7 @@ import logging
 from pyVmomi import vim
 
 from adles.utils import time_execution
-from .vsphere_utils import wait_for_task
+from .vsphere_utils import wait_for_task, is_vnic
 
 
 @time_execution
@@ -360,9 +360,22 @@ def get_nics(vm):
     """
     Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
     :param vm: vim.VirtualMachine
-    :return: list of vim.vm.device.VirtualDevice
+    :return: list ofvim.vm.device.VirtualEthernetCard
     """
-    return [dev for dev in vm.config.hardware.device if isinstance(dev, vim.vm.device.VirtualEthernetCard)]
+    return [dev for dev in vm.config.hardware.device if is_vnic(dev)]
+
+
+def get_nic(vm, name):
+    """
+    Gets a Virtual Network Interface Card from a VM
+    :param vm: vim.VirtualMachine
+    :param name: Name of the vNIC
+    :return: vim.vm.device.VirtualEthernetCard
+    """
+    for dev in vm.config.hardware.device:
+        if is_vnic(dev) and dev.deviceInfo.label.lower() == name.lower():
+            return dev
+    return None
 
 
 # From: delete_nic_from_vm.py in pyvmomi-community-samples
@@ -374,10 +387,7 @@ def delete_nic(vm, nic_number):
     """
     nic_label = 'Network adapter ' + str(nic_number)
     logging.debug("Removing Virtual %s from %s", nic_label, vm.name)
-    virtual_nic_device = None
-    for dev in vm.config.hardware.device:
-        if isinstance(dev, vim.vm.device.VirtualEthernetCard) and dev.deviceInfo.label == nic_label:
-            virtual_nic_device = dev
+    virtual_nic_device = get_nic(vm, nic_label)
 
     if not virtual_nic_device:
         logging.error('Virtual %s could not be found!', nic_label)
@@ -400,10 +410,7 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
     """
     nic_label = 'Network adapter ' + str(nic_number)
     logging.debug("Changing %s on %s", nic_label, vm.name)
-    virtual_nic_device = None
-    for dev in vm.config.hardware.device:
-        if isinstance(dev, vim.vm.device.VirtualEthernetCard) and dev.deviceInfo.label == nic_label:
-            virtual_nic_device = dev
+    virtual_nic_device = get_nic(vm, nic_label)
 
     if not virtual_nic_device:
         logging.error('Virtual %s could not be found!', nic_label)
@@ -480,33 +487,41 @@ def add_nic(vm, port_group, summary="default-summary", model="e1000"):
     wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))  # Apply the change to the VM
 
 
-def attach_iso(vm, filename, datastore, boot=True):
+def attach_iso(vm, iso_name, datastore, boot=True):
     """
     Attaches an ISO image to a VM
     :param vm: vim.VirtualMachine
-    :param filename: Name of the ISO image to attach
+    :param iso_name: Name of the ISO image to attach
     :param datastore: vim.Datastore where the ISO resides
     :param boot: Set VM to boot from the attached ISO
     """
-    logging.debug("Adding ISO '%s' to VM '%s'", filename, vm.name)
+    logging.debug("Adding ISO '%s' to VM '%s'", iso_name, vm.name)
     drive_spec = vim.vm.device.VirtualDeviceSpec()
     drive_spec.device = vim.vm.device.VirtualCdrom()
-    drive_spec.device.controllerKey = find_free_ide_controller(vm).key
     drive_spec.device.key = -1
     drive_spec.device.unitNumber = 0
 
+    # Find a disk controller to attach to
+    controller = find_free_ide_controller(vm)
+    if controller:
+        drive_spec.device.controllerKey = controller.key
+    else:
+        logging.error("Could not find a free IDE controller on VM %s to attach ISO %s", vm.name, iso_name)
+        return
+
     drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
-    drive_spec.device.backing.fileName = "[{0}] {1}".format(datastore.name, filename)  # Attach ISO
+    drive_spec.device.backing.fileName = "[{0}] {1}".format(datastore.name, iso_name)  # Attach ISO
     drive_spec.device.backing.datastore = datastore  # Set datastore ISO is in
 
     drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
     drive_spec.device.connectable.allowGuestControl = True  # Allows VM guest OS to control device state
-    drive_spec.device.connectable.startConnected = True  # Ensures ISO is connected at boot
+    drive_spec.device.connectable.startConnected = True     # Ensures ISO is connected at boot
 
     drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
     vm_spec = vim.vm.ConfigSpec(deviceChange=[drive_spec])
 
-    if boot:
+    if boot:  # Set the VM to boot from the ISO upon power on
+        logging.debug("Setting VM %s to boot from ISO %s", vm.name, iso_name)
         order = [vim.vm.BootOptions.BootableCdromDevice()]
         order.extend(list(vm.config.bootOptions.bootOrder))
         vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)

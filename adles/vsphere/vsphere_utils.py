@@ -368,15 +368,24 @@ def is_folder(obj):
     """
     Checks if object is a vim.Folder
     :param obj: object to check
-    :return:
+    :return: Bool
     """
-    return hasattr(obj, "childEntity")
+    return bool(hasattr(obj, "childEntity"))
 
 
 def is_vm(obj):
     """
     Checks if object is a vim.VirtualMachine
     :param obj: object to check
-    :return:
+    :return: Bool
     """
-    return hasattr(obj, "summary")
+    return bool(hasattr(obj, "summary"))
+
+
+def is_vnic(device):
+    """
+    Checks if the device is a VirtualEthernetCard
+    :param device: device to check
+    :return: Bool
+    """
+    return bool(isinstance(device, vim.vm.device.VirtualEthernetCard))
