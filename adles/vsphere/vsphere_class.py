@@ -18,9 +18,9 @@ import logging
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim
 
-from .vsphere_utils import get_obj, get_objs, get_item, find_in_folder, get_in_dc
+from .vsphere_utils import get_obj, get_objs, get_item, get_in_dc, create_folder
 
-__version__ = "0.6.2"
+__version__ = "0.6.3"
 
 
 class Vsphere:
@@ -50,7 +50,7 @@ class Vsphere:
             logging.error("Error occurred while trying to connect to vCenter: %s", str(e))
 
         if not self.server:
-            logging.error("Could not connect to host %s using specified username and password", hostname)
+            logging.error("Could not connect to host %s with username %s", hostname, username)
             raise Exception()
 
         from atexit import register
@@ -80,15 +80,9 @@ class Vsphere:
                 parent = get_obj(self.content, [vim.Folder], create_in)
             else:
                 parent = create_in  # create_in is a vim.Folder object, so we just assign it
-            exists = find_in_folder(parent, folder_name)
-            if exists:
-                logging.warning("Folder %s already exists", folder_name)
-                return exists
-            else:
-                logging.info("Creating folder %s in folder %s", folder_name, parent.name)
-                return parent.CreateFolder(folder_name)
+            return create_folder(folder_name=folder_name, create_in=parent)
         else:
-            logging.info("Creating folder %s in server root folder", folder_name)
+            logging.debug("Creating folder %s in server root folder", folder_name)
             return self.content.rootFolder.CreateFolder(folder_name)
 
     # TODO: generate_vm_spec
@@ -102,7 +96,7 @@ class Vsphere:
         :return: vim.vm.CloneSpec object
         """
         if datastore_name:
-            datastore = get_obj(self.content, [vim.Datastore], datastore_name)
+            datastore = self.get_datastore(datastore_name)
         else:
             datastore = self.datastore
         relospec = vim.vm.RelocateSpec()
@@ -123,7 +117,7 @@ class Vsphere:
 
     def get_folder(self, folder_name=None):
         """
-        Finds and returns the named folder
+        Finds and returns the named Folder
         :param folder_name: (Optional) Name of the folder [default: rootFolder of vCenter instance]
         :return: vim.Folder object
         """
@@ -144,8 +138,8 @@ class Vsphere:
     def get_network(self, network_name=None, distributed=False):
         """
         Finds and returns the named PortGroup
-        :param network_name: (Optional) Name of the portgroup [default: first portgroup in datacenter]
-        :param distributed: (Optional) If the portgroup is a Distributed PortGroup [default: False]
+        :param network_name: Name of the portgroup [default: first portgroup in datacenter]
+        :param distributed: If the portgroup is a Distributed PortGroup [default: False]
         :return: vim.Network or vim.dvs.DistributedVirtualPortgroup object
         """
         if not distributed:
@@ -155,33 +149,39 @@ class Vsphere:
 
     def get_host(self, host_name=None):
         """
-        Finds and returns the named host
-        :param host_name: (Optional) Name of the host [default: the first host found in the datacenter]
+        Finds and returns the named Host System
+        :param host_name: Name of the host [default: the first host found in the datacenter]
         :return: vim.HostSystem object
         """
-        # return get_item(content=self.content, vimtype=vim.HostSystem, name=host_name)
-        return get_in_dc(self.datacenter.hostFolder, host_name)
+        return get_in_dc(self.datacenter.hostFolder, host_name, vim.HostSystem)
+
+    def get_cluster(self, cluster_name=None):
+        """
+        Finds and returns the named Cluster
+        :param cluster_name: Name of the cluster [default: first cluster found in the datacenter]
+        :return: vim.ClusterComputeResource object
+        """
+        return get_in_dc(self.datacenter.hostFolder, cluster_name, vim.ClusterComputeResource)
 
     def get_datastore(self, datastore_name=None):
         """
-        Finds and returns the named datastore
-        :param datastore_name: (Optional) Name of the datastore [default: first datastore found in the datacenter]
+        Finds and returns the named Datastore
+        :param datastore_name: Name of the datastore [default: first datastore found in the datacenter]
         :return: vim.Datastore object
         """
-        # return get_item(content=self.content, vimtype=vim.Datastore, name=datastore_name)
         return get_in_dc(self.datacenter.datastoreFolder, datastore_name)
 
     def get_pool(self, pool_name=None):
         """
-        Finds and returns the named resource pool
-        :param pool_name: (Optional) Name of the resource pool [default: first resource pool found in the datacenter]
+        Finds and returns the named Resource Pool
+        :param pool_name: Name of the resource pool [default: first resource pool found in the datacenter]
         :return: vim.ResourcePool object
         """
         return get_item(content=self.content, vimtype=vim.ResourcePool, name=pool_name)
 
     def get_all_vms(self):
         """
-        Finds and returns ALL VMs registered in the datacenter
+        Finds and returns ALL VMs registered in the Datacenter
         :return: List of vim.VirtualMachine objects
         """
         return get_objs(self.content, [vim.VirtualMachine])

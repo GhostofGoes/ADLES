@@ -134,7 +134,7 @@ def setup_logging(filename, colors=True, console_level=logging.INFO, server=('lo
     logging.basicConfig(level=logging.DEBUG,
                         format=base_format,
                         datefmt=time_format,
-                        filename=str(filename),
+                        filename=filename,
                         filemode='a')
 
     # Get the global root logger
@@ -166,7 +166,7 @@ def setup_logging(filename, colors=True, console_level=logging.INFO, server=('lo
     from getpass import getuser
     from os import getcwd
     from sys import version, platform
-    logging.debug("Initialized logging, saving logs to %s", str(filename))
+    logging.debug("Initialized logging, saving logs to %s", filename)
     logging.debug("Python       %s", str(version))
     logging.debug("Platform     %s", str(platform))
     logging.debug("Username     %s", str(getuser()))

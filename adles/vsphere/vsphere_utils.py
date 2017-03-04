@@ -84,22 +84,23 @@ def get_item(content, vimtype, name):
 
 
 @check_folder
-def get_in_dc(folder, name):
+def get_in_dc(folder, name, vimtype=None):
     """
-    Retrievs an item from a datacenter folder
-    :param folder:
-    :param name:
-    :return:
+    Retrieves an item from a datacenter folder
+    :param folder: vim.Folder to search in
+    :param name: Name of object to find
+    :param vimtype: Type of object to search for [default: None]
+    :return: Object found or None if nothing was found
     """
     if name:
-        item = find_in_folder(folder, name, recursive=False)
+        item = find_in_folder(folder, name, recursive=False, vimtype=vimtype)
     else:
         item = None
     if not item:
         if len(folder.childEntity) > 0:
             return folder.childEntity[0]
         else:
-            logging.error("Could not get item %s from DataCenter folder %s", name, folder.name)
+            logging.error("There are no items in the datacenter folder %s", folder.name)
             return None
     else:
         return item
@@ -108,16 +109,19 @@ def get_in_dc(folder, name):
 
 
 @check_folder
-def find_in_folder(folder, name, recursive=False):
+def find_in_folder(folder, name, recursive=False, vimtype=None):
     """
     Finds and returns an object in a folder
     :param folder: vim.Folder object to search in
     :param name: Name of the object to find
     :param recursive: Recurse into sub-folders [default: False]
+    :param vimtype: Type of object to search for [default: None]
     :return: Object found or None if nothing was found
     """
     for item in folder.childEntity:
         if hasattr(item, 'name') and item.name.lower() == name.lower():  # Check if it has name, and if the name matches
+            if vimtype and type(item) != vimtype:
+                continue
             return item
         elif recursive and is_folder(item):  # Recurse into sub-folders
             find_in_folder(folder=item, name=name, recursive=recursive)
@@ -167,12 +171,12 @@ def enumerate_folder(folder, recursive=True):
             if recursive:
                 children.append(enumerate_folder(item, recursive))
             else:
-                children.append('- ' + str(item.name))
+                children.append('- ' + item.name)
         elif is_vm(item):
-            children.append('* ' + str(item.name))
+            children.append('* ' + item.name)
         else:
             children.append("UNKNOWN ITEM: %s" % str(item))
-    return '+ ' + str(folder.name), children  # Return tuple of parent and children
+    return '+ ' + folder.name, children  # Return tuple of parent and children
 
 
 # Similar to: https://docs.python.org/3/library/pprint.html
@@ -227,6 +231,22 @@ def move_into_folder(folder, entity_list):
     :param entity_list: List of vim.ManagedEntity
     """
     wait_for_task(folder.MoveIntoFolder_Task(entity_list))
+
+
+def create_folder(folder_name, create_in):
+    """
+    Creates a VM folder in the specified folder
+    :param folder_name: Name of folder to create
+    :param create_in: vim.Folder object to create the folder in
+    :return: The created vim.Folder object
+    """
+    exists = find_in_folder(create_in, folder_name)
+    if exists:
+        logging.warning("Folder %s already exists in folder %s", folder_name, create_in.name)
+        return exists
+    else:
+        logging.debug("Creating folder %s in folder %s", folder_name, create_in.name)
+        return create_in.CreateFolder(folder_name)
 
 
 @check_folder
