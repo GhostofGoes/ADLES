@@ -88,6 +88,6 @@ for instance in range(num_instances):
             vm_name = name
         else:
             vm_name = name + pad(value=instance, length=2)  # Append instance number, since it's a flat clone
-        spec = server.generate_clone_spec(pool_name=pool)   # Generate clone specification
+        spec = server.gen_clone_spec(pool_name=pool)   # Generate clone specification
         logging.info("Cloning %s...", name)
         clone_vm(vm, create_in, vm_name, spec)              # Clone the VM using the generated spec

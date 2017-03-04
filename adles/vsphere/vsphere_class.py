@@ -93,7 +93,7 @@ class Vsphere:
 
     # TODO: generate_vm_spec
 
-    def generate_clone_spec(self, datastore_name=None, pool_name=None):
+    def gen_clone_spec(self, datastore_name=None, pool_name=None):
         """
         Generates a clone specification used to clone a VM
         :param datastore_name: (Optional) Name of the datastore in which to create the clone's disk

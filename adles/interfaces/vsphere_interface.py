@@ -26,7 +26,7 @@ class VsphereInterface:
 
     # Switches to tweak (these are global to ALL instances of this class)
     master_prefix = "(MASTER) "
-    master_folder_name = "MASTER_FOLDERS"
+    master_root_name = "MASTER_FOLDERS"
     warn_threshold = 100  # Point at which to warn if many instances are being created
 
     def __init__(self, infrastructure, logins, spec):
@@ -42,6 +42,8 @@ class VsphereInterface:
         self.services = spec["services"]
         self.networks = spec["networks"]
         self.folders = spec["folders"]
+        self.master_folder = None
+        self.template_folder = None
 
         # Create the vSphere object to interact with
         self.server = Vsphere(datacenter=infrastructure["datacenter"],
@@ -73,51 +75,88 @@ class VsphereInterface:
         #   Will write a function to do this, so we can recursively descend for complex environments
 
         # Get folder containing templates
-        template_folder = vutils.traverse_path(self.server_root, self.metadata["template-path"])
-        if not template_folder:
+        self.template_folder = vutils.traverse_path(self.server_root, self.metadata["template-path"])
+        if not self.template_folder:
             logging.error("Could not find template folder in path %s", self.metadata["template-path"])
             return
         else:
-            logging.debug("Found template folder %s", template_folder.name)
+            logging.debug("Found template folder %s", self.template_folder.name)
 
         # Create master folder to hold base service instances
-        master_folder = self.server.create_folder(VsphereInterface.master_folder_name, self.root_folder)
-        logging.info("Created master folder %s under folder %s", VsphereInterface.master_folder_name, self.root_name)
+        self.master_folder = self.server.create_folder(VsphereInterface.master_root_name, self.root_folder)
+        logging.info("Created master folder %s under folder %s", VsphereInterface.master_root_name, self.root_name)
 
         # Create portgroups for networks
+        # TODO: check if they already exist, issue warning if they aren't
+        # TODO: perhaps flag to set default non-exist action to create or error?
         for net_type in self.networks:
             self._create_master_networks(net_type)
 
-        # Create base service instances (Docker containers and compose will be implemented here...someday :/ )
-        for service_name, service_config in self.services.items():
-            if "template" in service_config:         # Virtual Machine template
-                logging.info("Creating master for %s from template %s", service_name, service_config["template"])
-                vm_name = self.master_prefix + service_name
-                template = vutils.traverse_path(template_folder, service_config["template"])
-                vm_utils.clone_vm(vm=template, folder=master_folder, name=vm_name,
-                                  clone_spec=self.server.generate_clone_spec())
-
-                # Get new cloned instance
-                new_vm = vutils.traverse_path(master_folder, vm_name)
-
-                if not new_vm:
-                    logging.error("Did not successfully clone VM %s for service %s", vm_name, service_name)
-                    continue  # Skip to the next service, so one error doesn't stop the whole show
-
-                # Configure VM networks
-                # NOTE: management interfaces matter here!
-                # TODO: networks won't exist since this is creating master's from SERVICES and not FOLDERS!
-                #   Need to be pulling information from both folders and services
-                self._configure_nics(vm=new_vm, networks=service_config["networks"])
-
-                # Set VM note if specified
-                if "note" in service_config:
-                    vm_utils.set_note(vm=new_vm, note=service_config["note"])
-
-                # Post-creation snapshot
-                vm_utils.create_snapshot(new_vm, "post-clone", "Clean snapshot taken after cloning and configuration.")
-
+        # Create Master instances
         # TODO: Apply master-group permissions [default: group permissions]
+        self._master_folder_gen(self.folders, self.master_folder)
+
+        # Output fully deployed master folder tree to debugging
+        logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
+
+    def _master_folder_gen(self, folder, parent):
+        """
+        Generates the Master tree of folders and instances
+        :param folder: Dict with the folder tree structure as in spec
+        :param parent: Parent vim.Folder
+        :return:
+        """
+        for folder_name, folder_value in folder.items():
+            logging.debug("Generating master folder %s", folder_name)
+            folder_name = VsphereInterface.master_prefix + folder_name
+            folder = self.server.create_folder(folder_name=folder_name, create_in=parent)
+            # TODO: apply permissions
+
+            if "services" in folder_value:  # It's a base folder, clone services
+                for service_name, service_config in folder_value["services"].items():
+                    logging.info("Creating master for %s from template %s", service_name, service_config["template"])
+
+                    vm = self._clone_service(folder=folder, service_name=service_name)
+
+                    if not vm:
+                        logging.error("Failed to clone Master %s", service_name)
+                        continue  # Skip to the next service, so one error doesn't stop the whole show
+
+                    # NOTE: management interfaces matter here!
+                    self._configure_nics(vm=vm, networks=service_config["networks"])  # Configure VM networks
+
+                    # Post-creation snapshot
+                    vm_utils.create_snapshot(vm, "mastering post-clone",
+                                             "Clean snapshot taken after cloning and configuration for master instance")
+
+            else:  # It's a parent folder, recurse
+                self._master_folder_gen(folder=folder_value, parent=folder)
+
+    def _clone_service(self, folder, service_name):
+        """
+        Retrieves and clones a service into a master folder
+        :param folder: vim.Folder to clone into
+        :param service_name: Name of the service to clone
+        :return: The service vim.VirtualMachine instance
+        """
+        for name, config in self.services.items():
+            if name == service_name and "template" in config:
+                logging.debug("Cloning service %s", name)
+                vm_name = VsphereInterface.master_prefix + service_name
+                template = vutils.traverse_path(self.template_folder, config["template"])
+                vm_utils.clone_vm(vm=template, folder=folder, name=vm_name, clone_spec=self.server.gen_clone_spec())
+                vm = vutils.traverse_path(folder, vm_name)  # Get new cloned instance
+                if "note" in config:  # Set VM note if specified
+                    vm_utils.set_note(vm=vm, note=config["note"])
+                if vm:
+                    logging.debug("Successfully cloned service %s to folder %s", service_name, folder.name)
+                    return vm
+                else:
+                    logging.error("Did not successfully clone VM %s for service %s", vm_name, service_name)
+                    return None
+
+        logging.error("Could not find service %s", service_name)
+        return None
 
     def _create_master_networks(self, net_type):
         """
@@ -170,7 +209,7 @@ class VsphereInterface:
         """ Environment deployment phase """
 
         # Get the master folder root (TODO: sub-masters or multiple masters?)
-        self.master_folder = vutils.traverse_path(self.root_folder, VsphereInterface.master_folder_name)
+        self.master_folder = vutils.traverse_path(self.root_folder, VsphereInterface.master_root_name)
         logging.debug("Master folder name: %s\tPrefix: %s", self.master_folder.name, VsphereInterface.master_prefix)
 
         # Verify and convert to templates.
@@ -201,7 +240,7 @@ class VsphereInterface:
         #   Create folder structure
         #   Apply permissions (TODO: Need to figure out when/how to apply permissions)
         #   Clone instances
-        self._folder_gen(self.folders, self.root_folder)
+        self._deploy_folder_gen(self.folders, self.root_folder)
 
         # Output fully deployed environment tree to debugging
         logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
@@ -221,7 +260,7 @@ class VsphereInterface:
             for instance in range(num_instances):
                 instance_name = prefix + service_name + (" " + pad(instance) if num_instances > 1 else "")
                 vm_utils.clone_vm(vm=service, folder=folder, name=instance_name,
-                                  clone_spec=self.server.generate_clone_spec())
+                                  clone_spec=self.server.gen_clone_spec())
 
     def _parent_folder_gen(self, folder, spec):
         """
@@ -235,9 +274,9 @@ class VsphereInterface:
             elif sub_name == "group":
                 pass  # TODO: apply group permissions
             else:
-                self._folder_gen(sub_value, folder)
+                self._deploy_folder_gen(sub_value, folder)
 
-    def _folder_gen(self, folders, parent):
+    def _deploy_folder_gen(self, folders, parent):
         """
         Generates folder tree for deployment stage
         :param folders: dict of folders
@@ -292,7 +331,7 @@ class VsphereInterface:
         """ Cleans up any master instances"""
 
         # Get the folder to cleanup in
-        master_folder = vutils.find_in_folder(self.root_folder, self.master_folder_name)
+        master_folder = vutils.find_in_folder(self.root_folder, self.master_root_name)
         logging.info("Found master folder %s under folder %s, proceeding with cleanup...",
                      master_folder.name, self.root_folder.name)
 
