@@ -33,7 +33,7 @@ import logging
 from docopt import docopt
 
 from adles.vsphere import *
-from script_utils import script_setup
+from adles.utils import script_setup
 
 __version__ = "0.3.1"
 args = docopt(__doc__, version=__version__, help=True)

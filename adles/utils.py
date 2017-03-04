@@ -250,7 +250,7 @@ def default_prompt(prompt, default=None):
         return value
 
 
-def warning():
+def script_warning_prompt():
     """ Prints a warning prompt. """
     print("\n\n\n** YOU RUN THIS SCRIPT AT YOUR OWN RISK **"
           "\nPlease read the source code or documentation for information on proper script usage\n\n")
@@ -268,7 +268,7 @@ def script_setup(logging_filename, args):
     setup_logging(filename=logging_filename, console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
 
     # Print warning
-    warning()
+    script_warning_prompt()
 
     # Create the vsphere object and return it
     return make_vsphere(args["--file"])

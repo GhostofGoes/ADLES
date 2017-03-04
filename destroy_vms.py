@@ -31,9 +31,8 @@ Options:
 import logging
 
 from docopt import docopt
-from script_utils import script_setup
 
-from adles.utils import prompt_y_n_question, user_input, default_prompt
+from adles.utils import prompt_y_n_question, user_input, default_prompt, script_setup
 from adles.vsphere.vm_utils import destroy_vm
 from adles.vsphere.vsphere_utils import cleanup, enumerate_folder, traverse_path, format_structure, retrieve_items
 

@@ -33,7 +33,7 @@ from docopt import docopt
 
 from adles.vsphere.vsphere_class import __version__
 from adles.vsphere import vm_utils
-from script_utils import script_setup
+from adles.utils import script_setup
 
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('vsphere-testing.log', args)
