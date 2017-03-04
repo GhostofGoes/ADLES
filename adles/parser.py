@@ -114,17 +114,25 @@ def _verify_groups_syntax(groups):
                 logging.error("Instances must be an Integer for group %s", key)
                 num_errors += 1
             if "ad-group" in value:
-                pass
+                if type(value["ad-group"]) != str:
+                    logging.error("AD group must be a string")
+                    num_errors += 1
             elif "filename" in value:
-                pass
+                e, w = _check_group_file(value["filename"])
+                num_errors += e
+                num_warnings += w
             else:
                 logging.error("Invalid user specification method for template group %s", key)
                 num_errors += 1
         else:  # Non-templates
             if "ad-group" in value:
-                pass
+                if type(value["ad-group"]) != str:
+                    logging.error("AD group must be a string")
+                    num_errors += 1
             elif "filename" in value:
-                pass
+                e, w = _check_group_file(value["filename"])
+                num_errors += e
+                num_warnings += w
             elif "user-list" in value:
                 if type(value["user-list"]) is not list:
                     logging.error("Username specification must be a list for group %s", key)
@@ -132,6 +140,23 @@ def _verify_groups_syntax(groups):
             else:
                 logging.error("Invalid user specification method for group %s", key)
                 num_errors += 1
+    return num_errors, num_warnings
+
+
+def _check_group_file(filename):
+    """
+    Verifies user info file for a group
+    :param filename:
+    :return: (Number of errors, Number of warnings)
+    """
+    from os.path import exists
+    num_errors = 0
+    num_warnings = 0
+
+    if not exists(filename):
+        logging.error("Group user file %s does not exist", filename)
+        num_errors += 1
+
     return num_errors, num_warnings
 
 

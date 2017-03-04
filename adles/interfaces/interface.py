@@ -41,10 +41,14 @@ class Interface:
         if not logins:
             exit(1)
 
+        # Load groups
+        from adles.group import Group
+        groups = [Group(g) for g in spec["groups"]]
+
         # Select the Interface to use for the platform
         if infrastructure["platform"] == "vmware vsphere":
             from .vsphere_interface import VsphereInterface
-            self.interface = VsphereInterface(infrastructure, logins, spec)  # Create interface
+            self.interface = VsphereInterface(infrastructure, logins, spec, groups)  # Create interface
         else:
             logging.error("Invalid platform %s", infrastructure["platform"])
             exit(1)

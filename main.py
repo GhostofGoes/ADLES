@@ -91,8 +91,7 @@ def check_syntax(specfile_path):
     :param specfile_path: Path to the specification file
     :return: The specification
     """
-    from os.path import exists
-    from os.path import basename
+    from os.path import exists, basename
 
     if not exists(specfile_path):
         logging.error("Could not find specification file in path %s", str(specfile_path))

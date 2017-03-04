@@ -35,16 +35,17 @@ class VsphereInterface:
     folder_warn = 25
     folder_error = 50
 
-    def __init__(self, infrastructure, logins, spec):
+    def __init__(self, infrastructure, logins, groups, spec):
         """
-        :param infrastructure:
-        :param logins:
-        :param spec:
+        :param infrastructure: Dict of infrastructure information
+        :param logins: Dict of infrastructure logins
+        :param groups: List of Group objects
+        :param spec: Dict of a parsed specification
         """
         logging.debug("Initializing VsphereInterface...")
         self.spec = spec
         self.metadata = spec["metadata"]
-        self.groups = spec["groups"]
+        self.groups = groups
         self.services = spec["services"]
         self.networks = spec["networks"]
         self.folders = spec["folders"]
@@ -337,20 +338,13 @@ class VsphereInterface:
             if "number" in value["instances"]:
                 num = int(value["instances"]["number"])
             elif "size-of" in value["instances"]:
-                num = int(self._group_size(self.groups[value["instances"]["size-of"]]))
+                num = self.groups[value["instances"]["size-f"]].size
+                # num = int(self._group_size(self.groups[value["instances"]["size-of"]]))
             else:
                 logging.error("Unknown instances specification: %s", str(value["instances"]))
                 num = 0
         return num, prefix
 
-    def _group_size(self, group):
-        """
-        Determines number of individuals in a group
-        :param group:
-        :return: int
-        """
-        # TODO: move into parent class? or utils?
-        return 1  # TODO: IMPLEMENT
 
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
