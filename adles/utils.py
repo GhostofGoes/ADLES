@@ -167,10 +167,11 @@ def setup_logging(filename, colors=True, console_level=logging.INFO, server=('lo
     from os import getcwd
     from sys import version, platform
     logging.debug("Initialized logging, saving logs to %s", str(filename))
-    logging.debug("Python               %s", str(version))
-    logging.debug("Platform:            %s", str(platform))
-    logging.debug("Username:            %s", str(getuser()))
-    logging.debug("Current directory:   %s\n", str(getcwd()))
+    logging.debug("Python       %s", str(version))
+    logging.debug("Platform     %s", str(platform))
+    logging.debug("Username     %s", str(getuser()))
+    logging.debug("Directory    %s", str(getcwd()))
+    print("\n\n")
 
 
 # Credit to: http://stackoverflow.com/a/15707426/2214380
@@ -247,3 +248,27 @@ def default_prompt(prompt, default=None):
         return default
     else:
         return value
+
+
+def warning():
+    """ Prints a warning prompt. """
+    print("\n\n\n** YOU RUN THIS SCRIPT AT YOUR OWN RISK **"
+          "\nPlease read the source code or documentation for information on proper script usage\n\n")
+
+
+def script_setup(logging_filename, args):
+    """
+
+    :param logging_filename:
+    :param args:
+    :return: vSphere object
+    """
+
+    # Setup logging
+    setup_logging(filename=logging_filename, console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
+
+    # Print warning
+    warning()
+
+    # Create the vsphere object and return it
+    return make_vsphere(args["--file"])

@@ -31,11 +31,11 @@ Options:
 import logging
 
 from docopt import docopt
+from script_utils import script_setup
 
-from adles.automation.utils import prompt_y_n_question, user_input, pad, default_prompt
+from adles.utils import prompt_y_n_question, user_input, pad, default_prompt
 from adles.vsphere.vm_utils import clone_vm
 from adles.vsphere.vsphere_utils import traverse_path, retrieve_items, format_structure
-from script_utils import script_setup
 
 __version__ = "0.5.0"
 args = docopt(__doc__, version=__version__, help=True)

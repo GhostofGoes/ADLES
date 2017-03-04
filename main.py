@@ -52,8 +52,8 @@ from sys import exit
 from docopt import docopt
 
 from adles.interfaces import Interface
-from adles.automation.parser import parse_file, verify_syntax
-from adles.automation.utils import time_execution
+from adles.parser import parse_file, verify_syntax
+from adles.utils import time_execution
 
 
 @time_execution
@@ -115,6 +115,6 @@ def check_syntax(specfile_path):
 if __name__ == '__main__':
     from adles import __version__
     args = docopt(__doc__, version=__version__, help=True)
-    from adles.automation.utils import setup_logging
+    from adles.utils import setup_logging
     setup_logging(filename='main.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
     main()

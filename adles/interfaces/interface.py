@@ -14,7 +14,7 @@
 
 import logging
 
-from adles.automation.utils import time_execution
+from adles.utils import time_execution
 
 
 class Interface:
@@ -30,12 +30,12 @@ class Interface:
             exit(1)
 
         # Load infrastructure information
-        from adles.automation.parser import parse_file
+        from adles.parser import parse_file
         # infrastructure = parse_file(metadata["infrastructure-config-file"])
         infrastructure = parse_file("vsphere.yaml")  # TODO: testing only, either make this a CMD arg or remove
 
         # Load login information
-        from adles.automation.utils import read_json
+        from adles.utils import read_json
         logging.debug("Loading login information from file %s", infrastructure["login-file"])
         logins = read_json(infrastructure["login-file"])
         if not logins:

@@ -14,9 +14,9 @@
 
 import logging
 
-from adles.automation.utils import pad
 import adles.vsphere.vm_utils as vm_utils
 import adles.vsphere.vsphere_utils as vutils
+from adles.utils import pad
 from adles.vsphere import Vsphere
 from adles.vsphere.network_utils import create_portgroup
 

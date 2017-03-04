@@ -294,7 +294,7 @@ def print_datastore_info(ds_obj):
     Prints human-readable summary of a Datastore
     :param ds_obj: vim.Datastore
     """
-    from adles.automation.utils import sizeof_fmt
+    from adles.utils import sizeof_fmt
     summary = ds_obj.summary
     ds_capacity = summary.capacity
     ds_freespace = summary.freeSpace
