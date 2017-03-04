@@ -4,6 +4,7 @@
 [![Build Status](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation.svg?branch=master)](https://travis-ci.org/GhostofGoes/cybersecurity-environment-automation) 
 [![Dependency Status](https://www.versioneye.com/user/projects/589eac206a7781003b24318b/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/589eac206a7781003b24318b)
 [![Code Climate](https://codeclimate.com/github/GhostofGoes/cybersecurity-environment-automation/badges/gpa.svg)](https://codeclimate.com/github/GhostofGoes/cybersecurity-environment-automation)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Automated Deployment of Lab Environments System (ADLES). 
 

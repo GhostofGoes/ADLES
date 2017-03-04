@@ -294,37 +294,46 @@ def remove_all_snapshots(vm, consolidate_disks=True):
 
 
 # From: getallvms.py in pyvmomi-community-samples
-def get_vm_info(vm, print_uuids=False):
+def get_vm_info(vm, uuids=False, snapshot=False):
     """
     Get human-readable information for a VM
     :param vm: vim.VirtualMachine object
-    :param print_uuids: (Optional) Whether to print UUID information
+    :param uuids: Whether to get UUID information [default: False]
+    :param snapshot: Shows the current snapshot, if any [default: False]
     :return: String with the VM information
     """
     if not vm:
-        logging.error("No VM was given to get_vm_info!")
+        logging.error("No VM was given to get_vm_info")
         return None
     info_string = "\n"
     summary = vm.summary
     info_string += "Name          : %s\n" % summary.config.name
-    info_string += "State         : %s\n" % summary.runtime.powerState
-    info_string += "Guest         : %s\n" % summary.config.guestFullName
+    info_string += "Power State   : %s\n" % summary.runtime.powerState
+    info_string += "Guest OS      : %s\n" % summary.config.guestFullName
+    info_string += "Last modified : %s\n" % str(summary.modified)  # datetime object
     info_string += "CPUs          : %s\n" % summary.config.numCpu
     info_string += "Memory (MB)   : %s\n" % summary.config.memorySizeMB
     info_string += "vNICs         : %s\n" % summary.config.numEthernetCards
     info_string += "Disks         : %s\n" % summary.config.numVirtualDisks
-    info_string += "IsTemplate    : %s\n" % summary.config.template
+    info_string += "IsTemplate    : %s\n" % str(summary.config.template)  # bool
     info_string += "Path          : %s\n" % summary.config.vmPathName
+    info_string += "Folder:       : %s\n" % vm.parent.name
     if summary.guest:
-        info_string += "VMware-Tools  : %s\n" % summary.guest.toolsStatus
+        info_string += "Guest State   : %s\n" % summary.guest.guestState
         info_string += "IP            : %s\n" % summary.guest.ipAddress
-    if print_uuids:
+        info_string += "Hostname:     : %s\n" % summary.guest.hostName
+        info_string += "Tools status  : %s\n" % summary.guest.toolsStatus
+        info_string += "Tools version : %s\n" % summary.guest.toolsVersion
+    if uuids:
         info_string += "Instance UUID : %s\n" % summary.config.instanceUuid
         info_string += "Bios UUID     : %s\n" % summary.config.uuid
     if summary.runtime.question:
-        info_string += "Question  : %s\n" % summary.runtime.question.text
+        info_string += "Question      : %s\n" % summary.runtime.question.text
     if summary.config.annotation:
         info_string += "Annotation    : %s\n" % summary.config.annotation
+    if snapshot and vm.snapshot and hasattr(vm.snapshot, 'currentSnapshot'):
+        info_string += "Current Snapshot: %s\n" % vm.snapshot.currentSnapshot.config.name
+
     return info_string
 
 

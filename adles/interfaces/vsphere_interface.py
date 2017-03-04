@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+from sys import exit
 
 import adles.vsphere.vm_utils as vm_utils
 import adles.vsphere.vsphere_utils as vutils
@@ -24,10 +25,15 @@ from adles.vsphere.network_utils import create_portgroup
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    # Switches to tweak (these are global to ALL instances of this class)
+    # Names/prefixes
     master_prefix = "(MASTER) "
     master_root_name = "MASTER_FOLDERS"
-    warn_threshold = 100  # Point at which to warn if many instances are being created
+
+    # Values at which to warn or error when exceeded (TODO: make these per-instance and configurable in spec?)
+    service_warn = 50
+    service_error = 70
+    folder_warn = 25
+    folder_error = 50
 
     def __init__(self, infrastructure, logins, spec):
         """
@@ -214,6 +220,7 @@ class VsphereInterface:
 
         # Verify and convert to templates.
         # This is to ensure they are preserved throughout creation and execution of exercise.
+        # TODO: update this to do things properly and not with services
         logging.info("Verifying masters and converting to templates...")
         for service_name, service_config in self.services.items():
             if "template" in service_config:
@@ -245,7 +252,6 @@ class VsphereInterface:
         # Output fully deployed environment tree to debugging
         logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
 
-    # TODO: need a service lookup table to map service names to their configured master instances
     def _gen_services(self, folder, services):
         """
         Generates the services in a folder
@@ -255,6 +261,16 @@ class VsphereInterface:
         # NOTE: ideally, everything is already done during master creation, so all we have to do here is clone...
         for service_name, value in services.items():
             num_instances, prefix = self._instances_handler(value)
+
+            # Check that the configured thresholds are not exceeded
+            if num_instances > VsphereInterface.service_error:
+                logging.error("%d service instances in folder %s is beyond the configured threshold of %d. Exiting...",
+                              num_instances, folder.name, VsphereInterface.service_error)
+                exit(1)
+            elif num_instances > VsphereInterface.service_warn:
+                logging.warning("%d service instances in folder %s is beyond warning threshold of %d",
+                                num_instances, folder.name, VsphereInterface.service_warn)
+
             service = vutils.traverse_path(self.master_folder, VsphereInterface.master_prefix + value["service"])
             logging.debug("Generating service %s in folder %s", service_name, folder.name)
             for instance in range(num_instances):
@@ -284,6 +300,16 @@ class VsphereInterface:
         """
         for name, value in folders.items():
             num_instances, prefix = self._instances_handler(value)
+
+            # Check that the configured thresholds are not exceeded
+            if num_instances > VsphereInterface.folder_error:
+                logging.error("%d instances of folder %s is beyond the configured threshold of %d. Exiting...",
+                              num_instances, name, VsphereInterface.folder_error)
+                exit(1)
+            elif num_instances > VsphereInterface.folder_warn:
+                logging.warning("d instances of folder %s is beyond the warning threshold of %d",
+                                num_instances, name, VsphereInterface.folder_warn)
+
             logging.debug("Generating folder %s", name)
             for instance in range(num_instances):
                 instance_name = prefix + name + (" " + pad(instance) if num_instances > 1 else "")
@@ -296,7 +322,6 @@ class VsphereInterface:
                     logging.debug("Generating parent-type folder %s", instance_name)
                     self._parent_folder_gen(folder, value)
 
-    # TODO: implement prefix that I added to spec for instances
     def _instances_handler(self, value):
         """
         Determines number of instances in accordance with the specification
@@ -314,7 +339,7 @@ class VsphereInterface:
             elif "size-of" in value["instances"]:
                 num = int(self._group_size(self.groups[value["instances"]["size-of"]]))
             else:
-                logging.error("Unknown instances specification")
+                logging.error("Unknown instances specification: %s", str(value["instances"]))
                 num = 0
         return num, prefix
 
