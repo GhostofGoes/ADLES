@@ -20,7 +20,7 @@ from pyVmomi import vim
 
 from .vsphere_utils import get_obj, get_objs, get_item, get_in_folder, create_folder
 
-__version__ = "0.6.4"
+__version__ = "0.6.5"
 
 
 class Vsphere:

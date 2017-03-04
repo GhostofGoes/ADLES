@@ -46,9 +46,9 @@ def spinner(label=""):
 # Could also use humanize for this sort of thing: https://pypi.python.org/pypi/humanize/0.5.1
 def sizeof_fmt(num):
     """
-    Returns the human readable version of a file size
-    :param num:
-    :return: Human readable version of a file size
+    Returns the human-readable version of a file size
+    :param num: Robot-readable file size
+    :return: Human-readable file size
     """
     for item in ['bytes', 'KB', 'MB', 'GB']:
         if num < 1024.0:
@@ -252,15 +252,22 @@ def default_prompt(prompt, default=None):
 
 def script_warning_prompt():
     """ Prints a warning prompt. """
-    print("\n\n\n** YOU RUN THIS SCRIPT AT YOUR OWN RISK **"
-          "\nPlease read the source code or documentation for information on proper script usage\n\n")
+    from adles import __url__, __email__
+    return str('\n\n\n***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
+               '\nGetting help:'
+               '\n\t* Run "<script>.py --help" for usage'
+               '\n\t* Run "cat <script>.py" to read the source code and see how it works'
+               '\n\t* Run "cd ./documentation && ls -la" to see the available documentation'
+               '\n\t+ Open an issue on the project GitHub: %s'
+               '\n\t+ Email the script author: %s'
+               '\n\n' % (str(__url__), str(__email__)))
 
 
 def script_setup(logging_filename, args):
     """
-
-    :param logging_filename:
-    :param args:
+    Does setup tasks that are common to all automation scripts
+    :param logging_filename: Name of file to save logs to
+    :param args: docopt arguments dict
     :return: vSphere object
     """
 
@@ -268,7 +275,7 @@ def script_setup(logging_filename, args):
     setup_logging(filename=logging_filename, console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
 
     # Print warning
-    script_warning_prompt()
+    print(script_warning_prompt())
 
     # Create the vsphere object and return it
     return make_vsphere(args["--file"])

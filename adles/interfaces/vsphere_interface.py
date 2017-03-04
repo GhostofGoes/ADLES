@@ -345,7 +345,6 @@ class VsphereInterface:
                 num = 0
         return num, prefix
 
-
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
 

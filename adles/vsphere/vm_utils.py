@@ -73,6 +73,19 @@ def edit_vm(vm, config):
     wait_for_task(vm.ReconfigVM_Task(config))
 
 
+def change_vm_state(vm, state, attempt_guest=True):
+    """
+    Generic power state change function that uses guest operations if available
+    :param vm:
+    :param state:
+    :param attempt_guest:
+    """
+    if attempt_guest and tools_status(vm) and state.lower() != "off":
+        change_guest_state(vm, state)
+    else:
+        change_power_state(vm, state)
+
+
 def change_power_state(vm, power_state):
     """
     Changes a VM power state to the state specified
@@ -118,19 +131,6 @@ def change_guest_state(vm, guest_state):
     wait_for_task(task)
 
 
-def change_vm_state(vm, state, attempt_guest=True):
-    """
-    Generic power state change function that uses guest operations if available
-    :param vm:
-    :param state:
-    :param attempt_guest:
-    """
-    if attempt_guest and tools_status(vm) and state.lower() != "off":
-        change_guest_state(vm, state)
-    else:
-        change_power_state(vm, state)
-
-
 def tools_status(vm):
     """
     Checks if VMware Tools is working on the VM
@@ -139,6 +139,15 @@ def tools_status(vm):
     """
     tools = vm.summary.guest.toolsStatus
     return True if tools == "toolsOK" or tools == "toolsOld" else False
+
+
+def powered_on(vm):
+    """
+    Determines if a VM is powered on
+    :param vm: vim.VirtualMachine object
+    :return: If VM is powered on
+    """
+    return vm.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn
 
 
 def is_template(vm):
@@ -333,31 +342,7 @@ def get_vm_info(vm, uuids=False, snapshot=False):
         info_string += "Annotation    : %s\n" % summary.config.annotation
     if snapshot and vm.snapshot and hasattr(vm.snapshot, 'currentSnapshot'):
         info_string += "Current Snapshot: %s\n" % vm.snapshot.currentSnapshot.config.name
-
     return info_string
-
-
-def powered_on(vm):
-    """
-    Determines if a VM is powered on
-    :param vm: vim.VirtualMachine object
-    :return: If VM is powered on
-    """
-    return vm.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn
-
-
-# From: cdrom_vm.py in pyvmomi-community-samples
-def find_free_ide_controller(vm):
-    """
-    Finds a free IDE controller to use
-    :param vm: vim.VirtualMachine
-    :return: vim.vm.device.VirtualIDEController
-    """
-    for dev in vm.config.hardware.device:
-        if isinstance(dev, vim.vm.device.VirtualIDEController):
-            if len(dev.device) < 2:  # If there are less than 2 devices attached, we can use it
-                return dev
-    return None
 
 
 def remove_device(vm, device):
@@ -369,6 +354,15 @@ def remove_device(vm, device):
     logging.debug("Removing device %s from vm %s", device.name, vm.name)
     device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
     wait_for_task(vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device])))  # Apply the change to the VM
+
+
+def get_nics(vm):
+    """
+    Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
+    :param vm: vim.VirtualMachine
+    :return: list of vim.vm.device.VirtualDevice
+    """
+    return [dev for dev in vm.config.hardware.device if isinstance(dev, vim.vm.device.VirtualEthernetCard)]
 
 
 # From: delete_nic_from_vm.py in pyvmomi-community-samples
@@ -520,10 +514,15 @@ def attach_iso(vm, filename, datastore, boot=True):
     wait_for_task(edit_vm(vm, vm_spec))  # Apply the change to the VM
 
 
-def get_nics(vm):
+# From: cdrom_vm.py in pyvmomi-community-samples
+def find_free_ide_controller(vm):
     """
-    Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
+    Finds a free IDE controller to use
     :param vm: vim.VirtualMachine
-    :return: list of vim.vm.device.VirtualDevice
+    :return: vim.vm.device.VirtualIDEController
     """
-    return [dev for dev in vm.config.hardware.device if isinstance(dev, vim.vm.device.VirtualEthernetCard)]
+    for dev in vm.config.hardware.device:
+        if isinstance(dev, vim.vm.device.VirtualIDEController):
+            if len(dev.device) < 2:  # If there are less than 2 devices attached, we can use it
+                return dev
+    return None

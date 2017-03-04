@@ -18,6 +18,25 @@ from posixpath import split  # We want to always parse as forward-slashes, regar
 from pyVmomi import vim
 
 
+# From: clone_vm.py in pyvmomi-community-samples
+def wait_for_task(task):
+    """
+    Waits for a single vCenter task to finish and return it's result
+    :param task: vim.Task object of the task to wait for
+    :return: Task result information
+    """
+    if not task:
+        logging.error("No task was specified to wait for")
+        return None
+    while True:
+        if task.info.state == 'success':
+            logging.debug("Task result: %s", str(task.info.result))
+            return task.info.result
+        elif task.info.state == 'error':
+            logging.error("There was an error while completing a task: %s", str(task.info.error.msg))
+            return None
+
+
 def check_folder(func):
     """
     Wrapper that checks that folder type is properly defined
@@ -226,25 +245,6 @@ def format_structure(structure, indent=4, _depth=0):
     return fmat
 
 
-# From: clone_vm.py in pyvmomi-community-samples
-def wait_for_task(task):
-    """
-    Waits for a single vCenter task to finish and return it's result
-    :param task: vim.Task object of the task to wait for
-    :return: Task result information
-    """
-    if not task:
-        logging.error("No task was specified to wait for")
-        return None
-    while True:
-        if task.info.state == 'success':
-            logging.debug("Task result: %s", str(task.info.result))
-            return task.info.result
-        elif task.info.state == 'error':
-            logging.error("There was an error while completing a task: %s", str(task.info.error.msg))
-            return None
-
-
 @check_folder
 def move_into_folder(folder, entity_list):
     """
@@ -331,12 +331,18 @@ def retrieve_items(folder, prefix=None, recursive=False):
 
 
 # From: list_dc_datastore_info.py in pyvmomi-community-samples
-def print_datastore_info(ds_obj):
+def get_datastore_info(ds_obj):
     """
-    Prints human-readable summary of a Datastore
+    Gets a human-readable summary of a Datastore
     :param ds_obj: vim.Datastore
+    :return: String with datastore information
     """
+    if not ds_obj:
+        logging.error("No Datastore was given to get_datastore_info")
+        return None
     from adles.utils import sizeof_fmt
+    info_string = "\n"
+
     summary = ds_obj.summary
     ds_capacity = summary.capacity
     ds_freespace = summary.freeSpace
@@ -344,16 +350,18 @@ def print_datastore_info(ds_obj):
     ds_provisioned = ds_capacity - ds_freespace + ds_uncommitted
     ds_overp = ds_provisioned - ds_capacity
     ds_overp_pct = (ds_overp * 100) / ds_capacity if ds_capacity else 0
-    logging.info("Name                  : %s", summary.name)
-    logging.info("URL                   : %s", summary.url)
-    logging.info("Capacity              : %s", sizeof_fmt(ds_capacity))
-    logging.info("Free Space            : %s", sizeof_fmt(ds_freespace))
-    logging.info("Uncommitted           : %s", sizeof_fmt(ds_uncommitted))
-    logging.info("Provisioned           : %s", sizeof_fmt(ds_provisioned))
+
+    info_string += "Name                  : %s" % summary.name
+    info_string += "URL                   : %s" % summary.url
+    info_string += "Capacity              : %s" % sizeof_fmt(ds_capacity)
+    info_string += "Free Space            : %s" % sizeof_fmt(ds_freespace)
+    info_string += "Uncommitted           : %s" % sizeof_fmt(ds_uncommitted)
+    info_string += "Provisioned           : %s" % sizeof_fmt(ds_provisioned)
     if ds_overp > 0:
-        logging.info("Over-provisioned      : %s / %s %%", sizeof_fmt(ds_overp), ds_overp_pct)
-    logging.info("Hosts                 : %s", (len(ds_obj.host)))
-    logging.info("Virtual Machines      : %s", (len(ds_obj.vm)))
+        info_string += "Over-provisioned      : %s / %s %%" % (sizeof_fmt(ds_overp), ds_overp_pct)
+    info_string += "Hosts                 : %s" % str(len(ds_obj.host))
+    info_string += "Virtual Machines      : %s" % str(len(ds_obj.vm))
+    return info_string
 
 
 def is_folder(obj):

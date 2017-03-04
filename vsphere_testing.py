@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""vsphere_testing. Entrypoint used to test the vSphere class. Has examples of API usage as well.
+"""vsphere_testing. Entrypoint used to test the vSphere class. Has examples of API usage.
 
 Usage:
     vsphere_testing.py [-v] [-f FILE]
@@ -46,9 +46,13 @@ logging.info(vm_utils.get_vm_info(vm))
 
 # folder = server.get_folder("script_testing")
 # vm = traverse_path(folder, "/Templates/Routers/VyOS 1.1.7 (64-bit)")
-# get_vm_info(vm)
+# print(get_vm_info(vm))
+
 # folder = traverse_path(folder, "/Templates/Servers/Windows")
 # print(folder.name)
+
+# datastore = server.get_datastore("Datastore")
+# print(get_datastore_info(datastore))
 
 # folder = server.get_folder("script_testing")
 # pool = get_objs(server.content, [vim.ResourcePool])[0]
