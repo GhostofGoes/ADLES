@@ -19,7 +19,7 @@ import adles.vsphere.vm_utils as vm_utils
 import adles.vsphere.vsphere_utils as vutils
 from adles.utils import pad
 from adles.vsphere import Vsphere
-from adles.vsphere.network_utils import create_portgroup
+from adles.vsphere.network_utils import create_portgroup, get_net_obj
 
 
 class VsphereInterface:
@@ -153,45 +153,43 @@ class VsphereInterface:
                 template = vutils.traverse_path(self.template_folder, config["template"])
                 vm_utils.clone_vm(vm=template, folder=folder, name=vm_name, clone_spec=self.server.gen_clone_spec())
                 vm = vutils.traverse_path(folder, vm_name)  # Get new cloned instance
-                if "note" in config:  # Set VM note if specified
-                    vm_utils.set_note(vm=vm, note=config["note"])
                 if vm:
                     logging.debug("Successfully cloned service %s to folder %s", service_name, folder.name)
+                    if "note" in config:  # Set VM note if specified
+                        vm_utils.set_note(vm=vm, note=config["note"])
                     return vm
                 else:
-                    logging.error("Did not successfully clone VM %s for service %s", vm_name, service_name)
+                    logging.error("Failed to clone VM %s for service %s", vm_name, service_name)
                     return None
-
         logging.error("Could not find service %s", service_name)
         return None
 
     def _create_master_networks(self, net_type):
         """
-        Creates a network as part of the Master phase
-        :param net_type:
+        Creates a network as part of the Master creation phase
+        :param net_type: Top-level type of the network (unique-networks | generic-networks | base-networks)
         """
-        host = self.server.get_host()
+        host = self.server.get_host()  # TODO: define host/cluster to use in class
         host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any changes that might have occurred
 
         for name, config in self.networks[net_type].items():
-            if "vlan" in config:
-                vlan = config["vlan"]
-            else:
-                vlan = 0
-            logging.debug("Creating portgroup %s", name)
-            create_portgroup(name, host, config["vswitch"], vlan=vlan)
+            exists = get_net_obj(host=host, object_type="portgroup", name=name, refresh=False)
+            if exists:
+                logging.debug("PortGroup %s already exists on host %s", name, host.name)
+            else:  # NOTE: if monitoring, we want promiscuous=True
+                vlan = (int(config["vlan"]) if "vlan" in config else 0)  # Set the VLAN
+                create_portgroup(name=name, host=host, vswitch_name=config["vswitch"], vlan=vlan, promiscuous=False)
 
     def _configure_nics(self, vm, networks):
         """
         Configures Network Interfaces for a service instance
-        :param vm:
-        :param networks:
-        :return:
+        :param vm: vim.VirtualMachine
+        :param networks: List of networks to configure
         """
+        logging.debug("Editing NICs for VM %s", vm.name)
         num_nics = len(list(vm.network))
         num_nets = len(networks)
-        nets = networks  # Copy the passed variable, in case we have to deal with NIC deficiencies
-        logging.debug("Editing NICs for VM %s", vm.name)
+        nets = networks  # Copy the passed variable so we can edit it later (pass by reference remember)
 
         # Ensure number of NICs on VM matches number of networks configured for the service
         # Note that monitoring interfaces will be counted and included in the networks list (hopefully)
@@ -219,23 +217,10 @@ class VsphereInterface:
         self.master_folder = vutils.traverse_path(self.root_folder, VsphereInterface.master_root_name)
         logging.debug("Master folder name: %s\tPrefix: %s", self.master_folder.name, VsphereInterface.master_prefix)
 
-        # Verify and convert to templates.
-        # This is to ensure they are preserved throughout creation and execution of exercise.
-        # TODO: update this to do things properly and not with services
-        logging.info("Verifying masters and converting to templates...")
-        for service_name, service_config in self.services.items():
-            if "template" in service_config:
-                vm = vutils.traverse_path(self.master_folder, VsphereInterface.master_prefix + service_name)
-                if vm:  # Verify all masters exist
-                    logging.debug("Verified master %s exists as %s. Converting to template...", service_name, vm.name)
-                    vm_utils.convert_to_template(vm)  # Convert master to template
-                    logging.debug("Converted master %s to template. Verifying...", service_name)
-                    if not vm_utils.is_template(vm):  # Verify converted successfully
-                        logging.error("Master %s did not convert to template!", service_name)
-                    else:
-                        logging.debug("Verified!")
-                else:
-                    logging.error("Could not find master %s", service_name)
+        # Verify and convert to templates
+        # This is to ensure they are preserved throughout creation and execution of exercise
+        logging.info("Converting Masters to Templates")
+        self._convert_and_verify(folder=self.master_folder)
 
         # Networks
         #   Create folder to hold portgroups (for easy deletion later)
@@ -252,6 +237,22 @@ class VsphereInterface:
 
         # Output fully deployed environment tree to debugging
         logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
+
+    def _convert_and_verify(self, folder):
+        """
+        Converts masters to templates
+        :param folder: vim.Folder
+        """
+        for item in folder.childEntity:
+            if vutils.is_vm(item):
+                vm_utils.convert_to_template(item)
+                logging.debug("Converted master %s to template. Verifying...", item.name)
+                if not vm_utils.is_template(item):
+                    logging.error("Master %s did not convert to template!", item.name)
+                else:
+                    logging.debug("Verified!")
+            elif vutils.is_folder(item):
+                self._convert_and_verify(folder)
 
     def _gen_services(self, folder, services):
         """

@@ -22,7 +22,7 @@ def get_net_item(host, object_type, name):
     Retrieves a network object of the specified type and name from a host
     :param host: vim.HostSystem
     :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
-    :param name: (Optional) Name of network object [default: all objects of the type]
+    :param name: Name of network object [default: first object found]
     :return: The network object
     """
     if name:
@@ -31,42 +31,48 @@ def get_net_item(host, object_type, name):
         return get_net_objs(host, object_type)[0]
 
 
-def get_net_obj(host, object_type, name):
+def get_net_obj(host, object_type, name, refresh=False):
     """
     Retrieves a network object of the specified type and name from a host
     :param host: vim.HostSystem
     :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
     :param name: Name of network object
+    :param refresh: Refresh the host's network system information. This can delay things a bit. [default: False]
     :return: The network object
     """
-    for obj in get_net_objs(host=host, object_type=object_type):
-        if obj.name == name:
-            return obj
+    objs = get_net_objs(host=host, object_type=object_type, refresh=refresh)
+    if objs:
+        for obj in objs:
+            if obj.name.lower() == name.lower():
+                return obj
     return None
 
 
-def get_net_objs(host, object_type):
+def get_net_objs(host, object_type, refresh=False):
     """
     Retrieves all network objects of the specified type from the host
     :param host: vim.HostSystem
     :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
+    :param refresh: Refresh the host's network system information. This can delay things a bit. [default: False]
     :return: list of the network objects
     """
-    host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any changes that might have occurred
-    if object_type == "portgroup":
+    if refresh:
+        host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any changes that might have occurred
+    net_type = object_type.lower()
+    if net_type == "portgroup":
         objects = host.configManager.networkSystem.networkInfo.portgroup
-    elif object_type == "vswitch":
+    elif net_type == "vswitch":
         objects = host.configManager.networkSystem.networkInfo.vswitch
-    elif object_type == "proxyswitch":
+    elif net_type == "proxyswitch":
         objects = host.configManager.networkSystem.networkInfo.proxySwitch
-    elif object_type == "vnic ":
+    elif net_type == "vnic ":
         objects = host.configManager.networkSystem.networkInfo.vnic
-    elif object_type == "pnic ":
+    elif net_type == "pnic ":
         objects = host.configManager.networkSystem.networkInfo.pnic
     else:
-        logging.error("Invalid type %s for get_net_obj", object_type)
+        logging.error("Invalid type %s for get_net_objs", object_type)
         return None
-    return objects
+    return list(objects)
 
 
 def create_vswitch(name, host, num_ports=512):
@@ -97,14 +103,14 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     :param promiscuous: (Optional) Sets the promiscuous mode of the switch, allowing for monitoring [default: False]
     """
     logging.info("Creating PortGroup %s on vSwitch %s on host %s", name, vswitch_name, host.name)
-    logging.debug("VLAN ID: %s \t Promiscuous: %s", str(vlan), str(promiscuous))
+    logging.debug("VLAN ID: %d \t Promiscuous: %s", vlan, str(promiscuous))
     spec = vim.host.PortGroup.Specification()
     spec.name = name
     spec.vlanId = int(vlan)
     spec.vswitchName = vswitch_name
     policy = vim.host.NetworkPolicy()
     policy.security = vim.host.NetworkPolicy.SecurityPolicy()
-    policy.security.allowPromiscuous = promiscuous
+    policy.security.allowPromiscuous = bool(promiscuous)
     policy.security.macChanges = False
     policy.security.forgedTransmits = False
     spec.policy = policy
@@ -114,7 +120,7 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     except vim.fault.AlreadyExists:
         logging.error("PortGroup %s already exists on host %s", name, host.name)
     except vim.fault.NotFound:
-        logging.error("vSwitch %s does not exist on host %s", str(vswitch_name), host.name)
+        logging.error("vSwitch %s does not exist on host %s", vswitch_name, host.name)
 
 # TODO: edit portgroup
 
