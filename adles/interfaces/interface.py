@@ -43,7 +43,13 @@ class Interface:
 
         # Instantiate groups
         from adles.group import Group
-        groups = [Group(g) for g in spec["groups"]]
+        groups = []
+        for name, config in spec["groups"]:
+            if "instances" in config:  # Template groups
+                for i in range(1, config["instances"] + 1):
+                    groups.append(Group(name=name, group=config, instance=i))
+            else:
+                groups.append(Group(name=name, group=config))
 
         # Select the Interface to use for the platform
         if infrastructure["platform"] == "vmware vsphere":

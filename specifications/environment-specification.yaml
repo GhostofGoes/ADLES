@@ -8,8 +8,9 @@
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
 #   0.3.0:  Additions to services and networks, significant cleanup
-#   0.4.0:  Significant Folder changes, Added VLANs, Improved groups   (2-12-2017)
-#   0.4.1:  Changed group template syntax (2-23-2017)
+#   0.4.0:  Significant Folder changes, Added VLANs, Improved groups   (02-12-2017)
+#   0.4.1:  Changed group template syntax (02-23-2017)
+#   0.4.2:  Change group template syntax  (03-04-2017)
 
 # *** Syntax inspirations ***
 # https://docs.docker.com/compose/compose-file/
@@ -69,8 +70,8 @@ groups:
   # For creating batch groups from a common template base, the "template" type can be used
   Group Template Example:
     instances: 10             # REQUIRED  Number of groups created from this template. If instances is specified, the group is a template.
-    ad-group: "Group X"       # Option A  'X' is the instance number. AD group must exist  
-    filename: "users-X.json"  # Option B  'X' is the instance number. File format: specifications/user-json-specification.json
+    ad-group: "Group [X]"       # Option A  '[X]' is the instance number. AD group must exist  
+    filename: "users.json"      # Option B  File format: specifications/user-json-specification.json
 
 
 

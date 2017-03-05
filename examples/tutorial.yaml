@@ -15,7 +15,7 @@ groups:
   Students:
     ad-group: "CS 439 Students"
   Instructors:
-    filename: "tutorial_instructors.json"
+    filename: "examples/tutorial_instructors.json"
 
 services:
   windows:

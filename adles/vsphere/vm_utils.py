@@ -69,7 +69,7 @@ def edit_vm(vm, config):
     :param vm: vim.VirtualMachine object
     :param config: vim.vm.ConfigSpec object
     """
-    logging.info("Reconfiguring VM %s", vm.name)
+    logging.debug("Reconfiguring VM %s", vm.name)
     wait_for_task(vm.ReconfigVM_Task(config))
 
 

@@ -12,7 +12,7 @@ metadata:
 groups:
   Blue Team X:
     instances: 10
-    filename: "blue-team-X.json"
+    filename: "examples/blue-teams.json"
   Red Team:
     ad-group: "Red Team"
 

@@ -155,7 +155,6 @@ def _check_group_file(filename):
     if not exists(filename):
         logging.error("Group user file %s does not exist", filename)
         num_errors += 1
-
     return num_errors, num_warnings
 
 
@@ -308,7 +307,7 @@ def verify_syntax(spec):
                 logging.warning("Unknown definition found: %s", key)
                 num_warnings += 1
         else:
-            w, e = func(spec[key])
+            e, w = func(spec[key])
             num_errors += e
             num_warnings += w
 
