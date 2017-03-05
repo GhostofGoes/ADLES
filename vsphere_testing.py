@@ -38,21 +38,26 @@ from adles.utils import script_setup
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('vsphere-testing.log', args)
 
-vm = server.get_vm("dummy")
-logging.info(vm_utils.get_vm_info(vm))
+net = server.get_network("ARP-LAN")
+logging.info(str(net))
+# vm = server.get_vm("dummy")
+# logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
 
-# print(str(server))
-# print(repr(server))
+# host = server.get_host()
+# logging.info(host)
+
+# logging.info((str(server))
+# logging.info((repr(server))
 
 # folder = server.get_folder("script_testing")
 # vm = traverse_path(folder, "/Templates/Routers/VyOS 1.1.7 (64-bit)")
-# print(get_vm_info(vm))
+# logging.info((get_vm_info(vm))
 
 # folder = traverse_path(folder, "/Templates/Servers/Windows")
-# print(folder.name)
+# logging.info((folder.name)
 
 # datastore = server.get_datastore("Datastore")
-# print(get_datastore_info(datastore))
+# logging.info((get_datastore_info(datastore))
 
 # folder = server.get_folder("script_testing")
 # pool = get_objs(server.content, [vim.ResourcePool])[0]

@@ -44,7 +44,7 @@ class Interface:
         # Instantiate groups
         from adles.group import Group
         groups = []
-        for name, config in spec["groups"]:
+        for name, config in spec["groups"].items():
             if "instances" in config:  # Template groups
                 for i in range(1, config["instances"] + 1):
                     groups.append(Group(name=name, group=config, instance=i))
@@ -54,7 +54,7 @@ class Interface:
         # Select the Interface to use for the platform
         if infrastructure["platform"] == "vmware vsphere":
             from .vsphere_interface import VsphereInterface
-            self.interface = VsphereInterface(infrastructure, logins, spec, groups)  # Create interface
+            self.interface = VsphereInterface(infrastructure=infrastructure, logins=logins, groups=groups, spec=spec)
         else:
             logging.error("Invalid platform %s", infrastructure["platform"])
             exit(1)

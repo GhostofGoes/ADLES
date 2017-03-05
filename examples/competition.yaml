@@ -6,8 +6,8 @@ metadata:
   version: "0.5.0"
   infrastructure-config-file: "infra.yaml"
   folder-name: "prccdc-2016"
-  root-path: "Competitions/PRCCDC"
-  template-path: "Templates"
+  root-path: "Competitions/PRCCDC/"
+  template-path: "Templates/"
 
 groups:
   Blue Team X:

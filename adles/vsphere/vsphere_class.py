@@ -19,8 +19,9 @@ from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim
 
 from .vsphere_utils import get_obj, get_objs, get_item, get_in_folder, create_folder
+from .network_utils import get_net_item
 
-__version__ = "0.6.5"
+__version__ = "0.7.0"
 
 
 class Vsphere:
@@ -132,19 +133,20 @@ class Vsphere:
         :param vm_name: Name of the VM
         :return: vim.VirtualMachine object
         """
-        return get_in_folder(self.datacenter.vmFolder, vm_name, vim.VirtualMachine)
+        return get_item(self.content, vim.VirtualMachine, vm_name)
+        # return get_in_folder(self.datacenter.vmFolder, vm_name, True, vim.VirtualMachine)
 
     def get_network(self, network_name=None, distributed=False):
         """
-        Finds and returns the named PortGroup
-        :param network_name: Name of the portgroup [default: first portgroup in datacenter]
-        :param distributed: If the portgroup is a Distributed PortGroup [default: False]
+        Finds and returns the named Network
+        :param network_name: Name of the Network [default: first portgroup in datacenter]
+        :param distributed: If the Network is a Distributed PortGroup [default: False]
         :return: vim.Network or vim.dvs.DistributedVirtualPortgroup object
         """
         if not distributed:
-            return get_item(self.content, [vim.Network], network_name)
+            return get_item(self.content, vim.Network, network_name)
         else:
-            return get_item(self.content, [vim.dvs.DistributedVirtualPortgroup], network_name)
+            return get_item(self.content, vim.dvs.DistributedVirtualPortgroup, network_name)
 
     def get_host(self, host_name=None):
         """
@@ -152,7 +154,8 @@ class Vsphere:
         :param host_name: Name of the host [default: the first host found in the datacenter]
         :return: vim.HostSystem object
         """
-        return get_in_folder(self.datacenter.hostFolder, host_name, vim.HostSystem)
+        return get_item(self.content, vim.HostSystem, host_name)
+        # return get_in_folder(self.datacenter.hostFolder, host_name, vim.HostSystem)
 
     def get_cluster(self, cluster_name=None):
         """

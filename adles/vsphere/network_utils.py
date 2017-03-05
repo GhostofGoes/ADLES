@@ -43,7 +43,13 @@ def get_net_obj(host, object_type, name, refresh=False):
     objs = get_net_objs(host=host, object_type=object_type, refresh=refresh)
     if objs:
         for obj in objs:
-            if obj.name.lower() == name.lower():
+            if object_type == "portgroup" or object_type == "proxyswitch":
+                if obj.spec.name.lower() == name.lower():
+                    return obj
+            elif object_type == "pnic" or object_type == "vnic":
+                if obj.device.lower() == name.lower():
+                    return obj
+            elif obj.name.lower() == name.lower():
                 return obj
     return None
 

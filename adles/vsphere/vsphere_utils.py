@@ -44,8 +44,10 @@ def check_folder(func):
     :return: Wrapped function
     """
     def wrapper(*args, **kwargs):
-        if type(args[0]) == vim.Folder:
-            return func(*args, **kwargs)
+        if args and isinstance(args[0], vim.Folder):
+            return func(*args)
+        elif kwargs and isinstance(kwargs[0], vim.Folder):
+            return func(**kwargs)
         else:
             logging.error("Invalid type for a folder passed to func %s: %s", str(func.__name__), str(type(args[0])))
     return wrapper
@@ -78,7 +80,7 @@ def get_objs(content, vimtype, container=None, recursive=True):
     """
     Get all the vSphere objects associated with a given type
     :param content: vim.Content to search in
-    :param vimtype: List of vimtype objects to look for
+    :param vimtype: Object to search for
     :param container: Container to search in [default: content.rootFolder]
     :param recursive: Recursively descend or only look in the current level [default: True]
     :return: List of all vimtype objects found, or None if none were found
@@ -127,21 +129,28 @@ def map_objs(content, vimtype, func, name=None, container=None, recursive=True):
 
 
 @check_folder
-def get_in_folder(folder, name, vimtype=None):
+def get_in_folder(folder, name, recursive=False, vimtype=None):
     """
     Retrieves an item from a datacenter folder
     :param folder: vim.Folder to search in
     :param name: Name of object to find
+    :param recursive: Recurse into sub-folders [default: False]
     :param vimtype: Type of object to search for [default: None]
     :return: Object found or None if nothing was found
     """
     if name:
-        item = find_in_folder(folder, name, recursive=False, vimtype=vimtype)
+        item = find_in_folder(folder, name, recursive=recursive, vimtype=vimtype)
     else:
         item = None
     if not item:
         if len(folder.childEntity) > 0:
-            return folder.childEntity[0]
+            if not vimtype:
+                return folder.childEntity[0]
+            else:
+                for item in folder.childEntity:
+                    if isinstance(item, vimtype):
+                        return item
+                return None
         else:
             logging.error("There are no items in folder %s", folder.name)
             return None
@@ -161,7 +170,7 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
     """
     for item in folder.childEntity:
         if hasattr(item, 'name') and item.name.lower() == name.lower():  # Check if it has name, and if the name matches
-            if vimtype and type(item) != vimtype:
+            if vimtype and not isinstance(item, vimtype):
                 continue
             return item
         elif recursive and is_folder(item):  # Recurse into sub-folders

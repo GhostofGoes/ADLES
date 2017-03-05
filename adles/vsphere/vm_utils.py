@@ -318,8 +318,10 @@ def get_vm_info(vm, uuids=False, snapshot=False):
     summary = vm.summary
     info_string += "Name          : %s\n" % summary.config.name
     info_string += "Power State   : %s\n" % summary.runtime.powerState
+    if vm.guest:
+        info_string += "Guest State   : %s\n" % vm.guest.guestState
     info_string += "Guest OS      : %s\n" % summary.config.guestFullName
-    info_string += "Last modified : %s\n" % str(summary.modified)  # datetime object
+    info_string += "Last modified : %s\n" % str(vm.config.modified)  # datetime object
     info_string += "CPUs          : %s\n" % summary.config.numCpu
     info_string += "Memory (MB)   : %s\n" % summary.config.memorySizeMB
     info_string += "vNICs         : %s\n" % summary.config.numEthernetCards
@@ -327,12 +329,11 @@ def get_vm_info(vm, uuids=False, snapshot=False):
     info_string += "IsTemplate    : %s\n" % str(summary.config.template)  # bool
     info_string += "Path          : %s\n" % summary.config.vmPathName
     info_string += "Folder:       : %s\n" % vm.parent.name
-    if summary.guest:
-        info_string += "Guest State   : %s\n" % summary.guest.guestState
-        info_string += "IP            : %s\n" % summary.guest.ipAddress
-        info_string += "Hostname:     : %s\n" % summary.guest.hostName
-        info_string += "Tools status  : %s\n" % summary.guest.toolsStatus
-        info_string += "Tools version : %s\n" % summary.guest.toolsVersion
+    if vm.guest:
+        info_string += "IP            : %s\n" % vm.guest.ipAddress
+        info_string += "Hostname:     : %s\n" % vm.guest.hostName
+        info_string += "Tools status  : %s\n" % vm.guest.toolsStatus
+        info_string += "Tools version : %s\n" % vm.guest.toolsVersion
     if uuids:
         info_string += "Instance UUID : %s\n" % summary.config.instanceUuid
         info_string += "Bios UUID     : %s\n" % summary.config.uuid
@@ -433,20 +434,20 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
 
 
 # From: add_nic_to_vm.py in pyvmomi-community-samples
-def add_nic(vm, port_group, summary="default-summary", model="e1000"):
+def add_nic(vm, network, summary="default-summary", model="e1000"):
     """
     Add a NIC in the portgroup to the VM
     :param vm: vim.VirtualMachine
-    :param port_group: vim.Network port group to attach NIC to
-    :param summary: (Optional) Human-readable device info
-    :param model: (Optional) Model of virtual network adapter. [default: e1000]
-    Options: e1000, e1000e, vmxnet, vmxnet2, vmxnet3.
+    :param network: vim.Network port group to attach NIC to
+    :param summary: Human-readable device info [default: default-summary]
+    :param model: Model of virtual network adapter. [default: e1000]
+    Options: (e1000 | e1000e | vmxnet | vmxnet2 | vmxnet3)
     e1000 will work on Windows Server 2003+, and e1000e is supported on Windows Server 2012 and newer.
-    VMXNET adapters require VMware Tools to be installed, and will provide significantly enhanced performance,
-    since they remove emulation overhead.
+    VMXNET adapters require VMware Tools to be installed, and provide significantly enhanced performance.
     Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
     """
-    logging.debug("Adding NIC to VM %s\nPort group: %s Summary: %s", vm.name, port_group.name, summary)
+    logging.debug("Adding NIC to VM %s\nPort group: %s\tSummary: %s\tNIC Model: %s",
+                  vm.name, network.spec.name, summary, model)
     nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create a base object to add configurations to
     nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
 
@@ -473,8 +474,8 @@ def add_nic(vm, port_group, summary="default-summary", model="e1000"):
 
     nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
     nic_spec.device.backing.useAutoDetect = False
-    nic_spec.device.backing.network = port_group            # Sets port group to assign adapter to
-    nic_spec.device.backing.deviceName = port_group.name    # Sets name of device on host system
+    nic_spec.device.backing.network = network            # Sets port group to assign adapter to
+    nic_spec.device.backing.deviceName = network.name    # Sets name of device on host system
 
     nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
     nic_spec.device.connectable.startConnected = True       # Ensures adapter is connected at boot

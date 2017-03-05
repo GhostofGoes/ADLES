@@ -32,7 +32,8 @@ class Group:
         logging.debug("Initializing Group %s", name)
         if "ad-group" in group:
             # TODO: implement AD group instances in the case of a template group
-            self.users = None  # TODO: implement active directory group retrieval...will need to get AD server info
+            # TODO: implement active directory group retrieval...will need to get AD server info
+            self.users = [("bobby", "easy-password")]
         elif "filename" in group:
             from adles.utils import read_json
             if instance:    # Template group

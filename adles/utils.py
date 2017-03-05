@@ -165,10 +165,10 @@ def setup_logging(filename, colors=True, console_level=logging.INFO, server=('lo
     # Record system information to aid in auditing and debugging
     from getpass import getuser
     from os import getcwd
-    from sys import version, platform
+    from platform import python_version, platform
     logging.debug("Initialized logging, saving logs to %s", filename)
-    logging.debug("Python       %s", str(version))
-    logging.debug("Platform     %s", str(platform))
+    logging.debug("Python       %s", str(python_version()))
+    logging.debug("Platform     %s", str(platform()))
     logging.debug("Username     %s", str(getuser()))
     logging.debug("Directory    %s", str(getcwd()))
     print("\n\n")
@@ -253,7 +253,7 @@ def default_prompt(prompt, default=None):
 def script_warning_prompt():
     """ Prints a warning prompt. """
     from adles import __url__, __email__
-    return str('\n\n\n***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
+    return str('***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
                '\nGetting help:'
                '\n\t* Run "<script>.py --help" for usage'
                '\n\t* Run "cat <script>.py" to read the source code and see how it works'
@@ -271,7 +271,7 @@ def script_setup(logging_filename, args):
     :return: vSphere object
     """
 
-    # Setup logging
+    # Setup logging (TODO: colors)
     setup_logging(filename=logging_filename, console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
 
     # Print warning
