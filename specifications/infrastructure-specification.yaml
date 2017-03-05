@@ -24,4 +24,5 @@ login-file: "filename.json"     # REQUIRED      Filename of JSON file with login
 datacenter: "name of datacenter"            # Suggested     Name of the Datacenter on which to create environment
 datastore: "name of datastore"              # Suggested     Name of Datastore on which to create environment
 template-folder: "name of template folder"  # REQUIRED      Name of folder that contains VM templates
+server-root: "name of server root"          # Suggested     Name of folder that is the top-level folder (useful for large or multi-organization systems)
 ...

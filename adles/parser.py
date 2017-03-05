@@ -42,10 +42,10 @@ def parse_file(filename):
 def _checker(value_list, source, data, flag):
     """
     Checks if values in the list are in data (Syntax warnings or errors)
-    :param value_list:
-    :param source:
-    :param data:
-    :param flag: "warnings" or "errors"
+    :param value_list: List of values to check
+    :param source: Name of source that's being checked
+    :param data: Data being checked
+    :param flag: What to do if value not found ("warnings" | "errors")
     :return: Number of hits (warnings/errors)
     """
     num_hits = 0
@@ -66,7 +66,7 @@ def _checker(value_list, source, data, flag):
 def _verify_metadata_syntax(metadata):
     """
     Verifies that the syntax for metadata matches the specification
-    :param metadata:
+    :param metadata: Dict of metadata
     :return: (Number of errors, Number of warnings)
     """
     warnings = ["description", "date-created", "folder-name", "root-path", "template-path"]
@@ -87,11 +87,10 @@ def _verify_metadata_syntax(metadata):
 def _verify_infra_syntax(infra):
     """
     Verifies syntax of infrastructure-config-file
-    :param infra:
+    :param infra: Dict of infrastructure
     :return: (Number of errors, Number of warnings)
     """
-    # TODO: interface-specific syntax and checking
-    warnings = ["datacenter", "datastore"]
+    warnings = ["datacenter", "datastore", "server-root"]
     errors = ["platform", "server-hostname", "server-port", "login-file", "template-folder"]
 
     num_warnings = _checker(warnings, "infrastructure", infra, "warnings")
@@ -102,7 +101,7 @@ def _verify_infra_syntax(infra):
 def _verify_groups_syntax(groups):
     """
     Verifies that the syntax for groups matches the specification
-    :param groups:
+    :param groups: Dict of groups
     :return: (Number of errors, Number of warnings)
     """
     num_errors = 0
@@ -146,13 +145,13 @@ def _verify_groups_syntax(groups):
 def _check_group_file(filename):
     """
     Verifies user info file for a group
-    :param filename:
+    :param filename: Name of user info JSON file
     :return: (Number of errors, Number of warnings)
     """
-    from os.path import exists
     num_errors = 0
     num_warnings = 0
 
+    from os.path import exists
     if not exists(filename):
         logging.error("Group user file %s does not exist", filename)
         num_errors += 1
@@ -163,7 +162,7 @@ def _check_group_file(filename):
 def _verify_services_syntax(services):
     """
     Verifies that the syntax for services matches the specification
-    :param services:
+    :param services: Dict of services
     :return: (Number of errors, Number of warnings)
     """
     num_errors = 0
@@ -185,7 +184,7 @@ def _verify_services_syntax(services):
 def _verify_resources_syntax(resources):
     """
     Verifies that the syntax for resources matches the specification
-    :param resources:
+    :param resources: Dict of resources
     :return: (Number of errors, Number of warnings)
     """
     warnings = []
@@ -198,7 +197,7 @@ def _verify_resources_syntax(resources):
 def _verify_networks_syntax(networks):
     """
     Verifies that the syntax for networks matches the specification
-    :param networks:
+    :param networks: Dict of networks
     :return: (Number of errors, Number of warnings)
     """
     num_errors = 0
@@ -219,9 +218,9 @@ def _verify_networks_syntax(networks):
 def _verify_network(name, network):
     """
     Verifies syntax of a specific network
-    :param name:
-    :param network:
-    :return:
+    :param name: Name of network
+    :param network: Dict of the network
+    :return: (Number of errors, Number of warnings)
     """
     num_errors = 0
     num_warnings = 0
@@ -244,7 +243,7 @@ def _verify_network(name, network):
 def _verify_folders_syntax(folders):
     """
     Verifies that the syntax for folders matches the specification
-    :param folders:
+    :param folders: Dict of folders
     :return: (Number of errors, Number of warnings)
     """
     num_errors = 0
@@ -284,7 +283,7 @@ def verify_syntax(spec):
     """
     Verifies the syntax for the dictionary representation of an environment specification
     :param spec: Dictionary of environment specification
-    :return: (errors, warnings)
+    :return: (Number of errors, Number of warnings)
     """
     num_warnings = 0
     num_errors = 0

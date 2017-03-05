@@ -41,7 +41,7 @@ class Interface:
         if not logins:
             exit(1)
 
-        # Load groups
+        # Instantiate groups
         from adles.group import Group
         groups = [Group(g) for g in spec["groups"]]
 

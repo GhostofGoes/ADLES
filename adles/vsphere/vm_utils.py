@@ -33,7 +33,7 @@ def clone_vm(vm, folder, name, clone_spec):
         logging.error("Cannot clone Template %s without specifying a resource pool", vm.name)
     else:
         logging.info("Cloning VM %s to folder %s with name %s", vm.name, folder.name, name)
-        wait_for_task(task=vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
+        wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
 
 
 @time_execution
@@ -46,7 +46,7 @@ def create_vm(folder, config, pool, host=None):
     :param host: (Optional) vim.HostSystem on which the VM will run
     """
     logging.info("Creating VM %s in folder %s", config.name, folder.name)
-    wait_for_task(task=folder.CreateVM_Task(config, pool, host))
+    wait_for_task(folder.CreateVM_Task(config, pool, host))
 
 
 @time_execution
@@ -60,7 +60,7 @@ def destroy_vm(vm):
     if powered_on(vm):
         logging.info("VM %s is still on, powering off before destroying...", name)
         wait_for_task(change_power_state(vm, "off"))
-    wait_for_task(task=vm.Destroy_Task())
+    wait_for_task(vm.Destroy_Task())
 
 
 def edit_vm(vm, config):
@@ -76,11 +76,11 @@ def edit_vm(vm, config):
 def change_vm_state(vm, state, attempt_guest=True):
     """
     Generic power state change function that uses guest operations if available
-    :param vm:
-    :param state:
+    :param vm: vim.VirtualMachine object to change state of
+    :param state: State to change to (on | off | reset | suspend)
     :param attempt_guest:
     """
-    if attempt_guest and tools_status(vm) and state.lower() != "off":
+    if attempt_guest and has_tools(vm) and state != "on":  # Can't power on using guest operation
         change_guest_state(vm, state)
     else:
         change_power_state(vm, state)
@@ -131,11 +131,11 @@ def change_guest_state(vm, guest_state):
     wait_for_task(task)
 
 
-def tools_status(vm):
+def has_tools(vm):
     """
-    Checks if VMware Tools is working on the VM
+    Checks if VMware Tools is installed and working
     :param vm: vim.VirtualMachine
-    :return: If tools are working or not
+    :return: If tools are installed and working
     """
     tools = vm.summary.guest.toolsStatus
     return True if tools == "toolsOK" or tools == "toolsOld" else False
@@ -204,7 +204,7 @@ def create_snapshot(vm, name, description="default", memory=False):
     :param description: Text description of the snapshot
     """
     logging.info("Creating snapshot %s of VM %s. Description: %s", name, vm.name, description)
-    wait_for_task(task=vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True))
+    wait_for_task(vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True))
 
 
 @time_execution
@@ -216,7 +216,7 @@ def revert_to_snapshot(vm, snapshot_name):
     """
     logging.info("Reverting VM %s to the snapshot %s", vm.name, snapshot_name)
     snap = get_snapshot(vm, snapshot_name)
-    wait_for_task(task=snap.RevertToSnapshot_Task())
+    wait_for_task(snap.RevertToSnapshot_Task())
 
 
 @time_execution
@@ -226,7 +226,7 @@ def revert_to_current_snapshot(vm):
     :param vm: vim.VirtualMachine object
     """
     logging.info("Reverting VM %s to the current snapshot", vm.name)
-    wait_for_task(task=vm.RevertToCurrentSnapshot_Task())
+    wait_for_task(vm.RevertToCurrentSnapshot_Task())
 
 
 def get_snapshot(vm, snapshot_name):

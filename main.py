@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Program used to create cybersecurity educational environments from formal specifications.
+"""ADLES: Automated Deployment of Lab Environments System. Uses YAML specifications to manage virtual environments.
 
 Usage:
     main.py [-v] --check-syntax FILE
@@ -58,6 +58,8 @@ from adles.utils import time_execution
 
 @time_execution
 def main():
+    """ Primary entrypoint into the system. Calls the appropirate interfaces or functions based on the arguments """
+
     if args["--spec"]:
         spec = check_syntax(args["--spec"])
         interface = Interface(spec)

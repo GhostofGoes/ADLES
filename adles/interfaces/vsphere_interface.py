@@ -60,9 +60,11 @@ class VsphereInterface:
                               port=int(logins["port"]),
                               datastore=infrastructure["datastore"])
 
-        # Set the server root (TODO: put this in infra-spec, default to server root.vmFolder)
-        server_root = "script_testing"  # STATICALLY SETTING FOR NOW WHILE USING TEST ENVIRONMENT
-        self.server_root = self.server.get_folder(server_root)
+        # Set the server root
+        if "server-root" in infrastructure:
+            self.server_root = self.server.get_folder(infrastructure["server-root"])
+        else:
+            self.server_root = self.server.datacenter.vmFolder
 
         # Set root folder for the exercise, or create if it doesn't yet exist
         self.root_name = (self.metadata["name"] if "folder-name" not in self.metadata else self.metadata["folder-name"])
@@ -77,10 +79,6 @@ class VsphereInterface:
     def create_masters(self):
         """ Master creation phase """
 
-        # TODO: for the time being, just doing a flat "MASTER_FOLDERS" folder with all the masters, regardless of depth
-        #   Will eventually do hierarchically based on folders and not just the services
-        #   Will write a function to do this, so we can recursively descend for complex environments
-
         # Get folder containing templates
         self.template_folder = vutils.traverse_path(self.server_root, self.metadata["template-path"])
         if not self.template_folder:
@@ -93,11 +91,9 @@ class VsphereInterface:
         self.master_folder = self.server.create_folder(VsphereInterface.master_root_name, self.root_folder)
         logging.info("Created master folder %s under folder %s", VsphereInterface.master_root_name, self.root_name)
 
-        # Create portgroups for networks
-        # TODO: check if they already exist, issue warning if they aren't
-        # TODO: perhaps flag to set default non-exist action to create or error?
-        for net_type in self.networks:
-            self._create_master_networks(net_type)
+        # Create PortGroups for networks
+        for net in self.networks:  # Iterate through the base types
+            self._create_master_networks(net_type=net, default_create=True)
 
         # Create Master instances
         # TODO: Apply master-group permissions [default: group permissions]
@@ -164,10 +160,11 @@ class VsphereInterface:
         logging.error("Could not find service %s", service_name)
         return None
 
-    def _create_master_networks(self, net_type):
+    def _create_master_networks(self, net_type, default_create):
         """
         Creates a network as part of the Master creation phase
         :param net_type: Top-level type of the network (unique-networks | generic-networks | base-networks)
+        :param default_create: Whether to create networks if they don't already exist
         """
         host = self.server.get_host()  # TODO: define host/cluster to use in class
         host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any changes that might have occurred
@@ -177,8 +174,10 @@ class VsphereInterface:
             if exists:
                 logging.debug("PortGroup %s already exists on host %s", name, host.name)
             else:  # NOTE: if monitoring, we want promiscuous=True
-                vlan = (int(config["vlan"]) if "vlan" in config else 0)  # Set the VLAN
-                create_portgroup(name=name, host=host, vswitch_name=config["vswitch"], vlan=vlan, promiscuous=False)
+                logging.warning("PortGroup %s does not exist on host %s", name, host.name)
+                if default_create:
+                    vlan = (int(config["vlan"]) if "vlan" in config else 0)  # Set the VLAN
+                    create_portgroup(name=name, host=host, vswitch_name=config["vswitch"], vlan=vlan, promiscuous=False)
 
     def _configure_nics(self, vm, networks):
         """
@@ -193,27 +192,28 @@ class VsphereInterface:
 
         # Ensure number of NICs on VM matches number of networks configured for the service
         # Note that monitoring interfaces will be counted and included in the networks list (hopefully)
-        if num_nics > num_nets:  # Remove excess interfaces
+        if num_nics > num_nets:     # Remove excess interfaces
             diff = int(num_nics - num_nets)
             logging.debug("VM %s has %d extra NICs, removing...", vm.name, diff)
-            # TODO: verify NIC numbers start at 0
-            for i, nic in zip(range(diff), reversed(range(num_nics))):
+            for i, nic in zip(range(1, diff + 1), reversed(range(num_nics))):
                 vm_utils.delete_nic(vm=vm, nic_number=nic)
-        elif num_nics < num_nets:  # Create missing interfaces
+
+        elif num_nics < num_nets:   # Create missing interfaces
             diff = int(num_nets - num_nics)
             logging.debug("VM %s is deficient %d NICs, adding...", vm.name, diff)
-            for i in range(diff):  # Add NICs to VM and pop them from the list of networks
-                vm_utils.add_nic(vm=vm, port_group=self.server.get_network(nets.pop()), model="e1000")
+            for i in range(diff):   # Add NICs to VM and pop them from the list of networks
+                nic_model = ("vmxnet3" if vm_utils.has_tools(vm) else "e1000")  # Use VMXNET3 if the VM has VMware Tools
+                vm_utils.add_nic(vm=vm, port_group=self.server.get_network(nets.pop()), model=nic_model)
             num_nets = len(networks)
 
         # Edit the interfaces. NOTE: any NICs that were added earlier should not be affected by this...
-        for net, i in zip(networks, num_nets):  # TODO: traverse folder to get network?
+        for net, i in zip(networks, range(1, num_nets + 1)):  # TODO: traverse folder to get network?
             vm_utils.edit_nic(vm=vm, nic_number=i, port_group=self.server.get_network(net), summary=net)
 
     def deploy_environment(self):
         """ Environment deployment phase """
 
-        # Get the master folder root (TODO: sub-masters or multiple masters?)
+        # Get the master folder root
         self.master_folder = vutils.traverse_path(self.root_folder, VsphereInterface.master_root_name)
         logging.debug("Master folder name: %s\tPrefix: %s", self.master_folder.name, VsphereInterface.master_prefix)
 
@@ -240,15 +240,17 @@ class VsphereInterface:
 
     def _convert_and_verify(self, folder):
         """
-        Converts masters to templates
+        Converts masters to templates before deployment. This also ensures they are powered off before being cloned.
         :param folder: vim.Folder
         """
         for item in folder.childEntity:
             if vutils.is_vm(item):
+                if vm_utils.powered_on(item):  # Power off the VM before attempting to convert to template
+                    vm_utils.change_vm_state(vm=item, state="off", attempt_guest=True)
                 vm_utils.convert_to_template(item)
                 logging.debug("Converted master %s to template. Verifying...", item.name)
                 if not vm_utils.is_template(item):
-                    logging.error("Master %s did not convert to template!", item.name)
+                    logging.error("Master %s did not convert to template", item.name)
                 else:
                     logging.debug("Verified!")
             elif vutils.is_folder(item):
@@ -340,7 +342,6 @@ class VsphereInterface:
                 num = int(value["instances"]["number"])
             elif "size-of" in value["instances"]:
                 num = self.groups[value["instances"]["size-f"]].size
-                # num = int(self._group_size(self.groups[value["instances"]["size-of"]]))
             else:
                 logging.error("Unknown instances specification: %s", str(value["instances"]))
                 num = 0
