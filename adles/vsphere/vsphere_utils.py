@@ -30,10 +30,10 @@ def wait_for_task(task):
         return None
     while True:
         if task.info.state == 'success':
-            logging.debug("Task result: %s", str(task.info.result))
+            logging.debug("Task result: '%s'", str(task.info.result))
             return task.info.result
         elif task.info.state == 'error':
-            logging.error("There was an error while completing a task: %s", str(task.info.error.msg))
+            logging.error("There was an error while completing a task: '%s'", str(task.info.error.msg))
             return None
 
 
@@ -49,7 +49,8 @@ def check_folder(func):
         elif kwargs and isinstance(kwargs["folder"], vim.Folder):
             return func(**kwargs)
         else:
-            logging.error("Invalid type for a folder passed to func %s: %s", str(func.__name__), str(type(args[0])))
+            logging.error("Invalid type for a folder passed to function %s: %s", str(func.__name__),
+                          str(type(kwargs["folder"] if kwargs and "folder" in kwargs else args[0])))
     return wrapper
 
 
@@ -186,7 +187,7 @@ def traverse_path(root, path):
     :param path: String with path in POSIX format (Example: Templates/Servers/Windows/ to get the 'Windows' folder)
     :return: Object at end of path
     """
-    logging.debug("Traversing path. Root: %s\tPath: %s", root.name, path)
+    logging.debug("Traversing path. Root: '%s'\tPath: '%s'", root.name, path)
     folder_path, name = split(path)         # Separate basename, if any
     folder_path = folder_path.lower().split('/')    # Transform into list
 
@@ -201,7 +202,7 @@ def traverse_path(root, path):
         for item in current.childEntity:
             if (is_vm(item) or is_folder(item)) and item.name.lower() == name.lower():
                 return item
-        logging.error("Could not find item %s while traversing path %s from root %s", name, path, root.name)
+        logging.error("Could not find item %s while traversing path '%s' from root '%s'", name, path, root.name)
         return None
     else:  # Just return whatever we found
         return current
@@ -264,20 +265,30 @@ def move_into_folder(folder, entity_list):
     wait_for_task(folder.MoveIntoFolder_Task(entity_list))
 
 
-def create_folder(folder_name, create_in):
+@check_folder
+def create_folder(folder, folder_name):
     """
     Creates a VM folder in the specified folder
+    :param folder: vim.Folder object to create the folder in
     :param folder_name: Name of folder to create
-    :param create_in: vim.Folder object to create the folder in
     :return: The created vim.Folder object
     """
-    exists = find_in_folder(create_in, folder_name)
+    # "folder" is confusing, but only way I can use wrapper for now....
+    exists = find_in_folder(folder, folder_name)  # Check if the folder already exists
     if exists:
-        logging.warning("Folder %s already exists in folder %s", folder_name, create_in.name)
-        return exists
+        logging.warning("Folder '%s' already exists in folder '%s'", folder_name, folder.name)
+        return exists  # Return the folder that already existed
     else:
-        logging.debug("Creating folder %s in folder %s", folder_name, create_in.name)
-        return create_in.CreateFolder(folder_name)
+        logging.debug("Creating folder '%s' in folder '%s'", folder_name, folder.name)
+        try:
+            return folder.CreateFolder(folder_name)  # Create the folder and return it
+        except vim.fault.DuplicateName as dupe:
+            logging.error("Could not create folder '%s' in '%s': folder already exists as '%s'",
+                          folder_name, folder.name, dupe.name)
+        except vim.fault.InvalidName as invalid:
+            logging.error("Could not create folder '%s' in '%s': Invalid folder name '%s'",
+                          folder_name, folder.name, invalid.name)
+    return None
 
 
 @check_folder
@@ -303,7 +314,7 @@ def cleanup(folder, prefix=None, recursive=False, destroy_folders=False, destroy
             if recursive or destroy_folders:  # Destroys folder and it's sub-objects
                 cleanup(item, prefix, recursive, destroy_folders, destroy_self=destroy_folders)
         else:  # It's not a VM or a folder...
-            logging.warning("Unknown item encountered while cleaning in folder %s: %s", folder.name, str(item))
+            logging.warning("Unknown item encountered while cleaning in folder '%s': %s", folder.name, str(item))
     if destroy_self:  # Note: UnregisterAndDestroy does not delete VM files off datastore
         wait_for_task(folder.UnregisterAndDestroy_Task())  # Final cleanup
 

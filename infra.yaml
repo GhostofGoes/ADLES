@@ -5,6 +5,6 @@ server-port: 443
 login-file: "users.json"
 datacenter: "datacenter"
 datastore: "Datastore"
-template-folder: "Templates"
-server-root: "root_folder"
+template-folder: "Templates/"
+server-root: "root_folder/"
 ...

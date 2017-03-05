@@ -117,12 +117,12 @@ class VsphereInterface:
 
             if "services" in folder_value:  # It's a base folder, clone services
                 for service_name, service_config in folder_value["services"].items():
-                    logging.info("Creating master for %s from service %s", service_name, service_config["service"])
+                    logging.info("Creating Master for '%s' from service '%s'", service_name, service_config["service"])
 
                     vm = self._clone_service(folder=folder, service_name=service_config["service"])
 
                     if not vm:
-                        logging.error("Failed to clone Master for service %s in folder %s",
+                        logging.error("Failed to clone Master for service '%s' in folder '%s'",
                                       service_name, folder_name)
                         continue  # Skip to the next service, so one error doesn't stop the whole show
 
@@ -130,8 +130,7 @@ class VsphereInterface:
                     self._configure_nics(vm=vm, networks=service_config["networks"])  # Configure VM networks
 
                     # Post-creation snapshot
-                    vm_utils.create_snapshot(vm, "mastering post-clone",
-                                             "Clean snapshot taken after cloning and configuration for master instance")
+                    vm_utils.create_snapshot(vm, "mastering post-clone", "Clean Post-Master cloning snapshot")
 
             else:  # It's a parent folder, recurse
                 self._master_folder_gen(folder=folder_value, parent=folder)
@@ -273,7 +272,7 @@ class VsphereInterface:
 
             # Check that the configured thresholds are not exceeded
             if num_instances > VsphereInterface.service_error:
-                logging.error("%d service instances in folder '%s' is beyond the configured threshold of %d. Exiting...",
+                logging.error("%d service instances in folder '%s' is beyond the configured threshold of %d",
                               num_instances, folder.name, VsphereInterface.service_error)
                 exit(1)
             elif num_instances > VsphereInterface.service_warn:
@@ -312,11 +311,11 @@ class VsphereInterface:
 
             # Check that the configured thresholds are not exceeded
             if num_instances > VsphereInterface.folder_error:
-                logging.error("%d instances of folder '%s' is beyond the configured threshold of '%d'. Exiting...",
+                logging.error("%d instances of folder '%s' is beyond the configured threshold of %d",
                               num_instances, name, VsphereInterface.folder_error)
                 exit(1)
             elif num_instances > VsphereInterface.folder_warn:
-                logging.warning("d instances of folder '%s' is beyond the warning threshold of '%d'",
+                logging.warning("%d instances of folder '%s' is beyond the warning threshold of %d",
                                 num_instances, name, VsphereInterface.folder_warn)
 
             logging.debug("Generating folder %s", name)

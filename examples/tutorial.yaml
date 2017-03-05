@@ -9,7 +9,7 @@ metadata:
   infrastructure-config-file: "infra.yaml"
   folder-name: "TU-03"
   root-path: "CS-439/TR-01/" # CS 439, Tutorial Round 01
-  template-path: "Templates/"
+  template-path: "Templates"
 
 groups:
   Students:
@@ -20,10 +20,10 @@ groups:
 services:
   windows:
     note: "Username: User   Password: Windows1"
-    template: "Windows 7 SP2 (64-bit)"
+    template: "Clients/Windows/Windows 7 SP2 (64-bit)"
   kalibox:
     note: "Username: root   Password: toor"
-    template: "ARP Kalibox"
+    template: "Clients/Linux/ARP Kalibox"
   server:
     template: "arp-poisoning-server"
   router:

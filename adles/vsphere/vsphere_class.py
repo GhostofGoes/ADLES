@@ -19,7 +19,6 @@ from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim
 
 from .vsphere_utils import get_obj, get_objs, get_item, get_in_folder, create_folder
-from .network_utils import get_net_item
 
 __version__ = "0.7.0"
 
@@ -77,14 +76,14 @@ class Vsphere:
         """
         if create_in:
             if type(create_in) is str:  # create_in is a string, so we look it up on the server
-                logging.debug("Retrieving parent folder %s from server", create_in)
+                logging.debug("Retrieving parent folder '%s' from server", create_in)
                 parent = get_obj(self.content, [vim.Folder], create_in)
             else:
                 parent = create_in  # create_in is a vim.Folder object, so we just assign it
-            return create_folder(folder_name=folder_name, create_in=parent)
         else:
-            logging.debug("Creating folder %s in server root folder", folder_name)
-            return self.content.rootFolder.CreateFolder(folder_name)
+            parent = self.content.rootFolder  # Default to using the server root folder
+            # return self.content.rootFolder.CreateFolder(folder_name)
+        return create_folder(folder=parent, folder_name=folder_name)
 
     # TODO: generate_vm_spec
 
@@ -146,8 +145,6 @@ class Vsphere:
         if not distributed:
             return get_in_folder(folder=self.datacenter.networkFolder, name=network_name,
                                  recursive=True, vimtype=vim.Network)
-            # return get_item(self.datacenter, vim.Network, network_name)
-            # return get_item(self.content, vim.Network, network_name)
         else:
             return get_item(self.content, vim.dvs.DistributedVirtualPortgroup, network_name)
 
@@ -158,7 +155,6 @@ class Vsphere:
         :return: vim.HostSystem object
         """
         return get_item(self.content, vim.HostSystem, host_name)
-        # return get_in_folder(self.datacenter.hostFolder, host_name, vim.HostSystem)
 
     def get_cluster(self, cluster_name=None):
         """
