@@ -148,6 +148,9 @@ class VsphereInterface:
                 logging.debug("Cloning service '%s'", name)
                 vm_name = VsphereInterface.master_prefix + service_name
                 template = vutils.traverse_path(self.template_folder, config["template"])
+                if not template:
+                    logging.error("Could not find template '%s' for service '%s'", config["template"], name)
+                    return None
                 vm_utils.clone_vm(vm=template, folder=folder, name=vm_name, clone_spec=self.server.gen_clone_spec())
                 vm = vutils.traverse_path(folder, vm_name)  # Get new cloned instance
                 if vm:

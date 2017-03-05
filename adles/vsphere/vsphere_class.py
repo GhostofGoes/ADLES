@@ -144,7 +144,10 @@ class Vsphere:
         :return: vim.Network or vim.dvs.DistributedVirtualPortgroup object
         """
         if not distributed:
-            return get_item(self.content, vim.Network, network_name)
+            return get_in_folder(folder=self.datacenter.networkFolder, name=network_name,
+                                 recursive=True, vimtype=vim.Network)
+            # return get_item(self.datacenter, vim.Network, network_name)
+            # return get_item(self.content, vim.Network, network_name)
         else:
             return get_item(self.content, vim.dvs.DistributedVirtualPortgroup, network_name)
 

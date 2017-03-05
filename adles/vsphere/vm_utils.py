@@ -438,7 +438,7 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
     """
     Add a NIC in the portgroup to the VM
     :param vm: vim.VirtualMachine
-    :param network: vim.Network port group to attach NIC to
+    :param network: vim.Network to attach NIC to
     :param summary: Human-readable device info [default: default-summary]
     :param model: Model of virtual network adapter. [default: e1000]
     Options: (e1000 | e1000e | vmxnet | vmxnet2 | vmxnet3)
@@ -446,8 +446,8 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
     VMXNET adapters require VMware Tools to be installed, and provide significantly enhanced performance.
     Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
     """
-    logging.debug("Adding NIC to VM %s\nPort group: %s\tSummary: %s\tNIC Model: %s",
-                  vm.name, network.spec.name, summary, model)
+    logging.debug("Adding NIC to VM %s\nNetwork: %s\tSummary: %s\tNIC Model: %s",
+                  vm.name, network.name, summary, model)
     nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create a base object to add configurations to
     nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
 

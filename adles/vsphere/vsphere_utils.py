@@ -46,7 +46,7 @@ def check_folder(func):
     def wrapper(*args, **kwargs):
         if args and isinstance(args[0], vim.Folder):
             return func(*args)
-        elif kwargs and isinstance(kwargs[0], vim.Folder):
+        elif kwargs and isinstance(kwargs["folder"], vim.Folder):
             return func(**kwargs)
         else:
             logging.error("Invalid type for a folder passed to func %s: %s", str(func.__name__), str(type(args[0])))
