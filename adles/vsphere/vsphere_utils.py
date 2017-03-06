@@ -45,9 +45,9 @@ def check_folder(func):
     """
     def wrapper(*args, **kwargs):
         if args and isinstance(args[0], vim.Folder):
-            return func(*args)
+            return func(*args, **kwargs)
         elif kwargs and isinstance(kwargs["folder"], vim.Folder):
-            return func(**kwargs)
+            return func(*args, **kwargs)
         else:
             logging.error("Invalid type for a folder passed to function %s: %s", str(func.__name__),
                           str(type(kwargs["folder"] if kwargs and "folder" in kwargs else args[0])))
@@ -292,30 +292,44 @@ def create_folder(folder, folder_name):
 
 
 @check_folder
-def cleanup(folder, prefix=None, recursive=False, destroy_folders=False, destroy_self=False):
+def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False, destroy_folders=False, destroy_self=False):
     """
     Destroys VMs and (optionally) folders under the specified folder.
     :param folder: vim.Folder object
-    :param prefix: Only destroy VMs with names starting with the prefix [default: None]
+    :param vm_prefix: Only destroy VMs with names starting with the prefix [default: None]
+    :param folder_prefix: Only destroy or search in Folders with names starting with the prefix [default: None]
     :param recursive: Recursively descend into any sub-folders [default: False]
     :param destroy_folders: Destroy folders in addition to VMs [default: False]
     :param destroy_self: Destroy the folder specified [default: False]
     """
-    logging.debug("Cleaning folder %s", folder.name)
-    from adles.vsphere.vm_utils import destroy_vm
+    logging.debug("Cleaning folder '%s'", folder.name)
+    import adles.vsphere.vm_utils as vm_utils
+
     for item in folder.childEntity:
         if is_vm(item):  # Handle VMs
-            if prefix:
-                if str(item.name).startswith(prefix):  # Only destroy the VM if it begins with the prefix
-                    destroy_vm(item)
+            if vm_prefix:
+                if str(item.name).startswith(vm_prefix):  # Only destroy the VM if it begins with the prefix
+                    vm_utils.destroy_vm(item)
             else:
-                destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
+                vm_utils.destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
         elif is_folder(item):  # Handle folders
-            if recursive or destroy_folders:  # Destroys folder and it's sub-objects
-                cleanup(item, prefix, recursive, destroy_folders, destroy_self=destroy_folders)
+            if folder_prefix:
+                if str(item.name).startswith(folder_prefix):
+                    if destroy_folders:  # Destroys folder and ALL of it's sub-objects
+                        cleanup(folder=item, vm_prefix=None, folder_prefix=None, recursive=True,
+                                destroy_folders=True, destroy_self=True)
+                    elif recursive:
+                        cleanup(folder=item, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=True,
+                                destroy_folders=False, destroy_self=False)
+            else:
+                if destroy_folders:  # Destroys folder and ALL of it's sub-objects
+                    cleanup(item, None, True, True, True)
+                elif recursive:
+                    cleanup(item, vm_prefix, True, False, False)
         else:  # It's not a VM or a folder...
-            logging.warning("Unknown item encountered while cleaning in folder '%s': %s", folder.name, str(item))
+            logging.error("Unknown item encountered while cleaning in folder '%s': %s", folder.name, str(item))
     if destroy_self:  # Note: UnregisterAndDestroy does not delete VM files off datastore
+        logging.debug("Unregistering and Destroying folder: '%s'", folder.name)
         wait_for_task(folder.UnregisterAndDestroy_Task())  # Final cleanup
 
 
@@ -360,9 +374,8 @@ def get_datastore_info(ds_obj):
     if not ds_obj:
         logging.error("No Datastore was given to get_datastore_info")
         return None
-    from adles.utils import sizeof_fmt
+    import adles.utils as utils
     info_string = "\n"
-
     summary = ds_obj.summary
     ds_capacity = summary.capacity
     ds_freespace = summary.freeSpace
@@ -373,12 +386,12 @@ def get_datastore_info(ds_obj):
 
     info_string += "Name                  : %s" % summary.name
     info_string += "URL                   : %s" % summary.url
-    info_string += "Capacity              : %s" % sizeof_fmt(ds_capacity)
-    info_string += "Free Space            : %s" % sizeof_fmt(ds_freespace)
-    info_string += "Uncommitted           : %s" % sizeof_fmt(ds_uncommitted)
-    info_string += "Provisioned           : %s" % sizeof_fmt(ds_provisioned)
+    info_string += "Capacity              : %s" % utils.sizeof_fmt(ds_capacity)
+    info_string += "Free Space            : %s" % utils.sizeof_fmt(ds_freespace)
+    info_string += "Uncommitted           : %s" % utils.sizeof_fmt(ds_uncommitted)
+    info_string += "Provisioned           : %s" % utils.sizeof_fmt(ds_provisioned)
     if ds_overp > 0:
-        info_string += "Over-provisioned      : %s / %s %%" % (sizeof_fmt(ds_overp), ds_overp_pct)
+        info_string += "Over-provisioned      : %s / %s %%" % (utils.sizeof_fmt(ds_overp), ds_overp_pct)
     info_string += "Hosts                 : %s" % str(len(ds_obj.host))
     info_string += "Virtual Machines      : %s" % str(len(ds_obj.vm))
     return info_string

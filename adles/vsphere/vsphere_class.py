@@ -20,11 +20,11 @@ from pyVmomi import vim
 
 from .vsphere_utils import get_obj, get_objs, get_item, get_in_folder, create_folder
 
-__version__ = "0.7.0"
-
 
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
+
+    __version__ = "0.7.0"
 
     def __init__(self, username, password, hostname, datacenter=None, datastore=None, port=443, use_ssl=False):
         """

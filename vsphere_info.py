@@ -35,9 +35,10 @@ from docopt import docopt
 from adles.vsphere import *
 from adles.utils import script_setup
 
+
 __version__ = "0.3.1"
 args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('vsphere_info.log', args)
+server = script_setup('vsphere_info.log', args, (__file__, __version__))
 
 # List of possible useful things
 #   open_console

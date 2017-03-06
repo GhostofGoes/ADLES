@@ -247,8 +247,10 @@ class VsphereInterface:
         Converts masters to templates before deployment. This also ensures they are powered off before being cloned.
         :param folder: vim.Folder
         """
+        logging.debug("Converting Masters in folder '%s'", folder.name)
         for item in folder.childEntity:
             if vutils.is_vm(item):
+                logging.debug("Converting Master '%s' to Template", item.name)
                 if vm_utils.powered_on(item):  # Power off the VM before attempting to convert to template
                     vm_utils.change_vm_state(vm=item, state="off", attempt_guest=True)
                 vm_utils.convert_to_template(item)
@@ -258,7 +260,7 @@ class VsphereInterface:
                 else:
                     logging.debug("Verified!")
             elif vutils.is_folder(item):
-                self._convert_and_verify(folder)
+                self._convert_and_verify(folder=item)
 
     def _gen_services(self, folder, services):
         """
@@ -360,7 +362,7 @@ class VsphereInterface:
                      master_folder.name, self.root_folder.name)
 
         # Recursively descend from master folder, destroying anything with the prefix
-        vutils.cleanup(folder=master_folder, prefix=self.master_prefix,
+        vutils.cleanup(folder=master_folder, vm_prefix=self.master_prefix,
                        recursive=True, destroy_folders=True, destroy_self=True)
 
         # Cleanup networks (TODO: use network folders to aid in this, during creation phase)

@@ -36,9 +36,10 @@ from adles.utils import prompt_y_n_question, user_input, pad, default_prompt, sc
 from adles.vsphere.vm_utils import clone_vm
 from adles.vsphere.vsphere_utils import traverse_path, retrieve_items, format_structure
 
-__version__ = "0.5.0"
+
+__version__ = "0.5.1"
 args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('clone_vms.log', args)
+server = script_setup('clone_vms.log', args, (__file__, __version__))
 
 vm = None
 folder_from = None
@@ -59,10 +60,10 @@ else:
     v, _ = retrieve_items(folder_from)  # Get VMs in the folder, ignore any folders
     vms.extend(v)
     logging.info("%d VMs found in source folder %s\n%s", len(v), from_name, format_structure(v))
-    if not prompt_y_n_question("Keep the same names or change them? "):
+    if not prompt_y_n_question("Keep the same names? "):
         names = []
         for i in range(len(v)):
-            names.append(input("Enter base name for VM %d"))
+            names.append(input("Enter base name for VM %d: " % i))
     else:
         names = list(map(lambda x: x.name, v))  # Same names as sources
     vm_names.extend(names)
@@ -81,12 +82,12 @@ pool = default_prompt(prompt="Resource pool to assign VMs to", default=pool)
 
 logging.info("Creating %d instances under folder %s", num_instances, create_in_name)
 for instance in range(num_instances):
-    for vm, name in vms, vm_names:
+    for vm, name in zip(vms, vm_names):
+        spec = server.gen_clone_spec(pool_name=pool)  # Generate clone specification
         if instance_folder_base:  # Create instance folders for a nested clone
             f = server.create_folder(instance_folder_base + pad(instance), create_in=create_in)
             vm_name = name
+            clone_vm(vm=vm, folder=f, name=vm_name, clone_spec=spec)  # Clone the VM using the generated spec
         else:
             vm_name = name + pad(value=instance, length=2)  # Append instance number, since it's a flat clone
-        spec = server.gen_clone_spec(pool_name=pool)   # Generate clone specification
-        logging.info("Cloning %s...", name)
-        clone_vm(vm, create_in, vm_name, spec)              # Clone the VM using the generated spec
+            clone_vm(vm=vm, folder=create_in, name=vm_name, clone_spec=spec)  # Clone the VM using the generated spec

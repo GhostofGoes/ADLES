@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['utils', 'parser', 'interfaces', 'vsphere']
-
 __version__ = "0.7.0"
 __author__ = "Christopher Goes"
 __email__ = "<goes8945@vandals.uidaho.edu>"

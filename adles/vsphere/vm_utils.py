@@ -16,8 +16,8 @@ import logging
 
 from pyVmomi import vim, vmodl
 
-from adles.utils import time_execution
-from .vsphere_utils import wait_for_task, is_vnic
+import adles.utils as utils
+import adles.vsphere.vsphere_utils as vutils
 
 
 def check_vm(func):
@@ -28,9 +28,9 @@ def check_vm(func):
     """
     def wrapper(*args, **kwargs):
         if args and isinstance(args[0], vim.VirtualMachine):
-            return func(*args)
+            return func(*args, **kwargs)
         elif kwargs and isinstance(kwargs["vm"], vim.VirtualMachine):
-            return func(**kwargs)
+            return func(*args, **kwargs)
         else:
             logging.error("Invalid type for a folder passed to function %s: %s", str(func.__name__),
                           str(type(kwargs["vm"] if kwargs and "vm" in kwargs else args[0])))
@@ -38,7 +38,7 @@ def check_vm(func):
 
 
 @check_vm
-@time_execution
+@utils.time_execution
 def clone_vm(vm, folder, name, clone_spec):
     """
     Creates a clone of the VM or Template
@@ -52,7 +52,7 @@ def clone_vm(vm, folder, name, clone_spec):
     else:
         logging.info("Cloning VM %s to folder %s with name %s", vm.name, folder.name, name)
         try:
-            wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
+            vutils.wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
         except vim.fault.InvalidState:
             logging.error("Could not make clone '%s': VM '%s' is in an invalid state", name, vm.name)
         except vim.fault.CustomizationFault:
@@ -62,7 +62,7 @@ def clone_vm(vm, folder, name, clone_spec):
 
 
 @check_vm
-@time_execution
+@utils.time_execution
 def create_vm(folder, config, pool, host=None):
     """
     Creates a VM with the specified configuration in the given folder
@@ -72,7 +72,7 @@ def create_vm(folder, config, pool, host=None):
     :param host: (Optional) vim.HostSystem on which the VM will run
     """
     logging.info("Creating VM %s in folder %s", config.name, folder.name)
-    wait_for_task(folder.CreateVM_Task(config, pool, host))
+    vutils.wait_for_task(folder.CreateVM_Task(config, pool, host))
 
 
 @check_vm
@@ -86,7 +86,7 @@ def destroy_vm(vm):
     if powered_on(vm):
         logging.info("VM %s is still on, powering off before destroying...", name)
         change_vm_state(vm, "off", attempt_guest=False)  # Could do TerminateVM() here as well...but it's not blocking
-    wait_for_task(vm.Destroy_Task())
+    vutils.wait_for_task(vm.Destroy_Task())
 
 
 @check_vm
@@ -98,7 +98,7 @@ def edit_vm(vm, config):
     """
     logging.debug("Reconfiguring VM %s", vm.name)
     try:
-        wait_for_task(vm.ReconfigVM_Task(config))
+        vutils.wait_for_task(vm.ReconfigVM_Task(config))
     except vim.fault.TaskInProgress as e:
         logging.error("Cannot edit VM '%s': it is busy with task '%s'", vm.name, e.task)
     except vim.fault.VmConfigFault:
@@ -158,7 +158,7 @@ def change_power_state(vm, power_state):
         logging.error("Invalid power_state %s for VM %s", state, vm.name)
         return
     logging.debug("Changing power state of VM %s to: '%s'", vm.name, state)
-    wait_for_task(task)
+    vutils.wait_for_task(task)
 
 
 @check_vm
@@ -183,7 +183,7 @@ def change_guest_state(vm, guest_state):
         return
     logging.debug("Changing guest power state of VM %s to: '%s'", vm.name, state)
     try:
-        wait_for_task(task)
+        vutils.wait_for_task(task)
     except vim.fault.ToolsUnavailable:
         logging.error("Cannot change guest state of '%s': Tools are not running", vm.name)
 
@@ -227,7 +227,7 @@ def convert_to_template(vm):
     """
     try:
         logging.debug("Converting VM %s to Template", vm.name)
-        wait_for_task(vm.MarkAsTemplate())
+        vutils.wait_for_task(vm.MarkAsTemplate())
     except vim.fault.InvalidPowerState as e:
         logging.error("Cannot convert '%s' to a template while in state '%s'", vm.name, e.existingState)
     except vim.fault.InvalidState:
@@ -243,7 +243,7 @@ def convert_to_vm(vm, resource_pool, host=None):
     :param host: (optional) vim.HostSystem on which the VM should run
     """
     logging.debug("Converting Template '%s' to VM and assigning to resource pool '%s'", vm.name, resource_pool.name)
-    wait_for_task(vm.MarkAsVirtualMachine(resource_pool, host))
+    vutils.wait_for_task(vm.MarkAsVirtualMachine(resource_pool, host))
 
 
 @check_vm
@@ -257,11 +257,11 @@ def set_note(vm, note):
     spec = vim.vm.ConfigSpec()
     spec.annotation = note
     edit_vm(vm, spec)
-    # wait_for_task(vm.ReconfigVM_Task(spec))
+    # vutils.wait_for_task(vm.ReconfigVM_Task(spec))
 
 
 @check_vm
-@time_execution
+@utils.time_execution
 def create_snapshot(vm, name, description="default", memory=False):
     """
     Create a snapshot of the VM
@@ -271,11 +271,11 @@ def create_snapshot(vm, name, description="default", memory=False):
     :param description: Text description of the snapshot
     """
     logging.info("Creating snapshot '%s' of '%s'", name, vm.name)
-    wait_for_task(vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True))
+    vutils.wait_for_task(vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True))
 
 
 @check_vm
-@time_execution
+@utils.time_execution
 def revert_to_snapshot(vm, snapshot_name):
     """
     Reverts VM to the named snapshot
@@ -284,18 +284,18 @@ def revert_to_snapshot(vm, snapshot_name):
     """
     logging.info("Reverting '%s' to the snapshot '%s'", vm.name, snapshot_name)
     snap = get_snapshot(vm, snapshot_name)
-    wait_for_task(snap.RevertToSnapshot_Task())
+    vutils.wait_for_task(snap.RevertToSnapshot_Task())
 
 
 @check_vm
-@time_execution
+@utils.time_execution
 def revert_to_current_snapshot(vm):
     """
     Reverts the VM to the most recent snapshot
     :param vm: vim.VirtualMachine object
     """
     logging.info("Reverting '%s' to the current snapshot", vm.name)
-    wait_for_task(vm.RevertToCurrentSnapshot_Task())
+    vutils.wait_for_task(vm.RevertToCurrentSnapshot_Task())
 
 
 @check_vm
@@ -361,7 +361,7 @@ def remove_snapshot(vm, snapshot_name, remove_children=True, consolidate_disks=T
     """
     logging.info("Removing snapshot '%s' from '%s'", snapshot_name, vm.name)
     snapshot = get_snapshot(vm, snapshot_name)
-    wait_for_task(snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks))
+    vutils.wait_for_task(snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks))
 
 
 @check_vm
@@ -373,7 +373,7 @@ def remove_all_snapshots(vm, consolidate_disks=True):
     other disks if possible [default: True]
     """
     logging.info("Removing ALL snapshots for the '%s'", vm.name)
-    wait_for_task(vm.RemoveAllSnapshots_Task(consolidate_disks))
+    vutils.wait_for_task(vm.RemoveAllSnapshots_Task(consolidate_disks))
 
 
 # From: getallvms.py in pyvmomi-community-samples
@@ -430,7 +430,7 @@ def remove_device(vm, device):
     """
     logging.debug("Removing device '%s' from VM '%s'", device.name, vm.name)
     device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-    wait_for_task(vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device])))  # Apply the change to the VM
+    vutils.wait_for_task(vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device])))  # Apply the change to the VM
 
 
 @check_vm
@@ -440,7 +440,7 @@ def get_nics(vm):
     :param vm: vim.VirtualMachine
     :return: list of vim.vm.device.VirtualEthernetCard
     """
-    return [dev for dev in vm.config.hardware.device if is_vnic(dev)]
+    return [dev for dev in vm.config.hardware.device if vutils.is_vnic(dev)]
 
 
 @check_vm
@@ -452,7 +452,7 @@ def get_nic(vm, name):
     :return: vim.vm.device.VirtualEthernetCard
     """
     for dev in vm.config.hardware.device:
-        if is_vnic(dev) and dev.deviceInfo.label.lower() == name.lower():
+        if vutils.is_vnic(dev) and dev.deviceInfo.label.lower() == name.lower():
             return dev
     return None
 
@@ -477,7 +477,7 @@ def delete_nic(vm, nic_number):
     virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
     virtual_nic_spec.device = virtual_nic_device
 
-    wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec])))  # Apply the change to the VM
+    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec])))  # Apply the change to the VM
 
 
 @check_vm
@@ -510,7 +510,7 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
         nic_spec.device.backing.network = port_group
         nic_spec.device.backing.deviceName = port_group.name
 
-    wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))  # Apply the change to the VM
+    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))  # Apply the change to the VM
 
 
 # From: add_nic_to_vm.py in pyvmomi-community-samples
@@ -566,7 +566,7 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
 
     # TODO: configure guest IP address if statically assigned
 
-    wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))  # Apply the change to the VM
+    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))  # Apply the change to the VM
 
 
 @check_vm
@@ -609,7 +609,7 @@ def attach_iso(vm, iso_name, datastore, boot=True):
         order.extend(list(vm.config.bootOptions.bootOrder))
         vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)
 
-    wait_for_task(edit_vm(vm, vm_spec))  # Apply the change to the VM
+    vutils.wait_for_task(edit_vm(vm, vm_spec))  # Apply the change to the VM
 
 
 # From: cdrom_vm.py in pyvmomi-community-samples

@@ -7,7 +7,7 @@ metadata:
   date-created: "2016-11-06"
   version: "0.4.0"
   infrastructure-config-file: "infra.yaml"
-  folder-name: "TU-03"
+  folder-name: "TU-03"  # Tutorial 03
   root-path: "CS-439/TR-01/" # CS 439, Tutorial Round 01
   template-path: "Templates"
 
@@ -38,32 +38,31 @@ networks:
       vswitch: "cs439_vswitch"
 
 folders:
-  TU-03:  # Tutorial 03
-    hidden-services:
-      description: "Services for each student that they do not see"
-      group: Instructors
-      instances:
-        size-of: Students
-        prefix: "HIDDEN-SERVICE-"
-      services:
-        server:
-          service: server
-          networks: ["ARP-LAN"]
-        router:
-          service: router
-          networks: ["ARP-LAN"]
-    workstations:
-      description: "Workstations students use for the tutorial"
-      group: Students
-      master-group: Instructors
-      instances: 
-        size-of: Students
-        prefix: "WS-"
-      services:
-        host:
-          service: windows
-          networks: ["ARP-LAN"]
-        attacker:
-          service: kalibox
-          networks: ["ARP-LAN"]
+  hidden-services:
+    description: "Services for each student that they do not see"
+    group: Instructors
+    instances:
+      size-of: Students
+      prefix: "HIDDEN-SERVICE-"
+    services:
+      server:
+        service: server
+        networks: ["ARP-LAN"]
+      router:
+        service: router
+        networks: ["ARP-LAN"]
+  workstations:
+    description: "Workstations students use for the tutorial"
+    group: Students
+    master-group: Instructors
+    instances: 
+      size-of: Students
+      prefix: "WS-"
+    services:
+      host:
+        service: windows
+        networks: ["ARP-LAN"]
+      attacker:
+        service: kalibox
+        networks: ["ARP-LAN"]
 ...

@@ -17,9 +17,6 @@ import logging
 import logging.handlers
 
 from sys import stdout
-from time import time
-
-from adles.vsphere import Vsphere
 
 
 # From: virtual_machine_power_cycle_and_question.py in pyvmomi-community-samples
@@ -181,6 +178,8 @@ def time_execution(func):
     :param func: The function to time execution of
     :return: The function
     """
+    from time import time
+
     def wrapper(*args, **kwargs):
         start_time = time()
         ret = func(*args, **kwargs)
@@ -197,6 +196,8 @@ def make_vsphere(filename=None):
     :return: vSphere object
     """
     from getpass import getpass
+    from adles.vsphere.vsphere_class import Vsphere
+
     if filename:
         info = read_json(filename)
         user = (info["user"] if "user" in info else input("Username: "))
@@ -230,7 +231,7 @@ def user_input(prompt, obj_name, func):
         item_name = input(prompt)
         item = func(item_name)
         if item:
-            logging.debug("Found %s: %s", obj_name, item.name)
+            logging.info("Found %s: %s", obj_name, item.name)
             return item, item_name
         else:
             print("Couldn't find a %s with name %s. Perhaps try another? " % (obj_name, item_name))
@@ -263,16 +264,28 @@ def script_warning_prompt():
                '\n\n' % (str(__url__), str(__email__)))
 
 
-def script_setup(logging_filename, args):
+def script_setup(logging_filename, args, script=None):
     """
     Does setup tasks that are common to all automation scripts
     :param logging_filename: Name of file to save logs to
     :param args: docopt arguments dict
+    :param script: Tuple with name and version of the script [default: None]
     :return: vSphere object
     """
 
     # Setup logging (TODO: colors)
     setup_logging(filename=logging_filename, console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
+
+    # Print information about script itself
+    if script:
+        from adles import __version__ as adles_version
+        from adles.vsphere.vsphere_class import Vsphere
+        from os.path import basename
+        logging.debug("Script name      %s", basename(script[0]))
+        logging.debug("Script version   %s", script[1])
+        logging.debug("Adles version    %s", adles_version)
+        logging.debug("Vsphere version  %s", Vsphere.__version__)
+        print('\n' * 3)
 
     # Print warning
     print(script_warning_prompt())

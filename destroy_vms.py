@@ -33,12 +33,13 @@ import logging
 from docopt import docopt
 
 from adles.utils import prompt_y_n_question, user_input, default_prompt, script_setup
-from adles.vsphere.vm_utils import destroy_vm
+import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.vsphere_utils import cleanup, enumerate_folder, traverse_path, format_structure, retrieve_items
 
-__version__ = "0.3.2"
+
+__version__ = "0.4.0"
 args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('destroy_vms.log', args)
+server = script_setup('destroy_vms.log', args, (__file__, __version__))
 
 if prompt_y_n_question("Do you wish to destroy a single VM? "):
     # TODO: VM at path + folder at path utility func
@@ -49,7 +50,7 @@ if prompt_y_n_question("Do you wish to destroy a single VM? "):
             exit(0)
     if prompt_y_n_question("Continue with destruction? "):
         logging.info("Destroying VM with name %s", vm_name)
-        destroy_vm(vm)
+        vm_utils.destroy_vm(vm)
     else:
         logging.info("Destruction cancelled")
 else:
@@ -59,17 +60,22 @@ else:
     # Display folder structure
     logging.info("Folder structure: %s", format_structure(enumerate_folder(folder)))
 
-    prefix = default_prompt("Prefix of VMs you wish to destroy? (CASE SENSITIVE!) Press Enter for none... ", default=None)
+    vm_prefix = default_prompt("Prefix of VMs you wish to destroy (CASE SENSITIVE!)", default=None)
     recursive = prompt_y_n_question("Recursively descend into folders? ")
     destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
+    folder_prefix = None
+    if destroy_folders:
+        folder_prefix = default_prompt("Prefix of folders you wish to destroy (CASE SENSITIVE!)", default=None)
     destroy_self = prompt_y_n_question("Destroy the folder itself? ")
 
-    logging.info("Prefix: %s\tRecursive: %s", str(prefix), str(recursive))
+    logging.info("VM Prefix: '%s'\tFolder Prefix: '%s'\tRecursive: %s",
+                 str(vm_prefix), str(folder_prefix), str(recursive))
     logging.info("Folder-destruction: %s\tSelf-destruction: %s", str(destroy_folders), str(destroy_self))
-    v, f = retrieve_items(folder, prefix, True)
+    v, f = retrieve_items(folder, vm_prefix, True)
     logging.info("%d VMs and %d folders match the options", int(len(v)), int(len(f)))
     if prompt_y_n_question("Continue with destruction? "):
         logging.info("Destroying...")
-        cleanup(folder, prefix=prefix, recursive=recursive, destroy_folders=destroy_folders, destroy_self=destroy_self)
+        cleanup(folder, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=recursive,
+                destroy_folders=destroy_folders, destroy_self=destroy_self)
     else:
         logging.info("Destruction cancelled")

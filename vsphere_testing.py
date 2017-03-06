@@ -31,12 +31,12 @@ import logging
 
 from docopt import docopt
 
-from adles.vsphere.vsphere_class import __version__
+from adles.vsphere.vsphere_class import Vsphere
 from adles.vsphere import vm_utils
 from adles.utils import script_setup
 
-args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('vsphere-testing.log', args)
+args = docopt(__doc__, version=Vsphere.__version__, help=True)
+server = script_setup('vsphere-testing.log', args, (__file__, Vsphere.__version__))
 
 net = server.get_network("ARP-LAN")
 logging.info(str(net))
