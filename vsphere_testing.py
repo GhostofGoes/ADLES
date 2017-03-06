@@ -27,6 +27,7 @@ Options:
     -v, --verbose       Emits debugging logs to terminal in addition to a file
 
 """
+
 import logging
 
 from docopt import docopt
@@ -35,13 +36,15 @@ from adles.vsphere.vsphere_class import Vsphere
 from adles.vsphere import vm_utils
 from adles.utils import script_setup
 
-args = docopt(__doc__, version=Vsphere.__version__, help=True)
-server = script_setup('vsphere-testing.log', args, (__file__, Vsphere.__version__))
 
-net = server.get_network("ARP-LAN")
-logging.info(str(net))
-# vm = server.get_vm("dummy")
-# logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
+args = docopt(__doc__, version=Vsphere.__version__, help=True)
+server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
+
+# net = server.get_network("ARP-LAN")
+# logging.info(str(net))
+
+vm = server.get_vm("dummy")
+logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
 
 # host = server.get_host()
 # logging.info(host)

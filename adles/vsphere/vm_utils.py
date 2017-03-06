@@ -123,8 +123,11 @@ def change_vm_state(vm, state, attempt_guest=True):
     :param state: State to change to (on | off | reset | suspend)
     :param attempt_guest:
     """
+    if is_template(vm):
+        logging.error("VM '%s' is a Template, so state cannot be changed to '%s'", vm.name, state)
+        return
     try:
-        if attempt_guest and has_tools(vm) and state != "on":  # Can't power on using guest operation
+        if attempt_guest and has_tools(vm) and state != "on":  # Can't power on using guest operations
             change_guest_state(vm, state)
         else:
             change_power_state(vm, state)

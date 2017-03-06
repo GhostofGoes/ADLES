@@ -32,11 +32,11 @@ import logging
 
 from docopt import docopt
 
-from adles.vsphere import *
+from adles.vsphere import vm_utils, vsphere_utils
 from adles.utils import script_setup
 
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('vsphere_info.log', args, (__file__, __version__))
 
@@ -49,10 +49,10 @@ thing_type = input("What type of thing do you want to get information on? (vm | 
 
 if thing_type == "vm":
     vm = server.get_vm(input("What is the name of the VM you want to get information on? "))
-    vm_utils.print_vm_info(vm, print_uuids=True)
+    logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
 elif thing_type == "datastore":
     ds = server.get_datastore(input("What is the name of the Datastore you want to get information on? "))
-    vsphere_utils.print_datastore_info(ds)
+    logging.info(vsphere_utils.get_datastore_info(ds))
 elif thing_type == "vsphere":
     logging.info("%s", str(server.content.about))
 else:

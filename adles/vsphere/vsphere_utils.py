@@ -384,15 +384,15 @@ def get_datastore_info(ds_obj):
     ds_overp = ds_provisioned - ds_capacity
     ds_overp_pct = (ds_overp * 100) / ds_capacity if ds_capacity else 0
 
-    info_string += "Name                  : %s" % summary.name
-    info_string += "URL                   : %s" % summary.url
-    info_string += "Capacity              : %s" % utils.sizeof_fmt(ds_capacity)
-    info_string += "Free Space            : %s" % utils.sizeof_fmt(ds_freespace)
-    info_string += "Uncommitted           : %s" % utils.sizeof_fmt(ds_uncommitted)
-    info_string += "Provisioned           : %s" % utils.sizeof_fmt(ds_provisioned)
+    info_string += "Name                  : %s\n" % summary.name
+    info_string += "URL                   : %s\n" % summary.url
+    info_string += "Capacity              : %s\n" % utils.sizeof_fmt(ds_capacity)
+    info_string += "Free Space            : %s\n" % utils.sizeof_fmt(ds_freespace)
+    info_string += "Uncommitted           : %s\n" % utils.sizeof_fmt(ds_uncommitted)
+    info_string += "Provisioned           : %s\n" % utils.sizeof_fmt(ds_provisioned)
     if ds_overp > 0:
-        info_string += "Over-provisioned      : %s / %s %%" % (utils.sizeof_fmt(ds_overp), ds_overp_pct)
-    info_string += "Hosts                 : %s" % str(len(ds_obj.host))
+        info_string += "Over-provisioned      : %s / %s %%\n" % (utils.sizeof_fmt(ds_overp), ds_overp_pct)
+    info_string += "Hosts                 : %s\n" % str(len(ds_obj.host))
     info_string += "Virtual Machines      : %s" % str(len(ds_obj.vm))
     return info_string
 
