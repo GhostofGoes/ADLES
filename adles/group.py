@@ -21,30 +21,35 @@ class Group:
     def __init__(self, name, group, instance=None):
         """
         :param name: Name of the group
-        :param group: Dict specification of a group
+        :param group: Dict specification of the group
         :param instance: Instance number of a template group [default: None]
         """
+        logging.debug("Initializing Group '%s'", name)
 
         if type(group) != dict:
             logging.error("Class Group must be initialized with a dict, not %s", str(type(group)))
             raise Exception()
 
-        logging.debug("Initializing Group %s", name)
         if "ad-group" in group:
             # TODO: implement AD group instances in the case of a template group
             # TODO: implement active directory group retrieval...will need to get AD server info
-            self.users = [("bobby", "easy-password")]
+            users = [("bobby", "easy-password")]
+
         elif "filename" in group:
             from adles.utils import read_json
             if instance:    # Template group
-                self.users = [(user, pw) for user, pw in read_json(group["filename"])[str(instance)].items()]
+                users = [(user, pw) for user, pw in read_json(group["filename"])[str(instance)].items()]
             else:           # Standard group
-                self.users = [(user, pw) for user, pw in read_json(group["filename"]).items()]
+                users = [(user, pw) for user, pw in read_json(group["filename"]).items()]
+
         elif "user-list" in group:
-            self.users = group["user-list"]
+            users = group["user-list"]
+
         else:
             logging.error("Invalid group: %s", str(group))
             raise Exception()
 
+        self.users = users
         self.size = int(len(self.users))
         self.name = name
+        logging.debug("Finished initializing Group '%s'")

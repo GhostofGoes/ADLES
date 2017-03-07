@@ -24,7 +24,7 @@ from .vsphere_utils import get_obj, get_objs, get_item, get_in_folder, create_fo
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.7.0"
+    __version__ = "0.7.1"
 
     def __init__(self, username, password, hostname, datacenter=None, datastore=None, port=443, use_ssl=False):
         """
@@ -36,21 +36,21 @@ class Vsphere:
         :param datacenter: Name of datacenter that will be used [default: First datacenter found on server]
         :param port: Port used to connect to vCenter instance [default: 443]
         """
-        logging.debug("Initializing vSphere - Host: %s:%d\tUsername: %s\tDatacenter: %s\tDatastore: %s",
-                      hostname, int(port), username, datacenter, datastore)
+        logging.debug("Initializing vSphere - Datacenter: %s\tDatastore: %s", datacenter, datastore)
         if not password:
             from getpass import getpass
             password = getpass('Enter password for host %s and user %s: ' % (hostname, username))
         try:
+            logging.debug("Connecting to vSphere host %s:%d with username '%s'", hostname, int(port), username)
             if use_ssl:  # Connect to server using SSL certificate verification
                 self.server = SmartConnect(host=hostname, user=username, pwd=password, port=int(port))
             else:
                 self.server = SmartConnectNoSSL(host=hostname, user=username, pwd=password, port=int(port))
         except Exception as e:
-            logging.error("Error occurred while trying to connect to vCenter: %s", str(e))
+            logging.error("An error occurred while trying to connect to vSphere: %s", str(e))
 
         if not self.server:
-            logging.error("Could not connect to host %s with username %s", hostname, username)
+            logging.error("Could not connect to vSphere host %s with username %s", hostname, username)
             raise Exception()
 
         from atexit import register
@@ -82,7 +82,6 @@ class Vsphere:
                 parent = create_in  # create_in is a vim.Folder object, so we just assign it
         else:
             parent = self.content.rootFolder  # Default to using the server root folder
-            # return self.content.rootFolder.CreateFolder(folder_name)
         return create_folder(folder=parent, folder_name=folder_name)
 
     # TODO: generate_vm_spec
@@ -133,7 +132,6 @@ class Vsphere:
         :return: vim.VirtualMachine object
         """
         return get_item(self.content, vim.VirtualMachine, vm_name)
-        # return get_in_folder(self.datacenter.vmFolder, vm_name, True, vim.VirtualMachine)
 
     def get_network(self, network_name=None, distributed=False):
         """
@@ -186,27 +184,6 @@ class Vsphere:
         :return: List of vim.VirtualMachine objects
         """
         return get_objs(self.content, [vim.VirtualMachine], container=self.datacenter.vmFolder, recursive=True)
-
-    def get_obj(self, vimtype, name, container=None, recursive=True):
-        """
-        Finds and returns named vSphere object of specified type
-        :param vimtype: List of vimtype objects to look for
-        :param name: string name of the object
-        :param container: Container to search in [default: content.rootFolder]
-        :param recursive: Recursively descend or only look in the current level [default: True]
-        :return: The vimtype object found with the specified name, or None if no object was found
-        """
-        get_obj(self.content, vimtype, name, container, recursive)
-
-    def get_objs(self, vimtype, container=None, recursive=True):
-        """
-        Get all the vSphere objects associated with a given type
-        :param vimtype: List of vimtype objects to look for
-        :param container: Container to search in [default: content.rootFolder]
-        :param recursive: Recursively descend or only look in the current level [default: True]
-        :return: List of all vimtype objects found, or None if none were found
-        """
-        get_objs(self.content, vimtype, container, recursive)
 
     def __repr__(self):
         return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name, self.hostname, self.port)

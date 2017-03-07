@@ -76,6 +76,7 @@ def create_vm(folder, config, pool, host=None):
 
 
 @check_vm
+@utils.time_execution
 def destroy_vm(vm):
     """
     Destroys a Virtual Machine

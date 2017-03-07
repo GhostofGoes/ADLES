@@ -64,6 +64,7 @@ def get_net_objs(host, object_type, refresh=False):
     """
     if refresh:
         host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any changes that might have occurred
+
     net_type = object_type.lower()
     if net_type == "portgroup":
         objects = host.configManager.networkSystem.networkInfo.portgroup
@@ -89,8 +90,10 @@ def create_vswitch(name, host, num_ports=512):
     :param num_ports: Number of ports the vSwitch should have [default: 512]
     """
     logging.info("Creating vSwitch %s with %s ports on host %s", name, str(num_ports), host.name)
+
     vswitch_spec = vim.host.VirtualSwitch.Specification()
     vswitch_spec.numPorts = num_ports
+
     try:
         host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
     except vim.fault.AlreadyExists:
@@ -110,6 +113,7 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     """
     logging.info("Creating PortGroup %s on vSwitch %s on host %s", name, vswitch_name, host.name)
     logging.debug("VLAN ID: %d \t Promiscuous: %s", vlan, str(promiscuous))
+
     spec = vim.host.PortGroup.Specification()
     spec.name = name
     spec.vlanId = int(vlan)
@@ -138,14 +142,14 @@ def delete_network(name, host, network_type):
     :param host: vim.HostSystem to delete network from
     :param network_type: Type of the network to remove ("vswitch" | "portgroup")
     """
-    logging.info("Deleting %s %s from host %s", network_type, name, host.name)
+    logging.info("Deleting %s '%s' from host '%s'", network_type, name, host.name)
+
     try:
         if network_type.lower() == "vswitch":
             host.configManager.networkSystem.RemoveVirtualSwitch(name)
         elif network_type.lower() == "portgroup":
             host.configManager.networkSystem.RemovePortGroup(name)
     except vim.fault.NotFound:
-        logging.error("Tried to remove a %s %s that does not exist from host %s", network_type, name, host.name)
+        logging.error("Tried to remove %s '%s' that does not exist from host '%s'", network_type, name, host.name)
     except vim.fault.ResourceInUse:
-        logging.error("%s %s can't be removed because there are virtual network adapters associated with it",
-                      network_type, name)
+        logging.error("%s '%s' can't be removed because there are vNICs associated with it", network_type, name)

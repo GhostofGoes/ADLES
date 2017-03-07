@@ -56,7 +56,7 @@ class Interface:
             from .vsphere_interface import VsphereInterface
             self.interface = VsphereInterface(infrastructure=infrastructure, logins=logins, groups=groups, spec=spec)
         else:
-            logging.error("Invalid platform %s", infrastructure["platform"])
+            logging.error("Invalid platform: %s", infrastructure["platform"])
             exit(1)
 
     @time_execution

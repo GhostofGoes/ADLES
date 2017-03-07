@@ -178,12 +178,12 @@ def time_execution(func):
     :param func: The function to time execution of
     :return: The function
     """
-    from time import time
+    from timeit import default_timer
 
     def wrapper(*args, **kwargs):
-        start_time = time()
+        start_time = default_timer()
         ret = func(*args, **kwargs)
-        end_time = time()
+        end_time = default_timer()
         logging.debug("Elapsed time for %s: %f seconds", str(func.__name__), float(end_time - start_time))
         return ret
     return wrapper

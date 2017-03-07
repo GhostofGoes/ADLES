@@ -30,7 +30,6 @@ def wait_for_task(task):
         return None
     while True:
         if task.info.state == 'success':
-            logging.debug("Task result: '%s'", str(task.info.result))
             return task.info.result
         elif task.info.state == 'error':
             logging.error("There was an error while completing a task: '%s'", str(task.info.error.msg))
@@ -187,18 +186,19 @@ def traverse_path(root, path):
     :param path: String with path in POSIX format (Example: Templates/Servers/Windows/ to get the 'Windows' folder)
     :return: Object at end of path
     """
-    logging.debug("Traversing path. Root: '%s'\tPath: '%s'", root.name, path)
-    folder_path, name = split(path)         # Separate basename, if any
+    logging.debug("Traversing path '%s' from root '%s'", path, root.name)
+
+    folder_path, name = split(path)                 # Separate basename, if any
     folder_path = folder_path.lower().split('/')    # Transform into list
 
-    current = root
-    for folder in folder_path:
-        for item in current.childEntity:
-            if is_folder(item) and item.name.lower() == folder:
-                current = item      # Found the next folder in path,
-                break               # Break to check this folder for next part of the path
+    current = root                          # Start with the defined root
+    for folder in folder_path:              # Try each folder name in the path
+        for item in current.childEntity:    # Iterate through items in the current folder
+            if is_folder(item) and item.name.lower() == folder:  # Match if the item is part of the path
+                current = item      # This is the next folder in the path
+                break               # Break to outer loop to check this folder for the next part of the path
 
-    if name:  # Look for item with a specific name
+    if name:  # Look for item with a specific name (basically, the split had a basename)
         for item in current.childEntity:
             if (is_vm(item) or is_folder(item)) and item.name.lower() == name.lower():
                 return item
@@ -306,31 +306,34 @@ def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False, destroy
     import adles.vsphere.vm_utils as vm_utils
 
     for item in folder.childEntity:
-        if is_vm(item):  # Handle VMs
-            if vm_prefix:
+        if is_vm(item):         # Handle VMs
+            if vm_prefix:       # If prefix is set, match only if name begins with it
                 if str(item.name).startswith(vm_prefix):  # Only destroy the VM if it begins with the prefix
                     vm_utils.destroy_vm(item)
             else:
                 vm_utils.destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
-        elif is_folder(item):  # Handle folders
-            if folder_prefix:
+        elif is_folder(item):   # Handle folders
+            if folder_prefix:   # If prefix is set, match only if name begins with it
                 if str(item.name).startswith(folder_prefix):
                     if destroy_folders:  # Destroys folder and ALL of it's sub-objects
                         cleanup(folder=item, vm_prefix=None, folder_prefix=None, recursive=True,
                                 destroy_folders=True, destroy_self=True)
-                    elif recursive:
+                    elif recursive:  # Simply recurses to find more VMs
                         cleanup(folder=item, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=True,
                                 destroy_folders=False, destroy_self=False)
             else:
                 if destroy_folders:  # Destroys folder and ALL of it's sub-objects
-                    cleanup(item, None, True, True, True)
-                elif recursive:
-                    cleanup(item, vm_prefix, True, False, False)
+                    cleanup(folder=item, vm_prefix=None, folder_prefix=None, recursive=True,
+                            destroy_folders=True, destroy_self=True)
+                elif recursive:  # Simply recurses to find more items
+                    cleanup(folder=item, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=True,
+                            destroy_folders=False, destroy_self=False)
         else:  # It's not a VM or a folder...
             logging.error("Unknown item encountered while cleaning in folder '%s': %s", folder.name, str(item))
-    if destroy_self:  # Note: UnregisterAndDestroy does not delete VM files off datastore
+
+    if destroy_self:  # Note: UnregisterAndDestroy does NOT delete VM files off datastore. Only use if folder is empty.
         logging.debug("Unregistering and Destroying folder: '%s'", folder.name)
-        wait_for_task(folder.UnregisterAndDestroy_Task())  # Final cleanup
+        wait_for_task(folder.UnregisterAndDestroy_Task())  # Remove folder and anything left inside it
 
 
 @check_folder
@@ -357,7 +360,7 @@ def retrieve_items(folder, prefix=None, recursive=False):
             elif is_folder(item):
                 folders.append(item)
 
-        if recursive and is_folder(item):
+        if recursive and is_folder(item):  # Recurse into sub-folders
             v, f = retrieve_items(item, prefix, recursive)
             vms.extend(v)
             folders.extend(f)
