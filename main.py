@@ -53,12 +53,12 @@ from docopt import docopt
 
 from adles.interfaces import Interface
 from adles.parser import parse_file, verify_syntax
-from adles.utils import time_execution
+from adles.utils import time_execution, setup_logging
 
 
 @time_execution
 def main():
-    """ Primary entrypoint into the system. Calls the appropirate interfaces or functions based on the arguments """
+    """ Primary entrypoint into the system. Calls the appropriate interfaces or functions based on the arguments """
 
     if args["--spec"]:
         spec = check_syntax(args["--spec"])
@@ -116,6 +116,5 @@ def check_syntax(specfile_path):
 if __name__ == '__main__':
     from adles import __version__
     args = docopt(__doc__, version=__version__, help=True)
-    from adles.utils import setup_logging
     setup_logging(filename='main.log', console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
     main()

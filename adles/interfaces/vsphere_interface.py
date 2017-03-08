@@ -15,7 +15,7 @@
 import logging
 from sys import exit
 
-import adles.vsphere.folder_utils
+import adles.vsphere.folder_utils as futils
 import adles.vsphere.vm_utils as vm_utils
 import adles.vsphere.vsphere_utils as vutils
 from adles.utils import pad
@@ -70,9 +70,9 @@ class VsphereInterface:
         # Set root folder for the exercise, or create if it doesn't yet exist
         self.root_name = (self.metadata["name"] if "folder-name" not in self.metadata else self.metadata["folder-name"])
         self.root_path = self.metadata["root-path"]
-        root = adles.vsphere.folder_utils.traverse_path(self.server_root, self.root_path + self.root_name)
+        root = futils.traverse_path(self.server_root, self.root_path + self.root_name)
         if not root:
-            parent = adles.vsphere.folder_utils.traverse_path(self.server_root, self.root_path)
+            parent = futils.traverse_path(self.server_root, self.root_path)
             self.root_folder = self.server.create_folder(folder_name=self.root_name, create_in=parent)
         else:
             self.root_folder = root
@@ -81,7 +81,7 @@ class VsphereInterface:
         """ Master creation phase """
 
         # Get folder containing templates
-        self.template_folder = adles.vsphere.folder_utils.traverse_path(self.server_root, self.metadata["template-path"])
+        self.template_folder = futils.traverse_path(self.server_root, self.metadata["template-path"])
         if not self.template_folder:
             logging.error("Could not find template folder in path '%s'", self.metadata["template-path"])
             return
@@ -108,7 +108,7 @@ class VsphereInterface:
 
         # Output fully deployed master folder tree to debugging
         logging.debug(
-            adles.vsphere.folder_utils.format_structure(adles.vsphere.folder_utils.enumerate_folder(self.root_folder)))
+            futils.format_structure(futils.enumerate_folder(self.root_folder)))
 
     def _master_folder_gen(self, folder, parent):
         """
@@ -154,12 +154,12 @@ class VsphereInterface:
             if name == service_name and "template" in config:
                 logging.debug("Cloning service '%s'", name)
                 vm_name = VsphereInterface.master_prefix + service_name
-                template = adles.vsphere.folder_utils.traverse_path(self.template_folder, config["template"])
+                template = futils.traverse_path(self.template_folder, config["template"])
                 if not template:
                     logging.error("Could not find template '%s' for service '%s'", config["template"], name)
                     return None
                 vm_utils.clone_vm(vm=template, folder=folder, name=vm_name, clone_spec=self.server.gen_clone_spec())
-                vm = adles.vsphere.folder_utils.traverse_path(folder, vm_name)  # Get new cloned instance
+                vm = futils.traverse_path(folder, vm_name)  # Get new cloned instance
                 if vm:
                     logging.debug("Successfully cloned service '%s' to folder '%s'", service_name, folder.name)
                     if "note" in config:  # Set VM note if specified
@@ -226,7 +226,7 @@ class VsphereInterface:
         """ Environment deployment phase """
 
         # Get the master folder root
-        self.master_folder = adles.vsphere.folder_utils.traverse_path(self.root_folder, VsphereInterface.master_root_name)
+        self.master_folder = futils.traverse_path(self.root_folder, VsphereInterface.master_root_name)
         logging.debug("Master folder name: %s\tPrefix: %s", self.master_folder.name, VsphereInterface.master_prefix)
 
         # Verify and convert to templates
@@ -242,7 +242,7 @@ class VsphereInterface:
 
         # Output fully deployed environment tree to debugging
         logging.debug(
-            adles.vsphere.folder_utils.format_structure(adles.vsphere.folder_utils.enumerate_folder(self.root_folder)))
+            futils.format_structure(futils.enumerate_folder(self.root_folder)))
 
     def _convert_and_verify(self, folder):
         """
@@ -283,7 +283,7 @@ class VsphereInterface:
                 logging.warning("%d service instances in folder '%s' is beyond warning threshold of %d",
                                 num_instances, folder.name, VsphereInterface.service_warn)
 
-            service = adles.vsphere.folder_utils.traverse_path(self.master_folder, VsphereInterface.master_prefix + value["service"])
+            service = futils.traverse_path(self.master_folder, VsphereInterface.master_prefix + value["service"])
             logging.debug("Generating service '%s' in folder '%s'", service_name, folder.name)
             for instance in range(num_instances):
                 instance_name = prefix + service_name + (" " + pad(instance) if num_instances > 1 else "")
@@ -358,14 +358,14 @@ class VsphereInterface:
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
 
-        # Get the folder to cleanup in
-        master_folder = adles.vsphere.folder_utils.find_in_folder(self.root_folder, self.master_root_name)
+        # Get the root master folder to cleanup in
+        master_folder = futils.find_in_folder(self.root_folder, self.master_root_name)
         logging.info("Found master folder '%s' under folder '%s', proceeding with cleanup...",
                      master_folder.name, self.root_folder.name)
 
         # Recursively descend from master folder, destroying anything with the prefix
-        adles.vsphere.folder_utils.cleanup(folder=master_folder, vm_prefix=self.master_prefix,
-                                           recursive=True, destroy_folders=True, destroy_self=True)
+        futils.cleanup(folder=master_folder, vm_prefix=self.master_prefix,
+                       recursive=True, destroy_folders=True, destroy_self=True)
 
         # Cleanup networks (TODO: use network folders to aid in this, during creation phase)
         if network_cleanup:
@@ -373,6 +373,9 @@ class VsphereInterface:
 
     def cleanup_environment(self, network_cleanup=False):
         """ Cleans up a deployed environment """
+
+        # Get the root environment folder to cleanup in
+        enviro_folder = futils.find_in_folder()
 
         # Cleanup networks (TODO: use network folders to aid in this, during creation phase)
         if network_cleanup:

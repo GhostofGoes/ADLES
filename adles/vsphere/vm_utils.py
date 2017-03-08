@@ -261,7 +261,6 @@ def set_note(vm, note):
     spec = vim.vm.ConfigSpec()
     spec.annotation = note
     edit_vm(vm, spec)
-    # vutils.wait_for_task(vm.ReconfigVM_Task(spec))
 
 
 @check_vm
@@ -390,9 +389,6 @@ def get_vm_info(vm, uuids=False, snapshot=False):
     :param snapshot: Shows the current snapshot, if any [default: False]
     :return: String with the VM information
     """
-    if not vm:
-        logging.error("No VM was given to get_vm_info")
-        return None
     info_string = "\n"
     summary = vm.summary
     info_string += "Name          : %s\n" % summary.config.name
