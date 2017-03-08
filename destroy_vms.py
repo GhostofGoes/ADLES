@@ -34,8 +34,7 @@ from docopt import docopt
 
 from adles.utils import prompt_y_n_question, user_input, default_prompt, script_setup
 import adles.vsphere.vm_utils as vm_utils
-from adles.vsphere.vsphere_utils import cleanup, enumerate_folder, traverse_path, format_structure, retrieve_items
-
+from adles.vsphere.folder_utils import traverse_path, enumerate_folder, format_structure, cleanup, retrieve_items
 
 __version__ = "0.4.0"
 args = docopt(__doc__, version=__version__, help=True)

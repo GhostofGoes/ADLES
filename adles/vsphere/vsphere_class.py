@@ -18,7 +18,8 @@ import logging
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim
 
-from .vsphere_utils import get_obj, get_objs, get_item, get_in_folder, create_folder
+from .vsphere_utils import get_obj, get_objs, get_item
+from adles.vsphere.folder_utils import create_folder, get_in_folder
 
 
 class Vsphere:

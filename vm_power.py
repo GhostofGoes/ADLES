@@ -34,8 +34,8 @@ from docopt import docopt
 
 from adles.utils import prompt_y_n_question, user_input, script_setup
 from adles.vsphere.vm_utils import change_vm_state
-from adles.vsphere.vsphere_utils import traverse_path, is_vm
-
+from adles.vsphere.vsphere_utils import is_vm
+from adles.vsphere.folder_utils import traverse_path
 
 __version__ = "0.3.2"
 args = docopt(__doc__, version=__version__, help=True)

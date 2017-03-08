@@ -15,6 +15,7 @@
 import logging
 from sys import exit
 
+import adles.vsphere.folder_utils
 import adles.vsphere.vm_utils as vm_utils
 import adles.vsphere.vsphere_utils as vutils
 from adles.utils import pad
@@ -69,9 +70,9 @@ class VsphereInterface:
         # Set root folder for the exercise, or create if it doesn't yet exist
         self.root_name = (self.metadata["name"] if "folder-name" not in self.metadata else self.metadata["folder-name"])
         self.root_path = self.metadata["root-path"]
-        root = vutils.traverse_path(self.server_root, self.root_path + self.root_name)
+        root = adles.vsphere.folder_utils.traverse_path(self.server_root, self.root_path + self.root_name)
         if not root:
-            parent = vutils.traverse_path(self.server_root, self.root_path)
+            parent = adles.vsphere.folder_utils.traverse_path(self.server_root, self.root_path)
             self.root_folder = self.server.create_folder(folder_name=self.root_name, create_in=parent)
         else:
             self.root_folder = root
@@ -80,7 +81,7 @@ class VsphereInterface:
         """ Master creation phase """
 
         # Get folder containing templates
-        self.template_folder = vutils.traverse_path(self.server_root, self.metadata["template-path"])
+        self.template_folder = adles.vsphere.folder_utils.traverse_path(self.server_root, self.metadata["template-path"])
         if not self.template_folder:
             logging.error("Could not find template folder in path '%s'", self.metadata["template-path"])
             return
@@ -92,6 +93,12 @@ class VsphereInterface:
         logging.info("Created master folder '%s' under folder '%s'", VsphereInterface.master_root_name, self.root_name)
 
         # Create PortGroups for networks
+        # Networks
+        #   Create folder to hold portgroups (for easy deletion later)
+        #   Create portgroup instances (ensure appending pad() to end of names)
+        #   Create generic-networks
+        #   Create base-networks
+        # TODO: networks
         for net in self.networks:  # Iterate through the base types
             self._create_master_networks(net_type=net, default_create=True)
 
@@ -100,7 +107,8 @@ class VsphereInterface:
         self._master_folder_gen(self.folders, self.master_folder)
 
         # Output fully deployed master folder tree to debugging
-        logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
+        logging.debug(
+            adles.vsphere.folder_utils.format_structure(adles.vsphere.folder_utils.enumerate_folder(self.root_folder)))
 
     def _master_folder_gen(self, folder, parent):
         """
@@ -146,12 +154,12 @@ class VsphereInterface:
             if name == service_name and "template" in config:
                 logging.debug("Cloning service '%s'", name)
                 vm_name = VsphereInterface.master_prefix + service_name
-                template = vutils.traverse_path(self.template_folder, config["template"])
+                template = adles.vsphere.folder_utils.traverse_path(self.template_folder, config["template"])
                 if not template:
                     logging.error("Could not find template '%s' for service '%s'", config["template"], name)
                     return None
                 vm_utils.clone_vm(vm=template, folder=folder, name=vm_name, clone_spec=self.server.gen_clone_spec())
-                vm = vutils.traverse_path(folder, vm_name)  # Get new cloned instance
+                vm = adles.vsphere.folder_utils.traverse_path(folder, vm_name)  # Get new cloned instance
                 if vm:
                     logging.debug("Successfully cloned service '%s' to folder '%s'", service_name, folder.name)
                     if "note" in config:  # Set VM note if specified
@@ -218,20 +226,13 @@ class VsphereInterface:
         """ Environment deployment phase """
 
         # Get the master folder root
-        self.master_folder = vutils.traverse_path(self.root_folder, VsphereInterface.master_root_name)
+        self.master_folder = adles.vsphere.folder_utils.traverse_path(self.root_folder, VsphereInterface.master_root_name)
         logging.debug("Master folder name: %s\tPrefix: %s", self.master_folder.name, VsphereInterface.master_prefix)
 
         # Verify and convert to templates
         # This is to ensure they are preserved throughout creation and execution of exercise
         logging.info("Converting Masters to Templates")
         self._convert_and_verify(folder=self.master_folder)
-
-        # Networks
-        #   Create folder to hold portgroups (for easy deletion later)
-        #   Create portgroup instances (ensure appending pad() to end of names)
-        #   Create generic-networks
-        #   Create base-networks
-        # TODO: networks
 
         # Deployment
         #   Create folder structure
@@ -240,7 +241,8 @@ class VsphereInterface:
         self._deploy_folder_gen(self.folders, self.root_folder)
 
         # Output fully deployed environment tree to debugging
-        logging.debug(vutils.format_structure(vutils.enumerate_folder(self.root_folder)))
+        logging.debug(
+            adles.vsphere.folder_utils.format_structure(adles.vsphere.folder_utils.enumerate_folder(self.root_folder)))
 
     def _convert_and_verify(self, folder):
         """
@@ -281,7 +283,7 @@ class VsphereInterface:
                 logging.warning("%d service instances in folder '%s' is beyond warning threshold of %d",
                                 num_instances, folder.name, VsphereInterface.service_warn)
 
-            service = vutils.traverse_path(self.master_folder, VsphereInterface.master_prefix + value["service"])
+            service = adles.vsphere.folder_utils.traverse_path(self.master_folder, VsphereInterface.master_prefix + value["service"])
             logging.debug("Generating service '%s' in folder '%s'", service_name, folder.name)
             for instance in range(num_instances):
                 instance_name = prefix + service_name + (" " + pad(instance) if num_instances > 1 else "")
@@ -357,13 +359,13 @@ class VsphereInterface:
         """ Cleans up any master instances"""
 
         # Get the folder to cleanup in
-        master_folder = vutils.find_in_folder(self.root_folder, self.master_root_name)
+        master_folder = adles.vsphere.folder_utils.find_in_folder(self.root_folder, self.master_root_name)
         logging.info("Found master folder '%s' under folder '%s', proceeding with cleanup...",
                      master_folder.name, self.root_folder.name)
 
         # Recursively descend from master folder, destroying anything with the prefix
-        vutils.cleanup(folder=master_folder, vm_prefix=self.master_prefix,
-                       recursive=True, destroy_folders=True, destroy_self=True)
+        adles.vsphere.folder_utils.cleanup(folder=master_folder, vm_prefix=self.master_prefix,
+                                           recursive=True, destroy_folders=True, destroy_self=True)
 
         # Cleanup networks (TODO: use network folders to aid in this, during creation phase)
         if network_cleanup:
