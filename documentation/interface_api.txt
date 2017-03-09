@@ -2,47 +2,108 @@
 
 
 package "Core Application" {
-object main
-object parser {
-parse_file(filename)
-verify_syntax(spec)
+    object main {
+        + main()
+        + check_syntax()
+    }
+
+    object parser {
+        + parse_file()
+        + verify_syntax()
+    }
+
+    object utils {
+        + setup_logging()
+        + time_execution()
+        + make_vsphere()
+        + script_setup()
+    }
+
+    main -> parser
 }
-}
+
 
 package "Platform Interfaces" {
-interface Interface {
-__init__(spec)
-create_masters()
-deploy_environment()
+
+    interface Interface {
+        + create_masters()
+        + deploy_environment()
+        + cleanup_masters()
+        + cleanup_environment()
+    }
+
+    class Group {
+        + name
+        + size
+        + users
+    }
+    Interface -- Group
+
+    package "VMware vSphere" {
+
+        class VsphereInterface {
+            + create_masters()
+            + cleanup_masters()
+            - _master_folder_gen()
+            - _clone_service()
+            - _create_master_networks()
+            - _configure_nics()
+            + deploy_environment()
+            + cleanup_environment()
+            - _convert_and_verify()
+            - _gen_services()
+            - _parent_folder_gen()
+            - _deploy_folder_gen()
+            - _instances_handler()
+        }
+
+        class vSphere {
+            + server
+            + create_folder()
+            + gen_clone_spec()
+            + set_motd()
+            + get_folder()
+            + get_vm()
+            + get_network()
+            + get_host()
+            + get_cluster()
+            + get_datastore()
+            + get_pool()
+            + get_all_vms()
+        }
+
+        class pyvmomi {
+
+        }
+
+        Interface -- VsphereInterface
+        VsphereInterface -> vSphere
+        vSphere -> pyvmomi
+    }
+
+    package "Docker" {
+
+        class DockerInterface {
+            + create_masters()
+            + cleanup_masters()
+            + deploy_environment()
+            + cleanup_environment()
+        }
+
+        class Docker {
+
+        }
+
+        class dockerpy {
+
+        }
+
+        Interface -- DockerInterface
+        DockerInterface -> Docker
+        Docker -> dockerpy
+    }
 }
 
-
-package "VMware vSphere" {
-class VsphereInterface {
-__init__(infrastructure, logins, spec)
-
-}
-class vSphere
-class pyvmomi
-Interface <|-- VsphereInterface
-VsphereInterface -> vSphere
-vSphere -> pyvmomi
-}
-
-package "Docker" {
-class DockerInterface {
-__init__(infrastructure, logins, spec)
-}
-class Docker
-class dockerpy
-Interface <|-- DockerInterface
-DockerInterface -> Docker
-Docker -> dockerpy
-}
-
-
-}
 main -> Interface
-main -> parser
 
 @enduml

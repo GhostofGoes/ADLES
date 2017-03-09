@@ -61,7 +61,7 @@ from adles.utils import time_execution, setup_logging
 @time_execution
 def main():
     """ Primary entrypoint into the system.
-    Calls the appropirate interfaces or functions based on the arguments """
+    Calls the appropirate interfaces or functions based on the arguments. """
 
     if args["--spec"]:
         spec = check_syntax(args["--spec"])
@@ -72,15 +72,13 @@ def main():
                          str(spec["metadata"]["name"]))
         elif args["--deploy"]:
             interface.deploy_environment()
-            logging.info("Finished deployment of environment %s",
-                         str(spec["metadata"]["name"]))
+            logging.info("Finished deployment of environment %s", str(spec["metadata"]["name"]))
         elif args["--cleanup-masters"]:
             interface.cleanup_masters(args["--network-cleanup"])
         elif args["--cleanup-enviro"]:
             interface.cleanup_environment(args["--network-cleanup"])
         else:
-            logging.error("Invalid flags for --spec. Argument dump:\n%s",
-                          str(args))
+            logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
 
     elif args["--check-syntax"]:
         check_syntax(args["--check-syntax"])
@@ -102,24 +100,20 @@ def check_syntax(specfile_path):
     from os.path import exists, basename
 
     if not exists(specfile_path):
-        logging.error("Could not find specification file in path %s",
-                      str(specfile_path))
+        logging.error("Could not find specification file in path %s", str(specfile_path))
         exit(1)
     spec = parse_file(specfile_path)
-    logging.info("Successfully ingested specification file %s",
-                 str(basename(specfile_path)))
+    logging.info("Successfully ingested specification file %s", str(basename(specfile_path)))
     logging.info("Checking syntax...")
     errors, warnings = verify_syntax(spec)
     if errors == 0 and warnings == 0:
         logging.info("Syntax check successful!")
         return spec
     elif errors == 0:
-        logging.info("Syntax check successful, but there were %d warnings",
-                     warnings)
+        logging.info("Syntax check successful, but there were %d warnings", warnings)
         return spec
     else:
-        logging.error("Syntax check failed! Errors: %d\tWarnings: %d",
-                      errors, warnings)
+        logging.error("Syntax check failed! Errors: %d\tWarnings: %d", errors, warnings)
         exit(1)
 
 
@@ -127,9 +121,7 @@ if __name__ == '__main__':
     from adles import __version__
     args = docopt(__doc__, version=__version__, help=True)
 
-    from adles.utils import setup_logging
     colors = (True if args["--no-color"] else False)
-    setup_logging(filename='main.log', colors=colors,
-                  console_verbose=args["--verbose"])
+    setup_logging(filename='main.log', colors=colors, console_verbose=args["--verbose"])
 
     main()

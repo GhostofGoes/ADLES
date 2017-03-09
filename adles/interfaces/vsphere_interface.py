@@ -64,8 +64,7 @@ class VsphereInterface:
 
         # Set the server root
         if "server-root" in infrastructure:
-            self.server_root = self.server.get_folder(
-                infrastructure["server-root"])
+            self.server_root = self.server.get_folder(infrastructure["server-root"])
         else:
             self.server_root = self.server.datacenter.vmFolder
 
@@ -75,8 +74,7 @@ class VsphereInterface:
         else:
             self.root_name = self.metadata["folder-name"]
         self.root_path = self.metadata["root-path"]
-        root = futils.traverse_path(self.server_root,
-                                    self.root_path + self.root_name)
+        root = futils.traverse_path(self.server_root, self.root_path + self.root_name)
         if not root:
             parent = futils.traverse_path(self.server_root, self.root_path)
             self.root_folder = self.server.create_folder(
@@ -95,8 +93,7 @@ class VsphereInterface:
                           self.metadata["template-path"])
             return
         else:
-            logging.debug("Found template folder: '%s'",
-                          self.template_folder.name)
+            logging.debug("Found template folder: '%s'", self.template_folder.name)
 
         # Create master folder to hold base service instances
         self.master_folder = self.server.create_folder(
@@ -208,7 +205,8 @@ class VsphereInterface:
                 if default_create:
                     logging.debug("Creating")
                     vlan = (int(config["vlan"]) if "vlan" in config else 0)  # Set the VLAN
-                    create_portgroup(name=name, host=host, vswitch_name=config["vswitch"], vlan=vlan, promiscuous=False)
+                    create_portgroup(name=name, host=host, vswitch_name=config["vswitch"],
+                                     vlan=vlan, promiscuous=False)
 
     def _configure_nics(self, vm, networks):
         """
@@ -321,7 +319,7 @@ class VsphereInterface:
         """
         Generates parent-type folder trees
         :param folder: vim.Folder
-        :param spec:
+        :param spec: Dict with folder specification
         """
         for sub_name, sub_value in spec.items():
             if sub_name == "instances":
@@ -364,7 +362,7 @@ class VsphereInterface:
     def _instances_handler(self, value):
         """
         Determines number of instances in accordance with the specification
-        :param value:
+        :param value: Dict of folder
         :return: number of instances
         """
         num = 1
