@@ -15,6 +15,8 @@
 import logging
 from os.path import split
 
+from pyVmomi import vim
+
 from adles.vsphere.vsphere_utils import is_folder, is_vm, wait_for_task
 
 

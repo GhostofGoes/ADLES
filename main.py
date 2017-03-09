@@ -29,7 +29,7 @@ Usage:
 Options:
     -h, --help                  Shows this help
     --version                   Prints current version
-    --no-color                  Do not color termianl output
+    --no-color                  Do not color terminal output
     -v, --verbose               Emit debugging logs to terminal
     -c, --check-syntax FILE     Validates syntax is valid per specification
     -s, --spec FILE             YAML file with the environment specification
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     from adles import __version__
     args = docopt(__doc__, version=__version__, help=True)
 
-    colors = (True if args["--no-color"] else False)
+    colors = (False if args["--no-color"] else True)
     setup_logging(filename='main.log', colors=colors, console_verbose=args["--verbose"])
 
     main()

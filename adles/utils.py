@@ -165,17 +165,14 @@ def setup_logging(filename, colors=True, console_verbose=False,
         try:
             # noinspection PyUnresolvedReferences
             from colorlog import ColoredFormatter
-            console.setFormatter(
-                ColoredFormatter(fmt="%(log_color)s" + base_format,
-                                 datefmt=time_format, reset=True))
+            formatter = ColoredFormatter(fmt="%(log_color)s" + base_format,
+                                         datefmt=time_format, reset=True)
             logging.debug("Configured COLORED console logging output")
         except ImportError:
-            logging.error("Colorlog is not installed")
-            print("(ERROR) Colorlog must be installed to color logs")
-            console.setFormatter(formatter)
+            logging.error("Colorlog is not installed. Using STANDARD console output...")
     else:  # Bland console output
-        console.setFormatter(formatter)
         logging.debug("Configured STANDARD console logging output")
+    console.setFormatter(formatter)
     console.setLevel(console_verbose)
     logger.addHandler(console)
 
@@ -300,7 +297,7 @@ def script_setup(logging_filename, args, script=None):
     """
 
     # Setup logging
-    colors = (True if args["--no-color"] else False)
+    colors = (False if args["--no-color"] else True)
     setup_logging(filename=logging_filename, colors=colors,
                   console_verbose=args["--verbose"])
 
@@ -311,8 +308,7 @@ def script_setup(logging_filename, args, script=None):
         logging.debug("Script name      %s", os.path.basename(script[0]))
         logging.debug("Script version   %s", script[1])
         logging.debug("Adles version    %s", adles_version)
-        logging.debug("Vsphere version  %s\n\n\n", Vsphere.__version__)
-        print('\n' * 3)
+        logging.debug("Vsphere version  %s\n\n", Vsphere.__version__)
         print(script_warning_prompt())  # Print warning for script users
 
     # Create the vsphere object and return it

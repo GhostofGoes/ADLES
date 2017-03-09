@@ -23,7 +23,7 @@ Usage:
 Options:
     -h, --help          Prints this page
     --version           Prints current version
-    --no-color          Do not color termianl output
+    --no-color          Do not color terminal output
     -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
 
