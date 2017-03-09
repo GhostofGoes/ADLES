@@ -16,15 +16,16 @@
 """Destroy VMs and Folders in a vSphere environment.
 
 Usage:
-    destroy_vms.py [-v] [-f FILE]
+    destroy_vms.py [options]
     destroy_vms.py --version
     destroy_vms.py (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
+    --no-color          Do not color termianl output
+    -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
-    -v, --verbose       Verbose output of whats going on
 
 """
 

@@ -76,7 +76,7 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
     :return: Object found or None if nothing was found
     """
     for item in folder.childEntity:
-        if hasattr(item, 'name') and item.name.lower() == name.lower():  # Check if it has name, and if the name matches
+        if hasattr(item, 'name') and item.name.lower() == name.lower():  # Check if the name matches
             if vimtype and not isinstance(item, vimtype):
                 continue
             return item
@@ -102,8 +102,8 @@ def traverse_path(root, path):
     for folder in folder_path:              # Try each folder name in the path
         for item in current.childEntity:    # Iterate through items in the current folder
             if is_folder(item) and item.name.lower() == folder:  # Match if the item is part of the path
-                current = item      # This is the next folder in the path
-                break               # Break to outer loop to check this folder for the next part of the path
+                current = item  # This is the next folder in the path
+                break           # Break to outer loop to check this folder for the next part of the path
 
     if name:  # Look for item with a specific name (basically, the split had a basename)
         for item in current.childEntity:
@@ -137,6 +137,7 @@ def enumerate_folder(folder, recursive=True):
     return '+ ' + folder.name, children  # Return tuple of parent and children
 
 
+# Similar to: https://docs.python.org/3/library/pprint.html
 def format_structure(structure, indent=4, _depth=0):
     """
     Converts a nested structure of folders into a formatted string
@@ -157,7 +158,8 @@ def format_structure(structure, indent=4, _depth=0):
     elif type(structure) == str:
         fmat += newline + structure
     else:
-        logging.error("Unexpected type in folder structure for item %s: %s", str(structure), str(type(structure)))
+        logging.error("Unexpected type in folder structure for item %s: %s",
+                      str(structure), str(type(structure)))
     return fmat
 
 
@@ -198,7 +200,8 @@ def create_folder(folder, folder_name):
 
 
 @check_folder
-def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False, destroy_folders=False, destroy_self=False):
+def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False,
+            destroy_folders=False, destroy_self=False):
     """
     Destroys VMs and (optionally) folders under the specified folder.
     :param folder: vim.Folder object
@@ -215,9 +218,9 @@ def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False, destroy
         if is_vm(item):         # Handle VMs
             if vm_prefix:       # If prefix is set, match only if name begins with it
                 if str(item.name).startswith(vm_prefix):  # Only destroy the VM if it begins with the prefix
-                    vm_utils.destroy_vm(item)
+                    vm_utils.destroy_vm(item)  # Delete the VM from the Datastore and remove from registry
             else:
-                vm_utils.destroy_vm(item)  # This ensures the VM folders get deleted off the datastore
+                vm_utils.destroy_vm(item)  # Delete the VM from the Datastore and remove from registry
         elif is_folder(item):   # Handle folders
             if folder_prefix:   # If prefix is set, match only if name begins with it
                 if str(item.name).startswith(folder_prefix):
@@ -225,21 +228,23 @@ def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False, destroy
                         cleanup(folder=item, vm_prefix=None, folder_prefix=None, recursive=True,
                                 destroy_folders=True, destroy_self=True)
                     elif recursive:  # Simply recurses to find more VMs
-                        cleanup(folder=item, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=True,
-                                destroy_folders=False, destroy_self=False)
+                        cleanup(folder=item, vm_prefix=vm_prefix, folder_prefix=folder_prefix,
+                                recursive=True, destroy_folders=False, destroy_self=False)
             else:
                 if destroy_folders:  # Destroys folder and ALL of it's sub-objects
                     cleanup(folder=item, vm_prefix=None, folder_prefix=None, recursive=True,
                             destroy_folders=True, destroy_self=True)
                 elif recursive:  # Simply recurses to find more items
-                    cleanup(folder=item, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=True,
-                            destroy_folders=False, destroy_self=False)
+                    cleanup(folder=item, vm_prefix=vm_prefix, folder_prefix=folder_prefix,
+                            recursive=True, destroy_folders=False, destroy_self=False)
         else:  # It's not a VM or a folder...
-            logging.error("Unknown item encountered while cleaning in folder '%s': %s", folder.name, str(item))
+            logging.error("Unknown item encountered while cleaning in folder '%s': %s",
+                          folder.name, str(item))
 
-    if destroy_self:  # Note: UnregisterAndDestroy does NOT delete VM files off datastore. Only use if folder is empty.
+    # Note: UnregisterAndDestroy does NOT delete VM files off datastore, only use if folder is empty
+    if destroy_self:
         logging.debug("Unregistering and Destroying folder: '%s'", folder.name)
-        wait_for_task(folder.UnregisterAndDestroy_Task())  # Remove folder and anything left inside it
+        wait_for_task(folder.UnregisterAndDestroy_Task())
 
 
 @check_folder

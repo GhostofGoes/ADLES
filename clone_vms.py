@@ -16,15 +16,16 @@
 """Clone multiple Virtual Machines in vSphere.
 
 Usage:
-    clone_vms.py [-v] [-f FILE]
+    clone_vms.py [options]
     clone_vms.py --version
     clone_vms.py (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
+    --no-color          Do not color termianl output
+    -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
-    -v, --verbose       Verbose output of whats going on
 
 """
 

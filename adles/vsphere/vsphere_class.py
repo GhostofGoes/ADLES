@@ -27,7 +27,9 @@ class Vsphere:
 
     __version__ = "0.7.1"
 
-    def __init__(self, username, password, hostname, datacenter=None, datastore=None, port=443, use_ssl=False):
+    def __init__(self, username, password, hostname,
+                 datacenter=None, datastore=None,
+                 port=443, use_ssl=False):
         """
         Connects to a vCenter server and initializes a class instance.
         :param username: Username of account to login with
@@ -42,20 +44,24 @@ class Vsphere:
             from getpass import getpass
             password = getpass('Enter password for host %s and user %s: ' % (hostname, username))
         try:
-            logging.debug("Connecting to vSphere host %s:%d with username '%s'", hostname, int(port), username)
+            logging.debug("Connecting to vSphere host %s:%d with username '%s'",
+                          hostname, int(port), username)
             if use_ssl:  # Connect to server using SSL certificate verification
-                self.server = SmartConnect(host=hostname, user=username, pwd=password, port=int(port))
+                self.server = SmartConnect(host=hostname, user=username, pwd=password,
+                                           port=int(port))
             else:
-                self.server = SmartConnectNoSSL(host=hostname, user=username, pwd=password, port=int(port))
+                self.server = SmartConnectNoSSL(host=hostname, user=username, pwd=password,
+                                                port=int(port))
         except Exception as e:
             logging.error("An error occurred while trying to connect to vSphere: %s", str(e))
 
         if not self.server:
-            logging.error("Could not connect to vSphere host %s with username %s", hostname, username)
+            logging.error("Could not connect to vSphere host %s with username %s",
+                          hostname, username)
             raise Exception()
 
         from atexit import register
-        register(Disconnect, self.server)  # Ensures connection to server is closed upon script termination
+        register(Disconnect, self.server)  # Ensures connection to server is closed upon exit
 
         self.user = username
         self.hostname = hostname
@@ -184,11 +190,13 @@ class Vsphere:
         Finds and returns all VMs registered in the Datacenter
         :return: List of vim.VirtualMachine objects
         """
-        return get_objs(self.content, [vim.VirtualMachine], container=self.datacenter.vmFolder, recursive=True)
+        return get_objs(self.content, [vim.VirtualMachine],
+                        container=self.datacenter.vmFolder, recursive=True)
 
     def __repr__(self):
-        return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name, self.hostname, self.port)
+        return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name,
+                                               self.hostname, self.port)
 
     def __str__(self):
-        return "Datacenter: {} \tDatastore: {} \tServer: {}:{}".format(self.datacenter.name, self.datastore.name,
-                                                                       self.hostname, self.port)
+        return "Datacenter: {} \tDatastore: {} \tServer: {}:{}".\
+            format(self.datacenter.name, self.datastore.name, self.hostname, self.port)

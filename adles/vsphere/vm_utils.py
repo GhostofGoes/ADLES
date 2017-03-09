@@ -45,7 +45,7 @@ def clone_vm(vm, folder, name, clone_spec):
     :param vm: vim.VirtualMachine object
     :param folder: vim.Folder object in which to create the clone
     :param name: String name of the new VM
-    :param clone_spec: vim.vm.CloneSpec for the new VM ( CloneSpec docs: pyvmomi/docs/vim/vm/CloneSpec.rst )
+    :param clone_spec: vim.vm.CloneSpec for the new VM
     """
     if is_template(vm) and not bool(clone_spec.location.pool):
         logging.error("Cannot clone Template %s without specifying a resource pool", vm.name)
@@ -86,7 +86,7 @@ def destroy_vm(vm):
     logging.info("Destroying VM %s", name)
     if powered_on(vm):
         logging.info("VM %s is still on, powering off before destroying...", name)
-        change_vm_state(vm, "off", attempt_guest=False)  # Could do TerminateVM() here as well...but it's not blocking
+        change_vm_state(vm, "off", attempt_guest=False)
     vutils.wait_for_task(vm.Destroy_Task())
 
 
@@ -128,16 +128,18 @@ def change_vm_state(vm, state, attempt_guest=True):
         logging.error("VM '%s' is a Template, so state cannot be changed to '%s'", vm.name, state)
         return
     try:
-        if attempt_guest and has_tools(vm) and state != "on":  # Can't power on using guest operations
+        if attempt_guest and has_tools(vm) and state != "on":  # Can't power on using guest ops
             change_guest_state(vm, state)
         else:
             change_power_state(vm, state)
     except vim.fault.InvalidPowerState as e:
-        logging.error("Cannot change '%s' in power state '%s' to '%s'", vm.name, e.existingState, state)
+        logging.error("Cannot change '%s' in power state '%s' to '%s'",
+                      vm.name, e.existingState, state)
     except vmodl.fault.NotSupported:
         logging.error("Cannot change power state of '%s': it is a template", vm.name)
     except vim.fault.TaskInProgress as e:
-        logging.error("Cannot change power state of '%s': Task '%s' in progress", vm.name, e.task)
+        logging.error("Cannot change power state of '%s': Task '%s' in progress",
+                      vm.name, e.task)
     except vim.fault.InvalidState:
         logging.error("Cannot change power state of '%s': it is in an invalid state ", vm.name)
 
@@ -233,7 +235,8 @@ def convert_to_template(vm):
         logging.debug("Converting VM %s to Template", vm.name)
         vutils.wait_for_task(vm.MarkAsTemplate())
     except vim.fault.InvalidPowerState as e:
-        logging.error("Cannot convert '%s' to a template while in state '%s'", vm.name, e.existingState)
+        logging.error("Cannot convert '%s' to a template while in state '%s'",
+                      vm.name, e.existingState)
     except vim.fault.InvalidState:
         logging.error("Cannot '%s' to template: it is in an invalid state", vm.name)
 
@@ -246,7 +249,8 @@ def convert_to_vm(vm, resource_pool, host=None):
     :param resource_pool: vim.ResourcePool to associate with the VM
     :param host: (optional) vim.HostSystem on which the VM should run
     """
-    logging.debug("Converting Template '%s' to VM and assigning to resource pool '%s'", vm.name, resource_pool.name)
+    logging.debug("Converting Template '%s' to VM and assigning to resource pool '%s'",
+                  vm.name, resource_pool.name)
     vutils.wait_for_task(vm.MarkAsVirtualMachine(resource_pool, host))
 
 
@@ -274,7 +278,8 @@ def create_snapshot(vm, name, description="default", memory=False):
     :param description: Text description of the snapshot
     """
     logging.info("Creating snapshot '%s' of '%s'", name, vm.name)
-    vutils.wait_for_task(vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True))
+    vutils.wait_for_task(vm.CreateSnapshot_Task(name=name, description=description,
+                                                memory=memory, quiesce=True))
 
 
 @check_vm
@@ -379,7 +384,7 @@ def remove_all_snapshots(vm, consolidate_disks=True):
     vutils.wait_for_task(vm.RemoveAllSnapshots_Task(consolidate_disks))
 
 
-# From: getallvms.py in pyvmomi-community-samples
+# From: getallvms in pyvmomi-community-samples
 @check_vm
 def get_vm_info(vm, uuids=False, snapshot=False):
     """
@@ -430,7 +435,7 @@ def remove_device(vm, device):
     """
     logging.debug("Removing device '%s' from VM '%s'", device.name, vm.name)
     device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-    vutils.wait_for_task(vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device])))  # Apply the change to the VM
+    vutils.wait_for_task(vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device])))
 
 
 @check_vm
@@ -457,7 +462,7 @@ def get_nic(vm, name):
     return None
 
 
-# From: delete_nic_from_vm.py in pyvmomi-community-samples
+# From: delete_nic_from_vm in pyvmomi-community-samples
 @check_vm
 def delete_nic(vm, nic_number):
     """
@@ -477,7 +482,7 @@ def delete_nic(vm, nic_number):
     virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
     virtual_nic_spec.device = virtual_nic_device
 
-    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec])))  # Apply the change to the VM
+    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec])))
 
 
 @check_vm
@@ -510,10 +515,10 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
         nic_spec.device.backing.network = port_group
         nic_spec.device.backing.deviceName = port_group.name
 
-    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))  # Apply the change to the VM
+    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))
 
 
-# From: add_nic_to_vm.py in pyvmomi-community-samples
+# From: add_nic_to_vm in pyvmomi-community-samples
 @check_vm
 def add_nic(vm, network, summary="default-summary", model="e1000"):
     """
@@ -523,8 +528,8 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
     :param summary: Human-readable device info [default: default-summary]
     :param model: Model of virtual network adapter. [default: e1000]
     Options: (e1000 | e1000e | vmxnet | vmxnet2 | vmxnet3)
-    e1000 will work on Windows Server 2003+, and e1000e is supported on Windows Server 2012 and newer.
-    VMXNET adapters require VMware Tools to be installed, and provide significantly enhanced performance.
+    e1000 will work on Windows Server 2003+, and e1000e is supported on Windows Server 2012+.
+    VMXNET adapters require VMware Tools to be installed, and provide enhanced performance.
     Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
     """
     logging.debug("Adding NIC to VM '%s'\nNetwork: '%s'\tSummary: '%s'\tNIC Model: '%s'",
@@ -560,13 +565,13 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
 
     nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
     nic_spec.device.connectable.startConnected = True       # Ensures adapter is connected at boot
-    nic_spec.device.connectable.allowGuestControl = True    # Allows VM guest OS to control device state
+    nic_spec.device.connectable.allowGuestControl = True    # Allows guest OS to control device
     nic_spec.device.connectable.connected = True
     nic_spec.device.connectable.status = 'untried'
 
     # TODO: configure guest IP address if statically assigned
 
-    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))  # Apply the change to the VM
+    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))
 
 
 @check_vm
@@ -589,7 +594,8 @@ def attach_iso(vm, iso_name, datastore, boot=True):
     if controller:
         drive_spec.device.controllerKey = controller.key
     else:
-        logging.error("Could not find a free IDE controller on VM '%s' to attach ISO '%s'", vm.name, iso_name)
+        logging.error("Could not find a free IDE controller on VM '%s' to attach ISO '%s'",
+                      vm.name, iso_name)
         return
 
     drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
@@ -597,7 +603,7 @@ def attach_iso(vm, iso_name, datastore, boot=True):
     drive_spec.device.backing.datastore = datastore  # Set datastore ISO is in
 
     drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-    drive_spec.device.connectable.allowGuestControl = True  # Allows VM guest OS to control device state
+    drive_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
     drive_spec.device.connectable.startConnected = True     # Ensures ISO is connected at boot
 
     drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
@@ -612,7 +618,7 @@ def attach_iso(vm, iso_name, datastore, boot=True):
     vutils.wait_for_task(edit_vm(vm, vm_spec))  # Apply the change to the VM
 
 
-# From: cdrom_vm.py in pyvmomi-community-samples
+# From: cdrom_vm in pyvmomi-community-samples
 @check_vm
 def find_free_ide_controller(vm):
     """

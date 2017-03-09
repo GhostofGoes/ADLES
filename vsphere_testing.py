@@ -16,15 +16,16 @@
 """vsphere_testing. Entrypoint used to test the vSphere class. Has examples of API usage.
 
 Usage:
-    vsphere_testing.py [-v] [-f FILE]
+    vsphere_testing.py [-v] [options]
     vsphere_testing.py --version
     vsphere_testing.py (-h | --help)
 
 Options:
     -h, --help          Shows this help
     --version           Prints current version
-    -f, --file FILE     JSON file with server connection information
-    -v, --verbose       Emits debugging logs to terminal in addition to a file
+    --no-color          Do not color termianl output
+    -v, --verbose       Emit debugging logs to terminal
+    -f, --file FILE     Name of JSON file with server connection information
 
 """
 

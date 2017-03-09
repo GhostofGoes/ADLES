@@ -19,7 +19,7 @@ from sys import stdout
 import os
 
 
-# From: virtual_machine_power_cycle_and_question.py in pyvmomi-community-samples
+# From: virtual_machine_power_cycle_and_question in pyvmomi-community-samples
 def _create_char_spinner():
     """ Creates a generator yielding a char based spinner """
     while True:
@@ -31,16 +31,15 @@ _spinner = _create_char_spinner()
 
 def spinner(label=""):
     """
-    Prints label with a spinner. When called repeatedly from inside a loop this prints a one line CLI spinner.
-    :param label: The message to display while spinning (e.g "Loading", or the current percentage) [default: ""]
+    When called repeatedly from inside a loop this prints a CLI spinner
+    :param label: The message to display while spinning [default: ""]
     """
     stdout.write("\r\t%s %s" % (label, next(_spinner)))
     stdout.flush()
 
 
-# From: list_dc_datastore_info.py in pyvmomi-community-samples
+# From: list_dc_datastore_info in pyvmomi-community-samples
 # http://stackoverflow.com/questions/1094841/
-# Could also use humanize for this sort of thing: https://pypi.python.org/pypi/humanize/0.5.1
 def sizeof_fmt(num):
     """
     Returns the human-readable version of a file size
@@ -86,7 +85,7 @@ def prompt_y_n_question(question, default="no"):
 
 def pad(value, length=2):
     """
-    Adds leading and trailing ("pads") zeros to value to ensure it is a constant length
+    Adds leading and trailing zeros to value ("pads" the value)
     :param value: integer value to pad
     :param length: Length to pad to [default: 2]
     :return: string of padded value
@@ -123,13 +122,14 @@ def file_exists(filename, path):
     return False
 
 
-def setup_logging(filename, colors=True, console_level=logging.INFO, server=('localhost', 514)):
+def setup_logging(filename, colors=True, console_verbose=False,
+                  server=('localhost', 514)):
     """
     Configures the logging interface used by everything for output
     :param filename: Name of file that logs should be saved to
-    :param colors: Whether log output on terminal should be colored (requires colorlog package) [default: True]
-    :param console_level: Level of logs that should be printed to terminal [default: logging.INFO]
-    :param server: (address, port) of a SysLog server to forward logs to [default: (localhost, 514)]
+    :param colors: Color the terminal output [default: True]
+    :param console_verbose: Print DEBUG logs to terminal [default: False]
+    :param server: SysLog server to forward logs to [default: (localhost, 514)]
     """
 
     # Prepend spaces to separate logs from previous
@@ -151,7 +151,8 @@ def setup_logging(filename, colors=True, console_level=logging.INFO, server=('lo
     # Get the global root logger
     logger = logging.root
 
-    # Configure logging to a SysLog server (This prevents students from deleting the log files)
+    # Configure logging to a SysLog server
+    # This prevents students from deleting the log files
     syslog = logging.handlers.SysLogHandler(address=server)
     syslog.setLevel(logging.DEBUG)
     syslog.setFormatter(formatter)
@@ -161,27 +162,36 @@ def setup_logging(filename, colors=True, console_level=logging.INFO, server=('lo
     # Configure console output
     console = logging.StreamHandler(stream=stdout)
     if colors:  # Colored console output
-        from colorlog import ColoredFormatter
-        console.setFormatter(ColoredFormatter(fmt="%(log_color)s" + base_format,
-                                              datefmt=time_format, reset=True, log_colors={
-                                                            'DEBUG': 'white', 'INFO': 'green',
-                                                            'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'red'}))
-        logging.debug("Configured COLORED console logging output")
+        try:
+            # noinspection PyUnresolvedReferences
+            from colorlog import ColoredFormatter
+            console.setFormatter(
+                ColoredFormatter(fmt="%(log_color)s" + base_format,
+                                 datefmt=time_format, reset=True))
+            logging.debug("Configured COLORED console logging output")
+        except ImportError:
+            logging.error("Colorlog is not installed")
+            print("(ERROR) Colorlog must be installed to color logs")
+            console.setFormatter(formatter)
     else:  # Bland console output
         console.setFormatter(formatter)
         logging.debug("Configured STANDARD console logging output")
-    console.setLevel(console_level)
+    console.setLevel(console_verbose)
     logger.addHandler(console)
 
     # Record system information to aid in auditing and debugging
     from getpass import getuser
     from os import getcwd
     from platform import python_version, platform
+    from adles import __version__ as adles_version
+    from adles.vsphere.vsphere_class import Vsphere
     logging.debug("Initialized logging, saving logs to %s", filename)
-    logging.debug("Python       %s", str(python_version()))
-    logging.debug("Platform     %s", str(platform()))
-    logging.debug("Username     %s", str(getuser()))
-    logging.debug("Directory    %s\n\n", str(getcwd()))
+    logging.debug("Python           %s", str(python_version()))
+    logging.debug("Platform         %s", str(platform()))
+    logging.debug("Username         %s", str(getuser()))
+    logging.debug("Directory        %s", str(getcwd()))
+    logging.debug("Adles version    %s", adles_version)
+    logging.debug("Vsphere version  %s", Vsphere.__version__)
 
 
 # Credit to: http://stackoverflow.com/a/15707426/2214380
@@ -197,14 +207,15 @@ def time_execution(func):
         start_time = default_timer()
         ret = func(*args, **kwargs)
         end_time = default_timer()
-        logging.debug("Elapsed time for %s: %f seconds", str(func.__name__), float(end_time - start_time))
+        logging.debug("Elapsed time for %s: %f seconds", str(func.__name__),
+                      float(end_time - start_time))
         return ret
     return wrapper
 
 
 def make_vsphere(filename=None):
     """
-    Creates a vSphere object using either a JSON file or by prompting the user for input
+    Creates a vSphere object using either a JSON file or by prompting the user
     :param filename: Name of JSON file with information needed [default: None]
     :return: vSphere object
     """
@@ -247,13 +258,14 @@ def user_input(prompt, obj_name, func):
             logging.info("Found %s: %s", obj_name, item.name)
             return item, item_name
         else:
-            print("Couldn't find a %s with name %s. Perhaps try another? " % (obj_name, item_name))
+            print("Couldn't find a %s with name %s. Perhaps try another? "
+                  % (obj_name, item_name))
 
 
 def default_prompt(prompt, default=None):
     """
     Prompt the user for input. If they press enter, return the default
-    :param prompt: Prompt to display to user. Do not include the default, it will be appended.
+    :param prompt: Prompt to display to user (do not include default value)
     :param default: Default return value
     :return: Value returned
     """
@@ -267,14 +279,15 @@ def default_prompt(prompt, default=None):
 def script_warning_prompt():
     """ Prints a warning prompt. """
     from adles import __url__, __email__
-    return str('***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
-               '\nGetting help:'
-               '\n\t* Run "<script>.py --help" for usage'
-               '\n\t* Run "cat <script>.py" to read the source code and see how it works'
-               '\n\t* Run "cd ./documentation && ls -la" to see the available documentation'
-               '\n\t+ Open an issue on the project GitHub: %s'
-               '\n\t+ Email the script author: %s'
-               '\n\n' % (str(__url__), str(__email__)))
+    return str(
+        '***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
+        '\nGetting help:'
+        '\n\t* "<script>.py --help": flags, arguments, and usage'
+        '\n\t* "cat <script>.py": read the source code and see how it works'
+        '\n\t* "cd ./documentation && ls -la": show available documentation'
+        '\n\t+ Open an issue on the project GitHub: %s'
+        '\n\t+ Email the script author: %s'
+        '\n\n' % (str(__url__), str(__email__)))
 
 
 def script_setup(logging_filename, args, script=None):
@@ -286,8 +299,10 @@ def script_setup(logging_filename, args, script=None):
     :return: vSphere object
     """
 
-    # Setup logging (TODO: colors)
-    setup_logging(filename=logging_filename, console_level=logging.DEBUG if args["--verbose"] else logging.INFO)
+    # Setup logging
+    colors = (True if args["--no-color"] else False)
+    setup_logging(filename=logging_filename, colors=colors,
+                  console_verbose=args["--verbose"])
 
     # Print information about script itself
     if script:
@@ -297,9 +312,8 @@ def script_setup(logging_filename, args, script=None):
         logging.debug("Script version   %s", script[1])
         logging.debug("Adles version    %s", adles_version)
         logging.debug("Vsphere version  %s\n\n\n", Vsphere.__version__)
-
-    # Print warning
-    print(script_warning_prompt())
+        print('\n' * 3)
+        print(script_warning_prompt())  # Print warning for script users
 
     # Create the vsphere object and return it
     return make_vsphere(args["--file"])

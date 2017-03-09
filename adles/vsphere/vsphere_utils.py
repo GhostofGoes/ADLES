@@ -30,7 +30,8 @@ def wait_for_task(task):
         if task.info.state == 'success':
             return task.info.result
         elif task.info.state == 'error':
-            logging.error("There was an error while completing a task: '%s'", str(task.info.error.msg))
+            logging.error("There was an error while completing a task: '%s'",
+                          str(task.info.error.msg))
             return None
 
 
@@ -45,8 +46,8 @@ def get_obj(content, vimtype, name, container=None, recursive=True):
     :param recursive: Recursively descend or only look in the current level [default: True]
     :return: The vimtype object found with the specified name, or None if no object was found
     """
-    container = content.viewManager.CreateContainerView(container if container else content.rootFolder,
-                                                        vimtype, recursive)
+    container = content.viewManager.CreateContainerView(
+        container if container else content.rootFolder, vimtype, recursive)
     obj = None
     for c in container.view:
         if c.name.lower() == name.lower():
@@ -67,8 +68,8 @@ def get_objs(content, vimtype, container=None, recursive=True):
     :return: List of all vimtype objects found, or None if none were found
     """
     obj = []
-    container = content.viewManager.CreateContainerView(container if container else content.rootFolder,
-                                                        vimtype, recursive)
+    container = content.viewManager.CreateContainerView(
+        container if container else content.rootFolder, vimtype, recursive)
     for c in container.view:
         obj.append(c)
     container.Destroy()
@@ -99,8 +100,8 @@ def map_objs(content, vimtype, func, name=None, container=None, recursive=True):
     :param container: Container to search in [default: content.rootFolder]
     :param recursive: Recursively descend or only look in the current level [default: True]
     """
-    container = content.viewManager.CreateContainerView(container if container else content.rootFolder,
-                                                        vimtype, recursive)
+    container = content.viewManager.CreateContainerView(
+        container if container else content.rootFolder, vimtype, recursive)
     for item in container.view:
         if name:
             if hasattr(item, 'name') and item.name.lower() == name.lower():
@@ -109,10 +110,7 @@ def map_objs(content, vimtype, func, name=None, container=None, recursive=True):
             func(item)
 
 
-# Similar to: https://docs.python.org/3/library/pprint.html
-
-
-# From: list_dc_datastore_info.py in pyvmomi-community-samples
+# From: list_dc_datastore_info in pyvmomi-community-samples
 def get_datastore_info(ds_obj):
     """
     Gets a human-readable summary of a Datastore
@@ -139,7 +137,8 @@ def get_datastore_info(ds_obj):
     info_string += "Uncommitted           : %s\n" % utils.sizeof_fmt(ds_uncommitted)
     info_string += "Provisioned           : %s\n" % utils.sizeof_fmt(ds_provisioned)
     if ds_overp > 0:
-        info_string += "Over-provisioned      : %s / %s %%\n" % (utils.sizeof_fmt(ds_overp), ds_overp_pct)
+        info_string += "Over-provisioned      : %s / %s %%\n" \
+                       % (utils.sizeof_fmt(ds_overp), ds_overp_pct)
     info_string += "Hosts                 : %s\n" % str(len(ds_obj.host))
     info_string += "Virtual Machines      : %s" % str(len(ds_obj.vm))
     return info_string

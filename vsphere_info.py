@@ -16,15 +16,16 @@
 """Query information about a vSphere environment and objects within it.
 
 Usage:
-    vsphere_info.py [-v] [-f FILE]
+    vsphere_info.py [options]
     vsphere_info.py --version
     vsphere_info.py (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
+    --no-color          Do not color termianl output
+    -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
-    -v, --verbose       Verbose output of whats going on
 
 """
 

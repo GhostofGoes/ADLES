@@ -16,15 +16,16 @@
 """Power operations for Virtual Machines in vSphere.
 
 Usage:
-    vm_power.py [-v] [-f FILE]
+    vm_power.py [options]
     vm_power.py --version
     vm_power.py (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
+    --no-color          Do not color termianl output
+    -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
-    -v, --verbose       Verbose output of whats going on
 
 """
 
