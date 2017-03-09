@@ -2,8 +2,8 @@
 metadata:
   name: "Tutorial 3 - ARP Cache Poisoning"
   description: "Environment for the ARP Cache Poisoning Tutorial" 
-  course: "CS 439"
-  class: "Applied Security Concepts"
+  activity: "CS 439 - Applied Security Concepts"
+  prefix: "CS439"
   date-created: "2016-11-06"
   version: "0.4.0"
   infrastructure-config-file: "infra.yaml"

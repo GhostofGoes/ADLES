@@ -2,6 +2,8 @@
 metadata:
   name: "PRCCDC 2016 Competition Scenario definition"
   description: "The competition scenario environment that students will use to compete"
+  activity: "Pacific Rim Collegiate Cyber Defense Competition"
+  prefix: "PRCCDC"
   date-created: "2016-11-01"
   version: "0.5.0"
   infrastructure-config-file: "infra.yaml"

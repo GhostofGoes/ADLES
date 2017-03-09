@@ -3,6 +3,8 @@
 metadata:
   name: "Network Security Visualization Test Data Collection"
   description: "Testbed for collectiton of realistic network data for Network Security Visualization research"
+  activity: "Experiments-2016"
+  prefix: "EXPERIMENT"
   date-created: "2016-02-10"
   version: "0.2.0"
   infrastructure-config-file: "infra.yaml"

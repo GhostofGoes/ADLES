@@ -15,10 +15,15 @@ script:
   - python main.py -v -c examples/competition.yaml
   - python main.py --verbose --check-syntax examples/experiment.yaml
   - python clone_vms.py -h
-  - python destroy_vms.py -h
+  - python destroy_vms.py --help
   - python vm_power.py -h
   - python vsphere_info.py -h
   - python vsphere_testing.py -h
+  - python clone_vms.py --version
+  - python destroy_vms.py --version
+  - python vm_power.py --version
+  - python vsphere_info.py --version
+  - python vsphere_testing.py --version
 notifications:
   email:
     on_success: never

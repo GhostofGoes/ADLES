@@ -3,14 +3,15 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
 # Creation Date:    October 12th, 2016
-# Current Version:  0.4.1
+# Current Version:  0.4.3
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
 #   0.3.0:  Additions to services and networks, significant cleanup
 #   0.4.0:  Significant Folder changes, Added VLANs, Improved groups   (02-12-2017)
 #   0.4.1:  Changed group template syntax (02-23-2017)
-#   0.4.2:  Change group template syntax  (03-04-2017)
+#   0.4.2:  Changed group template syntax  (03-04-2017)
+#   0.4.3:  Metadata changes: removed "class" and "course", added "activity" and "prefix" (03-08-2017)
 
 # *** Syntax inspirations ***
 # https://docs.docker.com/compose/compose-file/
@@ -45,13 +46,13 @@
 metadata:
   name: "Title for the specification"             # REQUIRED    Human-readable title for the specification
   description: "Description of specification"     # Suggested   Human-readable detailed description of the specification
-  course: "Course number"                         # Optional    Example: "CS 439"
-  class: "Name of the class"                      # Optional    Example: "Applied Security Concepts"
+  activity: "the activity"                        # Suggested   The activity the specification is being used for, e.g "CS 439" or "PRCCDC"
+  prefix: "GLOBAL-PREFIX"                         # REQUIRED    Globally unique prefix that distinguishes this activity's environments from others on the same infrastructure
   date-created: "Date specification was created"  # Suggested   UTC format: YYYY-MM-DD (Example: 2016-10-12)
   version: "0.0.0"                                # Optional    Semantic version of the document: major.minor.bugfix
   infrastructure-config-file: "filename.yaml"     # REQUIRED    YAML file specifying the infrastructure used to create the environment (See: infrastructure-specification.yaml for syntax)
   folder-name: "foldername"                       # Suggested   Name of folder that will contain the environment
-  root-path: "Path/To/Folder/Root"                # Suggested   Path from server root to location of the root folder for environment, relative to infrastructure root.
+  root-path: "Path/To/Folder/Root"                # Suggested   Path from server root to location of the root folder for environment, relative to infrastructure root
   template-path: "Path/To/Templates"              # Suggested   Path from server root to folder containing templates used to create environment
 
 

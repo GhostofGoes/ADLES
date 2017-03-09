@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -167,8 +166,7 @@ def setup_logging(filename, colors=True, console_level=logging.INFO, server=('lo
     logging.debug("Python       %s", str(python_version()))
     logging.debug("Platform     %s", str(platform()))
     logging.debug("Username     %s", str(getuser()))
-    logging.debug("Directory    %s", str(getcwd()))
-    print("\n\n")
+    logging.debug("Directory    %s\n\n", str(getcwd()))
 
 
 # Credit to: http://stackoverflow.com/a/15707426/2214380
@@ -284,8 +282,7 @@ def script_setup(logging_filename, args, script=None):
         logging.debug("Script name      %s", basename(script[0]))
         logging.debug("Script version   %s", script[1])
         logging.debug("Adles version    %s", adles_version)
-        logging.debug("Vsphere version  %s", Vsphere.__version__)
-        print('\n' * 3)
+        logging.debug("Vsphere version  %s\n\n\n", Vsphere.__version__)
 
     # Print warning
     print(script_warning_prompt())
