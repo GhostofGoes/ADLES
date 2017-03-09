@@ -15,8 +15,42 @@
 import logging
 import logging.handlers
 
-from sys import stdout
+from sys import stdout, exit
 import os
+
+
+# Credit to: http://stackoverflow.com/a/15707426/2214380
+def time_execution(func):
+    """
+    Wrapper to time the execution of a function and log to debug
+    :param func: The function to time execution of
+    :return: The function
+    """
+    from timeit import default_timer
+
+    def wrapper(*args, **kwargs):
+        start_time = default_timer()
+        ret = func(*args, **kwargs)
+        end_time = default_timer()
+        logging.debug("Elapsed time for %s: %f seconds", str(func.__name__),
+                      float(end_time - start_time))
+        return ret
+    return wrapper
+
+
+# From: list_dc_datastore_info in pyvmomi-community-samples
+# http://stackoverflow.com/questions/1094841/
+def sizeof_fmt(num):
+    """
+    Returns the human-readable version of a file size
+    :param num: Robot-readable file size
+    :return: Human-readable file size
+    """
+    for item in ['bytes', 'KB', 'MB', 'GB']:
+        if num < 1024.0:
+            return "%3.1f%s" % (num, item)
+        num /= 1024.0
+    return "%3.1f%s" % (num, 'TB')
 
 
 # From: virtual_machine_power_cycle_and_question in pyvmomi-community-samples
@@ -36,51 +70,6 @@ def spinner(label=""):
     """
     stdout.write("\r\t%s %s" % (label, next(_spinner)))
     stdout.flush()
-
-
-# From: list_dc_datastore_info in pyvmomi-community-samples
-# http://stackoverflow.com/questions/1094841/
-def sizeof_fmt(num):
-    """
-    Returns the human-readable version of a file size
-    :param num: Robot-readable file size
-    :return: Human-readable file size
-    """
-    for item in ['bytes', 'KB', 'MB', 'GB']:
-        if num < 1024.0:
-            return "%3.1f%s" % (num, item)
-        num /= 1024.0
-    return "%3.1f%s" % (num, 'TB')
-
-
-# Based on: http://code.activestate.com/recipes/577058/
-def prompt_y_n_question(question, default="no"):
-    """
-    Prompts user to answer a question
-    :param question: Question to ask
-    :param default: No
-    :return: True/False
-    """
-    valid = {"yes": True, "y": True, "ye": True,
-             "no": False, "n": False}
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("Invalid default answer: '%s'", default)
-
-    while True:
-        logging.info(question + prompt)
-        choice = input().lower()
-        if default is not None and choice == '':
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            print("Please, respond with 'yes' or 'no' or 'y' or 'n'.")
 
 
 def pad(value, length=2):
@@ -104,7 +93,7 @@ def read_json(filename):
         with open(filename, "r") as json_file:
             return load(fp=json_file)
     except Exception as e:
-        logging.error("Could not open file %s. Error: %s", filename, str(e))
+        logging.error("Could not open file '%s': %s", filename, str(e))
         return None
 
 
@@ -122,6 +111,148 @@ def file_exists(filename, path):
     return False
 
 
+def make_vsphere(filename=None):
+    """
+    Creates a vSphere object using either a JSON file or by prompting the user
+    :param filename: Name of JSON file with information needed [default: None]
+    :return: vSphere object
+    """
+    from getpass import getpass
+    from adles.vsphere.vsphere_class import Vsphere
+
+    if filename:
+        info = read_json(filename)
+        user = (info["user"] if "user" in info else input("Username: "))
+        pswd = (info["pass"] if "pass" in info else getpass("Password: "))
+        datacenter = (info["datacenter"] if "datacenter" in info else None)
+        datastore = (info["datastore"] if "datastore" in info else None)
+        port = (info["port"] if "port" in info else 443)
+        return Vsphere(datacenter=datacenter, username=user, password=pswd,
+                       hostname=info["host"], port=port, datastore=datastore)
+    else:
+        logging.info("Enter information to connect to vSphere environment")
+        host = input("Hostname: ")
+        port = int(input("Port: "))
+        user = input("Username: ")
+        pswd = getpass("Password: ")
+        datacenter = input("vSphere Datacenter: ")
+        datastore = input("vSphere Datastore: ")
+        return Vsphere(username=user, password=pswd, hostname=host,
+                       datacenter=datacenter, datastore=datastore, port=port)
+
+
+def user_input(prompt, obj_name, func):
+    """
+    Continually bothers a user for input until we get what we want from them
+    :param prompt: Prompt to bother user with
+    :param obj_name: Name of the type of the object that we seek
+    :param func: The function that shalt be called to discover the object
+    :return: The discovered object and it's human name
+    """
+    while True:
+        try:
+            item_name = input(prompt)
+        except KeyboardInterrupt:
+            print()
+            logging.error("Exiting...")
+            exit(0)
+        item = func(item_name)
+        if item:
+            logging.info("Found %s: %s", obj_name, item.name)
+            return item, item_name
+        else:
+            print("Couldn't find a %s with name %s. Perhaps try another? "
+                  % (obj_name, item_name))
+
+
+# Based on: http://code.activestate.com/recipes/577058/
+def prompt_y_n_question(question, default="no"):
+    """
+    Prompts user to answer a question
+    :param question: Question to ask
+    :param default: No
+    :return: True/False
+    """
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    choice = ''
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("Invalid default answer: '%s'", default)
+
+    while True:
+        try:
+            choice = input(question + prompt).lower()
+        except KeyboardInterrupt:
+            print()
+            logging.error("Exiting...")
+            exit(0)
+
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            print("Please respond with 'yes' or 'no' or 'y' or 'n'")
+
+
+def default_prompt(prompt, default=None):
+    """
+    Prompt the user for input. If they press enter, return the default
+    :param prompt: Prompt to display to user (do not include default value)
+    :param default: Default return value
+    :return: Value returned
+    """
+    value = input(prompt + " [default: %s]: " % str(default))
+    if value == '':
+        return default
+    else:
+        return value
+
+
+def script_warning_prompt():
+    """ Prints a warning prompt. """
+    from adles import __url__, __email__
+    return str(
+        '***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
+        '\nGetting help:'
+        '\n\t* "<script>.py --help": flags, arguments, and usage'
+        '\n\t* "cat <script>.py": read the source code and see how it works'
+        '\n\t* "cd ./documentation && ls -la": show available documentation'
+        '\n\t+ Open an issue on the project GitHub: %s'
+        '\n\t+ Email the script author: %s'
+        '\n\n' % (str(__url__), str(__email__)))
+
+
+def script_setup(logging_filename, args, script=None):
+    """
+    Does setup tasks that are common to all automation scripts
+    :param logging_filename: Name of file to save logs to
+    :param args: docopt arguments dict
+    :param script: Tuple with name and version of the script [default: None]
+    :return: vSphere object
+    """
+
+    # Setup logging
+    colors = (False if args["--no-color"] else True)
+    setup_logging(filename=logging_filename, colors=colors,
+                  console_verbose=args["--verbose"])
+
+    # Print information about script itself
+    if script:
+        logging.debug("Script name      %s", os.path.basename(script[0]))
+        logging.debug("Script version   %s", script[1])
+        print(script_warning_prompt())  # Print warning for script users
+
+    # Create the vsphere object and return it
+    return make_vsphere(args["--file"])
+
+
 def setup_logging(filename, colors=True, console_verbose=False,
                   server=('localhost', 514)):
     """
@@ -132,9 +263,9 @@ def setup_logging(filename, colors=True, console_verbose=False,
     :param server: SysLog server to forward logs to [default: (localhost, 514)]
     """
 
-    # Prepend spaces to separate logs from previous
+    # Prepend spaces to separate logs from previous runs
     with open(filename, 'a') as logfile:
-        logfile.write(5 * '\n')
+        logfile.write(2 * '\n')
 
     # Format log output so it's human readable yet verbose
     base_format = "[%(asctime)s] %(name)-12s %(levelname)-8s %(message)s"
@@ -189,127 +320,3 @@ def setup_logging(filename, colors=True, console_verbose=False,
     logging.debug("Directory        %s", str(getcwd()))
     logging.debug("Adles version    %s", adles_version)
     logging.debug("Vsphere version  %s", Vsphere.__version__)
-
-
-# Credit to: http://stackoverflow.com/a/15707426/2214380
-def time_execution(func):
-    """
-    Wrapper to time the execution of a function and log to debug
-    :param func: The function to time execution of
-    :return: The function
-    """
-    from timeit import default_timer
-
-    def wrapper(*args, **kwargs):
-        start_time = default_timer()
-        ret = func(*args, **kwargs)
-        end_time = default_timer()
-        logging.debug("Elapsed time for %s: %f seconds", str(func.__name__),
-                      float(end_time - start_time))
-        return ret
-    return wrapper
-
-
-def make_vsphere(filename=None):
-    """
-    Creates a vSphere object using either a JSON file or by prompting the user
-    :param filename: Name of JSON file with information needed [default: None]
-    :return: vSphere object
-    """
-    from getpass import getpass
-    from adles.vsphere.vsphere_class import Vsphere
-
-    if filename:
-        info = read_json(filename)
-        user = (info["user"] if "user" in info else input("Username: "))
-        pswd = (info["pass"] if "pass" in info else getpass("Password: "))
-        datacenter = (info["datacenter"] if "datacenter" in info else None)
-        datastore = (info["datastore"] if "datastore" in info else None)
-        port = (info["port"] if "port" in info else 443)
-        return Vsphere(datacenter=datacenter, username=user, password=pswd,
-                       hostname=info["host"], port=port, datastore=datastore)
-    else:
-        logging.info("Enter information to connect to vSphere environment")
-        host = input("Hostname: ")
-        port = int(input("Port: "))
-        user = input("Username: ")
-        pswd = getpass("Password: ")
-        datacenter = input("vSphere Datacenter: ")
-        datastore = input("vSphere Datastore: ")
-        return Vsphere(username=user, password=pswd, hostname=host,
-                       datacenter=datacenter, datastore=datastore, port=port)
-
-
-def user_input(prompt, obj_name, func):
-    """
-    Continually bothers a user for input until we get what we want from them
-    :param prompt: Prompt to bother user with
-    :param obj_name: Name of the type of the object that we seek
-    :param func: The function that shalt be called to discover the object
-    :return: The discovered object and it's human name
-    """
-    while True:
-        item_name = input(prompt)
-        item = func(item_name)
-        if item:
-            logging.info("Found %s: %s", obj_name, item.name)
-            return item, item_name
-        else:
-            print("Couldn't find a %s with name %s. Perhaps try another? "
-                  % (obj_name, item_name))
-
-
-def default_prompt(prompt, default=None):
-    """
-    Prompt the user for input. If they press enter, return the default
-    :param prompt: Prompt to display to user (do not include default value)
-    :param default: Default return value
-    :return: Value returned
-    """
-    value = input(prompt + " [default: %s]: " % str(default))
-    if value == '':
-        return default
-    else:
-        return value
-
-
-def script_warning_prompt():
-    """ Prints a warning prompt. """
-    from adles import __url__, __email__
-    return str(
-        '***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
-        '\nGetting help:'
-        '\n\t* "<script>.py --help": flags, arguments, and usage'
-        '\n\t* "cat <script>.py": read the source code and see how it works'
-        '\n\t* "cd ./documentation && ls -la": show available documentation'
-        '\n\t+ Open an issue on the project GitHub: %s'
-        '\n\t+ Email the script author: %s'
-        '\n\n' % (str(__url__), str(__email__)))
-
-
-def script_setup(logging_filename, args, script=None):
-    """
-    Does setup tasks that are common to all automation scripts
-    :param logging_filename: Name of file to save logs to
-    :param args: docopt arguments dict
-    :param script: Tuple with name and version of the script [default: None]
-    :return: vSphere object
-    """
-
-    # Setup logging
-    colors = (False if args["--no-color"] else True)
-    setup_logging(filename=logging_filename, colors=colors,
-                  console_verbose=args["--verbose"])
-
-    # Print information about script itself
-    if script:
-        from adles import __version__ as adles_version
-        from adles.vsphere.vsphere_class import Vsphere
-        logging.debug("Script name      %s", os.path.basename(script[0]))
-        logging.debug("Script version   %s", script[1])
-        logging.debug("Adles version    %s", adles_version)
-        logging.debug("Vsphere version  %s\n\n", Vsphere.__version__)
-        print(script_warning_prompt())  # Print warning for script users
-
-    # Create the vsphere object and return it
-    return make_vsphere(args["--file"])

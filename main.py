@@ -61,7 +61,7 @@ from adles.utils import time_execution, setup_logging
 @time_execution
 def main():
     """ Primary entrypoint into the system.
-    Calls the appropirate interfaces or functions based on the arguments. """
+    Calls the appropriate interfaces or functions based on the arguments. """
 
     if args["--spec"]:
         spec = check_syntax(args["--spec"])
