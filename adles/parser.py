@@ -24,6 +24,10 @@ import adles.utils as utils
 def parse_file(filename):
     """
     Parses the YAML file and returns a nested dictionary containing it's contents
+
+    >>> parse_file("test.yaml")
+    { "test": "value" }
+
     :param filename: Name of YAML file to parse
     :return: dictionary of parsed file contents
     """

@@ -42,8 +42,14 @@ def time_execution(func):
 # http://stackoverflow.com/questions/1094841/
 def sizeof_fmt(num):
     """
-    Returns the human-readable version of a file size
-    :param num: Robot-readable file size
+    Generates the human-readable version of a file size
+
+    >>> sizeof_fmt(512)
+    512bytes
+    >>> sizeof_fmt(2048)
+    2KB
+
+    :param num: Robot-readable file size in bytes
     :return: Human-readable file size
     """
     for item in ['bytes', 'KB', 'MB', 'GB']:
@@ -75,6 +81,12 @@ def spinner(label=""):
 def pad(value, length=2):
     """
     Adds leading and trailing zeros to value ("pads" the value)
+
+    >>> pad(5)
+    05
+    >>> pad(9, 3)
+    009
+
     :param value: integer value to pad
     :param length: Length to pad to [default: 2]
     :return: string of padded value
