@@ -18,7 +18,7 @@ from adles.utils import time_execution
 
 
 class Interface:
-    """ Generic interface used to uniformly interact with platform-specific interface implementations. """
+    """ Generic interface used to uniformly interact with platform-specific interfaces. """
 
     def __init__(self, spec):
         """ :param spec: Full specification """

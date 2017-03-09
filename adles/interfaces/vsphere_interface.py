@@ -190,20 +190,21 @@ class VsphereInterface:
     def _create_master_networks(self, net_type, default_create):
         """
         Creates a network as part of the Master creation phase
-        :param net_type: Top-level type of the network (unique-networks | generic-networks | base-networks)
+        :param net_type: Top-level type of the network (unique | generic | base)
         :param default_create: Whether to create networks if they don't already exist
         """
         host = self.server.get_host()  # TODO: define host/cluster to use in class
         host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any recent changes
 
         for name, config in self.networks[net_type].items():
+            logging.info("Creating Master %ss", net_type)
             exists = get_net_obj(host=host, object_type="portgroup", name=name, refresh=False)
             if exists:
-                logging.debug("PortGroup %s already exists on host %s", name, host.name)
+                logging.info("PortGroup '%s' already exists on host '%s'", name, host.name)
             else:  # NOTE: if monitoring, we want promiscuous=True
-                logging.warning("PortGroup %s does not exist on host %s", name, host.name)
+                logging.warning("PortGroup '%s' does not exist on host '%s'", name, host.name)
                 if default_create:
-                    logging.debug("Creating")
+                    logging.debug("Creating portgroup '%s' on host '%s'", name, host.name)
                     vlan = (int(config["vlan"]) if "vlan" in config else 0)  # Set the VLAN
                     create_portgroup(name=name, host=host, vswitch_name=config["vswitch"],
                                      vlan=vlan, promiscuous=False)
@@ -256,6 +257,8 @@ class VsphereInterface:
         logging.info("Converting Masters to Templates")
         self._convert_and_verify(folder=self.master_folder)
 
+        # Create base-networks
+
         # Deployment
         #   Create folder structure
         #   Apply permissions
@@ -264,8 +267,7 @@ class VsphereInterface:
         self._deploy_folder_gen(self.folders, self.root_folder)
 
         # Output fully deployed environment tree to debugging
-        logging.debug(
-            futils.format_structure(futils.enumerate_folder(self.root_folder)))
+        logging.debug(futils.format_structure(futils.enumerate_folder(self.root_folder)))
 
     def _convert_and_verify(self, folder):
         """
@@ -294,10 +296,12 @@ class VsphereInterface:
         :param folder: vim.Folder
         :param services: The "services" dict in a folder
         """
+        # Enumerate networks in folder
+        #   Create generic networks
+        #   Create next instance of a base network and increment base counter for folder
+
         for service_name, value in services.items():
             num_instances, prefix = self._instances_handler(value)
-
-            # Check that the configured thresholds are not exceeded
             if num_instances > VsphereInterface.service_error:
                 logging.error("%d service instances in folder '%s' is beyond threshold of %d",
                               num_instances, folder.name, VsphereInterface.service_error)
@@ -308,7 +312,10 @@ class VsphereInterface:
 
             service = futils.traverse_path(self.master_folder,
                                            VsphereInterface.master_prefix + value["service"])
-            logging.debug("Generating service '%s' in folder '%s'", service_name, folder.name)
+            logging.info("Generating service '%s' in folder '%s'", service_name, folder.name)
+
+            # TODO: base + generic networks
+
             for instance in range(num_instances):
                 instance_name = prefix + service_name + \
                                 (" " + pad(instance) if num_instances > 1 else "")
@@ -323,7 +330,7 @@ class VsphereInterface:
         """
         for sub_name, sub_value in spec.items():
             if sub_name == "instances":
-                pass
+                pass  # The instances are already being generated in the parent
             elif sub_name == "group":
                 pass  # TODO: apply group permissions
             else:
@@ -337,8 +344,6 @@ class VsphereInterface:
         """
         for name, value in folders.items():
             num_instances, prefix = self._instances_handler(value)
-
-            # Check that the configured thresholds are not exceeded
             if num_instances > VsphereInterface.folder_error:
                 logging.error("%d instances of folder '%s' is beyond threshold of %d",
                               num_instances, name, VsphereInterface.folder_error)
@@ -347,7 +352,7 @@ class VsphereInterface:
                 logging.warning("%d instances of folder '%s' is beyond threshold of %d",
                                 num_instances, name, VsphereInterface.folder_warn)
 
-            logging.debug("Generating folder %s", name)
+            logging.info("Generating folder '%s'", name)
             for instance in range(num_instances):
                 instance_name = prefix + name + (" " + pad(instance) if num_instances > 1 else "")
                 folder = self.server.create_folder(folder_name=instance_name, create_in=parent)
