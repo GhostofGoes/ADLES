@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+from os.path import exists
 
 from netaddr import IPNetwork
 
@@ -153,7 +154,6 @@ def _check_group_file(filename):
     num_errors = 0
     num_warnings = 0
 
-    from os.path import exists
     if not exists(filename):
         logging.error("Group user file %s does not exist", filename)
         num_errors += 1
@@ -170,6 +170,9 @@ def _verify_services_syntax(services):
     num_warnings = 0
     
     for key, value in services.items():
+        if "network-interfaces" in value and not isinstance(value["network-interfaces"], list):
+            logging.error("Network interfaces must be a list for service %s", key)
+            num_errors += 1
         if "template" in value:
             pass
         elif "image" in value:
@@ -189,7 +192,7 @@ def _verify_resources_syntax(resources):
     :return: (Number of errors, Number of warnings)
     """
     warnings = []
-    errors = []
+    errors = ["lab", "resource"]
     num_warnings = _checker(warnings, "resources", resources, "warnings")
     num_errors = _checker(errors, "resources", resources, "errors")
     return num_errors, num_warnings
@@ -274,8 +277,49 @@ def _verify_folders_syntax(folders):
                 if "networks" in svalue and type(svalue["networks"]) is not list:
                     logging.error("Network specifications must be a list for service %s in folder %s", skey, key)
                     num_errors += 1
-        else:  # It's a parent folder
+                if "scoring" in svalue:
+                    e, w = _verify_scoring_syntax(skey, svalue["scoring"])
+                    num_errors += e
+                    num_warnings += w
+        else:
+            if "master-group" not in value:
+                logging.warning("No master group specified for parent folder %s", key)
+                num_warnings += 1
             num_errors, num_warnings = _verify_folders_syntax(value)
+
+    return num_errors, num_warnings
+
+
+def _verify_scoring_syntax(service_name, scoring):
+    """
+    Verifies syntax for the scoring definition of a service.
+    This is functionalized because it is likely to change in the future.
+    :param service_name: Name of the service for which the scoring specification applies
+    :param scoring: Dict of scoring parameters
+    :return: (Number of errors, Number of warnings)
+    """
+    num_warnings = 0
+    num_errors = 0
+
+    if "ports" not in scoring:
+        logging.error("No scoring ports specified for service %s", service_name)
+        num_errors += 1
+    elif not isinstance(scoring["ports"], list):
+        logging.error("Scoring ports must be a list for service %s", service_name)
+        num_errors += 1
+    if "protocols" not in scoring:
+        logging.error("No protocols specified for service %s", service_name)
+        num_errors += 1
+    elif not isinstance(scoring["protocols"], list):
+        logging.error("Protocols must be a list for service %s", service_name)
+        num_errors += 1
+    if "criteria" not in scoring:
+        logging.error("No criteria file specified for service %s", service_name)
+        num_errors += 1
+    # TODO: need to pass package dir or path to where the environment file is, so we can check files like these
+    # elif not exists(scoring["criteria"]):
+    #    logging.error("Could not find criteria file %s for service %s", scoring["criteria"], service_name)
+    #    num_errors += 1
 
     return num_errors, num_warnings
 

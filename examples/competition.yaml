@@ -165,7 +165,7 @@ folders:
         scoring:
           ports: [80, 443]
           protocols: ["http", "https"]
-          criteria: "criteria-file"
+          criteria: "criteria-file.yaml"
       db:
         description: "Database"
         service: database-server
@@ -177,7 +177,7 @@ folders:
         scoring:
           ports: [25]
           protocols: ["smtp"]
-          criteria: "criteria-file"
+          criteria: "criteria-file.yaml"
       hvac:
         description: "HVAC Server"
         service: hvac-server
@@ -185,7 +185,7 @@ folders:
         scoring:
           ports: [22]
           protocols: ["ssh"]
-          criteria: "criteria-file"
+          criteria: "criteria-file.yaml"
       file:
         description: "File Server"
         service: file-server
@@ -193,7 +193,7 @@ folders:
         scoring:
           ports: [21, 445]
           protocols: ["sftp", "smb"]
-          criteria: "criteria-file"
+          criteria: "criteria-file.yaml"
   red-team:
     group: Red Team
     services:

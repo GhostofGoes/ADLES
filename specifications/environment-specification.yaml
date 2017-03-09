@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
 # Creation Date:    October 12th, 2016
-# Current Version:  0.4.3
+# Current Version:  0.4.4
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
@@ -12,6 +12,7 @@
 #   0.4.1:  Changed group template syntax (02-23-2017)
 #   0.4.2:  Changed group template syntax  (03-04-2017)
 #   0.4.3:  Metadata changes: removed "class" and "course", added "activity" and "prefix" (03-08-2017)
+#   0.4.4:  Cleaned up Resources
 
 # *** Syntax inspirations ***
 # https://docs.docker.com/compose/compose-file/
@@ -112,13 +113,11 @@ services:
 
 # ** Resources **
 # Cyber-physical resources that are to be utilized. These will be attached to folders, networks, or groups as needed
+# Examples: A wireless testbed or SCADA testbed in RADICL, a transformer in the power lab. 
 resources:
-  resource-p:   # Example: access to a specific portion of the power lab
-    lab: "power-lab"
-    resource: "transformer"
-  resource-r:   # Example: access to RADICL's  Wireless testbed
-    lab: "radicl"
-    resource: "wireless-testbed"
+  resource-p:
+    lab: "power-lab"          # REQUIRED    Name of the lab the resource is associated with
+    resource: "transformer"   # REQUIRED    Name of the specific resource
 
 
 

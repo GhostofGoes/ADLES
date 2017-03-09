@@ -16,6 +16,7 @@ import logging
 import logging.handlers
 
 from sys import stdout
+import os
 
 
 # From: virtual_machine_power_cycle_and_question.py in pyvmomi-community-samples
@@ -106,6 +107,20 @@ def read_json(filename):
     except Exception as e:
         logging.error("Could not open file %s. Error: %s", filename, str(e))
         return None
+
+
+# From: http://stackoverflow.com/a/1724723/2214380
+def file_exists(filename, path):
+    """
+    Determines if a file exists somewhere
+    :param filename:
+    :param path:
+    :return:
+    """
+    for root, dirs, files in os.walk(path):
+        if filename in files:
+            return bool(path.join(root, filename))
+    return False
 
 
 def setup_logging(filename, colors=True, console_level=logging.INFO, server=('localhost', 514)):
@@ -278,8 +293,7 @@ def script_setup(logging_filename, args, script=None):
     if script:
         from adles import __version__ as adles_version
         from adles.vsphere.vsphere_class import Vsphere
-        from os.path import basename
-        logging.debug("Script name      %s", basename(script[0]))
+        logging.debug("Script name      %s", os.path.basename(script[0]))
         logging.debug("Script version   %s", script[1])
         logging.debug("Adles version    %s", adles_version)
         logging.debug("Vsphere version  %s\n\n\n", Vsphere.__version__)
