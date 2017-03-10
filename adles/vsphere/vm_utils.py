@@ -631,3 +631,13 @@ def find_free_ide_controller(vm):
             if len(dev.device) < 2:  # If there are less than 2 devices attached, we can use it
                 return dev
     return None
+
+
+@check_vm
+def is_windows(vm):
+    """
+    Checks if a VM's guest OS is Windows
+    :param vm:
+    :return:
+    """
+    return bool(str(vm.config.guestId).lower().startswith("win"))
