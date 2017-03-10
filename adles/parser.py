@@ -31,11 +31,17 @@ def parse_file(filename):
     :param filename: Name of YAML file to parse
     :return: dictionary of parsed file contents
     """
-    import yaml
+    from yaml import load, YAMLError
+    try:
+        from yaml import CLoader as Loader  # TODO: package Windows wheel when building for win
+        logging.debug("Using C-based YAML parser")
+    except ImportError:
+        from yaml import Loader
+        logging.debug("Using pure Python YAML parser")
     with open(filename, 'r') as f:
         try:
-            doc = yaml.safe_load(f)  # Parses the YAML file into a dict
-        except yaml.YAMLError as exc:
+            doc = load(f, Loader=Loader)  # Parses the YAML file into a dict
+        except YAMLError as exc:
             logging.error("Could not parse file %s", filename)
             if hasattr(exc, 'problem_mark'):
                 mark = exc.problem_mark
