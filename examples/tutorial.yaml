@@ -31,7 +31,7 @@ services:
     note: "Username: vyos   Password: vyos"
 
 networks:
-  generic-networks:
+  generic-networks:  # TODO: this shouldn't be generic
     ARP-LAN:
       description: "Used for ARP-spoofing tutorial"
       subnet: "192.168.1.0/24"

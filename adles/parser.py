@@ -93,7 +93,6 @@ def _verify_metadata_syntax(metadata):
         e, w = _verify_infra_syntax(infra_contents)
         num_errors += e
         num_warnings += w
-
     return num_errors, num_warnings
 
 
@@ -292,11 +291,16 @@ def _verify_folders_syntax(folders):
                     num_errors += e
                     num_warnings += w
         else:
-            if "master-group" not in value:
-                logging.warning("No master group specified for parent folder %s", key)
-                num_warnings += 1
-            num_errors, num_warnings = _verify_folders_syntax(value)
-
+            if not isinstance(value, dict):
+                logging.error("Could not verify syntax of folder %s: %s is not a folder!", str(key), str(value))
+                num_errors += 1
+            else:
+                if "master-group" not in value:
+                    logging.warning("No master group specified for parent folder %s", key)
+                    num_warnings += 1
+                e, w = _verify_folders_syntax(value)
+                num_errors += e
+                num_warnings += w
     return num_errors, num_warnings
 
 
@@ -330,7 +334,6 @@ def _verify_scoring_syntax(service_name, scoring):
     # elif not exists(scoring["criteria"]):
     #    logging.error("Could not find criteria file %s for service %s", scoring["criteria"], service_name)
     #    num_errors += 1
-
     return num_errors, num_warnings
 
 

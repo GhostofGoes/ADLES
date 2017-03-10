@@ -163,7 +163,7 @@ def user_input(prompt, obj_name, func):
     """
     while True:
         try:
-            item_name = input(prompt)
+            item_name = str(input(prompt))
         except KeyboardInterrupt:
             print()
             logging.info("Exiting...")
@@ -297,12 +297,12 @@ def setup_logging(filename, colors=True, console_verbose=False,
     logger = logging.root
 
     # Configure logging to a SysLog server
-    # This prevents students from deleting the log files
+    # This prevents students from simply deleting the log files
     syslog = logging.handlers.SysLogHandler(address=server)
     syslog.setLevel(logging.DEBUG)
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
-    logging.debug("Configured system logging to SysLog")
+    logging.debug("Configured logging to SysLog server %s:%s", str(server[0]), str(server[1]))
 
     # Configure console output
     console = logging.StreamHandler(stream=stdout)
@@ -318,7 +318,7 @@ def setup_logging(filename, colors=True, console_verbose=False,
     else:  # Bland console output
         logging.debug("Configured STANDARD console logging output")
     console.setFormatter(formatter)
-    console.setLevel(console_verbose)
+    console.setLevel((logging.DEBUG if console_verbose else logging.INFO))
     logger.addHandler(console)
 
     # Record system information to aid in auditing and debugging
@@ -332,5 +332,5 @@ def setup_logging(filename, colors=True, console_verbose=False,
     logging.debug("Platform         %s", str(platform()))
     logging.debug("Username         %s", str(getuser()))
     logging.debug("Directory        %s", str(getcwd()))
-    logging.debug("Adles version    %s", adles_version)
-    logging.debug("Vsphere version  %s", Vsphere.__version__)
+    logging.debug("Adles version    %s", str(adles_version))
+    logging.debug("Vsphere version  %s", str(Vsphere.__version__))

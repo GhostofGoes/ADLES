@@ -42,7 +42,7 @@ __version__ = "0.3.2"
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('vm_power.log', args, (__file__, __version__))
 
-operation = input("Enter the power operation you wish to perform [on | off | reset | suspend]: ")
+operation = str(input("Enter the power operation you wish to perform [on | off | reset | suspend]: "))
 attempt_guest = prompt_y_n_question("Use guest operations if available? ")
 
 # TODO: prefixes

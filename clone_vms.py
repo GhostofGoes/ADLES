@@ -51,7 +51,7 @@ if prompt_y_n_question("Do you want to clone from a single VM?"):
     v, v_name = user_input("Name of or path to the VM or template you wish to clone: ", "VM",
                             lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_vm(x))
     vms.append(v)
-    vm_names.append(input("Base name for instances to be created: "))
+    vm_names.append(str(input("Base name for instances to be created: ")))
 
 # Multi-VM source
 else:
@@ -63,7 +63,7 @@ else:
     if not prompt_y_n_question("Keep the same names? "):
         names = []
         for i in range(len(v)):
-            names.append(input("Enter base name for VM %d: " % i))
+            names.append(str(input("Enter base name for VM %d: " % i)))
     else:
         names = list(map(lambda x: x.name, v))  # Same names as sources
     vm_names.extend(names)
@@ -73,7 +73,7 @@ create_in, create_in_name = user_input("Name of or path to the folder in which t
 
 instance_folder_base = None
 if prompt_y_n_question("Do you want to create a folder for each instance? "):
-    instance_folder_base = input("Enter instance folder base name: ")
+    instance_folder_base = str(input("Enter instance folder base name: "))
 
 num_instances = int(input("Number of instances to be created: "))
 

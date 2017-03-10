@@ -23,7 +23,7 @@ Usage:
 Options:
     -h, --help          Shows this help
     --version           Prints current version
-    --no-color          Do not color termianl output
+    --no-color          Do not color terminal output
     -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
 
@@ -46,6 +46,10 @@ server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version_
 
 vm = server.get_vm("dummy")
 logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
+
+vms = server.get_all_vms()
+for vm in vms:
+    logging.info(vm_utils.get_vm_info(vm))
 
 # host = server.get_host()
 # logging.info(host)

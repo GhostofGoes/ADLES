@@ -38,7 +38,7 @@ from adles.utils import script_setup, user_input
 from adles.vsphere.folder_utils import traverse_path, enumerate_folder, format_structure
 
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('vsphere_info.log', args, (__file__, __version__))
 
@@ -47,14 +47,14 @@ server = script_setup('vsphere_info.log', args, (__file__, __version__))
 #   upload_file
 #   get_status    Status of the overall environment (what VMs are on/off/deploys, what phase, etc.)
 
-thing_type = input("What type of thing do you want to get information on? (vm | datastore | vsphere | folder) ")
+thing_type = str(input("What type of thing do you want to get information on? (vm | datastore | vsphere | folder) "))
 
 if thing_type == "vm":
-    vm = server.get_vm(input("What is the name of the VM you want to get information on? "))
+    vm = server.get_vm(str(input("What is the name of the VM you want to get information on? ")))
     logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
 
 elif thing_type == "datastore":
-    ds = server.get_datastore(input("What is the name of the Datastore you want to get information on? "))
+    ds = server.get_datastore(str(input("What is the name of the Datastore you want to get information on? ")))
     logging.info(vsphere_utils.get_datastore_info(ds))
 
 elif thing_type == "vsphere":
@@ -66,4 +66,4 @@ elif thing_type == "folder":
     logging.info("Folder: %s\n%s", folder_name, format_structure(enumerate_folder(folder)))
 
 else:
-    logging.info("Invalid type: ", thing_type)
+    logging.info("Invalid type: %s", thing_type)

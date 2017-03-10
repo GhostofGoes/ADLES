@@ -124,16 +124,15 @@ class Vsphere:
         """
         about = self.content.about
         info_string = "\n"
-        info_string += "Host address: %s:%d" % (self.hostname, self.port)
+        info_string += "Host address: %s:%d\n" % (self.hostname, self.port)
         info_string += "Datacenter  : %s\n" % self.datacenter.name
         info_string += "Datastore   : %s\n" % self.datastore.name
-        info_string += "Name        : %s\n" % about.name
         info_string += "Full name   : %s\n" % about.fullName
         info_string += "Vendor      : %s\n" % about.vendor
         info_string += "Version     : %s\n" % about.version
         info_string += "API type    : %s\n" % about.apiType
         info_string += "API version : %s\n" % about.apiVersion
-        info_string += "OS type     : %s\n" % about.osType
+        info_string += "OS type     : %s" % about.osType
         return info_string
 
     def get_folder(self, folder_name=None):
