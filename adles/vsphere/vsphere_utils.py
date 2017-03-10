@@ -35,61 +35,6 @@ def wait_for_task(task):
             return None
 
 
-# From: various files in pyvmomi-community-samples
-def get_obj(content, vimtype, name, container=None, recursive=True):
-    """
-    Finds and returns named vSphere object of specified type
-    :param content: vim.Content to search in
-    :param vimtype: List of vimtype objects to look for
-    :param name: string name of the object
-    :param container: Container to search in [default: content.rootFolder]
-    :param recursive: Recursively descend or only look in the current level [default: True]
-    :return: The vimtype object found with the specified name, or None if no object was found
-    """
-    container = content.viewManager.CreateContainerView(
-        container if container else content.rootFolder, vimtype, recursive)
-    obj = None
-    for c in container.view:
-        if c.name.lower() == name.lower():
-            obj = c
-            break
-    container.Destroy()
-    return obj
-
-
-# From: https://github.com/sijis/pyvmomi-examples/vmutils.py
-def get_objs(content, vimtype, container=None, recursive=True):
-    """
-    Get all the vSphere objects associated with a given type
-    :param content: vim.Content to search in
-    :param vimtype: Object to search for
-    :param container: Container to search in [default: content.rootFolder]
-    :param recursive: Recursively descend or only look in the current level [default: True]
-    :return: List of all vimtype objects found, or None if none were found
-    """
-    obj = []
-    container = content.viewManager.CreateContainerView(
-        container if container else content.rootFolder, vimtype, recursive)
-    for c in container.view:
-        obj.append(c)
-    container.Destroy()
-    return obj
-
-
-def get_item(content, vimtype, name):
-    """
-    Get a item of specified name and type from content
-    :param content: Content to search in
-    :param vimtype: Type of item
-    :param name: Name of item
-    :return: The item found
-    """
-    if not name:
-        return get_objs(content, [vimtype])[0]
-    else:
-        return get_obj(content, [vimtype], name)
-
-
 def map_objs(content, vimtype, func, name=None, container=None, recursive=True):
     """
     Apply a function to item(s)

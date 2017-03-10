@@ -166,7 +166,7 @@ def user_input(prompt, obj_name, func):
             item_name = input(prompt)
         except KeyboardInterrupt:
             print()
-            logging.error("Exiting...")
+            logging.info("Exiting...")
             exit(0)
         item = func(item_name)
         if item:
@@ -202,7 +202,7 @@ def prompt_y_n_question(question, default="no"):
             choice = input(question + prompt).lower()
         except KeyboardInterrupt:
             print()
-            logging.error("Exiting...")
+            logging.info("Exiting...")
             exit(0)
 
         if default is not None and choice == '':
@@ -262,7 +262,12 @@ def script_setup(logging_filename, args, script=None):
         print(script_warning_prompt())  # Print warning for script users
 
     # Create the vsphere object and return it
-    return make_vsphere(args["--file"])
+    try:
+        return make_vsphere(args["--file"])
+    except KeyboardInterrupt:
+        print()
+        logging.info("Exiting...")
+        exit(0)
 
 
 def setup_logging(filename, colors=True, console_verbose=False,
@@ -285,11 +290,8 @@ def setup_logging(filename, colors=True, console_verbose=False,
     formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
 
     # Configures the base logger to append to a file
-    logging.basicConfig(level=logging.DEBUG,
-                        format=base_format,
-                        datefmt=time_format,
-                        filename=filename,
-                        filemode='a')
+    logging.basicConfig(level=logging.DEBUG, format=base_format, datefmt=time_format,
+                        filename=filename, filemode='a')
 
     # Get the global root logger
     logger = logging.root

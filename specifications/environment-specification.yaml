@@ -134,13 +134,13 @@ networks:
       subnet: "x.x.x.x/x"         # Suggested   IP network address and mask: SUBNET-IP/CIDR   
       vlan: 0                     # Optional    VLAN ID of the network. [default: 0]  (0 is essentially "untagged")
       vswitch: "name of vswitch"  # Optional    Name of virtual switch used for the network (Applies to VMware and related environments)
-  generic-networks:   # New identical instances are created per instance of an exercise (subnet doesn't change)
+  generic-networks:   # New identical instances are created per base folder instance (subnet doesn't change)
     network-label:
       description: "description"
       subnet: "x.x.x.x/x"
       vlan: 0
       vswitch: "name of vswitch"
-  base-networks:      # Subnet value is incremented per instance
+  base-networks:      # Subnet value is incremented per base folder instance
     network-label:
       description: "description"
       subnet: "x.x.x.x/x"
