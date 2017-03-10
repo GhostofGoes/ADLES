@@ -58,7 +58,7 @@ elif thing_type == "datastore":
     logging.info(vsphere_utils.get_datastore_info(ds))
 
 elif thing_type == "vsphere":
-    logging.info("%s", str(server.content.about))
+    logging.info("%s", str(server))
 
 elif thing_type == "folder":
     folder, folder_name = user_input("Name of or path to the folder: ", "folder",

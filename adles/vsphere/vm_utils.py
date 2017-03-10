@@ -32,7 +32,7 @@ def check_vm(func):
         elif kwargs and isinstance(kwargs["vm"], vim.VirtualMachine):
             return func(*args, **kwargs)
         else:
-            logging.error("Invalid type for a folder passed to function %s: %s", str(func.__name__),
+            logging.error("Invalid type for a folder passed to function '%s': %s", str(func.__name__),
                           str(type(kwargs["vm"] if kwargs and "vm" in kwargs else args[0])))
     return wrapper
 
@@ -48,9 +48,9 @@ def clone_vm(vm, folder, name, clone_spec):
     :param clone_spec: vim.vm.CloneSpec for the new VM
     """
     if is_template(vm) and not bool(clone_spec.location.pool):
-        logging.error("Cannot clone Template %s without specifying a resource pool", vm.name)
+        logging.error("Cannot clone Template '%s' without specifying a resource pool", vm.name)
     else:
-        logging.info("Cloning VM %s to folder %s with name %s", vm.name, folder.name, name)
+        logging.info("Cloning VM '%s' to folder '%s' with name '%s'", vm.name, folder.name, name)
         try:
             vutils.wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
         except vim.fault.InvalidState:
@@ -69,10 +69,37 @@ def create_vm(folder, config, pool, host=None):
     :param folder: vim.Folder in which to create the VM
     :param config: vim.vm.ConfigSpec defining the new VM
     :param pool: vim.ResourcePool to which the virtual machine will be attached
-    :param host: (Optional) vim.HostSystem on which the VM will run
+    :param host: vim.HostSystem on which the VM will run [default: None]
     """
-    logging.info("Creating VM %s in folder %s", config.name, folder.name)
+    logging.info("Creating VM '%s' in folder '%s'", config.name, folder.name)
     vutils.wait_for_task(folder.CreateVM_Task(config, pool, host))
+
+
+def gen_vm_spec(name, version=11, annotation=None, cpus=1, cores=1, memory=512,
+                firmware="efi", max_consoles=None):
+    """
+    Generates a Virtual Machine creation spec
+    :param name: Name of the VM
+    :param version: Hardware version of the VM
+    :param annotation: String annotation for the VM
+    :param cpus: Number of CPUs
+    :param cores: Number of cores per CPU
+    :param memory: Memory in MB
+    :param firmware: (efi | bios)
+    :param max_consoles: Maximum number of active remote display connections
+    :return: vim.vm.ConfigSpec
+    """
+    spec = vim.vm.ConfigSpec()
+    spec.name = str(name)
+    spec.version = str(version)
+    spec.annotation = str(annotation)
+    spec.numCPUs = int(cpus)
+    spec.numCoresPerSocket = int(cores)
+    spec.memoryMB = int(memory)
+    spec.memoryHotAddEnabled = True
+    spec.firmware = str(firmware).lower()
+    spec.maxMksConnections = int(max_consoles)
+    return spec
 
 
 @check_vm
@@ -83,9 +110,9 @@ def destroy_vm(vm):
     :param vm: vim.VirtualMachine object
     """
     name = vm.name
-    logging.info("Destroying VM %s", name)
+    logging.info("Destroying VM '%s'", name)
     if powered_on(vm):
-        logging.info("VM %s is still on, powering off before destroying...", name)
+        logging.info("VM '%s' is still on, powering off before destroying...", name)
         change_vm_state(vm, "off", attempt_guest=False)
     vutils.wait_for_task(vm.Destroy_Task())
 
@@ -97,7 +124,7 @@ def edit_vm(vm, config):
     :param vm: vim.VirtualMachine object
     :param config: vim.vm.ConfigSpec object
     """
-    logging.debug("Reconfiguring VM %s", vm.name)
+    logging.debug("Reconfiguring VM '%s'", vm.name)
     try:
         vutils.wait_for_task(vm.ReconfigVM_Task(config))
     except vim.fault.TaskInProgress as e:
@@ -114,6 +141,21 @@ def edit_vm(vm, config):
         logging.error("Cannot edit VM '%s': invalid power state '%s'", vm.name, e.existingState)
     except vim.fault.InvalidDatastore as e:
         logging.error("Cannot edit VM '%s': invalid Datastore '%s'", vm.name, e.datastore)
+
+
+@check_vm
+def upgrade_vm(vm, version=None):
+    """
+    Upgrades the hardware version of the VM
+    :param vm: vim.VirtualMachine object
+    :param version: Version of hardware to upgrade VM to [default: latest VM's host supports]
+    """
+    try:
+        vutils.wait_for_task(vm.UpgradeVM(str(version)))
+    except vim.fault.AlreadyUpgraded:
+        logging.error("VM '%s' hardware version is already up-to-date", vm.name)
+    except vim.fault.InvalidPowerState as e:
+        logging.error("Cannot upgrade VM '%s': invalid power state '%s'", vm.name, e.existingState)
 
 
 @check_vm
@@ -247,7 +289,7 @@ def convert_to_vm(vm, resource_pool, host=None):
     Converts a Template to a Virtual Machine
     :param vm: vim.VirtualMachine object to convert
     :param resource_pool: vim.ResourcePool to associate with the VM
-    :param host: (optional) vim.HostSystem on which the VM should run
+    :param host: vim.HostSystem on which the VM should run [default: None]
     """
     logging.debug("Converting Template '%s' to VM and assigning to resource pool '%s'",
                   vm.name, resource_pool.name)
@@ -363,8 +405,8 @@ def remove_snapshot(vm, snapshot_name, remove_children=True, consolidate_disks=T
     Removes the named snapshot from the VM
     :param vm: vim.VirtualMachine object
     :param snapshot_name: Name of the snapshot to remove
-    :param remove_children: (Optional) Removal of the entire snapshot subtree [default: True]
-    :param consolidate_disks: (Optional) Virtual disks of the deleted snapshot will be merged with
+    :param remove_children: Removal of the entire snapshot subtree [default: True]
+    :param consolidate_disks: Virtual disks of deleted snapshot will be merged with
     other disks if possible [default: True]
     """
     logging.info("Removing snapshot '%s' from '%s'", snapshot_name, vm.name)
@@ -377,7 +419,7 @@ def remove_all_snapshots(vm, consolidate_disks=True):
     """
     Removes all snapshots associated with the VM
     :param vm: vim.VirtualMachine object
-    :param consolidate_disks: (Optional) Virtual disks of the deleted snapshot will be merged with
+    :param consolidate_disks: Virtual disks of the deleted snapshot will be merged with
     other disks if possible [default: True]
     """
     logging.info("Removing ALL snapshots for the '%s'", vm.name)
@@ -491,8 +533,8 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
     Edits a VM NIC based on it's number
     :param vm: vim.VirtualMachine
     :param nic_number: Number of network adapter on VM
-    :param port_group: (Optional) vim.Network object to assign NIC to
-    :param summary: (Optional) Human-readable device info
+    :param port_group: vim.Network object to assign NIC to [default: None]
+    :param summary: Human-readable device info [default: None]
     """
     nic_label = 'Network adapter ' + str(nic_number)
     logging.debug("Changing '%s' on VM '%s'", nic_label, vm.name)

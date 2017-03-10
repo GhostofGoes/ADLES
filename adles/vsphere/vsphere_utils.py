@@ -35,26 +35,6 @@ def wait_for_task(task):
             return None
 
 
-def map_objs(content, vimtype, func, name=None, container=None, recursive=True):
-    """
-    Apply a function to item(s)
-    :param content: vim.Content to search in
-    :param vimtype: List of vimtype objects to look for
-    :param func: Function to apply
-    :param name: Name of item to apply to [default: None]
-    :param container: Container to search in [default: content.rootFolder]
-    :param recursive: Recursively descend or only look in the current level [default: True]
-    """
-    container = content.viewManager.CreateContainerView(
-        container if container else content.rootFolder, vimtype, recursive)
-    for item in container.view:
-        if name:
-            if hasattr(item, 'name') and item.name.lower() == name.lower():
-                func(item)
-        else:
-            func(item)
-
-
 # From: list_dc_datastore_info in pyvmomi-community-samples
 def get_datastore_info(ds_obj):
     """

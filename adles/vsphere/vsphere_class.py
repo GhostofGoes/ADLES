@@ -24,7 +24,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.7.1"
+    __version__ = "0.8.0"
 
     def __init__(self, username, password, hostname,
                  datacenter=None, datastore=None,
@@ -90,8 +90,6 @@ class Vsphere:
             parent = self.content.rootFolder  # Default to using the server root folder
         return create_folder(folder=parent, folder_name=folder_name)
 
-    # TODO: generate_vm_spec
-
     def gen_clone_spec(self, datastore_name=None, pool_name=None):
         """
         Generates a clone specification used to clone a VM
@@ -118,6 +116,25 @@ class Vsphere:
         """
         logging.info("Setting vCenter MOTD to %s", message)
         self.content.sessionManager.UpdateServiceMessage(message=message)
+
+    def get_server_info(self):
+        """
+        Retrieves and formats basic information about the vSphere instance
+        :return: string with formatted server information
+        """
+        about = self.content.about
+        info_string = "\n"
+        info_string += "Host address: %s:%d" % (self.hostname, self.port)
+        info_string += "Datacenter  : %s\n" % self.datacenter.name
+        info_string += "Datastore   : %s\n" % self.datastore.name
+        info_string += "Name        : %s\n" % about.name
+        info_string += "Full name   : %s\n" % about.fullName
+        info_string += "Vendor      : %s\n" % about.vendor
+        info_string += "Version     : %s\n" % about.version
+        info_string += "API type    : %s\n" % about.apiType
+        info_string += "API version : %s\n" % about.apiVersion
+        info_string += "OS type     : %s\n" % about.osType
+        return info_string
 
     def get_folder(self, folder_name=None):
         """
@@ -206,13 +223,13 @@ class Vsphere:
         :param recursive: Recursively descend or only look in the current level [default: True]
         :return: The vimtype object found with the specified name, or None if no object was found
         """
-        container = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
+        con_view = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
         obj = None
-        for c in container.view:
+        for c in con_view.view:
             if c.name.lower() == name.lower():
                 obj = c
                 break
-        container.Destroy()
+        con_view.Destroy()
         return obj
 
     # From: https://github.com/sijis/pyvmomi-examples/vmutils.py
@@ -225,10 +242,10 @@ class Vsphere:
         :return: List of all vimtype objects found, or None if none were found
         """
         objs = []
-        container = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
-        for c in container.view:
+        con_view = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
+        for c in con_view.view:
             objs.append(c)
-        container.Destroy()
+        con_view.Destroy()
         return objs
 
     def get_item(self, vimtype, name=None, container=None, recursive=True):
@@ -246,10 +263,31 @@ class Vsphere:
         else:
             return self.get_obj(contain, [vimtype], name, recursive)
 
+    def map_items(self, vimtypes, func, name=None, container=None, recursive=True):
+        """
+        Apply a function to item(s)
+        :param vimtypes: List of vimtype objects to look for
+        :param func: Function to apply
+        :param name: Name of item to apply to [default: None]
+        :param container: Container to search in [default: content.rootFolder]
+        :param recursive: Recursively descend or only look in the current level [default: True]
+        :return: List of values returned from the function call(s)
+        """
+        contain = (self.content.rootFolder if not container else container)
+        con_view = self.content.viewManager.CreateContainerView(contain, vimtypes, recursive)
+        returns = []
+        for item in con_view.view:
+            if name:
+                if hasattr(item, 'name') and item.name.lower() == name.lower():
+                    returns.append(func(item))
+            else:
+                returns.append(func(item))
+        con_view.Destroy()
+        return returns
+
     def __repr__(self):
         return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name,
                                                self.hostname, self.port)
 
     def __str__(self):
-        return "Datacenter: {} \tDatastore: {} \tServer: {}:{}".\
-            format(self.datacenter.name, self.datastore.name, self.hostname, self.port)
+        return str(self.get_server_info())
