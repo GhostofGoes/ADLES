@@ -41,21 +41,24 @@ from adles.utils import script_setup
 args = docopt(__doc__, version=Vsphere.__version__, help=True)
 server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
 
+folder = server.datacenter.vmFolder
+print(str(folder.name))
+
+# vm = server.get_vm("dummy")
+# logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
+
+# vms = server.get_all_vms()
+# for vm in vms:
+#     logging.info(vm_utils.get_vm_info(vm))
+
 # net = server.get_network("ARP-LAN")
 # logging.info(str(net))
-
-vm = server.get_vm("dummy")
-logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
-
-vms = server.get_all_vms()
-for vm in vms:
-    logging.info(vm_utils.get_vm_info(vm))
 
 # host = server.get_host()
 # logging.info(host)
 
-# logging.info((str(server))
-# logging.info((repr(server))
+# logging.info(str(server))
+# logging.info(repr(server))
 
 # folder = server.get_folder("script_testing")
 # vm = traverse_path(folder, "/Templates/Routers/VyOS 1.1.7 (64-bit)")

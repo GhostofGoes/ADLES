@@ -52,4 +52,4 @@ class Group:
         self.users = users
         self.size = int(len(self.users))
         self.name = name
-        logging.debug("Finished initializing Group '%s'")
+        logging.debug("Finished initializing Group '%s' with %d users", self.name, self.size)

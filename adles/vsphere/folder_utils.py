@@ -111,7 +111,7 @@ def traverse_path(root, path):
         for item in current.childEntity:
             if (is_vm(item) or is_folder(item)) and item.name.lower() == name.lower():
                 return item
-        logging.error("Could not find item %s while traversing path '%s' from root '%s'", name, path, root.name)
+        logging.debug("Could not find item %s while traversing path '%s' from root '%s'", name, path, root.name)
         return None
     else:  # Just return whatever we found
         return current

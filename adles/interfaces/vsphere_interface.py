@@ -62,32 +62,35 @@ class VsphereInterface:
                               port=int(logins["port"]),
                               datastore=infrastructure["datastore"])
 
-        # Set the server root
+        # Set the server root folder
         if "server-root" in infrastructure:
             self.server_root = self.server.get_folder(infrastructure["server-root"])
         else:
-            self.server_root = self.server.datacenter.vmFolder
+            self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder root
+        logging.debug("Server root folder: %s", self.server_root.name)
 
-        # Set root folder for the exercise, or create if it doesn't yet exist
+        # Set environment root folder name
         if "folder-name" not in self.metadata:
             self.root_name = self.metadata["name"]
         else:
             self.root_name = self.metadata["folder-name"]
-        self.root_path = self.metadata["root-path"]
-        root = futils.traverse_path(self.server_root, self.root_path + self.root_name)
-        if not root:
+        logging.debug("Environment root folder name: %s", self.root_name)
+
+        # Get the environment root folder, or create it if it doesn't already exist
+        self.root_path = self.metadata["root-path"]  # Guaranteed to be in metadata
+        self.root_folder = futils.traverse_path(self.server_root, self.root_path + self.root_name)
+        if not self.root_folder:  # Create if it's not found
             parent = futils.traverse_path(self.server_root, self.root_path)
-            self.root_folder = self.server.create_folder(
-                folder_name=self.root_name, create_in=parent)
-        else:
-            self.root_folder = root
+            self.root_folder = self.server.create_folder(self.root_name, parent)
+        logging.debug("Environment root folder: %s", self.root_folder.name)
+
+        logging.debug("Finished initializing VsphereInterface")
 
     def create_masters(self):
         """ Master creation phase """
 
         # Get folder containing templates
-        self.template_folder = futils.traverse_path(
-            self.server_root, self.metadata["template-path"])
+        self.template_folder = futils.traverse_path(self.server_root, self.metadata["template-path"])
         if not self.template_folder:
             logging.error("Could not find template folder in path '%s'",
                           self.metadata["template-path"])
@@ -264,6 +267,7 @@ class VsphereInterface:
         #   Apply permissions
         #   Clone instances
         # TODO: Need to figure out when/how to apply permissions
+        # TODO: Base + Generic networks
         self._deploy_folder_gen(self.folders, self.root_folder)
 
         # Output fully deployed environment tree to debugging

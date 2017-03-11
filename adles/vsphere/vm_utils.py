@@ -120,7 +120,7 @@ def destroy_vm(vm):
 @check_vm
 def edit_vm(vm, config):
     """
-    Edit a VM using the given configuration
+    Edits a VM using the given configuration specification
     :param vm: vim.VirtualMachine object
     :param config: vim.vm.ConfigSpec object
     """
@@ -477,7 +477,7 @@ def remove_device(vm, device):
     """
     logging.debug("Removing device '%s' from VM '%s'", device.name, vm.name)
     device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-    vutils.wait_for_task(vm.ReconfigVM_Task(vim.vm.ConfigSpec(deviceChange=[device])))
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[device]))
 
 
 @check_vm
@@ -517,14 +517,14 @@ def delete_nic(vm, nic_number):
     virtual_nic_device = get_nic(vm, nic_label)
 
     if not virtual_nic_device:
-        logging.error('Virtual %s could not be found!', nic_label)
+        logging.error("Virtual %s could not be found for VM '%s'", nic_label, vm.name)
         return
 
     virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
     virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
     virtual_nic_spec.device = virtual_nic_device
 
-    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec])))
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply the change to the VM
 
 
 @check_vm
@@ -557,7 +557,7 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
         nic_spec.device.backing.network = port_group
         nic_spec.device.backing.deviceName = port_group.name
 
-    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
 
 
 # From: add_nic_to_vm in pyvmomi-community-samples
@@ -610,10 +610,9 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
     nic_spec.device.connectable.allowGuestControl = True    # Allows guest OS to control device
     nic_spec.device.connectable.connected = True
     nic_spec.device.connectable.status = 'untried'
-
     # TODO: configure guest IP address if statically assigned
 
-    vutils.wait_for_task(edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec])))
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
 
 
 @check_vm
@@ -657,7 +656,7 @@ def attach_iso(vm, iso_name, datastore, boot=True):
         order.extend(list(vm.config.bootOptions.bootOrder))
         vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)
 
-    vutils.wait_for_task(edit_vm(vm, vm_spec))  # Apply the change to the VM
+    edit_vm(vm, vm_spec)  # Apply the change to the VM
 
 
 # From: cdrom_vm in pyvmomi-community-samples
@@ -679,7 +678,7 @@ def find_free_ide_controller(vm):
 def is_windows(vm):
     """
     Checks if a VM's guest OS is Windows
-    :param vm:
-    :return:
+    :param vm: vim.VirtualMachine
+    :return: Bool
     """
     return bool(str(vm.config.guestId).lower().startswith("win"))

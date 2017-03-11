@@ -24,7 +24,7 @@ def wait_for_task(task):
     :return: Task result information
     """
     if not task:
-        logging.error("No task was specified to wait for")
+        logging.debug("No task was specified to wait for")
         return None
     while True:
         if task.info.state == 'success':

@@ -68,7 +68,14 @@ class Vsphere:
         self.content = self.server.RetrieveContent()
         self.children = self.content.rootFolder.childEntity
         self.datacenter = self.get_item(vim.Datacenter, name=datacenter)
+        if not self.datacenter:
+            logging.error("Could not find a datacenter to initialize with!")
+            exit(1)
         self.datastore = self.get_datastore(datastore)
+        if not self.datastore:
+            logging.error("Could not find a datastore to initialize with!")
+            exit(1)
+
         logging.debug("Finished initializing vSphere")
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
@@ -142,7 +149,8 @@ class Vsphere:
         :return: vim.Folder object
         """
         if folder_name:
-            return self.get_item(vim.Folder, folder_name)
+            return self.get_obj(self.datacenter.vmFolder, [vim.Folder], folder_name)
+            # return self.get_item(vim.Folder, folder_name)
         else:
             return self.datacenter.vmFolder  # S.f.r: pyvmomi/docs/vim/Datacenter.rst
 
