@@ -281,7 +281,7 @@ class VsphereInterface:
         # TODO: Need to figure out when/how to apply permissions
         # TODO: Base + Generic networks
         logging.info("Deploying environment...")
-        self._deploy_folder_gen(self.folders, self.root_folder)
+        self._deploy_folder_gen(self.folders, self.root_folder, "")
         logging.info("Finished deploying environment")
 
         # Output fully deployed environment tree to debugging
@@ -307,11 +307,12 @@ class VsphereInterface:
             elif vutils.is_folder(item):  # Recurse into sub-folders
                 self._convert_and_verify(folder=item)
 
-    def _deploy_folder_gen(self, folders, parent):
+    def _deploy_folder_gen(self, folders, parent, path):
         """
         Generates folder tree for deployment stage
         :param folders: dict of folders
         :param parent: Parent vim.Folder
+        :param path: Folders path at the current level
         """
         for name, value in folders.items():
             num_instances, prefix = self._instances_handler(value)
@@ -325,35 +326,44 @@ class VsphereInterface:
 
             logging.info("Generating folder '%s'", name)
             for instance in range(num_instances):
-                instance_name = prefix + name + (" " + pad(instance) if num_instances > 1 else "")
+                instance_name = str(name if prefix == "" else prefix)
+                instance_name += str(" " + pad(instance) if num_instances > 1 else "")
                 folder = self.server.create_folder(folder_name=instance_name, create_in=parent)
-                # TODO: apply group permissions
+                # TODO: apply group permissions (NOTE: master group defaults to folder's group)
+                print(str(name))
+                print(str(value))
                 if "services" in value:  # It's a base folder
                     logging.debug("Generating base-type folder '%s'", instance_name)
-                    self._gen_services(folder, value["services"])
+                    self._gen_services(folder, value["services"], self._path(path, name))
                 else:  # It's a parent folder
                     logging.debug("Generating parent-type folder '%s'", instance_name)
-                    self._parent_folder_gen(folder, value)
+                    self._parent_folder_gen(folder, value, self._path(path, name))
 
-    def _parent_folder_gen(self, folder, spec):
+    def _parent_folder_gen(self, folder, spec, path):
         """
         Generates parent-type folder trees
         :param folder: vim.Folder
         :param spec: Dict with folder specification
+        :param path: Folders path at the current level
         """
         for sub_name, sub_value in spec.items():
             if sub_name == "instances":
                 pass  # The instances are already being generated in the parent
             elif sub_name == "group":
                 pass  # TODO: apply group permissions
+            elif sub_name == "master-group":
+                pass  # TODO: apply master-group permissions
+            elif sub_name == "description":
+                pass
             else:
-                self._deploy_folder_gen(sub_value, folder)
+                self._deploy_folder_gen(sub_value, folder, self._path(path, sub_name))
 
-    def _gen_services(self, folder, services):
+    def _gen_services(self, folder, services, path):
         """
         Generates the services in a folder
         :param folder: vim.Folder
         :param services: The "services" dict in a folder
+        :param path: Folders path at the current level
         """
         # Enumerate networks in folder
         #   Create generic networks
@@ -369,9 +379,7 @@ class VsphereInterface:
                 logging.warning("%d service instances in folder '%s' is beyond threshold of %d",
                                 num_instances, folder.name, VsphereInterface.service_warn)
 
-            # TODO: need to track current path in folder tree, lookup master instance using the same path but with master_prefix in names
-            service = futils.traverse_path(self.master_folder,
-                                           VsphereInterface.master_prefix + value["service"])
+            service = futils.traverse_path(self.master_folder, self._path(path, value["service"]))
             logging.info("Generating service '%s' in folder '%s'", service_name, folder.name)
 
             # TODO: base + generic networks
@@ -382,6 +390,15 @@ class VsphereInterface:
                 vm_utils.clone_vm(vm=service, folder=folder, name=instance_name,
                                   clone_spec=self.server.gen_clone_spec())
 
+    def _path(self, path, name):
+        """
+        Generates next step of the path for deployment of masters
+        :param path:
+        :param name:
+        :return:
+        """
+        return str(path + '/' + VsphereInterface.master_prefix + name)
+
     def _instances_handler(self, spec):
         """
         Determines number of instances and optional prefix using specification
@@ -391,16 +408,19 @@ class VsphereInterface:
         num = 1
         prefix = ""
         if "instances" in spec:
-            if "prefix" in spec["instances"]:
-                prefix = str(spec["instances"]["prefix"])
-
-            if "number" in spec["instances"]:
-                num = int(spec["instances"]["number"])
-            elif "size-of" in spec["instances"]:
-                num = int(self._get_group(spec["instances"]["size-of"]).size)
+            if type(spec["instances"]) == int:
+                num = int(spec["instances"])
             else:
-                logging.error("Unknown instances specification: %s", str(spec["instances"]))
-                num = 0
+                if "prefix" in spec["instances"]:
+                    prefix = str(spec["instances"]["prefix"])
+
+                if "number" in spec["instances"]:
+                    num = int(spec["instances"]["number"])
+                elif "size-of" in spec["instances"]:
+                    num = int(self._get_group(spec["instances"]["size-of"]).size)
+                else:
+                    logging.error("Unknown instances specification: %s", str(spec["instances"]))
+                    num = 0
         return num, prefix
 
     def _get_group(self, group_name):

@@ -38,19 +38,21 @@ networks:
       vswitch: "cs439_vswitch"
 
 folders:
-  hidden-services:
+  hidden:
     description: "Services for each student that they do not see"
     group: Instructors
-    instances:
-      size-of: Students
-      prefix: "HIDDEN-SERVICE-"
-    services:
-      server:
-        service: server
-        networks: ["ARP-LAN"]
-      router:
-        service: router
-        networks: ["ARP-LAN"]
+    hidden-services:
+      group: Instructors
+      instances:
+        size-of: Students
+        prefix: "HIDDEN-SERVICE-"
+      services:
+        server:
+          service: server
+          networks: ["ARP-LAN"]
+        router:
+          service: router
+          networks: ["ARP-LAN"]
   workstations:
     description: "Workstations students use for the tutorial"
     group: Students

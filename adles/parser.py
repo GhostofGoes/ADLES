@@ -266,38 +266,39 @@ def _verify_folders_syntax(folders):
         if "instances" in value:  # Check instances syntax, regardless of parent or base
             if "number" in value["instances"]:
                 if type(value["instances"]["number"]) != int:
-                    logging.error("Number of instances for folder %s must be an Integer", key)
+                    logging.error("Number of instances for folder '%s' must be an Integer", key)
                     num_errors += 1
             elif "size-of" in value["instances"]:
                 pass
             else:
-                logging.error("Must specify number of instances for folder %s", key)
+                logging.error("Must specify number of instances for folder '%s'", key)
                 num_errors += 1
 
         # Check if parent or base
         if "services" in value:  # It's a base folder
             if "group" not in value:
-                logging.error("No group specified for folder %s", key)
+                logging.error("No group specified for folder '%s'", key)
                 num_errors += 1
             for skey, svalue in value["services"].items():
                 if "service" not in svalue:
-                    logging.error("Service %s is unnamed in folder %s", skey, key)
+                    logging.error("Service %s is unnamed in folder '%s'", skey, key)
                     num_errors += 1
                 if "networks" in svalue and type(svalue["networks"]) is not list:
-                    logging.error("Network specifications must be a list for service %s in folder %s", skey, key)
+                    logging.error("Network specifications must be a list for service '%s' "
+                                  "in folder '%s'", skey, key)
                     num_errors += 1
                 if "scoring" in svalue:
                     e, w = _verify_scoring_syntax(skey, svalue["scoring"])
                     num_errors += e
                     num_warnings += w
-        else:
-            if not isinstance(value, dict):
-                logging.error("Could not verify syntax of folder %s: %s is not a folder!", str(key), str(value))
+        else:  # It's a parent folder
+            if key == "group" or key == "instances" or key == "description":
+                pass
+            elif not isinstance(value, dict):
+                logging.error("Could not verify syntax of folder '%s': '%s' is not a folder!",
+                              str(key), str(value))
                 num_errors += 1
             else:
-                if "master-group" not in value:
-                    logging.warning("No master group specified for parent folder %s", key)
-                    num_warnings += 1
                 e, w = _verify_folders_syntax(value)
                 num_errors += e
                 num_warnings += w

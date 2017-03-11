@@ -12,7 +12,7 @@ metadata:
   template-path: "Templates/"
 
 groups:
-  Blue Team X:
+  Blue Team:
     instances: 10
     filename: "examples/blue-teams.json"
   Red Team:
