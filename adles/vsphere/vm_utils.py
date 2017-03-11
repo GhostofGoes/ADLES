@@ -61,7 +61,6 @@ def clone_vm(vm, folder, name, clone_spec):
             logging.error("Could not make clone '%s': invalid configuration", name)
 
 
-@check_vm
 @utils.time_execution
 def create_vm(folder, config, pool, host=None):
     """
@@ -75,30 +74,44 @@ def create_vm(folder, config, pool, host=None):
     vutils.wait_for_task(folder.CreateVM_Task(config, pool, host))
 
 
-def gen_vm_spec(name, version=11, annotation=None, cpus=1, cores=1, memory=512,
-                firmware="efi", max_consoles=None):
+def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=512,
+                version=11, firmware="efi", max_consoles=None, datastore_path=None):
     """
     Generates a Virtual Machine creation spec
     :param name: Name of the VM
-    :param version: Hardware version of the VM
-    :param annotation: String annotation for the VM
-    :param cpus: Number of CPUs
-    :param cores: Number of cores per CPU
-    :param memory: Memory in MB
-    :param firmware: (efi | bios)
-    :param max_consoles: Maximum number of active remote display connections
+    :param datastore_name: Name of datastore to put VM on
+    :param version: Hardware version of the VM [default: 11]
+    :param annotation: String annotation for the VM [default: None]
+    :param cpus: Number of CPUs [default: 1]
+    :param cores: Number of cores per CPU [default: 1]
+    :param memory: Memory in MB [default: 512]
+    :param firmware: (efi | bios) [default: efi]
+    :param max_consoles: Maximum number of active remote display connections [default: None]
+    :param datastore_path: Path to existing VM files on datastore [default: None]
     :return: vim.vm.ConfigSpec
     """
     spec = vim.vm.ConfigSpec()
     spec.name = str(name)
     spec.version = str(version)
-    spec.annotation = str(annotation)
     spec.numCPUs = int(cpus)
     spec.numCoresPerSocket = int(cores)
     spec.memoryMB = int(memory)
     spec.memoryHotAddEnabled = True
     spec.firmware = str(firmware).lower()
-    spec.maxMksConnections = int(max_consoles)
+
+    if annotation:
+        spec.annotation = str(annotation)
+
+    if max_consoles:
+        spec.maxMksConnections = int(max_consoles)
+
+    file_info = vim.vm.FileInfo()
+    file_info.vmPathName = '[' + datastore_name + '] '
+    if datastore_path:
+        file_info.vmPathName += str(datastore_path)
+    file_info.vmPathName += str(name) + '/' + str(name) + '.vmx'
+    spec.files = file_info
+
     return spec
 
 

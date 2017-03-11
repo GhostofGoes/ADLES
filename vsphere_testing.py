@@ -32,6 +32,7 @@ Options:
 import logging
 
 from docopt import docopt
+from pyVmomi import vim
 
 from adles.vsphere.vsphere_class import Vsphere
 from adles.vsphere import vm_utils
@@ -41,8 +42,12 @@ from adles.utils import script_setup
 args = docopt(__doc__, version=Vsphere.__version__, help=True)
 server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
 
-folder = server.datacenter.vmFolder
-print(str(folder.name))
+folder = server.get_folder("monkeys")
+pool = server.get_item(vim.ResourcePool)
+vm_spec = vm_utils.gen_vm_spec(name="test_vm", datastore_name="Datastore",
+                               annotation="testing 1...")
+vm_utils.create_vm(folder, vm_spec, pool)
+# attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
 
 # vm = server.get_vm("dummy")
 # logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
@@ -60,29 +65,19 @@ print(str(folder.name))
 # logging.info(str(server))
 # logging.info(repr(server))
 
+# from adles.vsphere.folder_utils import traverse_path
 # folder = server.get_folder("script_testing")
 # vm = traverse_path(folder, "/Templates/Routers/VyOS 1.1.7 (64-bit)")
-# logging.info((get_vm_info(vm))
-
-# folder = traverse_path(folder, "/Templates/Servers/Windows")
-# logging.info((folder.name)
+# logging.info(get_vm_info(vm))
 
 # datastore = server.get_datastore("Datastore")
-# logging.info((get_datastore_info(datastore))
+# logging.info(get_datastore_info(datastore))
 
-# folder = server.get_folder("script_testing")
-# pool = get_objs(server.content, [vim.ResourcePool])[0]
-# file_info = vim.vm.FileInfo()
-# file_info.vmPathName = "[Datastore]"
-# vm_spec = vim.vm.ConfigSpec(name="test_vm", guestId="ubuntuGuest", numCPUs=1, numCoresPerSocket=1,
-#                             memoryMB=1024, annotation="it worked!", files=file_info)
-# create_vm(folder, vm_spec, pool)
-# attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
-
-# portgroup = get_obj(server.content, [vim.Network], "test_network")
-# add_nic(vm, portgroup, "test_summary")
-# edit_nic(vm, 2, summary="lol")
-# delete_nic(vm, 1)
+# portgroup = server.get_item(vim.Network, "test_network")
+# logging.info("Portgroup: %s", str(portgroup))
+# vm_utils.add_nic(vm, portgroup, "test_summary")
+# vm_utils.edit_nic(vm, 2, summary="lol")
+# vm_utils.delete_nic(vm, 1)
 
 # create_portgroup("test_portgroup", server.get_host(), "test_vswitch")
 # delete_portgroup("test_portgroup", server.get_host())

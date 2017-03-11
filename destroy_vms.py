@@ -37,7 +37,7 @@ from adles.utils import prompt_y_n_question, user_input, default_prompt, script_
 import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import traverse_path, enumerate_folder, format_structure, cleanup, retrieve_items
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('destroy_vms.log', args, (__file__, __version__))
 
@@ -71,7 +71,7 @@ else:
     logging.info("VM Prefix: '%s'\tFolder Prefix: '%s'\tRecursive: %s",
                  str(vm_prefix), str(folder_prefix), str(recursive))
     logging.info("Folder-destruction: %s\tSelf-destruction: %s", str(destroy_folders), str(destroy_self))
-    v, f = retrieve_items(folder, vm_prefix, True)
+    v, f = retrieve_items(folder, vm_prefix, folder_prefix, True)
     logging.info("%d VMs and %d folders match the options", int(len(v)), int(len(f)))
     if prompt_y_n_question("Continue with destruction? "):
         logging.info("Destroying...")

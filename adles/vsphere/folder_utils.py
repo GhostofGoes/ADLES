@@ -243,38 +243,39 @@ def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False,
             logging.error("Unknown item encountered while cleaning in folder '%s': %s",
                           folder.name, str(item))
 
-    # Note: UnregisterAndDestroy does NOT delete VM files off datastore, only use if folder is empty
+    # Note: UnregisterAndDestroy does NOT delete VM files off datastore, only use it if folder is empty!
     if destroy_self:
-        logging.debug("Unregistering and Destroying folder: '%s'", folder.name)
+        logging.debug("Destroying folder: '%s'", folder.name)
         wait_for_task(folder.UnregisterAndDestroy_Task())
 
 
 @check_folder
-def retrieve_items(folder, prefix=None, recursive=False):
+def retrieve_items(folder, vm_prefix=None, folder_prefix=None, recursive=False):
     """
     Retrieves VMs and folders from a folder structure
-    :param folder: vim.Folder to begin search in (is NOT returned in list of folders)
-    :param prefix: Prefix to search for [default: None]
+    :param folder: vim.Folder to begin search in (Note: it is NOT returned in list of folders)
+    :param vm_prefix: VM prefix to search for [default: None]
+    :param folder_prefix: Folder prefix to search for [default: None]
     :param recursive: Recursively descend into sub-folders [default: False]
-    :return: ([VMs], [folders])
+    :return: ([vms], [folders])
     """
     vms = []
     folders = []
 
-    for item in folder.childEntity:
-        if prefix:
-            if is_vm(item) and str(item.name).startswith(prefix):
-                vms.append(item)
-            elif is_folder(item) and str(item.name).startswith(prefix):
-                folders.append(item)
+    for item in folder.childEntity:  # Iterate through all items in the folder
+        if vm_prefix:
+            if is_vm(item) and str(item.name).startswith(vm_prefix):
+                vms.append(item)  # Add matching vm to the list
+            elif is_folder(item) and str(item.name).startswith(folder_prefix):
+                folders.append(item)  # Add matching folder to the list
         else:
             if is_vm(item):
-                vms.append(item)
+                vms.append(item)  # Add matching vm to the list
             elif is_folder(item):
-                folders.append(item)
+                folders.append(item)  # Add matching folder to the list
 
         if recursive and is_folder(item):  # Recurse into sub-folders
-            v, f = retrieve_items(item, prefix, recursive)
+            v, f = retrieve_items(item, vm_prefix, folder_prefix, recursive)
             vms.extend(v)
             folders.extend(f)
     return vms, folders
