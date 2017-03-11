@@ -65,8 +65,12 @@ class VsphereInterface:
         # Set the server root folder
         if "server-root" in infrastructure:
             self.server_root = self.server.get_folder(infrastructure["server-root"])
+            if not self.server_root:
+                logging.error("Could not find server-root folder '%s'", infrastructure["server-root"])
+                exit(1)
         else:
-            self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder root
+            self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder
+
         logging.info("Server root folder: %s", self.server_root.name)
 
         # Set environment root folder name
@@ -83,6 +87,12 @@ class VsphereInterface:
             parent = futils.traverse_path(self.server_root, self.root_path)
             self.root_folder = self.server.create_folder(self.root_name, parent)
         logging.info("Environment root folder: %s", self.root_folder.name)
+
+        # Set default vSwitch name
+        if "vswitch" in infrastructure:
+            self.vswitch_name = infrastructure["vswitch"]
+        else:  # TODO: is this a good default?
+            self.vswitch_name = self.server.get_item(vim.Network, name=None).name
 
         logging.debug("Finished initializing VsphereInterface")
 
@@ -200,16 +210,17 @@ class VsphereInterface:
         host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any recent changes
 
         for name, config in self.networks[net_type].items():
-            logging.info("Creating Master %ss", net_type)
+            logging.info("Creating Master %s", net_type)
             exists = get_net_obj(host=host, object_type="portgroup", name=name, refresh=False)
             if exists:
-                logging.info("PortGroup '%s' already exists on host '%s'", name, host.name)
+                logging.debug("PortGroup '%s' already exists on host '%s'", name, host.name)
             else:  # NOTE: if monitoring, we want promiscuous=True
                 logging.warning("PortGroup '%s' does not exist on host '%s'", name, host.name)
                 if default_create:
                     logging.debug("Creating portgroup '%s' on host '%s'", name, host.name)
                     vlan = (int(config["vlan"]) if "vlan" in config else 0)  # Set the VLAN
-                    create_portgroup(name=name, host=host, vswitch_name=config["vswitch"],
+                    vswitch = (config["vswitch"] if "vswitch" in config else self.vswitch_name)
+                    create_portgroup(name=name, host=host, vswitch_name=vswitch,
                                      vlan=vlan, promiscuous=False)
 
     def _configure_nics(self, vm, networks):

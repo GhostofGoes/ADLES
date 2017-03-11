@@ -25,4 +25,5 @@ datacenter: "name of datacenter"            # Suggested     Name of the Datacent
 datastore: "name of datastore"              # Suggested     Name of Datastore on which to create environment
 template-folder: "name of template folder"  # REQUIRED      Name of folder that contains VM templates
 server-root: "name of server root"          # Suggested     Name of folder that is the top-level folder (useful for large or multi-organization systems)
+vswitch: "name of default vswitch"          # Suggested     Name of vSwitch that will be used in leiu of configuration in the spec itself
 ...

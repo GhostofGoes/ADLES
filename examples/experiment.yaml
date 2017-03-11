@@ -36,7 +36,7 @@ services:
   nginx:
     template: "NGINX Load Balancer"
   windows:
-    template: "Windows 7 SP2 (64-bit)"
+    template: "Clients/Windows/Windows 7 SP2 (64-bit)"
     note: "Username: Tester   Password: Windows1"
   kali:
     template: "Research Kali Linux"
@@ -89,7 +89,7 @@ folders:
         instances: 20
         networks: ["SERVER-NET"]
       nginix-server:
-        service: nginix
+        service: nginx
         networks: ["SERVER-NET"]
       domain-controller:
         service: dc
