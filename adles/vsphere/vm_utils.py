@@ -286,8 +286,11 @@ def convert_to_template(vm):
     Converts a Virtual Machine to a template
     :param vm: vim.VirtualMachine object to convert
     """
+    if is_template(vm):
+        logging.warning("VM '%s' is already a template", vm.name)
+        return
     try:
-        logging.debug("Converting VM %s to Template", vm.name)
+        logging.debug("Converting VM '%s' to Template", vm.name)
         vutils.wait_for_task(vm.MarkAsTemplate())
     except vim.fault.InvalidPowerState as e:
         logging.error("Cannot convert '%s' to a template while in state '%s'",

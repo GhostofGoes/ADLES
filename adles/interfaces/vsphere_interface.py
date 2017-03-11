@@ -67,7 +67,7 @@ class VsphereInterface:
             self.server_root = self.server.get_folder(infrastructure["server-root"])
         else:
             self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder root
-        logging.debug("Server root folder: %s", self.server_root.name)
+        logging.info("Server root folder: %s", self.server_root.name)
 
         # Set environment root folder name
         if "folder-name" not in self.metadata:
@@ -82,7 +82,7 @@ class VsphereInterface:
         if not self.root_folder:  # Create if it's not found
             parent = futils.traverse_path(self.server_root, self.root_path)
             self.root_folder = self.server.create_folder(self.root_name, parent)
-        logging.debug("Environment root folder: %s", self.root_folder.name)
+        logging.info("Environment root folder: %s", self.root_folder.name)
 
         logging.debug("Finished initializing VsphereInterface")
 
@@ -259,6 +259,7 @@ class VsphereInterface:
         # This is to ensure they are preserved throughout creation and execution of exercise
         logging.info("Converting Masters to Templates")
         self._convert_and_verify(folder=self.master_folder)
+        logging.info("Finished converting Masters to Templates")
 
         # Create base-networks
 
@@ -268,7 +269,9 @@ class VsphereInterface:
         #   Clone instances
         # TODO: Need to figure out when/how to apply permissions
         # TODO: Base + Generic networks
+        logging.info("Deploying environment...")
         self._deploy_folder_gen(self.folders, self.root_folder)
+        logging.info("Finished deploying environment")
 
         # Output fully deployed environment tree to debugging
         logging.debug(futils.format_structure(futils.enumerate_folder(self.root_folder)))
@@ -279,66 +282,19 @@ class VsphereInterface:
         This also ensures they are powered off before being cloned.
         :param folder: vim.Folder
         """
-        logging.debug("Converting Masters in folder '%s'", folder.name)
+        logging.debug("Converting Masters in folder '%s' to templates", folder.name)
         for item in folder.childEntity:
             if vutils.is_vm(item):
-                logging.debug("Converting Master '%s' to Template", item.name)
                 if vm_utils.powered_on(item):  # Power off VM before converting to template
                     vm_utils.change_vm_state(vm=item, state="off", attempt_guest=True)
-                vm_utils.convert_to_template(item)
+                vm_utils.convert_to_template(item)  # Convert master to template
                 logging.debug("Converted Master '%s' to Template. Verifying...", item.name)
-                if not vm_utils.is_template(item):
+                if not vm_utils.is_template(item):  # Check if it converted successfully
                     logging.error("Master '%s' did not convert to template", item.name)
                 else:
                     logging.debug("Verified!")
-            elif vutils.is_folder(item):
+            elif vutils.is_folder(item):  # Recurse into sub-folders
                 self._convert_and_verify(folder=item)
-
-    def _gen_services(self, folder, services):
-        """
-        Generates the services in a folder
-        :param folder: vim.Folder
-        :param services: The "services" dict in a folder
-        """
-        # Enumerate networks in folder
-        #   Create generic networks
-        #   Create next instance of a base network and increment base counter for folder
-
-        for service_name, value in services.items():
-            num_instances, prefix = self._instances_handler(value)
-            if num_instances > VsphereInterface.service_error:
-                logging.error("%d service instances in folder '%s' is beyond threshold of %d",
-                              num_instances, folder.name, VsphereInterface.service_error)
-                exit(1)
-            elif num_instances > VsphereInterface.service_warn:
-                logging.warning("%d service instances in folder '%s' is beyond threshold of %d",
-                                num_instances, folder.name, VsphereInterface.service_warn)
-
-            service = futils.traverse_path(self.master_folder,
-                                           VsphereInterface.master_prefix + value["service"])
-            logging.info("Generating service '%s' in folder '%s'", service_name, folder.name)
-
-            # TODO: base + generic networks
-
-            for instance in range(num_instances):
-                instance_name = prefix + service_name + \
-                                (" " + pad(instance) if num_instances > 1 else "")
-                vm_utils.clone_vm(vm=service, folder=folder, name=instance_name,
-                                  clone_spec=self.server.gen_clone_spec())
-
-    def _parent_folder_gen(self, folder, spec):
-        """
-        Generates parent-type folder trees
-        :param folder: vim.Folder
-        :param spec: Dict with folder specification
-        """
-        for sub_name, sub_value in spec.items():
-            if sub_name == "instances":
-                pass  # The instances are already being generated in the parent
-            elif sub_name == "group":
-                pass  # TODO: apply group permissions
-            else:
-                self._deploy_folder_gen(sub_value, folder)
 
     def _deploy_folder_gen(self, folders, parent):
         """
@@ -368,26 +324,91 @@ class VsphereInterface:
                     logging.debug("Generating parent-type folder '%s'", instance_name)
                     self._parent_folder_gen(folder, value)
 
-    def _instances_handler(self, value):
+    def _parent_folder_gen(self, folder, spec):
         """
-        Determines number of instances in accordance with the specification
-        :param value: Dict of folder
-        :return: number of instances
+        Generates parent-type folder trees
+        :param folder: vim.Folder
+        :param spec: Dict with folder specification
+        """
+        for sub_name, sub_value in spec.items():
+            if sub_name == "instances":
+                pass  # The instances are already being generated in the parent
+            elif sub_name == "group":
+                pass  # TODO: apply group permissions
+            else:
+                self._deploy_folder_gen(sub_value, folder)
+
+    def _gen_services(self, folder, services):
+        """
+        Generates the services in a folder
+        :param folder: vim.Folder
+        :param services: The "services" dict in a folder
+        """
+        # Enumerate networks in folder
+        #   Create generic networks
+        #   Create next instance of a base network and increment base counter for folder
+
+        for service_name, value in services.items():
+            num_instances, prefix = self._instances_handler(value)
+            if num_instances > VsphereInterface.service_error:
+                logging.error("%d service instances in folder '%s' is beyond threshold of %d",
+                              num_instances, folder.name, VsphereInterface.service_error)
+                exit(1)
+            elif num_instances > VsphereInterface.service_warn:
+                logging.warning("%d service instances in folder '%s' is beyond threshold of %d",
+                                num_instances, folder.name, VsphereInterface.service_warn)
+
+            # TODO: need to track current path in folder tree, lookup master instance using the same path but with master_prefix in names
+            service = futils.traverse_path(self.master_folder,
+                                           VsphereInterface.master_prefix + value["service"])
+            logging.info("Generating service '%s' in folder '%s'", service_name, folder.name)
+
+            # TODO: base + generic networks
+
+            for instance in range(num_instances):
+                instance_name = prefix + service_name + \
+                                (" " + pad(instance) if num_instances > 1 else "")
+                vm_utils.clone_vm(vm=service, folder=folder, name=instance_name,
+                                  clone_spec=self.server.gen_clone_spec())
+
+    def _instances_handler(self, spec):
+        """
+        Determines number of instances and optional prefix using specification
+        :param spec: Dict of folder
+        :return: (Number of instances, Prefix)
         """
         num = 1
         prefix = ""
-        if "instances" in value:
-            if "prefix" in value["instances"]:
-                prefix = value["instances"]["prefix"]
+        if "instances" in spec:
+            if "prefix" in spec["instances"]:
+                prefix = str(spec["instances"]["prefix"])
 
-            if "number" in value["instances"]:
-                num = int(value["instances"]["number"])
-            elif "size-of" in value["instances"]:
-                num = self.groups[value["instances"]["size-f"]].size
+            if "number" in spec["instances"]:
+                num = int(spec["instances"]["number"])
+            elif "size-of" in spec["instances"]:
+                num = int(self._get_group(spec["instances"]["size-of"]).size)
             else:
-                logging.error("Unknown instances specification: %s", str(value["instances"]))
+                logging.error("Unknown instances specification: %s", str(spec["instances"]))
                 num = 0
         return num, prefix
+
+    def _get_group(self, group_name):
+        """
+        Provides a uniform way to get information about normal groups and template groups
+        :param group_name: Name of the group
+        :return: Group object
+        """
+        from adles.group import Group
+        if group_name in self.groups:
+            g = self.groups[group_name]
+            if isinstance(g, Group):    # Normal groups
+                return g
+            elif isinstance(g, list):   # Template groups
+                return g[0]
+            else:
+                logging.error("Unknown type for group '%s': %s", group_name, type(g))
+        else:
+            logging.error("Could not get group '%s' from VsphereInterface groups", group_name)
 
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
