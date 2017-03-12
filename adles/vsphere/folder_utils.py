@@ -40,6 +40,8 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
             for item in folder.childEntity:
                 if isinstance(item, vimtype):
                     return item
+            logging.error("Could not find item of type '%s' in folder '%s'",
+                          str(vimtype.__name__), folder.name)
             return None
         else:
             logging.error("There are no items in folder %s", folder.name)
@@ -58,8 +60,9 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
     :param vimtype: Type of object to search for [default: None]
     :return: Object found or None if nothing was found
     """
+    name = name.lower()
     for item in folder.childEntity:
-        if hasattr(item, 'name') and item.name.lower() == name.lower():  # Check if the name matches
+        if hasattr(item, 'name') and item.name.lower() == name:  # Check if the name matches
             if vimtype and not isinstance(item, vimtype):
                 continue
             return item
@@ -78,18 +81,17 @@ def traverse_path(root, path):
     """
     logging.debug("Traversing path '%s' from root '%s'", path, root.name)
     from os.path import split
-    folder_path, name = split(path)                 # Separate basename, if any
-    folder_path = folder_path.lower().split('/')    # Transform into list
+    folder_path, name = split(path.lower())  # Separate basename and convert to lowercase
+    folder_path = folder_path.split('/')     # Transform path into list
 
-    current = root                          # Start with the defined root
-    for folder in folder_path:              # Try each folder name in the path
-        for item in current.childEntity:    # Iterate through items in the current folder
-            if is_folder(item) and item.name.lower() == folder:  # Match if item is part of path
+    current = root                        # Start with the defined root
+    for folder in folder_path:            # Try each folder name in the path
+        for item in current.childEntity:  # Iterate through items in the current folder
+            if is_folder(item) and item.name.lower() == folder:  # If Folder is part of path
                 current = item  # This is the next folder in the path
                 break  # Break to outer loop to check this folder for the next part of the path
 
     if name != '':  # Since the split had a basename, look for an item with matching name
-        name = name.lower()
         for item in current.childEntity:
             if hasattr(item, 'name') and item.name.lower() == name:
                 return item
@@ -205,21 +207,16 @@ def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False,
                 vm_utils.destroy_vm(item)  # Delete the VM from the Datastore
             elif str(item.name).startswith(vm_prefix):  # Destroy VM if name begins with the prefix
                 vm_utils.destroy_vm(item)   # Delete the VM from the Datastore
+
         elif is_folder(item):   # Handle folders
-            if folder_prefix is None:
+            if folder_prefix is None or str(item.name).startswith(folder_prefix):
                 if destroy_folders:  # Destroys folder and ALL of it's sub-objects
                     cleanup(item, vm_prefix=None, folder_prefix=None, recursive=True,
                             destroy_folders=True, destroy_self=True)
                 elif recursive:  # Simply recurses to find more items
                     cleanup(item, vm_prefix=vm_prefix, folder_prefix=folder_prefix,
                             recursive=True, destroy_folders=False, destroy_self=False)
-            elif str(item.name).startswith(folder_prefix):
-                if destroy_folders:  # Destroys folder and ALL of it's sub-objects
-                    cleanup(item, vm_prefix=None, folder_prefix=None, recursive=True,
-                            destroy_folders=True, destroy_self=True)
-                elif recursive:  # Simply recurses to find more VMs
-                    cleanup(item, vm_prefix=vm_prefix, folder_prefix=folder_prefix,
-                            recursive=True, destroy_folders=False, destroy_self=False)
+
         else:  # It's not a VM or a folder...
             logging.error("Unknown item encountered while cleaning folder '%s': %s",
                           folder.name, str(item))
@@ -247,14 +244,10 @@ def retrieve_items(folder, vm_prefix=None, folder_prefix=None, recursive=False):
 
     for item in folder.childEntity:  # Iterate through all items in the folder
         if is_vm(item):
-            if vm_prefix is None:
-                vms.append(item)
-            elif str(item.name).startswith(vm_prefix):
+            if vm_prefix is None or str(item.name).startswith(vm_prefix):
                 vms.append(item)  # Add matching vm to the list
         elif is_folder(item):
-            if folder_prefix is None:
-                folders.append(item)
-            elif str(item.name).startswith(folder_prefix):
+            if folder_prefix is None or str(item.name).startswith(folder_prefix):
                 folders.append(item)  # Add matching folder to the list
             if recursive:  # Recurse into sub-folders
                 v, f = retrieve_items(item, vm_prefix, folder_prefix, recursive)
