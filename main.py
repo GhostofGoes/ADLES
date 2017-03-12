@@ -124,4 +124,11 @@ if __name__ == '__main__':
     colors = (False if args["--no-color"] else True)
     setup_logging(filename='main.log', colors=colors, console_verbose=args["--verbose"])
 
-    main()
+    try:
+        from pycallgraph import PyCallGraph
+        from pycallgraph.output import GraphvizOutput
+
+        with PyCallGraph(output=GraphvizOutput()):
+            main()
+    except ImportError:
+        main()

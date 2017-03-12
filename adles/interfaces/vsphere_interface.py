@@ -66,7 +66,8 @@ class VsphereInterface:
         if "server-root" in infrastructure:
             self.server_root = self.server.get_folder(infrastructure["server-root"])
             if not self.server_root:
-                logging.error("Could not find server-root folder '%s'", infrastructure["server-root"])
+                logging.error("Could not find server-root folder '%s'",
+                              infrastructure["server-root"])
                 exit(1)
         else:
             self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder
@@ -100,7 +101,8 @@ class VsphereInterface:
         """ Master creation phase """
 
         # Get folder containing templates
-        self.template_folder = futils.traverse_path(self.server_root, self.metadata["template-path"])
+        self.template_folder = futils.traverse_path(self.server_root,
+                                                    self.metadata["template-path"])
         if not self.template_folder:
             logging.error("Could not find template folder in path '%s'",
                           self.metadata["template-path"])
@@ -142,8 +144,7 @@ class VsphereInterface:
         for folder_name, folder_value in folder.items():
             logging.debug("Generating master folder %s", folder_name)
             folder_name = VsphereInterface.master_prefix + folder_name
-            folder = self.server.create_folder(folder_name=folder_name,
-                                               create_in=parent)
+            folder = self.server.create_folder(folder_name, create_in=parent)
             # TODO: apply permissions
 
             if "services" in folder_value:  # It's a base folder
@@ -151,16 +152,15 @@ class VsphereInterface:
                     logging.info("Creating Master for '%s' from service '%s'",
                                  sname, sconfig["service"])
 
-                    vm = self._clone_service(folder=folder,
-                                             service_name=sconfig["service"])
+                    vm = self._clone_service(folder, sconfig["service"])
 
                     if not vm:
-                        logging.error("Failed to clone Master for service '%s' in folder '%s'",
+                        logging.error("Failed to create Master '%s' in folder '%s'",
                                       sname, folder_name)
                         continue  # Skip to the next service
 
                     # NOTE: management interfaces matter here!
-                    self._configure_nics(vm=vm, networks=sconfig["networks"])  # Configure VM NICs
+                    self._configure_nics(vm, networks=sconfig["networks"])  # Configure VM NICs
 
                     # Post-creation snapshot
                     vm_utils.create_snapshot(vm, "mastering post-clone",
@@ -185,14 +185,14 @@ class VsphereInterface:
                     logging.error("Could not find template '%s' for service '%s'",
                                   config["template"], name)
                     return None
-                vm_utils.clone_vm(vm=template, folder=folder, name=vm_name,
+                vm_utils.clone_vm(template, folder=folder, name=vm_name,
                                   clone_spec=self.server.gen_clone_spec())
                 vm = futils.traverse_path(folder, vm_name)  # Get new cloned instance
                 if vm:
                     logging.debug("Successfully cloned service '%s' to folder '%s'",
                                   service_name, folder.name)
                     if "note" in config:  # Set VM note if specified
-                        vm_utils.set_note(vm=vm, note=config["note"])
+                        vm_utils.set_note(vm, note=config["note"])
                     return vm
                 else:
                     logging.error("Failed to clone VM '%s' for service '%s'", vm_name, service_name)
@@ -240,21 +240,21 @@ class VsphereInterface:
             diff = int(num_nics - num_nets)
             logging.debug("VM '%s' has %d extra NICs, removing...", vm.name, diff)
             for i, nic in zip(range(1, diff + 1), reversed(range(num_nics))):
-                vm_utils.delete_nic(vm=vm, nic_number=nic)
+                vm_utils.delete_nic(vm, nic_number=nic)
 
         elif num_nics < num_nets:   # Create missing interfaces
             diff = int(num_nets - num_nics)
             logging.debug("VM '%s' is deficient %d NICs, adding...", vm.name, diff)
             for i in range(diff):   # Add NICs to VM and pop them from the list of networks
                 nic_model = ("vmxnet3" if vm_utils.has_tools(vm) else "e1000")
-                vm_utils.add_nic(vm=vm, network=self.server.get_network(network_name=nets.pop()),
+                vm_utils.add_nic(vm, network=self.server.get_network(network_name=nets.pop()),
                                  model=nic_model)
             num_nets = len(networks)
 
         # Edit the interfaces. NOTE: any NICs that were added earlier shouldn't be affected by this
         # TODO: traverse folder to get network?
         for net, i in zip(networks, range(1, num_nets + 1)):
-            vm_utils.edit_nic(vm=vm, nic_number=i,
+            vm_utils.edit_nic(vm, nic_number=i,
                               port_group=self.server.get_network(net), summary=net)
 
     def deploy_environment(self):
@@ -297,7 +297,7 @@ class VsphereInterface:
         for item in folder.childEntity:
             if vutils.is_vm(item):
                 if vm_utils.powered_on(item):  # Power off VM before converting to template
-                    vm_utils.change_vm_state(vm=item, state="off", attempt_guest=True)
+                    vm_utils.change_vm_state(item, "off", attempt_guest=True)
                 vm_utils.convert_to_template(item)  # Convert master to template
                 logging.debug("Converted Master '%s' to Template. Verifying...", item.name)
                 if not vm_utils.is_template(item):  # Check if it converted successfully
@@ -305,7 +305,7 @@ class VsphereInterface:
                 else:
                     logging.debug("Verified!")
             elif vutils.is_folder(item):  # Recurse into sub-folders
-                self._convert_and_verify(folder=item)
+                self._convert_and_verify(item)
 
     def _deploy_folder_gen(self, folders, parent, path):
         """
@@ -328,7 +328,7 @@ class VsphereInterface:
             for instance in range(num_instances):
                 instance_name = str(name if prefix == "" else prefix)
                 instance_name += str(" " + pad(instance) if num_instances > 1 else "")
-                folder = self.server.create_folder(folder_name=instance_name, create_in=parent)
+                folder = self.server.create_folder(instance_name, create_in=parent)
                 # TODO: apply group permissions (NOTE: master group defaults to folder's group)
                 print(str(name))
                 print(str(value))
@@ -387,10 +387,11 @@ class VsphereInterface:
             for instance in range(num_instances):
                 instance_name = prefix + service_name + \
                                 (" " + pad(instance) if num_instances > 1 else "")
-                vm_utils.clone_vm(vm=service, folder=folder, name=instance_name,
+                vm_utils.clone_vm(service, folder=folder, name=instance_name,
                                   clone_spec=self.server.gen_clone_spec())
 
-    def _path(self, path, name):
+    @staticmethod
+    def _path(path, name):
         """
         Generates next step of the path for deployment of masters
         :param path:

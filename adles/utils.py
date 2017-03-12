@@ -19,6 +19,26 @@ from sys import stdout, exit
 import os
 
 
+def check(arg_type, kwarg_name):
+    """
+    Function decorator that validates types of parameters
+    :param arg_type:
+    :param kwarg_name:
+    :return:
+    """
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            if args and isinstance(args[0], arg_type):
+                return func(*args, **kwargs)
+            elif kwargs and isinstance(kwargs[kwarg_name], arg_type):
+                return func(*args, **kwargs)
+            else:
+                logging.error("Function '%s' failed check for type '%s'",
+                              str(func.__name__), str(arg_type.__name__))
+        return wrapper
+    return decorator
+
+
 # Credit to: http://stackoverflow.com/a/15707426/2214380
 def time_execution(func):
     """

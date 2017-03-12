@@ -150,7 +150,6 @@ class Vsphere:
         """
         if folder_name:
             return self.get_obj(self.datacenter.vmFolder, [vim.Folder], folder_name)
-            # return self.get_item(vim.Folder, folder_name)
         else:
             return self.datacenter.vmFolder  # S.f.r: pyvmomi/docs/vim/Datacenter.rst
 

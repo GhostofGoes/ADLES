@@ -82,7 +82,8 @@ def _verify_metadata_syntax(metadata):
     :param metadata: Dict of metadata
     :return: (Number of errors, Number of warnings)
     """
-    warnings = ["description", "activity", "date-created", "folder-name", "root-path", "template-path"]
+    warnings = ["description", "activity", "date-created", "folder-name",
+                "root-path", "template-path"]
     errors = ["name", "prefix", "infrastructure-config-file"]
 
     num_warnings = _checker(warnings, "metadata", metadata, "warnings")
@@ -103,7 +104,8 @@ def _verify_infra_syntax(infra):
     :return: (Number of errors, Number of warnings)
     """
     warnings = ["datacenter", "datastore", "server-root"]
-    errors = ["platform", "server-hostname", "server-port", "login-file", "template-folder"]
+    errors = ["platform", "server-hostname", "server-port",
+              "login-file", "template-folder"]
 
     num_warnings = _checker(warnings, "infrastructure", infra, "warnings")
     num_errors = _checker(errors, "infrastructure", infra, "errors")
@@ -331,9 +333,10 @@ def _verify_scoring_syntax(service_name, scoring):
     if "criteria" not in scoring:
         logging.error("No criteria file specified for service %s", service_name)
         num_errors += 1
-    # TODO: need to pass package dir or path to where the environment file is, so we can check files like these
+    # TODO: need to pass package dir or path to where the environment file is
     # elif not exists(scoring["criteria"]):
-    #    logging.error("Could not find criteria file %s for service %s", scoring["criteria"], service_name)
+    #    logging.error("Could not find criteria file %s for service %s",
+    #       scoring["criteria"], service_name)
     #    num_errors += 1
     return num_errors, num_warnings
 

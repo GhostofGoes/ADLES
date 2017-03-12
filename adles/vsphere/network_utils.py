@@ -41,7 +41,7 @@ def get_net_obj(host, object_type, name, refresh=False):
     :return: The network object
     """
     objs = get_net_objs(host=host, object_type=object_type, refresh=refresh)
-    if objs:
+    if objs is not None:
         for obj in objs:
             if object_type == "portgroup" or object_type == "proxyswitch":
                 if obj.spec.name.lower() == name.lower():
