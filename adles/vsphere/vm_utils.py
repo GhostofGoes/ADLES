@@ -20,7 +20,7 @@ import adles.utils as utils
 import adles.vsphere.vsphere_utils as vutils
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 @utils.time_execution
 def clone_vm(vm, folder, name, clone_spec):
     """
@@ -37,13 +37,14 @@ def clone_vm(vm, folder, name, clone_spec):
         try:
             vutils.wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
         except vim.fault.InvalidState:
-            logging.error("Could not make clone '%s': VM '%s' is in an invalid state", name, vm.name)
+            logging.error("Could not make clone '%s': invalid state for VM '%s'", name, vm.name)
         except vim.fault.CustomizationFault:
             logging.error("Could not make clone '%s': invalid customization", name)
         except vim.fault.VmConfigFault:
             logging.error("Could not make clone '%s': invalid configuration", name)
 
 
+@utils.check(vim.Folder, "folder")
 @utils.time_execution
 def create_vm(folder, config, pool, host=None):
     """
@@ -98,7 +99,7 @@ def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=5
     return spec
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 @utils.time_execution
 def destroy_vm(vm):
     """
@@ -113,7 +114,7 @@ def destroy_vm(vm):
     vutils.wait_for_task(vm.Destroy_Task())
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def edit_vm(vm, config):
     """
     Edits a VM using the given configuration specification
@@ -139,7 +140,7 @@ def edit_vm(vm, config):
         logging.error("Cannot edit VM '%s': invalid Datastore '%s'", vm.name, e.datastore)
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def upgrade_vm(vm, version=None):
     """
     Upgrades the hardware version of the VM
@@ -154,7 +155,7 @@ def upgrade_vm(vm, version=None):
         logging.error("Cannot upgrade VM '%s': invalid power state '%s'", vm.name, e.existingState)
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def change_vm_state(vm, state, attempt_guest=True):
     """
     Generic power state change function that uses guest operations if available
@@ -182,7 +183,7 @@ def change_vm_state(vm, state, attempt_guest=True):
         logging.error("Cannot change power state of '%s': it is in an invalid state ", vm.name)
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def change_power_state(vm, power_state):
     """
     Changes a VM power state to the state specified
@@ -205,7 +206,7 @@ def change_power_state(vm, power_state):
     vutils.wait_for_task(task)
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def change_guest_state(vm, guest_state):
     """
     Changes a VMs guest power state. VMware Tools must be installed on the VM for this to work.
@@ -232,7 +233,7 @@ def change_guest_state(vm, guest_state):
         logging.error("Cannot change guest state of '%s': Tools are not running", vm.name)
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def has_tools(vm):
     """
     Checks if VMware Tools is installed and working
@@ -243,7 +244,7 @@ def has_tools(vm):
     return True if tools == "toolsOK" or tools == "toolsOld" else False
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def powered_on(vm):
     """
     Determines if a VM is powered on
@@ -253,7 +254,7 @@ def powered_on(vm):
     return vm.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def is_template(vm):
     """
     Checks if VM is a template
@@ -263,7 +264,7 @@ def is_template(vm):
     return bool(vm.summary.config.template)
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def convert_to_template(vm):
     """
     Converts a Virtual Machine to a template
@@ -282,7 +283,7 @@ def convert_to_template(vm):
         logging.error("Cannot '%s' to template: it is in an invalid state", vm.name)
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def convert_to_vm(vm, resource_pool, host=None):
     """
     Converts a Template to a Virtual Machine
@@ -295,7 +296,7 @@ def convert_to_vm(vm, resource_pool, host=None):
     vutils.wait_for_task(vm.MarkAsVirtualMachine(resource_pool, host))
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def set_note(vm, note):
     """
     Sets the note on the VM to note
@@ -308,7 +309,7 @@ def set_note(vm, note):
     edit_vm(vm, spec)
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 @utils.time_execution
 def create_snapshot(vm, name, description="default", memory=False):
     """
@@ -323,7 +324,7 @@ def create_snapshot(vm, name, description="default", memory=False):
                                                 memory=memory, quiesce=True))
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 @utils.time_execution
 def revert_to_snapshot(vm, snapshot_name):
     """
@@ -336,7 +337,7 @@ def revert_to_snapshot(vm, snapshot_name):
     vutils.wait_for_task(snap.RevertToSnapshot_Task())
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 @utils.time_execution
 def revert_to_current_snapshot(vm):
     """
@@ -347,7 +348,7 @@ def revert_to_current_snapshot(vm):
     vutils.wait_for_task(vm.RevertToCurrentSnapshot_Task())
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def get_snapshot(vm, snapshot_name):
     """
     Retrieves the named snapshot from the VM
@@ -361,7 +362,7 @@ def get_snapshot(vm, snapshot_name):
     return None
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def get_current_snapshot(vm):
     """
     Retrieves the current snapshot from the VM
@@ -371,7 +372,7 @@ def get_current_snapshot(vm):
     return vm.snapshot.currentSnapshot
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def get_all_snapshots(vm):
     """
     Retrieves a list of all snapshots of the VM
@@ -398,7 +399,7 @@ def _get_snapshots_recursive(snap_tree):
     return local_snap
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def remove_snapshot(vm, snapshot_name, remove_children=True, consolidate_disks=True):
     """
     Removes the named snapshot from the VM
@@ -413,7 +414,7 @@ def remove_snapshot(vm, snapshot_name, remove_children=True, consolidate_disks=T
     vutils.wait_for_task(snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks))
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def remove_all_snapshots(vm, consolidate_disks=True):
     """
     Removes all snapshots associated with the VM
@@ -426,7 +427,7 @@ def remove_all_snapshots(vm, consolidate_disks=True):
 
 
 # From: getallvms in pyvmomi-community-samples
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def get_vm_info(vm, uuids=False, snapshot=False):
     """
     Get human-readable information for a VM
@@ -467,7 +468,7 @@ def get_vm_info(vm, uuids=False, snapshot=False):
     return info_string
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def remove_device(vm, device):
     """
     Removes the device from the VM
@@ -479,7 +480,7 @@ def remove_device(vm, device):
     edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[device]))
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def get_nics(vm):
     """
     Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
@@ -489,7 +490,7 @@ def get_nics(vm):
     return [dev for dev in vm.config.hardware.device if vutils.is_vnic(dev)]
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def get_nic(vm, name):
     """
     Gets a Virtual Network Interface Card from a VM
@@ -504,7 +505,7 @@ def get_nic(vm, name):
 
 
 # From: delete_nic_from_vm in pyvmomi-community-samples
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def delete_nic(vm, nic_number):
     """
     Deletes VM NIC based on it's number
@@ -526,7 +527,7 @@ def delete_nic(vm, nic_number):
     edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply the change to the VM
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def edit_nic(vm, nic_number, port_group=None, summary=None):
     """
     Edits a VM NIC based on it's number
@@ -560,7 +561,7 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
 
 
 # From: add_nic_to_vm in pyvmomi-community-samples
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def add_nic(vm, network, summary="default-summary", model="e1000"):
     """
     Add a NIC in the portgroup to the VM
@@ -614,7 +615,7 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
     edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def attach_iso(vm, iso_name, datastore, boot=True):
     """
     Attaches an ISO image to a VM
@@ -659,7 +660,7 @@ def attach_iso(vm, iso_name, datastore, boot=True):
 
 
 # From: cdrom_vm in pyvmomi-community-samples
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def find_free_ide_controller(vm):
     """
     Finds a free IDE controller to use
@@ -672,7 +673,7 @@ def find_free_ide_controller(vm):
     return None
 
 
-@utils.check(vim.VirtualMachine, "folder")
+@utils.check(vim.VirtualMachine, "vm")
 def is_windows(vm):
     """
     Checks if a VM's guest OS is Windows

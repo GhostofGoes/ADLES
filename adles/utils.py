@@ -22,19 +22,19 @@ import os
 def check(arg_type, kwarg_name):
     """
     Function decorator that validates types of parameters
-    :param arg_type:
-    :param kwarg_name:
-    :return:
+    :param arg_type: Type to validate
+    :param kwarg_name: Name of keyword argument to validate
+    :return: The decorated function
     """
     def decorator(func):
         def wrapper(*args, **kwargs):
-            if args and isinstance(args[0], arg_type):
+            if args and isinstance(args[0], arg_type):  # We assume it is the first argument
                 return func(*args, **kwargs)
-            elif kwargs and isinstance(kwargs[kwarg_name], arg_type):
+            elif kwargs and isinstance(kwargs.get(kwarg_name, None), arg_type):
                 return func(*args, **kwargs)
             else:
-                logging.error("Function '%s' failed check for type '%s'",
-                              str(func.__name__), str(arg_type.__name__))
+                logging.error("Function '%s' failed check for type '%s'\nArgs: %s\nkwargs: %s",
+                              str(func.__name__), str(arg_type.__name__), str(args), str(kwargs))
         return wrapper
     return decorator
 
@@ -42,9 +42,9 @@ def check(arg_type, kwarg_name):
 # Credit to: http://stackoverflow.com/a/15707426/2214380
 def time_execution(func):
     """
-    Wrapper to time the execution of a function and log to debug
+    Function decorator to time the execution of a function and log to debug
     :param func: The function to time execution of
-    :return: The function
+    :return: The decorated function
     """
     from timeit import default_timer
 

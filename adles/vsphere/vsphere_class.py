@@ -24,7 +24,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.8.1"
+    __version__ = "0.8.2"
 
     def __init__(self, username, password, hostname,
                  datacenter=None, datastore=None,
@@ -43,7 +43,7 @@ class Vsphere:
             from getpass import getpass
             password = getpass('Enter password for host %s and user %s: ' % (hostname, username))
         try:
-            logging.debug("Connecting to vSphere host %s:%d with username '%s'",
+            logging.info("Connecting to vSphere host %s:%d with username '%s'",
                           hostname, int(port), username)
             if use_ssl:  # Connect to server using SSL certificate verification
                 self.server = SmartConnect(host=hostname, user=username, pwd=password,
@@ -293,6 +293,58 @@ class Vsphere:
                 returns.append(func(item))
         con_view.Destroy()
         return returns
+
+    def find_by_uuid(self, uuid, instance_uuid=True):
+        """
+        Find a VM in the datacenter with the given Instance or BIOS UUID
+        :param uuid: UUID to search for (Instance or BIOS for VMs)
+        :param instance_uuid: Search for VM Instance UUIDs, otherwise BIOS UUIDs [default: True]
+        :return: vim.ManagedEntity
+        """
+        return self.content.searchIndex.FindByUuid(datacenter=self.datacenter,
+                                                   uuid=str(uuid), vmSearch=True,
+                                                   instanceUuid=instance_uuid)
+
+    def find_by_ds_path(self, path):
+        """
+        Finds a VM by it's location on a Datastore
+        :param path: Path to the VM's .vmx file on the Datastore
+        :return: vim.VirtualMachine
+        """
+        try:
+            return self.content.searchIndex.FindByDatastorePath(datacenter=self.datacenter,
+                                                                path=str(path))
+        except vim.fault.InvalidDatastore:
+            logging.error("Invalid datastore in path: %s", str(path))
+            return None
+
+    def find_by_ip(self, ip, vm_search=True):
+        """
+        Find a VM or Host using a IP address
+        :param ip: IP address string as returned by VMware Tools ipAddress
+        :param vm_search: Search for VMs if True, Hosts if False [default: True]
+        :return: vim.ManagedEntity
+        """
+        return self.content.searchIndex.FindByIp(datacenter=self.datacenter,
+                                                 ip=str(ip), vmSearch=vm_search)
+
+    def find_by_hostname(self, hostname, vm_search=True):
+        """
+        Find a VM or Host using a fully-qualified domain name
+        :param hostname: Fully-qualified domain name
+        :param vm_search: Search for VMs if True, Hosts if False [default: True]
+        :return: vim.ManagedEntity
+        """
+        return self.content.searchIndex.FindByDnsName(datacenter=self.datacenter,
+                                                      dnsName=str(hostname), vmSearch=vm_search)
+
+    def find_by_inv_path(self, path):
+        """
+        Finds a vim.ManagedEntity (VM, host, resource pool, folder, etc) in a inventory
+        :param path: Path to the entity
+        :return: vim.ManagedEntity
+        """
+        return self.content.searchIndex.FindByInventoryPath(inventoryPath=str(path))
 
     def __repr__(self):
         return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name,

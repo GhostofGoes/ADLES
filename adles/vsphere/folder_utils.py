@@ -72,22 +72,22 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
 
 
 @check(vim.Folder, "folder")
-def traverse_path(root, path):
+def traverse_path(folder, path):
     """
     Traverses a folder path to find a object with a specific name
-    :param root: vim.Folder root to search in
+    :param folder: vim.Folder to search in
     :param path: String with path in POSIX format (Templates/Windows/ to get the 'Windows' folder)
     :return: Object at end of path
     """
-    logging.debug("Traversing path '%s' from root '%s'", path, root.name)
+    logging.debug("Traversing path '%s' from folder '%s'", path, folder.name)
     from os.path import split
     folder_path, name = split(path.lower())  # Separate basename and convert to lowercase
     folder_path = folder_path.split('/')     # Transform path into list
 
-    current = root                        # Start with the defined root
-    for folder in folder_path:            # Try each folder name in the path
+    current = folder                        # Start with the defined folder
+    for f in folder_path:            # Try each folder name in the path
         for item in current.childEntity:  # Iterate through items in the current folder
-            if is_folder(item) and item.name.lower() == folder:  # If Folder is part of path
+            if is_folder(item) and item.name.lower() == f:  # If Folder is part of path
                 current = item  # This is the next folder in the path
                 break  # Break to outer loop to check this folder for the next part of the path
 
@@ -95,8 +95,8 @@ def traverse_path(root, path):
         for item in current.childEntity:
             if hasattr(item, 'name') and item.name.lower() == name:
                 return item
-        logging.debug("Could not find item %s while traversing path '%s' from root '%s'",
-                      name, path, root.name)
+        logging.debug("Could not find item %s while traversing path '%s' from folder '%s'",
+                      name, path, folder.name)
         return None
     else:  # No basename, so just return whatever was at the end of the path
         return current
