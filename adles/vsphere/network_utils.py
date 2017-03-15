@@ -92,7 +92,7 @@ def create_vswitch(name, host, num_ports=512):
     logging.info("Creating vSwitch %s with %s ports on host %s", name, str(num_ports), host.name)
 
     vswitch_spec = vim.host.VirtualSwitch.Specification()
-    vswitch_spec.numPorts = num_ports
+    vswitch_spec.numPorts = int(num_ports)
 
     try:
         host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)

@@ -129,20 +129,6 @@ def read_json(filename):
         return None
 
 
-# From: http://stackoverflow.com/a/1724723/2214380
-def file_exists(filename, path):
-    """
-    Determines if a file exists somewhere
-    :param filename:
-    :param path:
-    :return:
-    """
-    for root, dirs, files in os.walk(path):
-        if filename in files:
-            return bool(path.join(root, filename))
-    return False
-
-
 def make_vsphere(filename=None):
     """
     Creates a vSphere object using either a JSON file or by prompting the user

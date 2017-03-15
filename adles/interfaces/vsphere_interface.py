@@ -438,7 +438,7 @@ class VsphereInterface:
             elif isinstance(g, list):   # Template groups
                 return g[0]
             else:
-                logging.error("Unknown type for group '%s': %s", group_name, type(g))
+                logging.error("Unknown type for group '%s': %s", str(group_name), str(type(g)))
         else:
             logging.error("Could not get group '%s' from VsphereInterface groups", group_name)
 

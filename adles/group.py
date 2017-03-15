@@ -27,7 +27,8 @@ class Group:
         logging.debug("Initializing Group '%s'", name)
 
         if type(group) != dict:
-            logging.error("Class Group must be initialized with a dict, not %s", str(type(group)))
+            logging.error("Class Group must be initialized with a dict, not %s: %s",
+                          str(type(group)), str(group))
             raise Exception()
 
         if "ad-group" in group:
@@ -51,5 +52,5 @@ class Group:
 
         self.users = users
         self.size = int(len(self.users))
-        self.name = name
+        self.name = str(name)
         logging.debug("Finished initializing Group '%s' with %d users", self.name, self.size)
