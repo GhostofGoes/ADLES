@@ -26,6 +26,8 @@ from adles.vsphere.network_utils import create_portgroup, get_net_obj
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
+    __version__ = "0.7.0"
+
     # Names/prefixes
     master_prefix = "(MASTER) "
     master_root_name = "MASTER_FOLDERS"
@@ -45,7 +47,7 @@ class VsphereInterface:
         :param logins: Dict of infrastructure logins
         :param spec: Dict of a parsed specification
         """
-        logging.debug("Initializing VsphereInterface...")
+        logging.debug("Initializing VsphereInterface %s", VsphereInterface.__version__)
         self.spec = spec
         self.metadata = spec["metadata"]
         self.services = spec["services"]
@@ -122,10 +124,14 @@ class VsphereInterface:
         for g in ad_groups:
             res = self.server.get_users(belong_to_group=g.ad_group, find_users=True)
             for r in res:
-                if r.group is True:
+                if r.group is True:  # Reference: pyvmomi/docs/vim/UserSearchResult.rst
                     logging.error("Result '%s' is not a user", str(r))
                 else:
                     g.users.append(r.principal)
+
+        if hasattr(self.server.user_dir, "domainList"):
+            logging.debug("Domains on server: %s", str(self.server.user_dir.domainList))
+
         return groups
 
     def create_masters(self):

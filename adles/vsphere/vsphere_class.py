@@ -24,7 +24,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.0"
+    __version__ = "0.9.1"
 
     def __init__(self, username, password, hostname,
                  datacenter=None, datastore=None,
@@ -38,8 +38,8 @@ class Vsphere:
         :param datacenter: Name of datacenter to use [default: First datacenter found on server]
         :param port: Port used to connect to vCenter instance [default: 443]
         """
-        logging.debug("Initializing vSphere - [Datacenter: %s, Datastore: %s]",
-                      datacenter, datastore)
+        logging.debug("Initializing Vsphere %s - [Datacenter: %s, Datastore: %s, SSL: %s]",
+                      Vsphere.__version__, datacenter, datastore, str(use_ssl))
         if not password:
             from getpass import getpass
             password = getpass('Enter password for %s: ' % username)
@@ -69,9 +69,9 @@ class Vsphere:
         logging.info("Connected to vSphere host %s:%d", hostname, int(port))
         logging.debug("Current server time: %s", str(self.server.CurrentTime()))
 
-        self.user = username
+        self.username = username
         self.hostname = hostname
-        self.port = port
+        self.port = int(port)
 
         self.content = self.server.RetrieveContent()
         self.auth = self.content.authorizationManager
@@ -135,6 +135,32 @@ class Vsphere:
         logging.info("Setting vCenter MOTD to %s", message)
         self.content.sessionManager.UpdateServiceMessage(message=message)
 
+    def set_entity_permissions(self, entity, permission):
+        """
+        Defines or updates rule(s) for the given user or group on the entity
+        :param entity: vim.ManagedEntity, The entity on which to set permissions
+        :param permission: vim.AuthorizationManager.Permission
+        """
+        try:
+            self.auth.SetEntityPermissions(entity=entity, permission=permission)
+        except vim.fault.UserNotFound as e:
+            logging.error("Could not find user '%s' to set permission '%s' on entity '%s'",
+                          e.principal, str(permission), str(entity))
+        except vim.fault.NotFound:
+            logging.error("Invalid role ID for permission '%s'", str(permission))
+        except vmodl.fault.ManagedObjectNotFound as e:
+            logging.error("Entity '%s' does not exist to set permission on", str(e.obj))
+        except vim.fault.NoPermission as e:
+            logging.error("Could not set permissions for entity '%s': the current session "
+                          "does not have privilege '%s' to set permissions for the entity '%s'",
+                          entity.name, e.privilegeId, e.object)
+        except vmodl.fault.InvalidArgument as e:
+            logging.error("Invalid argument to set permission '%s' on entity '%s': %s",
+                          entity.name, str(permission), str(e))
+        except Exception as e:
+            logging.error("Unknown error while setting permissions for entity '%s': %s",
+                          entity.name, str(e))
+
     def get_entity_permissions(self, entity, inherited=True):
         """
         Gets permissions defined on or effective on a managed entity
@@ -169,12 +195,14 @@ class Vsphere:
         :param search: Case insensitive substring used to filter results [default: all users]
         :param domain: Domain to be searched [default: local machine]
         :param exact: Search should match user/group name exactly [default: False]
-        :param belong_to_group: Only find users/groups that directly belong to this group [default: None]
+        :param belong_to_group: Only find users/groups that directly belong
+        to this group [default: None]
         :param have_user: Only find groups that directly contain this user [default: None]
         :param find_users: If users should be included in the results [default: True]
         :param find_groups: If groups should be included in the results [default: False]
         :return: List of vim.UserSearchResult
         """
+        # See for reference: pyvmomi/docs/vim/UserDirectory.rst
         kwargs = {"searchStr": str(search), "exactMatch": exact,
                   "findUsers": find_users, "findGroups": find_groups}
         if domain != "":
