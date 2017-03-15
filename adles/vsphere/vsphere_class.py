@@ -24,7 +24,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.8.0"
+    __version__ = "0.8.1"
 
     def __init__(self, username, password, hostname,
                  datacenter=None, datastore=None,
@@ -51,6 +51,9 @@ class Vsphere:
             else:
                 self.server = SmartConnectNoSSL(host=hostname, user=username, pwd=password,
                                                 port=int(port))
+        except vim.fault.InvalidLogin:
+            logging.error("Invalid login credentials were used for vSphere host %s:%d",
+                          hostname, int(port))
         except Exception as e:
             logging.error("An error occurred while trying to connect to vSphere: %s", str(e))
 

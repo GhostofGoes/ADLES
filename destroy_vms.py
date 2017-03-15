@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,46 +33,60 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import prompt_y_n_question, user_input, default_prompt, script_setup
+from adles.utils import prompt_y_n_question, default_prompt, script_setup, name_or_path
 import adles.vsphere.vm_utils as vm_utils
-from adles.vsphere.folder_utils import traverse_path, enumerate_folder, format_structure, cleanup, retrieve_items
+from adles.vsphere.folder_utils import enumerate_folder, \
+    format_structure, cleanup, retrieve_items
 
-__version__ = "0.4.1"
+
+__version__ = "0.5.0"
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('destroy_vms.log', args, (__file__, __version__))
 
 if prompt_y_n_question("Do you wish to destroy a single VM? "):
-    # TODO: VM at path + folder at path utility func
-    vm, vm_name = user_input("Name of or path to VM to destroy: ", "VM",
-                             lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_vm(x))
+    vm, vm_name = name_or_path(server, "vm", "to destroy")
+
+    if prompt_y_n_question("Display VM info? "):
+        logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
+
     if vm.config.template:  # Warn if template
-        if not prompt_y_n_question("VM %s is a Template. Do you wish to continue? " % vm_name):
+        if not prompt_y_n_question("VM %s is a Template. Continue? " % vm_name):
             exit(0)
+
     if prompt_y_n_question("Continue with destruction? "):
-        logging.info("Destroying VM with name %s", vm_name)
+        logging.info("Destroying VM '%s'", vm_name)
         vm_utils.destroy_vm(vm)
     else:
         logging.info("Destruction cancelled")
 else:
-    folder, fname = user_input("Name of or path to the folder that has the VMs/folders you want to destroy: ", "folder",
-                               lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_folder(x))
+    folder, fname = name_or_path(server, "folder",
+                                 "that has the VMs/folders you want to destroy")
 
     # Display folder structure
     logging.info("Folder structure: %s", format_structure(enumerate_folder(folder)))
 
-    vm_prefix = default_prompt("Prefix of VMs you wish to destroy (CASE SENSITIVE!)", default=None)
+    # Prompt user to configure destruction options
+    vm_prefix = default_prompt("Prefix of VMs you wish to destroy (CASE SENSITIVE!)",
+                               default=None)
     recursive = prompt_y_n_question("Recursively descend into folders? ")
     destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
     folder_prefix = None
     if destroy_folders:
-        folder_prefix = default_prompt("Prefix of folders you wish to destroy (CASE SENSITIVE!)", default=None)
+        folder_prefix = default_prompt("Prefix of folders you wish to destroy (CASE SENSITIVE!)",
+                                       default=None)
     destroy_self = prompt_y_n_question("Destroy the folder itself? ")
 
+    # Show user what options they selected (TODO: do these options as flags?)
     logging.info("VM Prefix: '%s'\tFolder Prefix: '%s'\tRecursive: %s",
                  str(vm_prefix), str(folder_prefix), str(recursive))
-    logging.info("Folder-destruction: %s\tSelf-destruction: %s", str(destroy_folders), str(destroy_self))
+    logging.info("Folder-destruction: %s\tSelf-destruction: %s",
+                 str(destroy_folders), str(destroy_self))
+
+    # Show how many items matched the options
     v, f = retrieve_items(folder, vm_prefix, folder_prefix, True)
     logging.info("%d VMs and %d folders match the options", int(len(v)), int(len(f)))
+
+    # Confirm and destroy
     if prompt_y_n_question("Continue with destruction? "):
         logging.info("Destroying...")
         cleanup(folder, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=recursive,

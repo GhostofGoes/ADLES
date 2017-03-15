@@ -33,12 +33,11 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import prompt_y_n_question, user_input, script_setup
+from adles.utils import prompt_y_n_question, script_setup, name_or_path
 from adles.vsphere.vm_utils import change_vm_state
 from adles.vsphere.vsphere_utils import is_vm
-from adles.vsphere.folder_utils import traverse_path
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('vm_power.log', args, (__file__, __version__))
 
@@ -48,16 +47,14 @@ attempt_guest = prompt_y_n_question("Use guest operations if available? ")
 # TODO: prefixes
 # TODO: nesting
 if prompt_y_n_question("Multiple VMs? "):
-    folder, folder_name = user_input("Name of or path to the folder with VMs: ", "folder",
-                                     lambda x: traverse_path(server.get_folder(), x)
-                                     if '/' in x else server.get_folder(x))
+    folder, folder_name = name_or_path(server, "folder", "with VMs")
     vms = [x for x in folder.childEntity if is_vm(x)]
-    if prompt_y_n_question("Found %d VMs in folder '%s'. Continue? " % (len(vms), folder_name)):
+    logging.info("Found %d VMs in folder '%s'", len(vms), folder_name)
+    if prompt_y_n_question("Continue? "):
         for vm in vms:
             change_vm_state(vm, operation, attempt_guest)
 
 else:
-    vm, vm_name = user_input("Name of or path to the VM: ", "VM",
-                             lambda x: traverse_path(server.get_folder(), x) if '/' in x else server.get_vm(x))
+    vm, vm_name = name_or_path(server, "VM")
     logging.info("Changing power state of '%s' to '%s'", vm_name, operation)
     change_vm_state(vm, operation, attempt_guest)
