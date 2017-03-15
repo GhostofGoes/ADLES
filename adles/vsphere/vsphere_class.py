@@ -16,7 +16,7 @@
 import logging
 
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
-from pyVmomi import vim
+from pyVmomi import vim, vmodl
 
 from adles.vsphere.folder_utils import create_folder, get_in_folder
 
@@ -24,7 +24,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.8.2"
+    __version__ = "0.9.0"
 
     def __init__(self, username, password, hostname,
                  datacenter=None, datastore=None,
@@ -38,13 +38,14 @@ class Vsphere:
         :param datacenter: Name of datacenter to use [default: First datacenter found on server]
         :param port: Port used to connect to vCenter instance [default: 443]
         """
-        logging.debug("Initializing vSphere - Datacenter: %s\tDatastore: %s", datacenter, datastore)
+        logging.debug("Initializing vSphere - [Datacenter: %s, Datastore: %s]",
+                      datacenter, datastore)
         if not password:
             from getpass import getpass
-            password = getpass('Enter password for host %s and user %s: ' % (hostname, username))
+            password = getpass('Enter password for %s: ' % username)
         try:
-            logging.info("Connecting to vSphere host %s:%d with username '%s'",
-                          hostname, int(port), username)
+            logging.info("Connecting to vSphere: %s@%s:%d",
+                         username, hostname, int(port))
             if use_ssl:  # Connect to server using SSL certificate verification
                 self.server = SmartConnect(host=hostname, user=username, pwd=password,
                                            port=int(port))
@@ -58,22 +59,29 @@ class Vsphere:
             logging.error("An error occurred while trying to connect to vSphere: %s", str(e))
 
         if not self.server:
-            logging.error("Could not connect to vSphere host %s with username %s",
-                          hostname, username)
+            logging.error("Could not connect to %s@vSphere host %s:%d",
+                          username, hostname, int(port))
             raise Exception()
 
         from atexit import register
         register(Disconnect, self.server)  # Ensures connection to server is closed upon exit
 
+        logging.info("Connected to vSphere host %s:%d", hostname, int(port))
+        logging.debug("Current server time: %s", str(self.server.CurrentTime()))
+
         self.user = username
         self.hostname = hostname
         self.port = port
+
         self.content = self.server.RetrieveContent()
-        self.children = self.content.rootFolder.childEntity
+        self.auth = self.content.authorizationManager
+        self.user_dir = self.content.userDirectory
+
         self.datacenter = self.get_item(vim.Datacenter, name=datacenter)
         if not self.datacenter:
             logging.error("Could not find a datacenter to initialize with!")
             exit(1)
+
         self.datastore = self.get_datastore(datastore)
         if not self.datastore:
             logging.error("Could not find a datastore to initialize with!")
@@ -126,6 +134,65 @@ class Vsphere:
         """
         logging.info("Setting vCenter MOTD to %s", message)
         self.content.sessionManager.UpdateServiceMessage(message=message)
+
+    def get_entity_permissions(self, entity, inherited=True):
+        """
+        Gets permissions defined on or effective on a managed entity
+        :param entity: vim.ManagedEntity
+        :param inherited: Include propagating permissions defined by parent entities [default: True]
+        :return: vim.AuthorizationManager.Permission
+        """
+        try:
+            return self.auth.RetrieveEntityPermissions(entity=entity, inherited=inherited)
+        except vmodl.fault.ManagedObjectNotFound as e:
+            logging.error("Could not find entity '%s' to get permissions from", str(e.obj))
+            return None
+
+    def get_role_permissions(self, role_id):
+        """
+        Gets all permissions that use a particular role
+        :param role_id: ID of the role
+        :return: vim.AuthorizationManager.Permission
+        """
+        try:
+            return self.auth.RetrieveRolePermissions(roleId=int(role_id))
+        except vim.fault.NotFound:
+            logging.error("Role ID %d does not exist", int(role_id))
+            return None
+
+    def get_users(self, search="", domain="", exact=False,
+                  belong_to_group=None, have_user=None,
+                  find_users=True, find_groups=False):
+        """
+        Returns a list of the users and groups defined for the server.
+        NOTE: You must hold the Authorization.ModifyPermissions privilege to invoke this method!
+        :param search: Case insensitive substring used to filter results [default: all users]
+        :param domain: Domain to be searched [default: local machine]
+        :param exact: Search should match user/group name exactly [default: False]
+        :param belong_to_group: Only find users/groups that directly belong to this group [default: None]
+        :param have_user: Only find groups that directly contain this user [default: None]
+        :param find_users: If users should be included in the results [default: True]
+        :param find_groups: If groups should be included in the results [default: False]
+        :return: List of vim.UserSearchResult
+        """
+        kwargs = {"searchStr": str(search), "exactMatch": exact,
+                  "findUsers": find_users, "findGroups": find_groups}
+        if domain != "":
+            kwargs["domain"] = str(domain)
+        if belong_to_group is not None:
+            kwargs["belongsToGroup"] = str(belong_to_group)
+        if have_user is not None:
+            kwargs["belongsToUser"] = str(have_user)
+
+        try:
+            return self.user_dir.RetrieveUserGroups(**kwargs)
+        except vim.fault.NotFound:
+            logging.error("Could not find domain, group or user in call to get_users"
+                          "kwargs: %s", str(kwargs))
+            return None
+        except vmodl.fault.NotSupported:
+            logging.error("System does not support domains or by-membership queries for get_users")
+            return None
 
     def get_server_info(self):
         """

@@ -37,30 +37,33 @@ class VsphereInterface:
     folder_warn = 25
     folder_error = 50
 
-    def __init__(self, infrastructure, logins, groups, spec):
+    def __init__(self, infrastructure, logins, spec):
         """
+        NOTE: it is assumed that the infrastructure and spec are both valid,
+        and thus checks on key existance and types are not performed.
         :param infrastructure: Dict of infrastructure information
         :param logins: Dict of infrastructure logins
-        :param groups: List of Group objects
         :param spec: Dict of a parsed specification
         """
         logging.debug("Initializing VsphereInterface...")
         self.spec = spec
         self.metadata = spec["metadata"]
-        self.groups = groups
         self.services = spec["services"]
         self.networks = spec["networks"]
         self.folders = spec["folders"]
         self.master_folder = None
         self.template_folder = None
 
-        # Create the vSphere object to interact with
+        # Instantiate the vSphere vCenter server instance class
         self.server = Vsphere(datacenter=infrastructure["datacenter"],
                               username=logins["user"],
                               password=logins["pass"],
                               hostname=logins["host"],
                               port=int(logins["port"]),
                               datastore=infrastructure["datastore"])
+
+        # Instantiate and initialize Groups
+        self.groups = self._init_groups()
 
         # Set the server root folder
         if "server-root" in infrastructure:
@@ -96,6 +99,34 @@ class VsphereInterface:
             self.vswitch_name = self.server.get_item(vim.Network, name=None).name
 
         logging.debug("Finished initializing VsphereInterface")
+
+    def _init_groups(self):
+        """
+        Instantiate and initialize Groups
+        :return: Dict of Groups
+        """
+        from adles.group import Group, get_ad_groups
+        groups = {}
+
+        # Instantiate Groups
+        for name, config in self.spec["groups"].items():
+            if "instances" in config:  # Template groups
+                groups[name] = []
+                for i in range(1, config["instances"] + 1):
+                    groups[name].append(Group(name=name, group=config, instance=i))
+            else:  # Standard groups
+                groups[name] = Group(name=name, group=config)
+
+        # Initialize Active Directory-type Group user names
+        ad_groups = get_ad_groups(groups)
+        for g in ad_groups:
+            res = self.server.get_users(belong_to_group=g.ad_group, find_users=True)
+            for r in res:
+                if r.group is True:
+                    logging.error("Result '%s' is not a user", str(r))
+                else:
+                    g.users.append(r.principal)
+        return groups
 
     def create_masters(self):
         """ Master creation phase """

@@ -31,26 +31,58 @@ class Group:
                           str(type(group)), str(group))
             raise Exception()
 
+        if instance:
+            self.is_template = True
+            self.instance = instance
+        else:
+            self.is_template = False
+
+        # !!! NOTE: ad-groups must be handled externally by caller !!!
         if "ad-group" in group:
-            # TODO: implement AD group instances in the case of a template group
-            # TODO: implement active directory group retrieval...will need to get AD server info
-            users = [("bobby", "easy-password")]
+            group_type = "ad"
+            self.ad_group = group["ad-group"]
+            users = None
+            if instance:  # Template groups
+                self.ad_group += " " + str(instance)
 
         elif "filename" in group:
             from adles.utils import read_json
+            group_type = "standard"
             if instance:    # Template group
                 users = [(user, pw) for user, pw in read_json(group["filename"])[str(instance)].items()]
             else:           # Standard group
                 users = [(user, pw) for user, pw in read_json(group["filename"]).items()]
 
         elif "user-list" in group:
+            group_type = "standard"
             users = group["user-list"]
 
         else:
             logging.error("Invalid group: %s", str(group))
             raise Exception()
 
+        self.group_type = group_type
         self.users = users
         self.size = int(len(self.users))
         self.name = str(name)
         logging.debug("Finished initializing Group '%s' with %d users", self.name, self.size)
+
+
+def get_ad_groups(groups):
+    """
+
+    :param groups:
+    :return:
+    """
+    ad_groups = []
+    for g in groups:
+        if type(g) == list:
+            for i in g:
+                if isinstance(i, Group):
+                    ad_groups.append(i)
+        elif isinstance(g, Group):
+            if g.group_type == "ad":
+                ad_groups.append(g)
+        else:
+            logging.error("Invalid group: %s", str(g))
+    return ad_groups

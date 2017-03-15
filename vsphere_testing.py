@@ -43,12 +43,13 @@ args = docopt(__doc__, version=Vsphere.__version__, help=True)
 server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
 
 folder = server.get_folder("monkeys")
-bios_uuid = "42053029-1098-6ef1-da79-5e2c4103f600"
-instance_uuid = "50056cfe-aaa0-c28d-a702-d72e68e50f3a"
+
+
+# bios_uuid = "42053029-1098-6ef1-da79-5e2c4103f600"
+# instance_uuid = "50056cfe-aaa0-c28d-a702-d72e68e50f3a"
+# vm = server.find_by_uuid(uuid=instance_uuid)
 # vm = server.find_by_ds_path(path="[Datastore] (MASTER) apache/(MASTER) apache.vmx")
-vm = server.find_by_uuid(uuid=instance_uuid)
-print(type(vm))
-logging.info("%s", vm_utils.get_vm_info(vm, uuids=True))
+# logging.info("%s", vm_utils.get_vm_info(vm, uuids=True))
 
 # pool = server.get_item(vim.ResourcePool)
 # vm_spec = vm_utils.gen_vm_spec(name="test_vm", datastore_name="Datastore",
