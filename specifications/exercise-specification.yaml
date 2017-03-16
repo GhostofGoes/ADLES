@@ -1,9 +1,9 @@
 ---
-# Specification of syntax for files used to define a virtual environment
+# Specification of syntax for files used to define a virtual environment for an educational exercise
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
 # Creation Date:    October 12th, 2016
-# Current Version:  0.4.4
+# Current Version:  0.4.6
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
@@ -14,6 +14,7 @@
 #   0.4.3:  Metadata changes: removed "class" and "course", added "activity" and "prefix" (03-08-2017)
 #   0.4.4:  Cleaned up Resources (03-09-2017)
 #   0.4.5:  Changed master-groups from Suggested to Optional, added to parent-type folders (03-10-2017)
+#   0.4.6:  Renamed to "exercise-specification" from "environment-specification" (03-15-2017)
 
 # *** Syntax inspirations ***
 # https://docs.docker.com/compose/compose-file/
@@ -38,10 +39,10 @@
 # *** Notes ***
 # "Instances" is assumed to be one unless specified otherwise. They cannot be negative or zero
 # Top-level definitions are only required if used (e.g resources, groups, networks)
-# Details on environment creation steps ("phases") can be found in the descrption for folders
+# Details on exercise environment creation steps ("phases") can be found in the descrption for folders
 
 # ##################################
-# ### Beginning of specification ###
+# ### Beginning of Specification ###
 # ##################################
 
 # ** Document Metadata **
@@ -49,19 +50,19 @@ metadata:
   name: "Title for the specification"             # REQUIRED    Human-readable title for the specification
   description: "Description of specification"     # Suggested   Human-readable detailed description of the specification
   activity: "the activity"                        # Suggested   The activity the specification is being used for, e.g "CS 439" or "PRCCDC"
-  prefix: "GLOBAL-PREFIX"                         # REQUIRED    Globally unique prefix that distinguishes this activity's environments from others on the same infrastructure
+  prefix: "GLOBAL-PREFIX"                         # REQUIRED    Globally unique prefix that distinguishes this exercise's environments from others on the same infrastructure
   date-created: "Date specification was created"  # Suggested   UTC format: YYYY-MM-DD (Example: 2016-10-12)
   version: "0.0.0"                                # Optional    Semantic version of the document: major.minor.bugfix
-  infrastructure-config-file: "filename.yaml"     # REQUIRED    YAML file specifying the infrastructure used to create the environment (See: infrastructure-specification.yaml for syntax)
-  folder-name: "foldername"                       # Suggested   Name of folder that will contain the environment
-  root-path: "Path/To/Folder/Root"                # Suggested   Path from server root to location of the root folder for environment, relative to infrastructure root
-  template-path: "Path/To/Templates"              # Suggested   Path from server root to folder containing templates used to create environment
+  infrastructure-config-file: "filename.yaml"     # REQUIRED    YAML file specifying the infrastructure used to create the exercise environment (See: infrastructure-specification.yaml for syntax)
+  folder-name: "foldername"                       # Suggested   Name of folder that will contain the exercise
+  root-path: "Path/To/Folder/Root"                # Suggested   Path from server root to location of the root folder for exercise, relative to infrastructure root
+  template-path: "Path/To/Templates"              # Suggested   Path from server root to folder containing templates used to create the exercise
 
 
 
 # ** Groups/Teams **
 # User groups, such as teams, students, instructors, etc
-# These are used to apply permissions to the resources and machines in the generated virtual environment
+# These are used to apply permissions to the resources and machines in the generated virtual exercise environment
 # Can also be specified as "teams"
 groups:
   Group Regular Example:
@@ -79,7 +80,7 @@ groups:
 
 
 # ** Services **
-# Definition of services (nodes) that will be created in the environment, such as hosts, servers, and routers
+# Definition of services (nodes) that will be created in the exercise environment, such as hosts, servers, and routers
 # Case insensitive EXCEPT for resources, such as templates or images
 # Template configurations will be overridden if certain options are set
 # If containers are used, a GitLab server or Docker registry MUST be specified in the infrastructure-config file
@@ -152,7 +153,7 @@ networks:
 
 # ** Folders **
 # Assemblages of objects in a hierarchical structure
-# PHASES - Usually, there are two phases to creation of an environment
+# PHASES - Usually, there are two phases to creation of an exercise environment
 #   Mastering     "Master" instances are created and configured by humans
 #   Deployment    Full deployment of envrionment, using the Master instances created in the Mastering phase
 # PERMISSIONS - Permissions are applied hierarchically, so groups with permissions to parents have permissions to children

@@ -84,7 +84,8 @@ def main():
         check_syntax(args["--check-syntax"])
 
     elif args["--package-dir"]:
-        logging.error("CURRENTLY UNSUPPORTED")
+        logging.error("PACKAGES ARE CURRENTLY UNSUPPORTED")
+        raise NotImplementedError
 
     else:
         logging.error("Invalid arguments. Argument dump:\n%s", str(args))

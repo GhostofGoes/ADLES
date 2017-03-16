@@ -135,7 +135,7 @@ class VsphereInterface:
         return groups
 
     def create_masters(self):
-        """ Master creation phase """
+        """ Exercise Environment Master creation phase """
 
         # Get folder containing templates
         self.template_folder = futils.traverse_path(self.server_root,
@@ -295,7 +295,7 @@ class VsphereInterface:
                               port_group=self.server.get_network(net), summary=net)
 
     def deploy_environment(self):
-        """ Environment deployment phase """
+        """ Exercise Environment deployment phase """
 
         # Get the master folder root
         self.master_folder = futils.traverse_path(self.root_folder,
@@ -482,6 +482,7 @@ class VsphereInterface:
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
 
+        # TODO: look at getorphanedvms in pyvmomi-community-samples for how to do this
         # Get the folder to cleanup in
         master_folder = futils.find_in_folder(self.root_folder, self.master_root_name)
         logging.info("Found master folder '%s' under folder '%s', proceeding with cleanup...",

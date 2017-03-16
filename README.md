@@ -7,9 +7,9 @@
 Automated Deployment of Lab Environments System (ADLES)
 
 ADLES automates the creation of virtualized environments for the purpose of cybersecurity and IT education.
-The system enables educators to easily build deterministic and portable environments for their courses, saving significant amounts of time and effor, and removes the need for advanced IT knowledge.
+The system enables educators to easily build deterministic and portable environments for their courses, saving significant amounts of time and effort, and removes the need for advanced IT knowledge.
 
-The system is a Proof of Concept implementation of my thesis research for a Master of Computer Science at the University of Idaho.
+The system is a proof of concept implementation of my thesis research for a Master of Computer Science at the University of Idaho.
 
 
 # Installation
@@ -20,7 +20,7 @@ The system is a Proof of Concept implementation of my thesis research for a Mast
 git clone https://github.com/GhostofGoes/ADLES.git
 cd ADLES
 pip install -r requirements.txt
-python main.py --help
+main.py --help
 ```
 
 ## Linux
@@ -32,6 +32,7 @@ pip3 install -r requirements.txt
 sudo chmod +x main.py
 ./main.py --help
 ```
+
 
 # Getting started
 
@@ -56,19 +57,28 @@ The install scripts:
 
 # System Requirements
 
-### Software
+## Software
 Python: 3.4+
 
 ### Python Packages
+
+#### Required
 See requirements.txt for specific versions
 * pyvmomi 
 * docopt
 * pyyaml
 * netaddr
+* colorlog
 
-### Virtualization Platforms
+#### Optional
+See optional-requirements.txt for specific versions
+* pycallgraph
+
+## Virtualization Platform
+
+### VMware vSphere
 * vSphere >= 6.0
-* ESXi >= 6.0 U2
+* ESXi >= 6.0 (May work with 5.5, your mileage may vary)
 
 
 # Project Goals
@@ -114,7 +124,6 @@ In order to graduate on time, I am focusing on implementing the following compon
 * Improved documentation on how to make a package, how to run the system, etc.
 
 
-
-# Licensing
+# License
 
 This project is licensed under the Apache License, Version 2.0. See LICENSE for the full license text, and NOTICES for attributions to external projects that this project uses code from.

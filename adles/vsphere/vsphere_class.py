@@ -61,7 +61,7 @@ class Vsphere:
         if not self.server:
             logging.error("Could not connect to %s@vSphere host %s:%d",
                           username, hostname, int(port))
-            raise Exception()
+            exit(1)
 
         from atexit import register
         register(Disconnect, self.server)  # Ensures connection to server is closed upon exit
