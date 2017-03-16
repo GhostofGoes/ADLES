@@ -395,47 +395,6 @@ class VsphereInterface:
                 logging.debug("Unknown item found while converting Masters to templates:"
                               " %s", str(item))
 
-    def _deploy_base_folder_gen(self, folder_name, folder_dict, parent, path):
-        """
-        Generates folder tree for deployment stage
-        :param folder_name: Name of the folder
-        :param folder_dict: Dict of items in the folder
-        :param parent: Parent vim.Folder
-        :param path: Folders path at the current level
-        """
-        if type(folder_dict) != dict:
-            logging.error("Invalid type '%s' for base-type folder '%s'\nPath: %s",
-                          type(folder_dict), str(folder_name), str(path))
-            return
-
-        # Set the group to apply permissions for
-        # TODO: apply permissions
-        group = self._get_group(folder_dict["group"])
-
-        # Get number of instances and check if it exceeds configured limits
-        num_instances, prefix = self._instances_handler(spec=folder_dict, obj_name=folder_name,
-                                                        obj_type="folder")
-
-        # TODO: base + generic networks
-
-        # Create instances
-        logging.info("Deploying base-type folder '%s'", folder_name)
-        for instance in range(num_instances):
-            # If no prefix is defined, use the folder's name
-            instance_name = str(folder_name if prefix == "" else prefix)
-
-            # If multiple instances, append padded instance number
-            instance_name += str(" " + pad(instance) if num_instances > 1 else "")
-
-            # Create a folder for the instance
-            new_folder = self.server.create_folder(instance_name, create_in=parent)
-
-            # Folder name is used instead of instance name for the path, as it matches the Master folder
-            logging.info("Generating services for base instance '%s'", instance_name)
-            self._deploy_gen_services(services=folder_dict["services"], parent=new_folder,
-                                      path=self._path(path, folder_name))
-
-    # TODO: move this before _deploy_base_folder_gen on next commit
     def _deploy_parent_folder_gen(self, spec, parent, path):
         """
         Generates parent-type folder trees
@@ -484,8 +443,47 @@ class VsphereInterface:
                         logging.info("Deploying parent-type folder instance '%s'", instance_name)
                         self._deploy_parent_folder_gen(parent=new_folder, spec=sub_value,
                                                        path=self._path(path, sub_name))
-
         # TODO: apply group permissions
+
+    def _deploy_base_folder_gen(self, folder_name, folder_dict, parent, path):
+        """
+        Generates folder tree for deployment stage
+        :param folder_name: Name of the folder
+        :param folder_dict: Dict of items in the folder
+        :param parent: Parent vim.Folder
+        :param path: Folders path at the current level
+        """
+        if type(folder_dict) != dict:
+            logging.error("Invalid type '%s' for base-type folder '%s'\nPath: %s",
+                          type(folder_dict), str(folder_name), str(path))
+            return
+
+        # Set the group to apply permissions for
+        # TODO: apply permissions
+        group = self._get_group(folder_dict["group"])
+
+        # Get number of instances and check if it exceeds configured limits
+        num_instances, prefix = self._instances_handler(spec=folder_dict, obj_name=folder_name,
+                                                        obj_type="folder")
+
+        # TODO: base + generic networks
+
+        # Create instances
+        logging.info("Deploying base-type folder '%s'", folder_name)
+        for instance in range(num_instances):
+            # If no prefix is defined, use the folder's name
+            instance_name = str(folder_name if prefix == "" else prefix)
+
+            # If multiple instances, append padded instance number
+            instance_name += str(" " + pad(instance) if num_instances > 1 else "")
+
+            # Create a folder for the instance
+            new_folder = self.server.create_folder(instance_name, create_in=parent)
+
+            # Folder name is used instead of instance name for the path, as it matches the Master folder
+            logging.info("Generating services for base instance '%s'", instance_name)
+            self._deploy_gen_services(services=folder_dict["services"], parent=new_folder,
+                                      path=self._path(path, folder_name))
 
     def _deploy_gen_services(self, services, parent, path):
         """
