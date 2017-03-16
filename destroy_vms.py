@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# -*- coding: utf-8 -*-
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
 
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('destroy_vms.log', args, (__file__, __version__))
 
@@ -50,7 +50,7 @@ if prompt_y_n_question("Do you wish to destroy a single VM? "):
         logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
 
     if vm.config.template:  # Warn if template
-        if not prompt_y_n_question("VM %s is a Template. Continue? " % vm_name):
+        if not prompt_y_n_question("VM '%s' is a Template. Continue? " % vm_name):
             exit(0)
 
     if prompt_y_n_question("Continue with destruction? "):
@@ -74,17 +74,26 @@ else:
     if destroy_folders:
         folder_prefix = default_prompt("Prefix of folders you wish to destroy (CASE SENSITIVE!)",
                                        default=None)
-    destroy_self = prompt_y_n_question("Destroy the folder itself? ")
+        destroy_self = prompt_y_n_question("Destroy the folder itself? ")
+    else:
+        destroy_self = False
 
     # Show user what options they selected (TODO: do these options as flags?)
-    logging.info("VM Prefix: '%s'\tFolder Prefix: '%s'\tRecursive: %s",
-                 str(vm_prefix), str(folder_prefix), str(recursive))
+    logging.info("VM Prefix: %s\tFolder Prefix: %s\tRecursive: %s",
+                 vm_prefix, folder_prefix, recursive)
     logging.info("Folder-destruction: %s\tSelf-destruction: %s",
-                 str(destroy_folders), str(destroy_self))
+                 destroy_folders, destroy_self)
 
     # Show how many items matched the options
     v, f = retrieve_items(folder, vm_prefix, folder_prefix, True)
-    logging.info("%d VMs and %d folders match the options", int(len(v)), int(len(f)))
+    num_vms = len(v)
+    if destroy_folders:
+        num_folders = len(f)
+        if destroy_self:
+            num_folders += 1
+    else:
+        num_folders = 0
+    logging.info("%d VMs and %d folders match the options", num_vms, num_folders)
 
     # Confirm and destroy
     if prompt_y_n_question("Continue with destruction? "):

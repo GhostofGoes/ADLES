@@ -474,10 +474,10 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False):
     if snapshot and vm.snapshot and hasattr(vm.snapshot, 'currentSnapshot'):
         info_string += "Current Snapshot: %s\n" % vm.snapshot.currentSnapshot.config.name
 
-    if detailed:
+    if detailed and summary.runtime:
         info_string += "Last Poweron  : %s\n" % str(summary.runtime.bootTime)  # datetime object
-        info_string += "Max CPU usage : %d\n" % summary.runtime.maxCpuUsage
-        info_string += "Max Mem usage : %d\n" % summary.runtime.maxMemoryUsage
+        info_string += "Max CPU usage : %s\n" % summary.runtime.maxCpuUsage
+        info_string += "Max Mem usage : %s\n" % summary.runtime.maxMemoryUsage
         info_string += "Last suspended: %s\n" % summary.runtime.suspendTime
     return info_string
 

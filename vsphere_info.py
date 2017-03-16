@@ -38,7 +38,7 @@ from adles.utils import script_setup, name_or_path
 from adles.vsphere.folder_utils import enumerate_folder, format_structure
 
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 args = docopt(__doc__, version=__version__, help=True)
 server = script_setup('vsphere_info.log', args, (__file__, __version__))
 
@@ -52,11 +52,11 @@ thing_type = str(input("What type of thing do you want to get information on?"
 
 if thing_type == "vm":
     vm, vm_name = name_or_path(server, "vm", "you want to get information on")
-    logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
+    logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))
 
 elif thing_type == "datastore":
-    ds = server.get_datastore(str(input("What is the name of the Datastore "
-                                        "you want to get information on? ")))
+    ds = server.get_datastore(str(input("What is the name of the Datastore you want "
+                                        "to get information on? (default: first datastore found")))
     logging.info(vsphere_utils.get_datastore_info(ds))
 
 elif thing_type == "vsphere":

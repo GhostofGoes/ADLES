@@ -213,9 +213,9 @@ def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False,
                 if destroy_folders:  # Destroys folder and ALL of it's sub-objects
                     cleanup(item, vm_prefix=None, folder_prefix=None, recursive=True,
                             destroy_folders=True, destroy_self=True)
-                elif recursive:  # Simply recurses to find more items
-                    cleanup(item, vm_prefix=vm_prefix, folder_prefix=folder_prefix,
-                            recursive=True, destroy_folders=False, destroy_self=False)
+            elif recursive:  # Simply recurses to find more items
+                cleanup(item, vm_prefix=vm_prefix, folder_prefix=folder_prefix,
+                        recursive=recursive, destroy_folders=destroy_folders, destroy_self=False)
 
         else:  # It's not a VM or a folder...
             logging.error("Unknown item encountered while cleaning folder '%s': %s",
