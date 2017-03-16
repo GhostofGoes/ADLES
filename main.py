@@ -30,6 +30,7 @@ Options:
     -h, --help                  Shows this help
     --version                   Prints current version
     --no-color                  Do not color terminal output
+    --call-graph                Generate a call graph for debugging purposes
     -v, --verbose               Emit debugging logs to terminal
     -c, --check-syntax FILE     Validates syntax is valid per specification
     -s, --spec FILE             YAML file with the environment specification
@@ -125,8 +126,7 @@ if __name__ == '__main__':
     colors = (False if args["--no-color"] else True)
     setup_logging(filename='main.log', colors=colors, console_verbose=args["--verbose"])
 
-    callgraph = True
-    if callgraph:
+    if args["--call-graph"]:
         try:
             from pycallgraph import PyCallGraph
             from pycallgraph.output import GraphvizOutput

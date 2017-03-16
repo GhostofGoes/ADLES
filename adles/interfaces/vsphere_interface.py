@@ -42,7 +42,7 @@ class VsphereInterface:
     def __init__(self, infrastructure, logins, spec):
         """
         NOTE: it is assumed that the infrastructure and spec are both valid,
-        and thus checks on key existance and types are not performed.
+        and thus checks on key existence and types are not performed.
         :param infrastructure: Dict of infrastructure information
         :param logins: Dict of infrastructure logins
         :param spec: Dict of a parsed specification
@@ -166,46 +166,84 @@ class VsphereInterface:
 
         # Create Master instances
         # TODO: Apply master-group permissions [default: group permissions]
-        self._master_folder_gen(self.folders, self.master_folder)
+        self._master_parent_folder_gen(self.folders, self.master_folder)
 
         # Output fully deployed master folder tree to debugging
         logging.debug(futils.format_structure(
             futils.enumerate_folder(self.root_folder)))
 
-    def _master_folder_gen(self, folder, parent):
+    def _master_parent_folder_gen(self, folder, parent):
         """
-        Generates the Master tree of folders and instances
+        Generates parent-type Master folders
         :param folder: Dict with the folder tree structure as in spec
         :param parent: Parent vim.Folder
-        :return:
         """
-        for folder_name, folder_value in folder.items():
-            logging.debug("Generating master folder %s", folder_name)
-            folder_name = VsphereInterface.master_prefix + folder_name
-            folder = self.server.create_folder(folder_name, create_in=parent)
-            # TODO: apply permissions
+        if type(folder) != dict:
+            logging.error("Invalid type '%s' for parent Master folder: %s",
+                          type(folder), str(folder))
+            return
 
-            if "services" in folder_value:  # It's a base folder
-                for sname, sconfig in folder_value["services"].items():
-                    logging.info("Creating Master for '%s' from service '%s'",
-                                 sname, sconfig["service"])
+        group = None
+        master_group = None
+        # We do not know if a given item is a keyword or a sub-folder, so have to check every time...
+        for name, value in folder.items():
+            if name == "description" or name == "instances":
+                pass  # TODO: use Tags or maybe Custom Attributes to add descriptions
+            elif name == "group":
+                group = self._get_group(value)
+            elif name == "master-group":
+                master_group = self._get_group(value)
+            else:
+                logging.info("Generating Master folder %s", name)
+                folder_name = VsphereInterface.master_prefix + name
+                new_folder = self.server.create_folder(folder_name, create_in=parent)
 
-                    vm = self._clone_service(folder, sconfig["service"])
+                if "services" in value:  # It's a base folder
+                    self._master_base_folder_gen(name, value, new_folder)
+                else:  # It's a parent folder, recurse
+                    self._master_parent_folder_gen(value, parent=new_folder)
 
-                    if not vm:
-                        logging.error("Failed to create Master '%s' in folder '%s'",
-                                      sname, folder_name)
-                        continue  # Skip to the next service
+        # TODO: apply master group permissions
+        if master_group is None:
+            master_group = group  # Since group is required, we can safely assume it's been set
 
-                    # NOTE: management interfaces matter here!
-                    self._configure_nics(vm, networks=sconfig["networks"])  # Configure VM NICs
+    def _master_base_folder_gen(self, folder_name, folder_dict, parent):
+        """
+        Generates base-type Master folders
+        :param folder_name: Name of the base folder
+        :param folder_dict: Dict with the base folder tree as in spec
+        :param parent: Parent vim.Folder
+        """
+        if type(folder_dict) != dict:
+            logging.error("Invalid type '%s' for base Master folder '%s'",
+                          type(folder_dict), folder_name)
+            return
 
-                    # Post-creation snapshot
-                    vm_utils.create_snapshot(vm, "mastering post-clone",
-                                             "Clean Post-Master cloning snapshot")
+        # Set the group to apply permissions for
+        # TODO: apply permissions
+        if "master-group" in folder_dict:
+            master_group = self._get_group(folder_dict["master-group"])
+        else:
+            master_group = self._get_group(folder_dict["group"])
 
-            else:  # It's a parent folder, recurse
-                self._master_folder_gen(folder=folder_value, parent=folder)
+        # Create Master instances
+        for sname, sconfig in folder_dict["services"].items():
+            logging.info("Creating Master instance '%s' from service '%s'",
+                         sname, sconfig["service"])
+
+            vm = self._clone_service(parent, sconfig["service"])
+
+            if not vm:
+                logging.error("Failed to create Master instance '%s' in folder '%s'",
+                              sname, folder_name)
+                continue  # Skip to the next service
+
+            # NOTE: management interfaces matter here!
+            self._configure_nics(vm, networks=sconfig["networks"])  # Configure VM NICs
+
+            # Post-creation snapshot
+            vm_utils.create_snapshot(vm, "mastering post-clone",
+                                     "Clean Post-Master cloning snapshot")
 
     def _clone_service(self, folder, service_name):
         """

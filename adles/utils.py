@@ -229,7 +229,14 @@ def default_prompt(prompt, default=None):
     :param default: Default return value
     :return: Value returned
     """
-    value = input(prompt + " [default: %s]: " % str(default))
+    try:
+        value = input(prompt + " [default: %s]: " % str(default))
+    except KeyboardInterrupt:
+        print()
+        logging.info("Exiting...")
+        exit(0)
+
+    # noinspection PyUnboundLocalVariable
     if value == '':
         return default
     else:

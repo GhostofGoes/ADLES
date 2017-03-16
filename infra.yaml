@@ -3,7 +3,6 @@ platform: "vmware vsphere"
 server-hostname: "192.168.0.20"
 server-port: 443
 login-file: "users.json"
-
 datacenter: "datacenter"
 datastore: "Datastore"
 template-folder: "Templates/"

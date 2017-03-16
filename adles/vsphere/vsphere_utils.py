@@ -30,6 +30,7 @@ def wait_for_task(task):
         if task.info.state == 'success':
             return task.info.result
         elif task.info.state == 'error':
+            # TODO: parse error messages and generate more meaningful errors or warnings (e.g "already exists")
             logging.error("There was an error while completing a task: '%s'",
                           str(task.info.error.msg))
             return None

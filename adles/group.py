@@ -41,7 +41,7 @@ class Group:
         if "ad-group" in group:
             group_type = "ad"
             self.ad_group = group["ad-group"]
-            users = None
+            users = []
             if instance:  # Template groups
                 self.ad_group += " " + str(instance)
 

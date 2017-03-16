@@ -3,6 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
 # Creation Date:    Febuary 6th, 2017
+# Version:          1.0.1
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -18,9 +19,8 @@ platform: "name of platform"    # REQUIRED
 server-hostname: "hostname"     # REQUIRED
 server-port: 0                  # REQUIRED   
 login-file: "filename.json"     # REQUIRED      Filename of JSON file with login information
-
-
-# VMware vSphere-specific configurations
+# NOTE: No linebreaks can be present between values
+# ** VMware vSphere-specific configurations ** 
 datacenter: "name of datacenter"            # Suggested     Name of the Datacenter on which to create environment
 datastore: "name of datastore"              # Suggested     Name of Datastore on which to create environment
 template-folder: "name of template folder"  # REQUIRED      Name of folder that contains VM templates
