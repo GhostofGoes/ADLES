@@ -120,10 +120,14 @@ def read_json(filename):
     :param filename: Path to JSON file to read
     :return: Contents of the JSON file
     """
-    from json import load
+    from json import load, JSONDecodeError
     try:
         with open(filename, "r") as json_file:
             return load(fp=json_file)
+    except JSONDecodeError as e:
+        logging.error("Error in JSON file '%s' at %s:%s",
+                      filename, str(e.lineno), str(e.colno))
+        return None
     except Exception as e:
         logging.error("Could not open file '%s': %s", filename, str(e))
         return None

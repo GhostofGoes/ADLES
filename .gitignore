@@ -1,6 +1,9 @@
 # PyCharm Project files
 .idea/
 
+# Visual Studio Code workspace configurations
+.vscode/
+
 # Ignore files with login information...for obvious reasons
 automation/logins.json
 automation/vsphere.yaml

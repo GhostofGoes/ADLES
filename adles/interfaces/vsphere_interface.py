@@ -98,6 +98,7 @@ class VsphereInterface:
         if "vswitch" in infrastructure:
             self.vswitch_name = infrastructure["vswitch"]
         else:  # TODO: is this a good default?
+            from pyVmomi import vim
             self.vswitch_name = self.server.get_item(vim.Network, name=None).name
 
         logging.debug("Finished initializing VsphereInterface")
@@ -500,7 +501,9 @@ class VsphereInterface:
         """ Cleans up a deployed environment """
 
         # Get the root environment folder to cleanup in
-        enviro_folder = futils.find_in_folder()
+        enviro_folder = self.root_folder
+
+        # TODO: ensure master folder is skipped
 
         # Cleanup networks (TODO: use network folders to aid in this, during creation phase)
         if network_cleanup:
