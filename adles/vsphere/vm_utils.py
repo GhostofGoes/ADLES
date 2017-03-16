@@ -275,7 +275,7 @@ def convert_to_template(vm):
         return
     try:
         logging.debug("Converting VM '%s' to Template", vm.name)
-        vutils.wait_for_task(vm.MarkAsTemplate())
+        vm.MarkAsTemplate()
     except vim.fault.InvalidPowerState as e:
         logging.error("Cannot convert '%s' to a template while in state '%s'",
                       vm.name, e.existingState)
@@ -293,7 +293,7 @@ def convert_to_vm(vm, resource_pool, host=None):
     """
     logging.debug("Converting Template '%s' to VM and assigning to resource pool '%s'",
                   vm.name, resource_pool.name)
-    vutils.wait_for_task(vm.MarkAsVirtualMachine(resource_pool, host))
+    vm.MarkAsVirtualMachine(resource_pool, host)
 
 
 @utils.check(vim.VirtualMachine, "vm")
