@@ -24,7 +24,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.1"
+    __version__ = "0.9.2"
 
     def __init__(self, username, password, hostname,
                  datacenter=None, datastore=None,
@@ -33,7 +33,7 @@ class Vsphere:
         Connects to a vCenter server and initializes a class instance.
         :param username: Username of account to login with
         :param password: Password of account to login with
-        :param hostname: DNS hostname or IPv4 address of vCenter instance
+        :param hostname: DNS hostname or IP address of vCenter instance
         :param datastore: Name of datastore to use [default: first datastore found on server]
         :param datacenter: Name of datacenter to use [default: First datacenter found on server]
         :param port: Port used to connect to vCenter instance [default: 443]
@@ -88,6 +88,23 @@ class Vsphere:
             exit(1)
 
         logging.debug("Finished initializing vSphere")
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.hostname == other.hostname \
+               and self.port == other.port and self.username == other.username
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((self.hostname, self.port, self.username))
+
+    def __repr__(self):
+        return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name,
+                                               self.hostname, self.port)
+
+    def __str__(self):
+        return str(self.get_server_info())
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
     def create_folder(self, folder_name, create_in=None):
@@ -440,10 +457,3 @@ class Vsphere:
         :return: vim.ManagedEntity
         """
         return self.content.searchIndex.FindByInventoryPath(inventoryPath=str(path))
-
-    def __repr__(self):
-        return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name,
-                                               self.hostname, self.port)
-
-    def __str__(self):
-        return str(self.get_server_info())

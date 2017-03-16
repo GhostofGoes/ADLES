@@ -59,12 +59,12 @@ def create_vm(folder, config, pool, host=None):
 
 
 def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=512,
-                version=11, firmware="efi", max_consoles=None, datastore_path=None):
+                version=None, firmware="efi", max_consoles=None, datastore_path=None):
     """
     Generates a Virtual Machine creation spec
     :param name: Name of the VM
     :param datastore_name: Name of datastore to put VM on
-    :param version: Hardware version of the VM [default: 11]
+    :param version: Hardware version of the VM [default: highest host supports]
     :param annotation: String annotation for the VM [default: None]
     :param cpus: Number of CPUs [default: 1]
     :param cores: Number of cores per CPU [default: 1]
@@ -76,12 +76,14 @@ def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=5
     """
     spec = vim.vm.ConfigSpec()
     spec.name = str(name)
-    spec.version = str(version)
     spec.numCPUs = int(cpus)
     spec.numCoresPerSocket = int(cores)
     spec.memoryMB = int(memory)
     spec.memoryHotAddEnabled = True
     spec.firmware = str(firmware).lower()
+
+    if version:
+        spec.version = str(version)
 
     if annotation:
         spec.annotation = str(annotation)
@@ -89,13 +91,11 @@ def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=5
     if max_consoles:
         spec.maxMksConnections = int(max_consoles)
 
-    file_info = vim.vm.FileInfo()
-    file_info.vmPathName = '[' + datastore_name + '] '
+    vm_path = '[' + datastore_name + '] '
     if datastore_path:
-        file_info.vmPathName += str(datastore_path)
-    file_info.vmPathName += str(name) + '/' + str(name) + '.vmx'
-    spec.files = file_info
-
+        vm_path += str(datastore_path)
+    vm_path += str(name) + '/' + str(name) + '.vmx'
+    spec.files = vim.vm.FileInfo(vmPathName=vm_path)
     return spec
 
 
@@ -428,10 +428,11 @@ def remove_all_snapshots(vm, consolidate_disks=True):
 
 # From: getallvms in pyvmomi-community-samples
 @utils.check(vim.VirtualMachine, "vm")
-def get_vm_info(vm, uuids=False, snapshot=False):
+def get_vm_info(vm, detailed=False, uuids=False, snapshot=False):
     """
     Get human-readable information for a VM
     :param vm: vim.VirtualMachine object
+    :param detailed: Add more detailed information, such as maximum memory used [default: False]
     :param uuids: Whether to get UUID information [default: False]
     :param snapshot: Shows the current snapshot, if any [default: False]
     :return: String with the VM information
@@ -439,23 +440,29 @@ def get_vm_info(vm, uuids=False, snapshot=False):
     info_string = "\n"
     summary = vm.summary
     info_string += "Name          : %s\n" % summary.config.name
+    info_string += "Status        : %s\n" % str(summary.overallStatus)
     info_string += "Power State   : %s\n" % summary.runtime.powerState
     if vm.guest:
         info_string += "Guest State   : %s\n" % vm.guest.guestState
-    info_string += "Guest OS      : %s\n" % summary.config.guestFullName
     info_string += "Last modified : %s\n" % str(vm.config.modified)  # datetime object
-    info_string += "CPUs          : %s\n" % summary.config.numCpu
+    if detailed:
+        info_string += "Num consoles  : %d\n" % summary.runtime.numMksConnections
+    info_string += "Host          : %s\n" % summary.runtime.host.name
+    info_string += "Guest OS      : %s\n" % summary.config.guestFullName
+    info_string += "Num CPUs      : %s\n" % summary.config.numCpu
     info_string += "Memory (MB)   : %s\n" % summary.config.memorySizeMB
-    info_string += "vNICs         : %s\n" % summary.config.numEthernetCards
-    info_string += "Disks         : %s\n" % summary.config.numVirtualDisks
+    if detailed:
+        info_string += "Num vNICs     : %s\n" % summary.config.numEthernetCards
+        info_string += "Disks         : %s\n" % summary.config.numVirtualDisks
     info_string += "IsTemplate    : %s\n" % str(summary.config.template)  # bool
-    info_string += "Path          : %s\n" % summary.config.vmPathName
+    if detailed:
+        info_string += "Path          : %s\n" % summary.config.vmPathName
     info_string += "Folder:       : %s\n" % vm.parent.name
     if vm.guest:
         info_string += "IP            : %s\n" % vm.guest.ipAddress
         info_string += "Hostname:     : %s\n" % vm.guest.hostName
-        info_string += "Tools status  : %s\n" % vm.guest.toolsStatus
-        info_string += "Tools version : %s\n" % vm.guest.toolsVersion
+        info_string += "Tools status  : %s\n" % vm.guest.toolsRunningStatus
+        info_string += "Tools version : %s\n" % vm.guest.toolsVersionStatus2
     if uuids:
         info_string += "Instance UUID : %s\n" % summary.config.instanceUuid
         info_string += "Bios UUID     : %s\n" % summary.config.uuid
@@ -463,8 +470,15 @@ def get_vm_info(vm, uuids=False, snapshot=False):
         info_string += "Question      : %s\n" % summary.runtime.question.text
     if summary.config.annotation:
         info_string += "Annotation    : %s\n" % summary.config.annotation
+
     if snapshot and vm.snapshot and hasattr(vm.snapshot, 'currentSnapshot'):
         info_string += "Current Snapshot: %s\n" % vm.snapshot.currentSnapshot.config.name
+
+    if detailed:
+        info_string += "Last Poweron  : %s\n" % str(summary.runtime.bootTime)  # datetime object
+        info_string += "Max CPU usage : %d\n" % summary.runtime.maxCpuUsage
+        info_string += "Max Mem usage : %d\n" % summary.runtime.maxMemoryUsage
+        info_string += "Last suspended: %s\n" % summary.runtime.suspendTime
     return info_string
 
 
