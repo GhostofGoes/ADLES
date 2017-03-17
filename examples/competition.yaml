@@ -142,7 +142,7 @@ folders:
     instances:
       number: 14
       prefix: "Blue Team "
-    group: Blue Team X
+    group: "Blue Team"
     services:
       # team-member-host:
         # description: "Hosts the blue team members use to access their services"
@@ -195,7 +195,7 @@ folders:
           protocols: ["sftp", "smb"]
           criteria: "criteria-file.yaml"
   red-team:
-    group: Red Team
+    group: "Red Team"
     services:
       windows-hosts:
         description: "Hosts used by Red Team to attack blue teams"

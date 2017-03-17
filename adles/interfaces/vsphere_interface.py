@@ -197,7 +197,7 @@ class VsphereInterface:
         # We do not know if a given item is a keyword or a sub-folder, so have to check every time...
         for sub_name, sub_value in folder.items():
             if sub_name == "instances":
-                pass
+                pass  # Instances don't matter for the Master phase
             elif sub_name == "description":
                 pass  # NOTE: may use Tags or Custom Attributes to add descriptions to objects
             elif sub_name == "group":
@@ -268,14 +268,20 @@ class VsphereInterface:
             if name == service_name and "template" in config:
                 logging.debug("Cloning service '%s'", name)
                 vm_name = VsphereInterface.master_prefix + service_name
+
+                # Find the template that matches the service definition
                 template = futils.traverse_path(self.template_folder, config["template"])
                 if not template:
                     logging.error("Could not find template '%s' for service '%s'",
                                   config["template"], name)
                     return None
+
+                # Clone the template to create the Master instance
                 vm_utils.clone_vm(template, folder=folder, name=vm_name,
                                   clone_spec=self.server.gen_clone_spec())
-                vm = futils.traverse_path(folder, vm_name)  # Get new cloned instance
+
+                # Get new cloned instance
+                vm = futils.traverse_path(folder, vm_name)
                 if vm:
                     logging.debug("Successfully cloned service '%s' to folder '%s'",
                                   service_name, folder.name)
@@ -554,7 +560,11 @@ class VsphereInterface:
                 if "number" in spec["instances"]:
                     num = int(spec["instances"]["number"])
                 elif "size-of" in spec["instances"]:
-                    num = int(self._get_group(spec["instances"]["size-of"]).size)
+                    size_of = spec["instances"]["size-of"]
+                    # TODO: template group size resolution
+                    # if size_of[-2:] == ' X':
+                    #     num = int(self._get_group(size_of[:-2])) # Lookup
+                    num = int(self._get_group(size_of).size)
                     if num < 1:  # WORKAROUND FOR AD-GROUPS
                         num = 1
                 else:

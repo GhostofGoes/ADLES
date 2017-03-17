@@ -43,7 +43,7 @@ class Group:
             self.ad_group = group["ad-group"]
             users = []
             if instance:  # Template groups
-                self.ad_group += " " + str(instance)
+                self.ad_group += " " + str(instance)  # This is the " X" in the spec
 
         elif "filename" in group:
             from adles.utils import read_json
@@ -78,8 +78,9 @@ def get_ad_groups(groups):
     for _, g in groups.items():  # Ignore the group name, nab the group
         if type(g) == list:
             for i in g:
-                if isinstance(i, Group):
-                    ad_groups.append(i)
+                if type(i) == Group:
+                    if i.group_type == "ad":
+                        ad_groups.append(i)
         elif type(g) == Group:
             if g.group_type == "ad":
                 ad_groups.append(g)
