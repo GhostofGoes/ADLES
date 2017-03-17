@@ -428,13 +428,13 @@ class VsphereInterface:
 
                 # Create instances of the parent folder
                 logging.debug("Deploying parent-type folder '%s'", sub_name)
-                # TODO: fishyness?
+                # TODO: fishyness? (extra nested folder)
                 for i in range(num_instances):
-                    # If no prefix is defined, use the folder's name
-                    instance_name = str(sub_name if prefix == "" else prefix)
+                    # If no prefix is defined or there's only a single instance, use the folder's name
+                    instance_name = (sub_name if prefix == "" or num_instances == 1 else prefix)
 
                     # If multiple instances, append padded instance number
-                    instance_name += str(" " + pad(i) if num_instances > 1 else "")
+                    instance_name += (" " + pad(i) if num_instances > 1 else "")
 
                     # Create a folder for the instance
                     new_folder = self.server.create_folder(instance_name, create_in=parent)
@@ -473,11 +473,11 @@ class VsphereInterface:
         # Create instances
         logging.info("Deploying base-type folder '%s'", folder_name)
         for i in range(num_instances):
-            # If no prefix is defined, use the folder's name
-            instance_name = str(folder_name if prefix == "" else prefix)
+            # If no prefix is defined or there's only a single instance, use the folder's name
+            instance_name = (folder_name if prefix == "" or num_instances == 1 else prefix)
 
             # If multiple instances, append padded instance number
-            instance_name += str(" " + pad(i) if num_instances > 1 else "")
+            instance_name += (" " + pad(i) if num_instances > 1 else "")
 
             # Create a folder for the instance
             new_folder = self.server.create_folder(instance_name, create_in=parent)
