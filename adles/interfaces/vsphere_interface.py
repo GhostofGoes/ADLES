@@ -128,11 +128,15 @@ class VsphereInterface:
         ad_groups = get_ad_groups(groups)
         for g in ad_groups:
             res = self.server.get_users(belong_to_group=g.ad_group, find_users=True)
-            for r in res:
-                if r.group is True:  # Reference: pyvmomi/docs/vim/UserSearchResult.rst
-                    logging.error("Result '%s' is not a user", str(r))
-                else:
-                    g.users.append(r.principal)
+            if res is not None:
+                for r in res:
+                    if r.group is True:  # Reference: pyvmomi/docs/vim/UserSearchResult.rst
+                        logging.error("Result '%s' is not a user", str(r))
+                    else:
+                        g.users.append(r.principal)
+                g.size = (len(g.users) if len(g.users) > 1 else 1)  # Set the size for the new users, defaulting to 1
+            else:
+                logging.error("Could not initialize AD-group %s", str(g.ad_group))
 
         if hasattr(self.server.user_dir, "domainList"):
             logging.debug("Domains on server: %s", str(self.server.user_dir.domainList))
@@ -184,7 +188,7 @@ class VsphereInterface:
         """
         if type(folder) != dict:
             logging.error("Invalid type '%s' for parent Master folder: %s",
-                          type(folder), str(folder))
+                          type(folder).__name__, str(folder))
             return
 
         group = None
@@ -224,7 +228,7 @@ class VsphereInterface:
         """
         if type(folder_dict) != dict:
             logging.error("Invalid type '%s' for base Master folder '%s'",
-                          type(folder_dict), folder_name)
+                          type(folder_dict).__name__, folder_name)
             return
 
         # Set the group to apply permissions for
@@ -356,7 +360,7 @@ class VsphereInterface:
         self._convert_and_verify(folder=self.master_folder)
         logging.info("Finished converting Masters to Templates")
 
-        # Create base-networks
+        # Create base-networks (TODO)
 
         # Deployment
         #   Create folder structure
@@ -364,9 +368,9 @@ class VsphereInterface:
         #   Clone instances
         # TODO: Need to figure out when/how to apply permissions
         # TODO: Base + Generic networks
+
         logging.info("Deploying environment...")
-        # self._deploy_base_folder_gen(self.folders, self.root_folder, "")
-        self._deploy_parent_folder_gen(self.root_folder, self.folders, "")
+        self._deploy_parent_folder_gen(spec=self.folders, parent=self.root_folder, path="")
         logging.info("Finished deploying environment")
 
         # Output fully deployed environment tree to debugging
@@ -404,7 +408,7 @@ class VsphereInterface:
         """
         if type(spec) != dict:
             logging.error("Invalid type '%s' for parent-type folder '%s'\nPath: %s",
-                          type(spec), str(spec), str(path))
+                          type(spec).__name__, str(spec), str(path))
             return
 
         group = None
@@ -436,11 +440,9 @@ class VsphereInterface:
                     new_folder = self.server.create_folder(instance_name, create_in=parent)
 
                     if "services" in sub_value:  # It's a base folder
-                        logging.info("Deploying base-type folder instance '%s'", instance_name)
                         self._deploy_base_folder_gen(folder_name=sub_name, folder_dict=sub_value,
                                                      parent=new_folder, path=self._path(path, sub_name))
                     else:  # It's a parent folder
-                        logging.info("Deploying parent-type folder instance '%s'", instance_name)
                         self._deploy_parent_folder_gen(parent=new_folder, spec=sub_value,
                                                        path=self._path(path, sub_name))
         # TODO: apply group permissions
@@ -455,7 +457,7 @@ class VsphereInterface:
         """
         if type(folder_dict) != dict:
             logging.error("Invalid type '%s' for base-type folder '%s'\nPath: %s",
-                          type(folder_dict), str(folder_name), str(path))
+                          type(folder_dict).__name__, str(folder_name), str(path))
             return
 
         # Set the group to apply permissions for
@@ -470,18 +472,19 @@ class VsphereInterface:
 
         # Create instances
         logging.info("Deploying base-type folder '%s'", folder_name)
-        for instance in range(num_instances):
+        for i in range(num_instances):
             # If no prefix is defined, use the folder's name
             instance_name = str(folder_name if prefix == "" else prefix)
 
             # If multiple instances, append padded instance number
-            instance_name += str(" " + pad(instance) if num_instances > 1 else "")
+            instance_name += str(" " + pad(i) if num_instances > 1 else "")
 
             # Create a folder for the instance
             new_folder = self.server.create_folder(instance_name, create_in=parent)
 
             # Folder name is used instead of instance name for the path, as it matches the Master folder
-            logging.info("Generating services for base instance '%s'", instance_name)
+            logging.info("Generating services for base-type folder instance '%s'", instance_name)
+            print("Service: ", i)
             self._deploy_gen_services(services=folder_dict["services"], parent=new_folder,
                                       path=self._path(path, folder_name))
 
@@ -497,7 +500,7 @@ class VsphereInterface:
         #   Create next instance of a base network and increment base counter for folder
         if type(services) != dict:
             logging.error("Invalid type '%s' for services '%s'\nPath: %s",
-                          type(services), str(services), str(path))
+                          type(services).__name__, str(services), str(path))
             return
 
         # Iterate through the services
@@ -552,6 +555,8 @@ class VsphereInterface:
                     num = int(spec["instances"]["number"])
                 elif "size-of" in spec["instances"]:
                     num = int(self._get_group(spec["instances"]["size-of"]).size)
+                    if num < 1:  # WORKAROUND FOR AD-GROUPS
+                        num = 1
                 else:
                     logging.error("Unknown instances specification: %s", str(spec["instances"]))
                     num = 0

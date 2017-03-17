@@ -167,7 +167,7 @@ folders:
       group: group-label              # REQUIRED    User group that will have permissions to the folder
       master-group: group-label       # Optional    User group for the pre-deployment masters [default: group specified for the folder]
       description: "description"      # Optional    Human-readable description of folder
-      instances:                      # Optional    Makes folder a template that is copied N-number of times (Where N is number of instances)
+      instances:                      # Optional    Makes folder a template that is copied N-times (NOTE: instances can also simply be an integer representing N)
         number: 10            # OPTION A    Number of instances = integer
         size-of: group-label  # OPTION B    Number of instances = Size of named group
         prefix: "prefix"      # Optional    String to prepend to named instance numbers [default: name of folder]

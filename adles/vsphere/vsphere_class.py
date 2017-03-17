@@ -233,7 +233,7 @@ class Vsphere:
             return self.user_dir.RetrieveUserGroups(**kwargs)
         except vim.fault.NotFound:
             logging.error("Could not find domain, group or user in call to get_users"
-                          "kwargs: %s", str(kwargs))
+                          "\nkwargs: %s", str(kwargs))
             return None
         except vmodl.fault.NotSupported:
             logging.error("System does not support domains or by-membership queries for get_users")

@@ -27,8 +27,8 @@ class Group:
         logging.debug("Initializing Group '%s'", name)
 
         if type(group) != dict:
-            logging.error("Class Group must be initialized with a dict, not %s: %s",
-                          str(type(group)), str(group))
+            logging.error("Class Group must be initialized with a dict, not a %s. "
+                          "\nThe offending object: %s", type(group).__name__, str(group))
             raise Exception()
 
         if instance:
@@ -58,7 +58,7 @@ class Group:
             users = group["user-list"]
 
         else:
-            logging.error("Invalid group: %s", str(group))
+            logging.error("Invalid group dict for group '%s': %s", name, str(group))
             raise Exception()
 
         self.group_type = group_type
@@ -70,19 +70,20 @@ class Group:
 
 def get_ad_groups(groups):
     """
-
-    :param groups:
-    :return:
+    Extracts Active Directory-type groups from a dict of groups
+    :param groups: Dict of groups and lists of groups
+    :return: List of AD groups extracted
     """
     ad_groups = []
-    for g in groups:
+    for _, g in groups.items():  # Ignore the group name, nab the group
         if type(g) == list:
             for i in g:
                 if isinstance(i, Group):
                     ad_groups.append(i)
-        elif isinstance(g, Group):
+        elif type(g) == Group:
             if g.group_type == "ad":
                 ad_groups.append(g)
         else:
-            logging.error("Invalid group: %s", str(g))
+            logging.error("Invalid type '%s' for a group in get_ad_groups: %s",
+                          type(g).__name__, str(g))
     return ad_groups
