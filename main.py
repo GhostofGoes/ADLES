@@ -50,7 +50,6 @@ Examples:
 """
 
 import logging
-from sys import exit
 
 from docopt import docopt
 
@@ -66,6 +65,9 @@ def main():
 
     if args["--spec"]:
         spec = check_syntax(args["--spec"])
+        if spec is None:
+            logging.error("Syntax check failed")
+            return
         interface = Interface(spec)
         if args["--create-masters"]:
             interface.create_masters()
@@ -82,7 +84,8 @@ def main():
             logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
 
     elif args["--check-syntax"]:
-        check_syntax(args["--check-syntax"])
+        if check_syntax(args["--check-syntax"]) is None:
+            logging.error("Syntax check failed")
 
     elif args["--package-dir"]:
         logging.error("PACKAGES ARE CURRENTLY UNSUPPORTED")
@@ -103,8 +106,11 @@ def check_syntax(specfile_path):
 
     if not exists(specfile_path):
         logging.error("Could not find specification file in path %s", str(specfile_path))
-        exit(1)
+        return None
     spec = parse_file(specfile_path)
+    if spec is None:
+        logging.error("Failed to ingest specification file %s", str(basename(specfile_path)))
+        return None
     logging.info("Successfully ingested specification file %s", str(basename(specfile_path)))
     logging.info("Checking syntax...")
     errors, warnings = verify_syntax(spec)
@@ -116,7 +122,7 @@ def check_syntax(specfile_path):
         return spec
     else:
         logging.error("Syntax check failed! Errors: %d\tWarnings: %d", errors, warnings)
-        exit(1)
+        return None
 
 
 if __name__ == '__main__':

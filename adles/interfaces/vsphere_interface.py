@@ -520,6 +520,10 @@ class VsphereInterface:
             # TODO: do a lookup and check if service is Vsphere-type, and not Docker, etc. type of service
             # Get the Master template instance to clone from
             service = futils.traverse_path(self.master_folder, self._path(path, value["service"]))
+            if service is None:
+                logging.error("Could not find Master instance for service '%s' in this path:\n%s",
+                              value["service"], path)
+                continue  # Skip to the next service
 
             # TODO: base + generic networks
 
