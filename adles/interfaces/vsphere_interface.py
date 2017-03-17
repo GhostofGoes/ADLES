@@ -440,7 +440,7 @@ class VsphereInterface:
                     instance_name = (sub_name if prefix == "" or num_instances == 1 else prefix)
 
                     # If multiple instances, append padded instance number
-                    instance_name += (" " + pad(i) if num_instances > 1 else "")
+                    instance_name += (pad(i) if num_instances > 1 else "")
 
                     # Create a folder for the instance
                     new_folder = self.server.create_folder(instance_name, create_in=parent)
@@ -483,7 +483,7 @@ class VsphereInterface:
             instance_name = (folder_name if prefix == "" or num_instances == 1 else prefix)
 
             # If multiple instances, append padded instance number
-            instance_name += (" " + pad(i) if num_instances > 1 else "")
+            instance_name += (pad(i) if num_instances > 1 else "")
 
             # Create a folder for the instance
             new_folder = self.server.create_folder(instance_name, create_in=parent)
