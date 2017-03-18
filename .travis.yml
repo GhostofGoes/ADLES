@@ -1,3 +1,4 @@
+sudo: required
 language: python
 python:
     - "2.7"
@@ -7,7 +8,7 @@ python:
     - "3.6"
     - "pypy"
     - "pypy3"
-install: "python setup.py install"
+install: "sudo python setup.py install"
 script:
   - python adles -h
   - python adles --version
