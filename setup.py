@@ -16,6 +16,7 @@
 from setuptools import setup, find_packages
 from adles import __version__, __email__, __author__, __url__, __license__
 
+
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
@@ -27,16 +28,16 @@ setup(
     install_requires=required,
     entry_points={
         'console_scripts': [
-            'adles = adles.scripts.adles.py:__main__',
-            'clone-vms = adles.scripts.clone_vms.py:__main__',
-            'cleanup-vms = adles.scripts.cleanup_vms.py:__main__',
-            'power-vms = adles.scripts.vm_power.py:__main__',
-            'vsphere-info = adles.scripts.vsphere_info.py:__main__'
+            'adles = adles.scripts.adles_main:main',
+            'clone-vms = adles.scripts.clone_vms:main',
+            'cleanup-vms = adles.scripts.cleanup_vms:main',
+            'vm-power = adles.scripts.vm_power:main',
+            'vsphere-info = adles.scripts.vsphere_info:main'
         ]
     },
-    scripts=['adles/scripts/adles.py', 'adles/scripts/clone_vms.py',
-             'adles/scripts/cleanup_vms.py',
-             'adles/scripts/vm_power.py', 'adles/scripts/vsphere_info.py'],
+    scripts=['adles/scripts/adles_main.py', 'adles/scripts/clone_vms.py',
+             'adles/scripts/cleanup_vms.py', 'adles/scripts/vm_power.py',
+             'adles/scripts/vsphere_info.py'],
     author=__author__,
     author_email=__email__,
     description='Automated Deployment of Lab Environments System',

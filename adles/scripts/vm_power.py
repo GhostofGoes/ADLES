@@ -38,25 +38,31 @@ from adles.vsphere.vm_utils import change_vm_state
 from adles.vsphere.vsphere_utils import is_vm
 
 __version__ = "0.3.3"
-args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('vm_power.log', args, (__file__, __version__))
 
-operation = str(input("Enter the power operation you wish to perform [on | off | reset | suspend]: "))
-attempt_guest = prompt_y_n_question("Use guest operations if available? ")
 
-# TODO: prefixes
-# TODO: nesting
-if prompt_y_n_question("Multiple VMs? "):
-    folder, folder_name = name_or_path(server, "folder", "with VMs")
-    vms = [x for x in folder.childEntity if is_vm(x)]
-    logging.info("Found %d VMs in folder '%s'", len(vms), folder_name)
-    if prompt_y_n_question("Continue? "):
-        for vm in vms:
-            change_vm_state(vm, operation, attempt_guest)
+def main():
+    args = docopt(__doc__, version=__version__, help=True)
+    server = script_setup('vm_power.log', args, (__file__, __version__))
 
-else:
-    vm, vm_name = name_or_path(server, "VM")
-    logging.info("Changing power state of '%s' to '%s'", vm_name, operation)
-    change_vm_state(vm, operation, attempt_guest)
+    operation = str(input("Enter the power operation you wish to perform"
+                          " [on | off | reset | suspend]: "))
+    attempt_guest = prompt_y_n_question("Use guest operations if available? ")
 
-exit(0)
+    # TODO: prefixes
+    # TODO: nesting
+    if prompt_y_n_question("Multiple VMs? "):
+        folder, folder_name = name_or_path(server, "folder", "with VMs")
+        vms = [x for x in folder.childEntity if is_vm(x)]
+        logging.info("Found %d VMs in folder '%s'", len(vms), folder_name)
+        if prompt_y_n_question("Continue? "):
+            for vm in vms:
+                change_vm_state(vm, operation, attempt_guest)
+
+    else:
+        vm, vm_name = name_or_path(server, "VM")
+        logging.info("Changing power state of '%s' to '%s'", vm_name, operation)
+        change_vm_state(vm, operation, attempt_guest)
+
+
+if __name__ == '__main__':
+    main()

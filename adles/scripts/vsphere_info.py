@@ -37,37 +37,41 @@ from adles.vsphere import vm_utils, vsphere_utils
 from adles.utils import script_setup, name_or_path
 from adles.vsphere.folder_utils import enumerate_folder, format_structure
 
-
 __version__ = "0.4.3"
-args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('vsphere_info.log', args, (__file__, __version__))
 
-# List of possible useful things
-#   open_console
-#   upload_file
-#   get_status    Status of the overall environment (what VMs are on/off, etc.)
 
-thing_type = str(input("What type of thing do you want to get information on?"
-                       " (vm | datastore | vsphere | folder) "))
+def main():
+    args = docopt(__doc__, version=__version__, help=True)
+    server = script_setup('vsphere_info.log', args, (__file__, __version__))
 
-if thing_type == "vm":
-    vm, vm_name = name_or_path(server, "vm", "you want to get information on")
-    logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))
+    # List of possible useful things
+    #   open_console
+    #   upload_file
+    #   get_status    Status of the overall environment (what VMs are on/off, etc.)
 
-elif thing_type == "datastore":
-    ds = server.get_datastore(str(input("What is the name of the Datastore you want "
-                                        "to get information on? (default: first datastore found")))
-    logging.info(vsphere_utils.get_datastore_info(ds))
+    thing_type = str(input("What type of thing do you want to get information on?"
+                           " (vm | datastore | vsphere | folder) "))
 
-elif thing_type == "vsphere":
-    logging.info("%s", str(server))
+    if thing_type == "vm":
+        vm, vm_name = name_or_path(server, "vm", "you want to get information on")
+        logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))
 
-elif thing_type == "folder":
-    folder, folder_name = name_or_path(server, "folder")
-    logging.info("Folder: %s\n%s", folder_name,
-                 format_structure(enumerate_folder(folder)))
+    elif thing_type == "datastore":
+        ds = server.get_datastore(str(input("What is the name of the Datastore you want "
+                                            "to get information on? (default: first datastore found")))
+        logging.info(vsphere_utils.get_datastore_info(ds))
 
-else:
-    logging.info("Invalid type: %s", thing_type)
+    elif thing_type == "vsphere":
+        logging.info("%s", str(server))
 
-exit(0)
+    elif thing_type == "folder":
+        folder, folder_name = name_or_path(server, "folder")
+        logging.info("Folder: %s\n%s", folder_name,
+                     format_structure(enumerate_folder(folder)))
+
+    else:
+        logging.info("Invalid type: %s", thing_type)
+
+
+if __name__ == '__main__':
+    main()

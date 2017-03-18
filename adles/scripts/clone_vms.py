@@ -38,53 +38,58 @@ from adles.vsphere.vm_utils import clone_vm
 from adles.vsphere.folder_utils import format_structure, retrieve_items
 
 __version__ = "0.5.2"
-args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('clone_vms.log', args, (__file__, __version__))
 
-vm = None
-folder_from = None
-vms = []
-vm_names = []
 
-# Single-vm source
-if prompt_y_n_question("Do you want to clone from a single VM?"):
-    v, v_name = name_or_path(server, "VM", "or template you wish to clone")
-    vms.append(v)
-    vm_names.append(str(input("Base name for instances to be created: ")))
-# Multi-VM source
-else:
-    folder_from, from_name = name_or_path(server, "folder", "you want to clone all VMs in")
-    v, _ = retrieve_items(folder_from)  # Get VMs in the folder, ignore any folders
-    vms.extend(v)
-    logging.info("%d VMs found in source folder %s\n%s", len(v), from_name, format_structure(v))
-    if not prompt_y_n_question("Keep the same names? "):
-        names = []
-        for i in range(len(v)):
-            names.append(str(input("Enter base name for VM %d: " % i)))
+def main():
+    args = docopt(__doc__, version=__version__, help=True)
+    server = script_setup('clone_vms.log', args, (__file__, __version__))
+
+    vm = None
+    folder_from = None
+    vms = []
+    vm_names = []
+
+    # Single-vm source
+    if prompt_y_n_question("Do you want to clone from a single VM?"):
+        v, v_name = name_or_path(server, "VM", "or template you wish to clone")
+        vms.append(v)
+        vm_names.append(str(input("Base name for instances to be created: ")))
+    # Multi-VM source
     else:
-        names = list(map(lambda x: x.name, v))  # Same names as sources
-    vm_names.extend(names)
-
-create_in, create_in_name = name_or_path(server, "folder", "in which to create VMs")
-instance_folder_base = None
-if prompt_y_n_question("Do you want to create a folder for each instance? "):
-    instance_folder_base = str(input("Enter instance folder base name: "))
-
-num_instances = int(input("Number of instances to be created: "))
-
-pool = server.get_pool().name
-pool = default_prompt(prompt="Resource pool to assign VMs to", default=pool)
-
-logging.info("Creating %d instances under folder %s", num_instances, create_in_name)
-for instance in range(num_instances):
-    for vm, name in zip(vms, vm_names):
-        spec = server.gen_clone_spec(pool_name=pool)  # Generate clone specification
-        if instance_folder_base:  # Create instance folders for a nested clone
-            f = server.create_folder(instance_folder_base + pad(instance), create_in=create_in)
-            vm_name = name
-            clone_vm(vm=vm, folder=f, name=vm_name, clone_spec=spec)
+        folder_from, from_name = name_or_path(server, "folder", "you want to clone all VMs in")
+        v, _ = retrieve_items(folder_from)  # Get VMs in the folder, ignore any folders
+        vms.extend(v)
+        logging.info("%d VMs found in source folder %s\n%s", len(v), from_name, format_structure(v))
+        if not prompt_y_n_question("Keep the same names? "):
+            names = []
+            for i in range(len(v)):
+                names.append(str(input("Enter base name for VM %d: " % i)))
         else:
-            vm_name = name + pad(value=instance, length=2)    # Append instance number
-            clone_vm(vm=vm, folder=create_in, name=vm_name, clone_spec=spec)
+            names = list(map(lambda x: x.name, v))  # Same names as sources
+        vm_names.extend(names)
 
-exit(0)
+    create_in, create_in_name = name_or_path(server, "folder", "in which to create VMs")
+    instance_folder_base = None
+    if prompt_y_n_question("Do you want to create a folder for each instance? "):
+        instance_folder_base = str(input("Enter instance folder base name: "))
+
+    num_instances = int(input("Number of instances to be created: "))
+
+    pool = server.get_pool().name
+    pool = default_prompt(prompt="Resource pool to assign VMs to", default=pool)
+
+    logging.info("Creating %d instances under folder %s", num_instances, create_in_name)
+    for instance in range(num_instances):
+        for vm, name in zip(vms, vm_names):
+            spec = server.gen_clone_spec(pool_name=pool)  # Generate clone specification
+            if instance_folder_base:  # Create instance folders for a nested clone
+                f = server.create_folder(instance_folder_base + pad(instance), create_in=create_in)
+                vm_name = name
+                clone_vm(vm=vm, folder=f, name=vm_name, clone_spec=spec)
+            else:
+                vm_name = name + pad(value=instance, length=2)    # Append instance number
+                clone_vm(vm=vm, folder=create_in, name=vm_name, clone_spec=spec)
+
+
+if __name__ == '__main__':
+    main()

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Destroy VMs and Folders in a vSphere environment.
+"""Cleanup and Destroy VMs and VM Folders in a vSphere environment.
 
 Usage:
     cleanup_vms.py [options]
@@ -38,69 +38,73 @@ import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
 
-
 __version__ = "0.5.1"
-args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
-if prompt_y_n_question("Do you wish to destroy a single VM? "):
-    vm, vm_name = name_or_path(server, "vm", "to destroy")
 
-    if prompt_y_n_question("Display VM info? "):
-        logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
+def main():
+    args = docopt(__doc__, version=__version__, help=True)
+    server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
-    if vm.config.template:  # Warn if template
-        if not prompt_y_n_question("VM '%s' is a Template. Continue? " % vm_name):
-            exit(0)
+    if prompt_y_n_question("Do you wish to destroy a single VM? "):
+        vm, vm_name = name_or_path(server, "vm", "to destroy")
 
-    if prompt_y_n_question("Continue with destruction? "):
-        logging.info("Destroying VM '%s'", vm_name)
-        vm_utils.destroy_vm(vm)
+        if prompt_y_n_question("Display VM info? "):
+            logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
+
+        if vm.config.template:  # Warn if template
+            if not prompt_y_n_question("VM '%s' is a Template. Continue? " % vm_name):
+                exit(0)
+
+        if prompt_y_n_question("Continue with destruction? "):
+            logging.info("Destroying VM '%s'", vm_name)
+            vm_utils.destroy_vm(vm)
+        else:
+            logging.info("Destruction cancelled")
     else:
-        logging.info("Destruction cancelled")
-else:
-    folder, fname = name_or_path(server, "folder",
-                                 "that has the VMs/folders you want to destroy")
+        folder, fname = name_or_path(server, "folder",
+                                     "that has the VMs/folders you want to destroy")
 
-    # Display folder structure
-    logging.info("Folder structure: %s", format_structure(enumerate_folder(folder)))
+        # Display folder structure
+        logging.info("Folder structure: %s", format_structure(enumerate_folder(folder)))
 
-    # Prompt user to configure destruction options
-    vm_prefix = default_prompt("Prefix of VMs you wish to destroy (CASE SENSITIVE!)",
-                               default='')
-    recursive = prompt_y_n_question("Recursively descend into folders? ")
-    destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
-    folder_prefix = None
-    if destroy_folders:
-        folder_prefix = default_prompt("Prefix of folders you wish to destroy (CASE SENSITIVE!)",
-                                       default='')
-        destroy_self = prompt_y_n_question("Destroy the folder itself? ")
-    else:
-        destroy_self = False
+        # Prompt user to configure destruction options
+        vm_prefix = default_prompt("Prefix of VMs you wish to destroy"
+                                   " (CASE SENSITIVE!)", default='')
+        recursive = prompt_y_n_question("Recursively descend into folders? ")
+        destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
+        folder_prefix = None
+        if destroy_folders:
+            folder_prefix = default_prompt("Prefix of folders you wish to destroy"
+                                           " (CASE SENSITIVE!)", default='')
+            destroy_self = prompt_y_n_question("Destroy the folder itself? ")
+        else:
+            destroy_self = False
 
-    # Show user what options they selected (TODO: do these options as flags?)
-    logging.info("VM Prefix: %s\tFolder Prefix: %s\tRecursive: %s",
-                 vm_prefix, folder_prefix, recursive)
-    logging.info("Folder-destruction: %s\tSelf-destruction: %s",
-                 destroy_folders, destroy_self)
+        # Show user what options they selected (TODO: do these options as cmdline arg flags?)
+        logging.info("VM Prefix: %s\tFolder Prefix: %s\tRecursive: %s",
+                     vm_prefix, folder_prefix, recursive)
+        logging.info("Folder-destruction: %s\tSelf-destruction: %s",
+                     destroy_folders, destroy_self)
 
-    # Show how many items matched the options
-    v, f = retrieve_items(folder, vm_prefix, folder_prefix, True)
-    num_vms = len(v)
-    if destroy_folders:
-        num_folders = len(f)
-        if destroy_self:
-            num_folders += 1
-    else:
-        num_folders = 0
-    logging.info("%d VMs and %d folders match the options", num_vms, num_folders)
+        # Show how many items matched the options
+        v, f = retrieve_items(folder, vm_prefix, folder_prefix, True)
+        num_vms = len(v)
+        if destroy_folders:
+            num_folders = len(f)
+            if destroy_self:
+                num_folders += 1
+        else:
+            num_folders = 0
+        logging.info("%d VMs and %d folders match the options", num_vms, num_folders)
 
-    # Confirm and destroy
-    if prompt_y_n_question("Continue with destruction? "):
-        logging.info("Destroying...")
-        cleanup(folder, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=recursive,
-                destroy_folders=destroy_folders, destroy_self=destroy_self)
-    else:
-        logging.info("Destruction cancelled")
+        # Confirm and destroy
+        if prompt_y_n_question("Continue with destruction? "):
+            logging.info("Destroying...")
+            cleanup(folder, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=recursive,
+                    destroy_folders=destroy_folders, destroy_self=destroy_self)
+        else:
+            logging.info("Destruction cancelled")
 
-exit(0)
+
+if __name__ == '__main__':
+    main()

@@ -58,40 +58,42 @@ from adles.utils import setup_logging
 from adles import __version__
 
 
-args = docopt(__doc__, version=__version__, help=True)
+def main():
+    args = docopt(__doc__, version=__version__, help=True)
 
-colors = (False if args["--no-color"] else True)
-setup_logging(filename='adles.log', colors=colors, console_verbose=args["--verbose"])
+    colors = (False if args["--no-color"] else True)
+    setup_logging(filename='adles.log', colors=colors, console_verbose=args["--verbose"])
 
-if args["--spec"]:
-    spec = check_syntax(args["--spec"])
-    if spec is None:
-        logging.error("Syntax check failed")
-        exit(0)
+    if args["--spec"]:
+        spec = check_syntax(args["--spec"])
+        if spec is None:
+            logging.error("Syntax check failed")
+            exit(0)
 
-    interface = Interface(spec)
-    if args["--create-masters"]:
-        interface.create_masters()
-        logging.info("Finished creation of Masters for environment %s",
-                     spec["metadata"]["name"])
-    elif args["--deploy"]:
-        interface.deploy_environment()
-        logging.info("Finished deployment of environment %s", spec["metadata"]["name"])
-    elif args["--cleanup-masters"]:
-        interface.cleanup_masters(args["--network-cleanup"])
-    elif args["--cleanup-enviro"]:
-        interface.cleanup_environment(args["--network-cleanup"])
+        interface = Interface(spec)
+        if args["--create-masters"]:
+            interface.create_masters()
+            logging.info("Finished creation of Masters for environment %s",
+                         spec["metadata"]["name"])
+        elif args["--deploy"]:
+            interface.deploy_environment()
+            logging.info("Finished deployment of environment %s", spec["metadata"]["name"])
+        elif args["--cleanup-masters"]:
+            interface.cleanup_masters(args["--network-cleanup"])
+        elif args["--cleanup-enviro"]:
+            interface.cleanup_environment(args["--network-cleanup"])
+        else:
+            logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
+
+    elif args["--check-syntax"]:
+        if check_syntax(args["--check-syntax"]) is None:
+            logging.error("Syntax check failed")
+
+    elif args["--package-dir"]:
+        logging.error("PACKAGES ARE CURRENTLY UNSUPPORTED")
+
     else:
-        logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
+        logging.error("Invalid arguments. Argument dump:\n%s", str(args))
 
-elif args["--check-syntax"]:
-    if check_syntax(args["--check-syntax"]) is None:
-        logging.error("Syntax check failed")
-
-elif args["--package-dir"]:
-    logging.error("PACKAGES ARE CURRENTLY UNSUPPORTED")
-
-else:
-    logging.error("Invalid arguments. Argument dump:\n%s", str(args))
-
-exit(0)
+if __name__ == '__main__':
+    main()
