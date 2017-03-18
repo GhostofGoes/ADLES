@@ -2,8 +2,10 @@
 metadata:
   name: "Total Recon"
   description: "Total Recon is a progressive, story-based game designed to teach nmap network reconnaissance."
+  activity: "EduRange"
+  prefix: "total-recon"
   date-created: "2017-02-16"
-  version: "0.1.0"
+  version: "0.2.0"
   infrastructure-config-file: "infra.yaml"
   root-path: "EduRange"
 
@@ -34,44 +36,45 @@ folders:
   Clouds:
     group: Instructor
     Cloud_1:
-      Nat:
-        service: nat
-        networks: ["Nat_Subnet"]
-      Home:
-        service: ubuntu
-        networks: ["Home_Subnet"]
-      Rekall:
-        service: ubuntu
-        networks: ["Earth_Subnet"]
-      Subway:
-        service: ubuntu
-        networks: ["Earth_Subnet"]
-      Earth_Aerospace_Port:
-        service: ubuntu
-        networks: ["Earth_Subnet"]
-      Mars_Aerospace_Port:
-        service: ubuntu
-        networks: ["Mars_Subnet"]
-      Venusville:
-        service: ubuntu
-        networks: ["Mars_Subnet"]
-      Last_Resort:
-        service: ubuntu
-        networks: ["Mars_Subnet"]
-      Resistance_Base:
-        service: ubuntu
-        networks: ["Mars_Subnet"]
-      Control_Room:
-        service: ubuntu
-        networks: ["Mars_Subnet"]
-      Stealth_Xmas:
-        service: ubuntu
-        networks: ["Mars_Subnet"]
-      Stealth_Null:
-        service: ubuntu
-        networks: ["Mars_Subnet"]
-      Stealth_Fin:
-        service: ubuntu
-        networks: ["Mars_Subnet"]
-
+      group: Student
+      services:
+        Nat:
+          service: nat
+          networks: ["Nat_Subnet"]
+        Home:
+          service: ubuntu
+          networks: ["Home_Subnet"]
+        Rekall:
+          service: ubuntu
+          networks: ["Earth_Subnet"]
+        Subway:
+          service: ubuntu
+          networks: ["Earth_Subnet"]
+        Earth_Aerospace_Port:
+          service: ubuntu
+          networks: ["Earth_Subnet"]
+        Mars_Aerospace_Port:
+          service: ubuntu
+          networks: ["Mars_Subnet"]
+        Venusville:
+          service: ubuntu
+          networks: ["Mars_Subnet"]
+        Last_Resort:
+          service: ubuntu
+          networks: ["Mars_Subnet"]
+        Resistance_Base:
+          service: ubuntu
+          networks: ["Mars_Subnet"]
+        Control_Room:
+          service: ubuntu
+          networks: ["Mars_Subnet"]
+        Stealth_Xmas:
+          service: ubuntu
+          networks: ["Mars_Subnet"]
+        Stealth_Null:
+          service: ubuntu
+          networks: ["Mars_Subnet"]
+        Stealth_Fin:
+          service: ubuntu
+          networks: ["Mars_Subnet"]
 ...

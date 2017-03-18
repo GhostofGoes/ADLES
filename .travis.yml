@@ -16,6 +16,7 @@ script:
   - adles --no-color -v -c examples/tutorial.yaml
   - adles -v -c examples/competition.yaml
   - adles --verbose --check-syntax examples/experiment.yaml
+  - adles -v -c examples/edurange_total-recon.yaml
   - clone-vms -h
   - cleanup-vms --help
   - vm-power -h
