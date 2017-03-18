@@ -20,9 +20,23 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setup(
-    name='adles',
+    name='ADLES',
     version=__version__,
-    packages=find_packages('adles'),
+    packages=find_packages(),
+    include_package_data=True,
+    install_requires=required,
+    entry_points={
+        'console_scripts': [
+            'adles = adles.py:__main__',
+            'clone-vms = clone_vms.py:__main__',
+            'cleanup-vms = cleanup_vms.py:__main__',
+            'power-vms = vm_power.py:__main__',
+            'vsphere-info = vsphere_info.py:__main__'  # adles.scripts.
+        ]
+    },
+    scripts=['adles.py', 'clone_vms.py',
+             'cleanup_vms.py',
+             'vm_power.py', 'vsphere_info.py'],  # adles/scripts/
     author=__author__,
     author_email=__email__,
     description='Automated Deployment of Lab Environments System',
@@ -31,20 +45,23 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
-        'Intended Audience :: Information Technology',
-        'Intended Audience :: System Administrators',
+        'Intended Audience :: Developers',
         'Intended Audience :: Education',
+        'Intended Audience :: System Administrators',
+        'Intended Audience :: Information Technology',
         'Intended Audience :: Science/Research',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Operating System :: OS Independent',
         'Topic :: Education',
         'Topic :: Education :: Testing',
-        'Topic :: Security'
-    ],
-    install_requires=required,
-    scripts=['main.py']
+        'Topic :: Security',
+        'Topic :: Software Development'
+    ]
 )

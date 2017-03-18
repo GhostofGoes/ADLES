@@ -376,3 +376,33 @@ def verify_syntax(spec):
             num_warnings += w
 
     return num_errors, num_warnings
+
+
+@utils.time_execution
+def check_syntax(specfile_path):
+    """
+    Checks the syntax of a specification file
+    :param specfile_path: Path to the specification file
+    :return: The specification
+    """
+    from os.path import exists, basename
+
+    if not exists(specfile_path):
+        logging.error("Could not find specification file in path %s", str(specfile_path))
+        return None
+    spec = parse_file(specfile_path)
+    if spec is None:
+        logging.error("Failed to ingest specification file %s", basename(specfile_path))
+        return None
+    logging.info("Successfully ingested specification file %s", basename(specfile_path))
+    logging.info("Checking syntax...")
+    errors, warnings = verify_syntax(spec)
+    if errors == 0 and warnings == 0:
+        logging.info("Syntax check successful!")
+        return spec
+    elif errors == 0:
+        logging.info("Syntax check successful, but there were %d warnings", warnings)
+        return spec
+    else:
+        logging.error("Syntax check failed! Errors: %d\tWarnings: %d", errors, warnings)
+        return None

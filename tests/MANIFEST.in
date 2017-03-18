@@ -1,0 +1,6 @@
+include README.md
+include infra.yaml
+include requirements.txt
+include vsphere_testing.py
+recursive-include examples/ *
+recursive-include specifications/ *

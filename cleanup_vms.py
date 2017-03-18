@@ -16,9 +16,9 @@
 """Destroy VMs and Folders in a vSphere environment.
 
 Usage:
-    destroy_vms.py [options]
-    destroy_vms.py --version
-    destroy_vms.py (-h | --help)
+    cleanup_vms.py [options]
+    cleanup_vms.py --version
+    cleanup_vms.py (-h | --help)
 
 Options:
     -h, --help          Prints this page
@@ -41,7 +41,7 @@ from adles.vsphere.folder_utils import enumerate_folder, \
 
 __version__ = "0.5.1"
 args = docopt(__doc__, version=__version__, help=True)
-server = script_setup('destroy_vms.log', args, (__file__, __version__))
+server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
 if prompt_y_n_question("Do you wish to destroy a single VM? "):
     vm, vm_name = name_or_path(server, "vm", "to destroy")

@@ -19,18 +19,18 @@ The system is a proof of concept implementation of my thesis research for a Mast
 
 git clone https://github.com/GhostofGoes/ADLES.git
 cd ADLES
-pip install -r requirements.txt
-main.py --help
+python setup.py install
+adles -h
 ```
 
 ## Linux
 ```bash
 
 git clone https://github.com/GhostofGoes/ADLES.git
-cd ADLES
-pip3 install -r requirements.txt
-sudo chmod +x main.py
-./main.py --help
+cd ./ADLES
+sudo chmod +x setup.py
+sudo python3 ./setup.py install
+adles -h
 ```
 
 
@@ -58,21 +58,15 @@ The install scripts:
 # System Requirements
 
 ## Software
-Python: 3.4+
+Python: 3.3+ (2.7 is untested, but should work)
 
 ### Python Packages
-
-#### Required
 See requirements.txt for specific versions
 * pyvmomi 
 * docopt
 * pyyaml
 * netaddr
 * colorlog
-
-#### Optional
-See optional-requirements.txt for specific versions
-* pycallgraph
 
 ## Virtualization Platform
 
