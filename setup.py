@@ -27,16 +27,16 @@ setup(
     install_requires=required,
     entry_points={
         'console_scripts': [
-            'adles = adles.py:__main__',
-            'clone-vms = clone_vms.py:__main__',
-            'cleanup-vms = cleanup_vms.py:__main__',
-            'power-vms = vm_power.py:__main__',
-            'vsphere-info = vsphere_info.py:__main__'  # adles.scripts.
+            'adles = adles.scripts.adles.py:__main__',
+            'clone-vms = adles.scripts.clone_vms.py:__main__',
+            'cleanup-vms = adles.scripts.cleanup_vms.py:__main__',
+            'power-vms = adles.scripts.vm_power.py:__main__',
+            'vsphere-info = adles.scripts.vsphere_info.py:__main__'
         ]
     },
-    scripts=['adles.py', 'clone_vms.py',
-             'cleanup_vms.py',
-             'vm_power.py', 'vsphere_info.py'],  # adles/scripts/
+    scripts=['adles/scripts/adles.py', 'adles/scripts/clone_vms.py',
+             'adles/scripts/cleanup_vms.py',
+             'adles/scripts/vm_power.py', 'adles/scripts/vsphere_info.py'],
     author=__author__,
     author_email=__email__,
     description='Automated Deployment of Lab Environments System',
