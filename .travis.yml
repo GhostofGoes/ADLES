@@ -11,6 +11,7 @@ install: "python setup.py install"
 script:
   - adles -h
   - adles --version
+  - adles -c examples/tutorial.yaml
   - adles -v --check-syntax examples/tutorial.yaml
   - adles --no-color -v -c examples/tutorial.yaml
   - adles -v -c examples/competition.yaml
@@ -19,12 +20,10 @@ script:
   - cleanup-vms --help
   - vm-power -h
   - vsphere-info -h
-  - vsphere-testing -h
   - clone-vms --version
   - cleanup-vms --version
   - vm-power --version
   - vsphere-info --version
-  - vsphere-testing --version
 notifications:
   email:
     on_success: never
