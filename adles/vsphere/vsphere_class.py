@@ -45,33 +45,33 @@ class Vsphere:
             password = getpass('Enter password for %s: ' % username)
         try:
             logging.info("Connecting to vSphere: %s@%s:%d",
-                         username, hostname, int(port))
+                         username, hostname, port)
             if use_ssl:  # Connect to server using SSL certificate verification
                 self.server = SmartConnect(host=hostname, user=username, pwd=password,
-                                           port=int(port))
+                                           port=port)
             else:
                 self.server = SmartConnectNoSSL(host=hostname, user=username, pwd=password,
-                                                port=int(port))
+                                                port=port)
         except vim.fault.InvalidLogin:
             logging.error("Invalid login credentials were used for vSphere host %s:%d",
-                          hostname, int(port))
+                          hostname, port)
         except Exception as e:
-            logging.error("An error occurred while trying to connect to vSphere: %s", str(e))
+            logging.error("An exception occurred while trying to connect to vSphere: %s", str(e))
 
         if not self.server:
             logging.error("Could not connect to %s@vSphere host %s:%d",
-                          username, hostname, int(port))
+                          username, hostname, port)
             exit(1)
 
         from atexit import register
         register(Disconnect, self.server)  # Ensures connection to server is closed upon exit
 
-        logging.info("Connected to vSphere host %s:%d", hostname, int(port))
+        logging.info("Connected to vSphere host %s:%d", hostname, port)
         logging.debug("Current server time: %s", str(self.server.CurrentTime()))
 
         self.username = username
         self.hostname = hostname
-        self.port = int(port)
+        self.port = port
 
         self.content = self.server.RetrieveContent()
         self.auth = self.content.authorizationManager
@@ -162,7 +162,7 @@ class Vsphere:
             self.auth.SetEntityPermissions(entity=entity, permission=permission)
         except vim.fault.UserNotFound as e:
             logging.error("Could not find user '%s' to set permission '%s' on entity '%s'",
-                          e.principal, str(permission), str(entity))
+                          e.principal, str(permission), entity.name)
         except vim.fault.NotFound:
             logging.error("Invalid role ID for permission '%s'", str(permission))
         except vmodl.fault.ManagedObjectNotFound as e:
@@ -203,7 +203,7 @@ class Vsphere:
             logging.error("Role ID %d does not exist", int(role_id))
             return None
 
-    def get_users(self, search="", domain="", exact=False,
+    def get_users(self, search='', domain='', exact=False,
                   belong_to_group=None, have_user=None,
                   find_users=True, find_groups=False):
         """
@@ -220,14 +220,14 @@ class Vsphere:
         :return: List of vim.UserSearchResult
         """
         # See for reference: pyvmomi/docs/vim/UserDirectory.rst
-        kwargs = {"searchStr": str(search), "exactMatch": exact,
+        kwargs = {"searchStr": search, "exactMatch": exact,
                   "findUsers": find_users, "findGroups": find_groups}
-        if domain != "":
-            kwargs["domain"] = str(domain)
+        if domain != '':
+            kwargs["domain"] = domain
         if belong_to_group is not None:
-            kwargs["belongsToGroup"] = str(belong_to_group)
+            kwargs["belongsToGroup"] = belong_to_group
         if have_user is not None:
-            kwargs["belongsToUser"] = str(have_user)
+            kwargs["belongsToUser"] = have_user
 
         try:
             return self.user_dir.RetrieveUserGroups(**kwargs)
@@ -448,7 +448,7 @@ class Vsphere:
         :return: vim.ManagedEntity
         """
         return self.content.searchIndex.FindByDnsName(datacenter=self.datacenter,
-                                                      dnsName=str(hostname), vmSearch=vm_search)
+                                                      dnsName=hostname, vmSearch=vm_search)
 
     def find_by_inv_path(self, path):
         """

@@ -59,7 +59,7 @@ def create_vm(folder, config, pool, host=None):
 
 
 def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=512,
-                version=None, firmware="efi", max_consoles=None, datastore_path=None):
+                version=None, firmware='efi', max_consoles=None, datastore_path=None):
     """
     Generates a Virtual Machine creation spec
     :param name: Name of the VM
@@ -70,7 +70,8 @@ def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=5
     :param cores: Number of cores per CPU [default: 1]
     :param memory: Memory in MB [default: 512]
     :param firmware: (efi | bios) [default: efi]
-    :param max_consoles: Maximum number of active remote display connections [default: None]
+    :param max_consoles: Maximum number of active remote display connections
+    [default: datacenter-defined]
     :param datastore_path: Path to existing VM files on datastore [default: None]
     :return: vim.vm.ConfigSpec
     """
@@ -94,7 +95,7 @@ def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=5
     vm_path = '[' + datastore_name + '] '
     if datastore_path:
         vm_path += str(datastore_path)
-    vm_path += str(name) + '/' + str(name) + '.vmx'
+    vm_path += name + '/' + name + '.vmx'
     spec.files = vim.vm.FileInfo(vmPathName=vm_path)
     return spec
 
@@ -141,7 +142,7 @@ def edit_vm(vm, config):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-def upgrade_vm(vm, version=None):
+def upgrade_vm(vm, version=''):
     """
     Upgrades the hardware version of the VM
     :param vm: vim.VirtualMachine object
@@ -234,37 +235,6 @@ def change_guest_state(vm, guest_state):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-def has_tools(vm):
-    """
-    Checks if VMware Tools is installed and working
-    :param vm: vim.VirtualMachine
-    :return: If tools are installed and working
-    """
-    tools = vm.summary.guest.toolsStatus
-    return True if tools == "toolsOK" or tools == "toolsOld" else False
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def powered_on(vm):
-    """
-    Determines if a VM is powered on
-    :param vm: vim.VirtualMachine object
-    :return: If VM is powered on
-    """
-    return vm.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def is_template(vm):
-    """
-    Checks if VM is a template
-    :param vm: vim.VirtualMachine
-    :return: If the VM is a template
-    """
-    return bool(vm.summary.config.template)
-
-
-@utils.check(vim.VirtualMachine, "vm")
 def convert_to_template(vm):
     """
     Converts a Virtual Machine to a template
@@ -311,7 +281,7 @@ def set_note(vm, note):
 
 @utils.check(vim.VirtualMachine, "vm")
 @utils.time_execution
-def create_snapshot(vm, name, description="default", memory=False):
+def create_snapshot(vm, name, description='default', memory=False):
     """
     Create a snapshot of the VM
     :param vm: vim.VirtualMachine object
@@ -321,7 +291,7 @@ def create_snapshot(vm, name, description="default", memory=False):
     """
     logging.info("Creating snapshot '%s' of '%s'", name, vm.name)
     vutils.wait_for_task(vm.CreateSnapshot_Task(name=name, description=description,
-                                                memory=memory, quiesce=True))
+                                                memory=bool(memory), quiesce=True))
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -454,7 +424,7 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False):
     if detailed:
         info_string += "Num vNICs     : %s\n" % summary.config.numEthernetCards
         info_string += "Disks         : %s\n" % summary.config.numVirtualDisks
-    info_string += "IsTemplate    : %s\n" % str(summary.config.template)  # bool
+    info_string += "IsTemplate    : %s\n" % summary.config.template  # bool
     if detailed:
         info_string += "Path          : %s\n" % summary.config.vmPathName
     info_string += "Folder:       : %s\n" % vm.parent.name
@@ -522,9 +492,9 @@ def get_nic(vm, name):
 @utils.check(vim.VirtualMachine, "vm")
 def delete_nic(vm, nic_number):
     """
-    Deletes VM NIC based on it's number
+    Deletes VM vNIC based on it's number
     :param vm: vim.VirtualMachine
-    :param nic_number: Unit Number
+    :param nic_number: Integer unit of the vNIC to delete
     """
     nic_label = 'Network adapter ' + str(nic_number)
     logging.debug("Removing Virtual %s from '%s'", nic_label, vm.name)
@@ -548,7 +518,7 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
     :param vm: vim.VirtualMachine
     :param nic_number: Number of network adapter on VM
     :param port_group: vim.Network object to assign NIC to [default: None]
-    :param summary: Human-readable device info [default: None]
+    :param summary: Human-readable device description [default: None]
     """
     nic_label = 'Network adapter ' + str(nic_number)
     logging.debug("Changing '%s' on VM '%s'", nic_label, vm.name)
@@ -563,8 +533,7 @@ def edit_nic(vm, nic_number, port_group=None, summary=None):
     nic_spec.device = virtual_nic_device
 
     if summary:
-        logging.debug("Changing vNIC summary to: '%s'", summary)
-        nic_spec.device.deviceInfo.summary = summary
+        nic_spec.device.deviceInfo.summary = str(summary)
 
     if port_group:
         logging.debug("Changing PortGroup to: '%s'", port_group.name)
@@ -685,6 +654,37 @@ def find_free_ide_controller(vm):
         if isinstance(dev, vim.vm.device.VirtualIDEController) and len(dev.device) < 2:
             return dev  # If there are less than 2 devices attached, we can use it
     return None
+
+
+@utils.check(vim.VirtualMachine, "vm")
+def has_tools(vm):
+    """
+    Checks if VMware Tools is installed and working
+    :param vm: vim.VirtualMachine
+    :return: If tools are installed and working
+    """
+    tools = vm.summary.guest.toolsStatus
+    return True if tools == "toolsOK" or tools == "toolsOld" else False
+
+
+@utils.check(vim.VirtualMachine, "vm")
+def powered_on(vm):
+    """
+    Determines if a VM is powered on
+    :param vm: vim.VirtualMachine object
+    :return: If VM is powered on
+    """
+    return vm.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn
+
+
+@utils.check(vim.VirtualMachine, "vm")
+def is_template(vm):
+    """
+    Checks if VM is a template
+    :param vm: vim.VirtualMachine
+    :return: If the VM is a template
+    """
+    return bool(vm.summary.config.template)
 
 
 @utils.check(vim.VirtualMachine, "vm")

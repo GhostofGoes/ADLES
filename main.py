@@ -72,10 +72,10 @@ def main():
         if args["--create-masters"]:
             interface.create_masters()
             logging.info("Finished creation of Masters for environment %s",
-                         str(spec["metadata"]["name"]))
+                         spec["metadata"]["name"])
         elif args["--deploy"]:
             interface.deploy_environment()
-            logging.info("Finished deployment of environment %s", str(spec["metadata"]["name"]))
+            logging.info("Finished deployment of environment %s", spec["metadata"]["name"])
         elif args["--cleanup-masters"]:
             interface.cleanup_masters(args["--network-cleanup"])
         elif args["--cleanup-enviro"]:
@@ -109,9 +109,9 @@ def check_syntax(specfile_path):
         return None
     spec = parse_file(specfile_path)
     if spec is None:
-        logging.error("Failed to ingest specification file %s", str(basename(specfile_path)))
+        logging.error("Failed to ingest specification file %s", basename(specfile_path))
         return None
-    logging.info("Successfully ingested specification file %s", str(basename(specfile_path)))
+    logging.info("Successfully ingested specification file %s", basename(specfile_path))
     logging.info("Checking syntax...")
     errors, warnings = verify_syntax(spec)
     if errors == 0 and warnings == 0:

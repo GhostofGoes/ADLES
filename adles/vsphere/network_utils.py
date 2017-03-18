@@ -89,7 +89,7 @@ def create_vswitch(name, host, num_ports=512):
     :param host: vim.HostSystem to create the vSwitch on
     :param num_ports: Number of ports the vSwitch should have [default: 512]
     """
-    logging.info("Creating vSwitch %s with %s ports on host %s", name, str(num_ports), host.name)
+    logging.info("Creating vSwitch %s with %d ports on host %s", name, num_ports, host.name)
 
     vswitch_spec = vim.host.VirtualSwitch.Specification()
     vswitch_spec.numPorts = int(num_ports)
@@ -112,7 +112,7 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     :param promiscuous: Put portgroup in promiscuous mode [default: False]
     """
     logging.info("Creating PortGroup %s on vSwitch %s on host %s", name, vswitch_name, host.name)
-    logging.debug("VLAN ID: %d \t Promiscuous: %s", vlan, str(promiscuous))
+    logging.debug("VLAN ID: %d \t Promiscuous: %s", vlan, promiscuous)
 
     spec = vim.host.PortGroup.Specification()
     spec.name = name

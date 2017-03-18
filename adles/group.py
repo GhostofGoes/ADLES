@@ -49,9 +49,11 @@ class Group:
             from adles.utils import read_json
             group_type = "standard"
             if instance:    # Template group
-                users = [(user, pw) for user, pw in read_json(group["filename"])[str(instance)].items()]
+                users = [(user, pw)
+                         for user, pw in read_json(group["filename"])[str(instance)].items()]
             else:           # Standard group
-                users = [(user, pw) for user, pw in read_json(group["filename"]).items()]
+                users = [(user, pw)
+                         for user, pw in read_json(group["filename"]).items()]
 
         elif "user-list" in group:
             group_type = "standard"
@@ -65,7 +67,8 @@ class Group:
         self.users = users
         self.size = int(len(self.users))
         self.name = str(name)
-        logging.debug("Finished initializing Group '%s' with %d users", self.name, self.size)
+        logging.debug("Finished initializing Group '%s' with %d users",
+                      self.name, self.size)
 
 
 def get_ad_groups(groups):

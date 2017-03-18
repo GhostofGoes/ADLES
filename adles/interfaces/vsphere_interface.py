@@ -134,7 +134,7 @@ class VsphereInterface:
                         logging.error("Result '%s' is not a user", str(r))
                     else:
                         g.users.append(r.principal)
-                g.size = (len(g.users) if len(g.users) > 1 else 1)  # Set the size for the new users, defaulting to 1
+                g.size = (len(g.users) if len(g.users) > 1 else 1)  # Set the size, default to 1
             else:
                 logging.error("Could not initialize AD-group %s", str(g.ad_group))
 
@@ -194,7 +194,7 @@ class VsphereInterface:
         group = None
         master_group = None
 
-        # We do not know if a given item is a keyword or a sub-folder, so have to check every time...
+        # We have to check every item, as they could be either keywords or sub-folders
         for sub_name, sub_value in folder.items():
             if sub_name == "instances":
                 pass  # Instances don't matter for the Master phase
@@ -289,7 +289,8 @@ class VsphereInterface:
                         vm_utils.set_note(vm, note=config["note"])
                     return vm
                 else:
-                    logging.error("Failed to clone VM '%s' for service '%s'", vm_name, service_name)
+                    logging.error("Failed to clone VM '%s' for service '%s'",
+                                  vm_name, service_name)
                     return None
         logging.error("Could not find service '%s'", service_name)
         return None
@@ -436,7 +437,7 @@ class VsphereInterface:
                 logging.debug("Deploying parent-type folder '%s'", sub_name)
                 # TODO: fishyness? (extra nested folder)
                 for i in range(num_instances):
-                    # If no prefix is defined or there's only a single instance, use the folder's name
+                    # If prefix is undefined or there's a single instance, use the folder's name
                     instance_name = (sub_name if prefix == "" or num_instances == 1 else prefix)
 
                     # If multiple instances, append padded instance number
@@ -447,7 +448,8 @@ class VsphereInterface:
 
                     if "services" in sub_value:  # It's a base folder
                         self._deploy_base_folder_gen(folder_name=sub_name, folder_dict=sub_value,
-                                                     parent=new_folder, path=self._path(path, sub_name))
+                                                     parent=new_folder,
+                                                     path=self._path(path, sub_name))
                     else:  # It's a parent folder
                         self._deploy_parent_folder_gen(parent=new_folder, spec=sub_value,
                                                        path=self._path(path, sub_name))
@@ -488,7 +490,7 @@ class VsphereInterface:
             # Create a folder for the instance
             new_folder = self.server.create_folder(instance_name, create_in=parent)
 
-            # Folder name is used instead of instance name for the path, as it matches the Master folder
+            # Use the folder's name for the path, as that's what matches the Master version
             logging.info("Generating services for base-type folder instance '%s'", instance_name)
             print("Service: ", i)
             self._deploy_gen_services(services=folder_dict["services"], parent=new_folder,
@@ -517,7 +519,7 @@ class VsphereInterface:
             num_instances, prefix = self._instances_handler(spec=value, obj_name=service_name,
                                                             obj_type="service")
 
-            # TODO: do a lookup and check if service is Vsphere-type, and not Docker, etc. type of service
+            # TODO: verify service is Vsphere-type before trying to deploy it
             # Get the Master template instance to clone from
             service = futils.traverse_path(self.master_folder, self._path(path, value["service"]))
             if service is None:
@@ -578,11 +580,13 @@ class VsphereInterface:
         # Check if the number of instances exceeds the configured thresholds for the interface
         if num > self.thresholds[obj_type]["error"]:
             logging.error("%d instances of %s '%s' is beyond the configured %s threshold of %d",
-                          num, obj_type, obj_name, str(self.__name__), self.thresholds[obj_type]["error"])
-            exit(1)
+                          num, obj_type, obj_name, self.__name__,
+                          self.thresholds[obj_type]["error"])
+            raise Exception("Threshold exception")
         elif num > self.thresholds[obj_type]["warn"]:
             logging.warning("%d instances of %s '%s' is beyond the configured %s threshold of %d",
-                            num, obj_type, obj_name, str(self.__name__), self.thresholds[obj_type]["warn"])
+                            num, obj_type, obj_name, self.__name__,
+                            self.thresholds[obj_type]["warn"])
 
         return num, prefix
 

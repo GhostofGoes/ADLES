@@ -30,9 +30,10 @@ def wait_for_task(task):
         if task.info.state == 'success':
             return task.info.result
         elif task.info.state == 'error':
-            # TODO: parse error messages and generate more meaningful errors or warnings (e.g "already exists")
+            # TODO: parse error messages to generate more meaningful errors or warnings
+            #   Examples: "already exists", "Cancelled", "permission error" or whatnot
             logging.error("There was an error while completing a task: '%s'",
-                          str(task.info.error.msg))
+                          task.info.error.msg)
             return None
 
 
@@ -65,8 +66,8 @@ def get_datastore_info(ds_obj):
     if ds_overp > 0:
         info_string += "Over-provisioned      : %s / %s %%\n" \
                        % (utils.sizeof_fmt(ds_overp), ds_overp_pct)
-    info_string += "Hosts                 : %s\n" % str(len(ds_obj.host))
-    info_string += "Virtual Machines      : %s" % str(len(ds_obj.vm))
+    info_string += "Hosts                 : %d\n" % len(ds_obj.host)
+    info_string += "Virtual Machines      : %d" % len(ds_obj.vm)
     return info_string
 
 
@@ -76,7 +77,7 @@ def is_folder(obj):
     :param obj: object to check
     :return: Bool
     """
-    return bool(hasattr(obj, "childEntity"))
+    return hasattr(obj, "childEntity")
 
 
 def is_vm(obj):
@@ -85,7 +86,7 @@ def is_vm(obj):
     :param obj: object to check
     :return: Bool
     """
-    return bool(hasattr(obj, "summary"))
+    return hasattr(obj, "summary")
 
 
 def is_vnic(device):
@@ -94,4 +95,4 @@ def is_vnic(device):
     :param device: device to check
     :return: Bool
     """
-    return bool(isinstance(device, vim.vm.device.VirtualEthernetCard))
+    return isinstance(device, vim.vm.device.VirtualEthernetCard)

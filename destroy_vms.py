@@ -67,13 +67,13 @@ else:
 
     # Prompt user to configure destruction options
     vm_prefix = default_prompt("Prefix of VMs you wish to destroy (CASE SENSITIVE!)",
-                               default=None)
+                               default='')
     recursive = prompt_y_n_question("Recursively descend into folders? ")
     destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
     folder_prefix = None
     if destroy_folders:
         folder_prefix = default_prompt("Prefix of folders you wish to destroy (CASE SENSITIVE!)",
-                                       default=None)
+                                       default='')
         destroy_self = prompt_y_n_question("Destroy the folder itself? ")
     else:
         destroy_self = False

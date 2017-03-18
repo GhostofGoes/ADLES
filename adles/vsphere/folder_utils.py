@@ -146,7 +146,7 @@ def format_structure(structure, indent=4, _depth=0):
         fmat += newline + structure
     else:
         logging.error("Unexpected type in folder structure for item '%s': %s",
-                      str(structure), str(type(structure)))
+                      str(structure), type(structure))
     return fmat
 
 
@@ -168,7 +168,6 @@ def create_folder(folder, folder_name):
     :param folder_name: Name of folder to create
     :return: The created vim.Folder object
     """
-    # "folder" is confusing, but only way I can use wrapper for now....
     exists = find_in_folder(folder, folder_name)  # Check if the folder already exists
     if exists:
         logging.warning("Folder '%s' already exists in folder '%s'", folder_name, folder.name)
@@ -187,13 +186,14 @@ def create_folder(folder, folder_name):
 
 
 @check(vim.Folder, "folder")
-def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False,
+def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
             destroy_folders=False, destroy_self=False):
     """
-    Destroys VMs and (optionally) folders under the specified folder.
-    :param folder: vim.Folder object
-    :param vm_prefix: Only destroy VMs with names starting with the prefix [default: None]
-    :param folder_prefix: Only destroy or search in Folders with names starting with the prefix [default: None]
+    Destroys VMs and folders under the specified folder.
+    :param folder: vim.Folder object to clean
+    :param vm_prefix: Only destroy VMs with names starting with the prefix [default: '']
+    :param folder_prefix: Only destroy or search in folders with names starting with the prefix
+    [default: '']
     :param recursive: Recursively descend into any sub-folders [default: False]
     :param destroy_folders: Destroy folders in addition to VMs [default: False]
     :param destroy_self: Destroy the folder specified [default: False]
@@ -202,24 +202,13 @@ def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False,
     import adles.vsphere.vm_utils as vm_utils
 
     for item in folder.childEntity:
-        if is_vm(item):         # Handle VMs
-            if vm_prefix is None:  # Destroy all VMs, since we're not looking for prefixes
-                vm_utils.destroy_vm(item)  # Delete the VM from the Datastore
-            elif str(item.name).startswith(vm_prefix):  # Destroy VM if name begins with the prefix
-                vm_utils.destroy_vm(item)   # Delete the VM from the Datastore
-
-        elif is_folder(item):   # Handle folders
-            if folder_prefix is None or str(item.name).startswith(folder_prefix):
-                if destroy_folders:  # Destroys folder and ALL of it's sub-objects
-                    cleanup(item, vm_prefix=None, folder_prefix=None, recursive=True,
-                            destroy_folders=True, destroy_self=True)
+        if is_vm(item) and str(item.name).startswith(vm_prefix):  # Handle VMs
+            vm_utils.destroy_vm(vm=item)  # Delete the VM from the Datastore
+        elif is_folder(item) and str(item.name).startswith(folder_prefix):   # Handle folders
+            if destroy_folders:  # Destroys folder and ALL of it's sub-objects
+                cleanup(item, destroy_folders=True, destroy_self=True)
             elif recursive:  # Simply recurses to find more items
-                cleanup(item, vm_prefix=vm_prefix, folder_prefix=folder_prefix,
-                        recursive=recursive, destroy_folders=destroy_folders, destroy_self=False)
-
-        else:  # It's not a VM or a folder...
-            logging.error("Unknown item encountered while cleaning folder '%s': %s",
-                          folder.name, str(item))
+                cleanup(item, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=True)
 
     # Note: UnregisterAndDestroy does NOT delete VM files off the datastore
     # Only use if folder is already empty!
@@ -229,7 +218,7 @@ def cleanup(folder, vm_prefix=None, folder_prefix=None, recursive=False,
 
 
 @check(vim.Folder, "folder")
-def retrieve_items(folder, vm_prefix=None, folder_prefix=None, recursive=False):
+def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
     """
     Retrieves VMs and folders from a folder structure
     :param folder: vim.Folder to begin search in (Note: it is NOT returned in list of folders)
@@ -243,11 +232,10 @@ def retrieve_items(folder, vm_prefix=None, folder_prefix=None, recursive=False):
     folders = []
 
     for item in folder.childEntity:  # Iterate through all items in the folder
-        if is_vm(item):
-            if vm_prefix is None or str(item.name).startswith(vm_prefix):
-                vms.append(item)  # Add matching vm to the list
+        if is_vm(item) and str(item.name).startswith(vm_prefix):
+            vms.append(item)  # Add matching vm to the list
         elif is_folder(item):
-            if folder_prefix is None or str(item.name).startswith(folder_prefix):
+            if str(item.name).startswith(folder_prefix):
                 folders.append(item)  # Add matching folder to the list
             if recursive:  # Recurse into sub-folders
                 v, f = retrieve_items(item, vm_prefix, folder_prefix, recursive)
