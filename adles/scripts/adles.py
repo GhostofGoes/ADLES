@@ -93,3 +93,5 @@ elif args["--package-dir"]:
 
 else:
     logging.error("Invalid arguments. Argument dump:\n%s", str(args))
+
+exit(0)

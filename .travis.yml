@@ -7,25 +7,25 @@ python:
     - "3.6"
     - "pypy"
     - "pypy3"
-install: "pip install -r requirements.txt"
+install: "python setup.py install"
 script:
-  - python main.py -h
-  - python main.py --version
-  - python main.py --version
-  - python main.py -v --check-syntax examples/tutorial.yaml
-  - python main.py --no-color -v -c examples/tutorial.yaml
-  - python main.py -v -c examples/competition.yaml
-  - python main.py --verbose --check-syntax examples/experiment.yaml
-  - python clone_vms.py -h
-  - python cleanup_vms.py --help
-  - python vm_power.py -h
-  - python vsphere_info.py -h
-  - python vsphere_testing.py -h
-  - python clone_vms.py --version
-  - python cleanup_vms.py --version
-  - python vm_power.py --version
-  - python vsphere_info.py --version
-  - python vsphere_testing.py --version
+  - python adles -h
+  - python adles --version
+  - python adles --version
+  - python adles -v --check-syntax examples/tutorial.yaml
+  - python adles --no-color -v -c examples/tutorial.yaml
+  - python adles -v -c examples/competition.yaml
+  - python adles --verbose --check-syntax examples/experiment.yaml
+  - python clone-vms -h
+  - python cleanup-vms --help
+  - python vm-power -h
+  - python vsphere-info -h
+  - python vsphere-testing -h
+  - python clone-vms --version
+  - python cleanup-vms --version
+  - python vm-power --version
+  - python vsphere-info --version
+  - python vsphere-testing --version
 notifications:
   email:
     on_success: never

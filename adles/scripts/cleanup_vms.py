@@ -102,3 +102,5 @@ else:
                 destroy_folders=destroy_folders, destroy_self=destroy_self)
     else:
         logging.info("Destruction cancelled")
+
+exit(0)

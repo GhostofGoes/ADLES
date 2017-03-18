@@ -58,3 +58,5 @@ else:
     vm, vm_name = name_or_path(server, "VM")
     logging.info("Changing power state of '%s' to '%s'", vm_name, operation)
     change_vm_state(vm, operation, attempt_guest)
+
+exit(0)

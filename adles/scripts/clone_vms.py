@@ -86,3 +86,5 @@ for instance in range(num_instances):
         else:
             vm_name = name + pad(value=instance, length=2)    # Append instance number
             clone_vm(vm=vm, folder=create_in, name=vm_name, clone_spec=spec)
+
+exit(0)

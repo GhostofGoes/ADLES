@@ -69,3 +69,5 @@ elif thing_type == "folder":
 
 else:
     logging.info("Invalid type: %s", thing_type)
+
+exit(0)
