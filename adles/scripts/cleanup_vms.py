@@ -38,18 +38,18 @@ import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 
 
 def main():
     args = docopt(__doc__, version=__version__, help=True)
     server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
-    if prompt_y_n_question("Do you wish to destroy a single VM? "):
+    if prompt_y_n_question("Single VM? "):
         vm, vm_name = name_or_path(server, "vm", "to destroy")
 
         if prompt_y_n_question("Display VM info? "):
-            logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
+            logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))
 
         if vm.config.template:  # Warn if template
             if not prompt_y_n_question("VM '%s' is a Template. Continue? " % vm_name):

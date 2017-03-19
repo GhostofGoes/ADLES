@@ -16,8 +16,8 @@ import logging
 
 from pyVmomi import vim
 
-from adles.vsphere.vsphere_utils import is_folder, is_vm, wait_for_task
 from adles.utils import check
+from adles.vsphere.vsphere_utils import is_folder, is_vm, wait_for_task
 
 
 @check(vim.Folder, "folder")
@@ -103,11 +103,12 @@ def traverse_path(folder, path):
 
 
 @check(vim.Folder, "folder")
-def enumerate_folder(folder, recursive=True):
+def enumerate_folder(folder, recursive=True, power_status=False):
     """
     Enumerates a folder structure and returns the result as a python object with the same structure
     :param folder: vim.Folder
     :param recursive: Whether to recurse into any sub-folders [default: True]
+    :param power_status: Display
     :return: The nested python object with the enumerated folder structure
     """
     children = []
@@ -118,7 +119,17 @@ def enumerate_folder(folder, recursive=True):
             else:  # Don't recurse, just append the folder
                 children.append('- ' + item.name)
         elif is_vm(item):
-            children.append('* ' + item.name)
+            if power_status:
+                if item.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn:
+                    children.append('* ON  ' + item.name)
+                elif item.runtime.powerState == vim.VirtualMachine.PowerState.poweredOff:
+                    children.append('* OFF ' + item.name)
+                elif item.runtime.powerState == vim.VirtualMachine.PowerState.suspended:
+                    children.append('* SUS ' + item.name)
+                else:
+                    logging.error("Invalid power state for VM: %s", item.name)
+            else:
+                children.append('* ' + item.name)
         else:
             children.append("UNKNOWN ITEM: %s" % str(item))
     return '+ ' + folder.name, children  # Return tuple of parent and children
