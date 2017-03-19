@@ -43,6 +43,8 @@ setup(
     description='Automated Deployment of Lab Environments System',
     url=__url__,
     license=__license__,
+    keywords="adles virtualization automation vmware vsphere yaml "
+             "cybersecurity education uidaho radicl environments",
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',

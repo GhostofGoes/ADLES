@@ -1,7 +1,18 @@
+.. image:: https://travis-ci.org/GhostofGoes/ADLES.svg?branch=master
+   :target: https://travis-ci.org/GhostofGoes/ADLES
+   :alt: Build Status
+.. image:: https://www.versioneye.com/user/projects/589eac206a7781003b24318b/badge.svg?style=flat-square
+   :target: https://www.versioneye.com/user/projects/589eac206a7781003b24318b
+   :alt: Dependency Status
+.. image:: https://codeclimate.com/github/GhostofGoes/ADLES/badges/gpa.svg
+   :target: https://codeclimate.com/github/GhostofGoes/ADLES
+   :alt: Code Climate
+.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+   :target: https://opensource.org/licenses/Apache-2.0
+   :alt: License
+
 Overview
 ========
-
-| |Build Status| |Dependency Status| |Code Climate| |License|
 
 Automated Deployment of Lab Environments System (ADLES)
 
@@ -14,38 +25,21 @@ Automated Deployment of Lab Environments System (ADLES)
 The system is a proof of concept implementation of my thesis research
 for a Master of Computer Science at the University of Idaho.
 
-Installation
-============
-
-Windows
--------
-
-.. code:: cmd
-
-
-    git clone https://github.com/GhostofGoes/ADLES.git
-    cd ADLES
-    python setup.py install
-    adles -h
-
-Linux
------
-
-.. code:: bash
-
-
-    git clone https://github.com/GhostofGoes/ADLES.git
-    cd ./ADLES
-    sudo chmod +x setup.py
-    sudo python3 ./setup.py install
-    adles -h
 
 Getting started
 ===============
 
--  Poke through the examples folder and try running a few of them
--  Run ``main.py --help`` for usage information
--  See specification/environment-specification.yaml for the exercise specification
+.. code:: bash
+
+
+   pip3 install adles
+   adles -h
+
+
+-  Clone the GitHub repo, poke through the examples folder,
+   and try running a few of them
+-  Read the exercise specification at specifications/exercise-specification.yaml
+-  Try writing your own, then run the syntax checker on it using ``adles -c example.yaml``
 
 
 System Requirements
@@ -77,6 +71,7 @@ VMware vSphere
 
 -  **vSphere** >= 6.0
 -  **ESXi** >= 6.0 (May work with 5.5, your mileage may vary)
+
 
 Project Goals
 =============
@@ -137,6 +132,7 @@ Future Goals
 -  More example packages
 -  Improved documentation on how to make a package, how to setup a platform for system, etc.
 
+
 License
 =======
 
@@ -144,11 +140,4 @@ This project is licensed under the Apache License, Version 2.0. See
 LICENSE for the full license text, and NOTICES for attributions to
 external projects that this project uses code from.
 
-.. |Build Status| image:: https://travis-ci.org/GhostofGoes/ADLES.svg?branch=master
-   :target: https://travis-ci.org/GhostofGoes/ADLES
-.. |Dependency Status| image:: https://www.versioneye.com/user/projects/589eac206a7781003b24318b/badge.svg?style=flat-square
-   :target: https://www.versioneye.com/user/projects/589eac206a7781003b24318b
-.. |Code Climate| image:: https://codeclimate.com/github/GhostofGoes/ADLES/badges/gpa.svg
-   :target: https://codeclimate.com/github/GhostofGoes/ADLES
-.. |License| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-   :target: https://opensource.org/licenses/Apache-2.0
+
