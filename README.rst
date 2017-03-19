@@ -1,7 +1,7 @@
 Overview
 ========
 
-| |Build Status| | |Dependency Status| | |Code Climate| | |License|
+| |Build Status| |Dependency Status| |Code Climate| |License|
 
 Automated Deployment of Lab Environments System (ADLES)
 
@@ -69,8 +69,8 @@ See ``requirements.txt`` for specific versions
 -  colorlog
 -  setuptools (If you are installing manually)
 
-Virtualization Platform
------------------------
+Virtualization Platforms
+------------------------
 
 VMware vSphere
 ~~~~~~~~~~~~~~
@@ -96,16 +96,20 @@ In order to graduate on time, I am focusing on implementing the
 following components:
 
 -  Overall system
+
    -  Interface module system
    -  Specification injestion, parsing, and semantic checking
    -  Master-creation phase
    -  Deployment phase
    -  Post-phase cleanups
    -  User interface, logging, and basic result collection
+
 -  Specifications
+
    -  Exercise specification (The core spec that defines the exercise environment)
    -  Package specification
    -  Infrastructure specification
+
 -  VMware vSphere Interface module
 -  Documentation of API, system, and examples
 -  Basic Unit and Functional tests
@@ -115,16 +119,19 @@ Future Goals
 ------------
 
 -  Interfaces
+
    -  Docker (Good for simulating large environments, with low resource overhead and quick load times)
    -  Hyper-V server (Free, good for schools that are heavily invested in the Microsoft ecosystem)
-   -  Vagrant (Enables interaction with VirtualBox, desktop Hyper-V,
-   and VMware Workstation)
+   -  Vagrant (Enables interaction with VirtualBox, desktop Hyper-V, and VMware Workstation)
    -  Xen (Rich introspection possibilities for monitoring extensions using the Xen API)
    -  KVM (LibVMI provides rich introspecition possibilities for this as well)
+
 -  Environment specification
+
    -  Monitoring extensions
    -  Resource extensions for testbeds (ICS/SCADA, Wireless, USB devices, car computers, etc.)
    -  Lab connectors
+
 -  Vagrant image with a pre-configured VM running the system
 -  Public repository of packages
 -  More example packages
