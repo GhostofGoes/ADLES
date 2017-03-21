@@ -304,7 +304,8 @@ def name_or_path(server, thing, prompt=""):
         return None, None
 
     thing, thing_name = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
-                                   lambda x: traverse_path(server.get_folder(), x)
+                                   lambda x: traverse_path(server.get_folder(), x,
+                                                           lookup_root=server)
                                    if '/' in x else get(x))
     return thing, thing_name
 

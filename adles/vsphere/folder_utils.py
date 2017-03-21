@@ -16,7 +16,7 @@ import logging
 
 from pyVmomi import vim
 
-from adles.utils import check, time_execution
+from adles.utils import check
 from adles.vsphere.vsphere_utils import is_folder, is_vm, wait_for_task
 
 
@@ -72,20 +72,36 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
 
 
 @check(vim.Folder, "folder")
-def traverse_path(folder, path):
+def traverse_path(folder, path, lookup_root=None):
     """
     Traverses a folder path to find a object with a specific name
     :param folder: vim.Folder to search in
     :param path: String with path in POSIX format (Templates/Windows/ to get the 'Windows' folder)
+    :param lookup_root: If root of path is not found in folder, lookup using this Vsphere object
     :return: Object at end of path
     """
     logging.debug("Traversing path '%s' from folder '%s'", path, folder.name)
     from os.path import split
     folder_path, name = split(path.lower())  # Separate basename and convert to lowercase
     folder_path = folder_path.split('/')     # Transform path into list
+    if folder_path[0] == '':
+        del folder_path[0]  # Remove empty string
 
-    current = folder                        # Start with the defined folder
-    for f in folder_path:            # Try each folder name in the path
+    # Check if root of the path is in the folder
+    # This is to allow relative paths to be used if lookup_root is defined
+    folder_items = [x.name.lower() for x in folder.childEntity if hasattr(x, 'name')]
+    if len(folder_path) > 0 and folder_path[0] not in folder_items:
+        if lookup_root is not None:
+            logging.debug("Root %s not in folder %s, looking up...",
+                          folder_path[0], folder.name)
+            folder = lookup_root.get_folder(folder_path.pop(0))  # Lookup the path root on server
+        else:
+            logging.error("Could not find root '%s' of path '%s' in folder '%s'",
+                          folder_path[0], str(folder_path), folder.name)
+            return None
+
+    current = folder  # Start with the defined folder
+    for f in folder_path:  # Try each folder name in the path
         for item in current.childEntity:  # Iterate through items in the current folder
             if is_folder(item) and item.name.lower() == f:  # If Folder is part of path
                 current = item  # This is the next folder in the path
@@ -103,7 +119,6 @@ def traverse_path(folder, path):
 
 
 @check(vim.Folder, "folder")
-@time_execution
 def enumerate_folder(folder, recursive=True, power_status=False):
     """
     Enumerates a folder structure and returns the result as a python object with the same structure
@@ -198,7 +213,6 @@ def create_folder(folder, folder_name):
 
 
 @check(vim.Folder, "folder")
-@time_execution
 def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
             destroy_folders=False, destroy_self=False):
     """
@@ -231,7 +245,6 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
 
 
 @check(vim.Folder, "folder")
-@time_execution
 def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
     """
     Retrieves VMs and folders from a folder structure

@@ -358,6 +358,12 @@ class VsphereInterface:
         # Get the master folder root
         self.master_folder = futils.traverse_path(self.root_folder,
                                                   VsphereInterface.master_root_name)
+        if self.master_folder is None:
+            logging.error("Could not find Master folder '%s'. "
+                          "Please ensure the  Master Creation phase has been run "
+                          "and the folder exists before attempting Deployment",
+                          VsphereInterface.master_root_name)
+            exit(1)
         logging.debug("Master folder name: %s\tPrefix: %s",
                       self.master_folder.name, VsphereInterface.master_prefix)
 
@@ -435,7 +441,6 @@ class VsphereInterface:
 
                 # Create instances of the parent folder
                 logging.debug("Deploying parent-type folder '%s'", sub_name)
-                # TODO: fishyness? (extra nested folder)
                 for i in range(num_instances):
                     # If prefix is undefined or there's a single instance, use the folder's name
                     instance_name = (sub_name if prefix == "" or num_instances == 1 else prefix)
@@ -487,12 +492,13 @@ class VsphereInterface:
             # If multiple instances, append padded instance number
             instance_name += (pad(i) if num_instances > 1 else "")
 
-            # Create a folder for the instance
-            new_folder = self.server.create_folder(instance_name, create_in=parent)
+            if num_instances > 1:  # Create a folder for the instance
+                new_folder = self.server.create_folder(instance_name, create_in=parent)
+            else:  # Don't duplicate folder name for single instances
+                new_folder = parent
 
             # Use the folder's name for the path, as that's what matches the Master version
             logging.info("Generating services for base-type folder instance '%s'", instance_name)
-            print("Service: ", i)
             self._deploy_gen_services(services=folder_dict["services"], parent=new_folder,
                                       path=self._path(path, folder_name))
 

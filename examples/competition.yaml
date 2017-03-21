@@ -12,11 +12,13 @@ metadata:
   template-path: "Templates/"
 
 groups:
-  Blue Team:
+  Blue Team:  # Defenders
     instances: 10
     filename: "examples/blue-teams.json"
-  Red Team:
+  Red Team:   # Attackers
     ad-group: "Red Team"
+  Black Team: # Infrastructure team
+    ad-group: "Black Team"
 
 services:
   host-type-a:
@@ -120,7 +122,7 @@ networks:
 
 folders:
   external:
-    group: 
+    group: "Black Team"
     description: "The open competition network, where red team and the score bot sit" 
     services:
       edge-router: 

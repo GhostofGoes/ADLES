@@ -38,7 +38,7 @@ import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
 
-__version__ = "0.5.3"
+__version__ = "0.5.4"
 
 
 def main():
@@ -50,8 +50,9 @@ def main():
                                      "that has the VMs/folders you want to destroy")
 
         # Display folder structure
-        logging.info("Folder structure: \n%s", format_structure(
-            enumerate_folder(folder, recursive=True, power_status=True)))
+        if prompt_y_n_question("Display the folder structure? "):
+            logging.info("Folder structure: \n%s", format_structure(
+                enumerate_folder(folder, recursive=True, power_status=True)))
 
         # Prompt user to configure destruction options
         vm_prefix = default_prompt("Prefix of VMs you wish to destroy"
