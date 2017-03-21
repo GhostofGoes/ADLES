@@ -44,8 +44,6 @@ def main():
     args = docopt(__doc__, version=__version__, help=True)
     server = script_setup('clone_vms.log', args, (__file__, __version__))
 
-    vm = None
-    folder_from = None
     vms = []
     vm_names = []
 
@@ -59,7 +57,8 @@ def main():
         folder_from, from_name = name_or_path(server, "folder", "you want to clone all VMs in")
         v, _ = retrieve_items(folder_from)  # Get VMs in the folder, ignore any folders
         vms.extend(v)
-        logging.info("%d VMs found in source folder %s\n%s", len(v), from_name, format_structure(v))
+        logging.info("%d VMs found in source folder %s\n%s",
+                     len(v), from_name, format_structure(v))
         if not prompt_y_n_question("Keep the same names? "):
             names = []
             for i in range(len(v)):

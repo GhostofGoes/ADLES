@@ -68,7 +68,7 @@ def main():
         if prompt_y_n_question("Want to see power state of VMs in the folder?"):
             contents = enumerate_folder(folder, recursive=True, power_status=True)
         else:
-            contents = enumerate_folder(folder)
+            contents = enumerate_folder(folder, recursive=True, power_status=False)
         logging.info("Contents of Folder %s\n%s", folder_name, format_structure(contents))
 
     # That's not a thing!

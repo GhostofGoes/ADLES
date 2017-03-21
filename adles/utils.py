@@ -34,7 +34,7 @@ def check(arg_type, kwarg_name):
                 return func(*args, **kwargs)
             else:
                 logging.error("Function '%s' failed check for type '%s'\nArgs: %s\nkwargs: %s",
-                              str(func.__name__), str(arg_type.__name__), str(args), str(kwargs))
+                              func.__name__, arg_type.__name__, str(args), str(kwargs))
         return wrapper
     return decorator
 
@@ -52,7 +52,7 @@ def time_execution(func):
         start_time = default_timer()
         ret = func(*args, **kwargs)
         end_time = default_timer()
-        logging.debug("Elapsed time for %s: %f seconds", str(func.__name__),
+        logging.debug("Elapsed time for %s: %f seconds", func.__name__,
                       float(end_time - start_time))
         return ret
     return wrapper
@@ -254,7 +254,7 @@ def script_warning_prompt():
         '\n\t* "cd ./documentation && ls -la": show available documentation'
         '\n\t+ Open an issue on the project GitHub: %s'
         '\n\t+ Email the script author: %s'
-        '\n\n' % (str(__url__), str(__email__)))
+        '\n\n' % (__url__, __email__))
 
 
 def script_setup(logging_filename, args, script=None):
@@ -341,7 +341,7 @@ def setup_logging(filename, colors=True, console_verbose=False,
     syslog.setLevel(logging.DEBUG)
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
-    logging.debug("Configured logging to SysLog server %s:%s", str(server[0]), str(server[1]))
+    logging.debug("Configured logging to SysLog server %s:%s", server[0], str(server[1]))
 
     # Configure console output
     console = logging.StreamHandler(stream=stdout)

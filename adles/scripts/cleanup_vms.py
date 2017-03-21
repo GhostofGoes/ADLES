@@ -38,46 +38,32 @@ import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 
 def main():
     args = docopt(__doc__, version=__version__, help=True)
     server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
-    if prompt_y_n_question("Single VM? "):
-        vm, vm_name = name_or_path(server, "vm", "to destroy")
-
-        if prompt_y_n_question("Display VM info? "):
-            logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))
-
-        if vm.config.template:  # Warn if template
-            if not prompt_y_n_question("VM '%s' is a Template. Continue? " % vm_name):
-                exit(0)
-
-        if prompt_y_n_question("Continue with destruction? "):
-            logging.info("Destroying VM '%s'", vm_name)
-            vm_utils.destroy_vm(vm)
-        else:
-            logging.info("Destruction cancelled")
-    else:
+    if prompt_y_n_question("Multiple VMs? ", default="yes"):
         folder, fname = name_or_path(server, "folder",
                                      "that has the VMs/folders you want to destroy")
 
         # Display folder structure
-        logging.info("Folder structure: %s", format_structure(enumerate_folder(folder)))
+        logging.info("Folder structure: \n%s", format_structure(
+            enumerate_folder(folder, recursive=True, power_status=True)))
 
         # Prompt user to configure destruction options
         vm_prefix = default_prompt("Prefix of VMs you wish to destroy"
                                    " (CASE SENSITIVE!)", default='')
         recursive = prompt_y_n_question("Recursively descend into folders? ")
         destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
-        folder_prefix = None
         if destroy_folders:
             folder_prefix = default_prompt("Prefix of folders you wish to destroy"
                                            " (CASE SENSITIVE!)", default='')
             destroy_self = prompt_y_n_question("Destroy the folder itself? ")
         else:
+            folder_prefix = ''
             destroy_self = False
 
         # Show user what options they selected (TODO: do these options as cmdline arg flags?)
@@ -87,7 +73,7 @@ def main():
                      destroy_folders, destroy_self)
 
         # Show how many items matched the options
-        v, f = retrieve_items(folder, vm_prefix, folder_prefix, True)
+        v, f = retrieve_items(folder, vm_prefix, folder_prefix, recursive=True)
         num_vms = len(v)
         if destroy_folders:
             num_folders = len(f)
@@ -104,7 +90,21 @@ def main():
                     destroy_folders=destroy_folders, destroy_self=destroy_self)
         else:
             logging.info("Destruction cancelled")
+    else:
+        vm, vm_name = name_or_path(server, "vm", "to destroy")
 
+        if prompt_y_n_question("Display VM info? "):
+            logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))
+
+        if vm.config.template:  # Warn if template
+            if not prompt_y_n_question("VM '%s' is a Template. Continue? " % vm_name):
+                exit(0)
+
+        if prompt_y_n_question("Continue with destruction? "):
+            logging.info("Destroying VM '%s'", vm_name)
+            vm_utils.destroy_vm(vm)
+        else:
+            logging.info("Destruction cancelled")
 
 if __name__ == '__main__':
     main()

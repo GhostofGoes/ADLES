@@ -16,7 +16,7 @@ import logging
 
 from pyVmomi import vim
 
-from adles.utils import check
+from adles.utils import check, time_execution
 from adles.vsphere.vsphere_utils import is_folder, is_vm, wait_for_task
 
 
@@ -41,7 +41,7 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
                 if isinstance(item, vimtype):
                     return item
             logging.error("Could not find item of type '%s' in folder '%s'",
-                          str(vimtype.__name__), folder.name)
+                          vimtype.__name__, folder.name)
             return None
         else:
             logging.error("There are no items in folder %s", folder.name)
@@ -103,6 +103,7 @@ def traverse_path(folder, path):
 
 
 @check(vim.Folder, "folder")
+@time_execution
 def enumerate_folder(folder, recursive=True, power_status=False):
     """
     Enumerates a folder structure and returns the result as a python object with the same structure
@@ -197,6 +198,7 @@ def create_folder(folder, folder_name):
 
 
 @check(vim.Folder, "folder")
+@time_execution
 def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
             destroy_folders=False, destroy_self=False):
     """
@@ -229,6 +231,7 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
 
 
 @check(vim.Folder, "folder")
+@time_execution
 def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
     """
     Retrieves VMs and folders from a folder structure
