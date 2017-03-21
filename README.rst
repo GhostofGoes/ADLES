@@ -1,3 +1,6 @@
+.. image:: https://badge.fury.io/py/ADLES.svg
+   :target: https://badge.fury.io/py/ADLES
+   :alt: PyPI Version
 .. image:: https://travis-ci.org/GhostofGoes/ADLES.svg?branch=master
    :target: https://travis-ci.org/GhostofGoes/ADLES
    :alt: Build Status
