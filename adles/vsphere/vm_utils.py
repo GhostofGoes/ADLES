@@ -396,6 +396,26 @@ def remove_all_snapshots(vm, consolidate_disks=True):
     vutils.wait_for_task(vm.RemoveAllSnapshots_Task(consolidate_disks))
 
 
+@utils.check(vim.VirtualMachine, "vm")
+def snapshot_disk_usage(vm):
+    """
+    Determines the total disk usage of a VM's snapshots
+    :param vm: vim.VirtualMachine
+    :return: Human-readable disk usage of the snapshots
+    """
+    from re import search
+    disk_list = vm.layoutEx.file
+    size = 0
+    for disk in disk_list:
+        if disk.type == 'snapshotData':
+            size += disk.size
+        ss_disk = search('0000\d\d', disk.name)
+        if ss_disk:
+            size += disk.size
+
+    return utils.sizeof_fmt(size)
+
+
 # From: getallvms in pyvmomi-community-samples
 @utils.check(vim.VirtualMachine, "vm")
 def get_vm_info(vm, detailed=False, uuids=False, snapshot=False):
@@ -443,6 +463,7 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False):
 
     if snapshot and vm.snapshot and hasattr(vm.snapshot, 'currentSnapshot'):
         info_string += "Current Snapshot: %s\n" % vm.snapshot.currentSnapshot.config.name
+        info_string += "Disk usage of all snapshots: %s\n" % snapshot_disk_usage(vm=vm)
 
     if detailed and summary.runtime:
         info_string += "Last Poweron  : %s\n" % str(summary.runtime.bootTime)  # datetime object
