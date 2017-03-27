@@ -5,7 +5,7 @@ metadata:
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "0.6.0"
+  version: "0.7.0"
   infrastructure-config-file: "infra.yaml"
   folder-name: "prccdc-2016"
   root-path: "Competitions/PRCCDC/"
@@ -35,9 +35,9 @@ services:
       name: "Windows 10 Enterprise"
       version: "10"
       family: "Windows/NT"
-  #score-bot:
-  #  image: "prccdc/score-bot"
-  #  tag: "0.1.2"
+  score-bot:
+    image: "prccdc/score-bot"
+    tag: "0.1.2"
   firewall:
     template: "PRCCDC Firewall"
     note: "Default Username: vyos   Password: vyos"
@@ -65,14 +65,14 @@ services:
       version: "14.04"
       distribution: "LTS"
       family: "Linux/Debian"
-  #database-server:
-  #  image: "prccdc/mysql-server"
-  #  note: "Default password is Password1"
-  #  tag: "7"
-  #  os:
-  #    name: "Oracle SunOS 7"
-  #    version: "7"
-  #    family: "Solaris"
+  database-server:
+    image: "prccdc/mysql-server"
+    note: "Default password is Password1"
+    tag: "7"
+    os:
+      name: "Oracle SunOS 7"
+      version: "7"
+      family: "Solaris"
   file-server:
     template: "PRCCDC File Server"
     note: "Default password is Windows1"
@@ -92,13 +92,13 @@ services:
       name: "Windows Server 2003"
       version: "2003"
       family: "Windows/NT"
-  #hvac-server:
-  #  image: "prccdc/hvac-server"
-  #  note: "Default password is Password1"
-  #  tag: "1"
-  #  os:
-  #    name: "FreeBSD"
-  #    family: "BSD"
+  hvac-server:
+    image: "prccdc/hvac-server"
+    note: "Default password is Password1"
+    tag: "1"
+    os:
+      name: "FreeBSD"
+      family: "BSD"
 
 networks:
   unique-networks:
@@ -134,11 +134,11 @@ folders:
         service: domain-controller
         networks: ["competition", "management"]
       # Scorebots communicate over a back-end network to randomly select which team gets pinged from which scorebot
-      #score-bot:  
-      #  description: "Used to score teams"
-      #  service: score-bot
-      #  networks: ["competition", "management"]
-      #  instances: 10
+      score-bot:  
+        description: "Used to score teams"
+        service: score-bot
+        networks: ["competition", "management"]
+        instances: 10
   blue-team:
     instances:
       number: 14
@@ -147,7 +147,9 @@ folders:
     services:
       team-member-host:
         description: "Hosts the blue team members use to access their services"
-        instances: 8 # Number of users on a blue team
+        instances: 
+          prefix: "Host "
+          number: 8 # Number of users on a blue team
         service: host-type-a
         networks: ["hosts"]
         # service-pool: [host-type-a, host-type-b]
@@ -168,10 +170,10 @@ folders:
           ports: [80, 443]
           protocols: ["http", "https"]
           criteria: "criteria-file.yaml"
-      #db:
-      #  description: "Database"
-      #  service: database-server
-      #  networks: ["services"]
+      db:
+        description: "Database"
+        service: database-server
+        networks: ["services"]
       mail:
         description: "Mail Server"
         service: mail-server
@@ -180,14 +182,14 @@ folders:
           ports: [25]
           protocols: ["smtp"]
           criteria: "criteria-file.yaml"
-      #hvac:
-      #  description: "HVAC Server"
-      #  service: hvac-server
-      #  networks: ["services"]
-      #  scoring:
-      #    ports: [22]
-      #    protocols: ["ssh"]
-      #    criteria: "criteria-file.yaml"
+      hvac:
+        description: "HVAC Server"
+        service: hvac-server
+        networks: ["services"]
+        scoring:
+          ports: [22]
+          protocols: ["ssh"]
+          criteria: "criteria-file.yaml"
       file:
         description: "File Server"
         service: file-server
@@ -196,10 +198,13 @@ folders:
           ports: [21, 445]
           protocols: ["sftp", "smb"]
           criteria: "criteria-file.yaml"
-  red-team:
+  red-team:    
     group: "Red Team"
     services:
       windows-hosts:
+        instances:
+          number: 24
+          prefix: "Attacker "
         description: "Hosts used by Red Team to attack blue teams"
         service: host-type-b
         networks: ["competition"]

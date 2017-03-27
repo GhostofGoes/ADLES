@@ -240,6 +240,10 @@ class VsphereInterface:
 
         # Create Master instances
         for sname, sconfig in folder_dict["services"].items():
+            if not self._is_vsphere(sconfig["service"]):
+                logging.debug("Skipping non-vsphere service '%s'", sname)
+                continue
+
             logging.info("Creating Master instance '%s' from service '%s'",
                          sname, sconfig["service"])
 
@@ -264,36 +268,37 @@ class VsphereInterface:
         :param service_name: Name of the service to clone
         :return: The service vim.VirtualMachine instance
         """
-        for name, config in self.services.items():
-            if name == service_name and "template" in config:
-                logging.debug("Cloning service '%s'", name)
-                vm_name = VsphereInterface.master_prefix + service_name
+        if not self._is_vsphere(service_name):
+            logging.debug("Skipping non-vsphere service '%s'", service_name)
+            return None
 
-                # Find the template that matches the service definition
-                template = futils.traverse_path(self.template_folder, config["template"])
-                if not template:
-                    logging.error("Could not find template '%s' for service '%s'",
-                                  config["template"], name)
-                    return None
+        config = self.services[service_name]
 
-                # Clone the template to create the Master instance
-                vm_utils.clone_vm(template, folder=folder, name=vm_name,
-                                  clone_spec=self.server.gen_clone_spec())
+        logging.debug("Cloning service '%s'", service_name)
+        vm_name = VsphereInterface.master_prefix + service_name
 
-                # Get new cloned instance
-                vm = futils.traverse_path(folder, vm_name)
-                if vm:
-                    logging.debug("Successfully cloned service '%s' to folder '%s'",
-                                  service_name, folder.name)
-                    if "note" in config:  # Set VM note if specified
-                        vm_utils.set_note(vm, note=config["note"])
-                    return vm
-                else:
-                    logging.error("Failed to clone VM '%s' for service '%s'",
-                                  vm_name, service_name)
-                    return None
-        logging.error("Could not find service '%s'", service_name)
-        return None
+        # Find the template that matches the service definition
+        template = futils.traverse_path(self.template_folder, config["template"])
+        if not template:
+            logging.error("Could not find template '%s' for service '%s'",
+                          config["template"], service_name)
+            return None
+
+        # Clone the template to create the Master instance
+        vm_utils.clone_vm(template, folder=folder, name=vm_name,
+                          clone_spec=self.server.gen_clone_spec())
+
+        # Get new cloned instance
+        vm = futils.traverse_path(folder, vm_name)
+        if vm:
+            logging.debug("Successfully cloned service '%s' to folder '%s'",
+                          service_name, folder.name)
+            if "note" in config:  # Set VM note if specified
+                vm_utils.set_note(vm, note=config["note"])
+            return vm
+        else:
+            logging.error("Failed to clone VM '%s' for service '%s'", vm_name, service_name)
+            return None
 
     def _create_master_networks(self, net_type, default_create):
         """
@@ -519,6 +524,10 @@ class VsphereInterface:
 
         # Iterate through the services
         for service_name, value in services.items():
+            # Ignore non-vsphere services
+            if not self._is_vsphere(value["service"]):
+                logging.debug("Skipping non-vsphere service '%s'", service_name)
+                continue
             logging.info("Generating service '%s' in folder '%s'", service_name, parent.name)
 
             # Get number of instances for the service and check if it exceeds configured limits
@@ -613,6 +622,19 @@ class VsphereInterface:
                 logging.error("Unknown type for group '%s': %s", str(group_name), str(type(g)))
         else:
             logging.error("Could not get group '%s' from VsphereInterface groups", group_name)
+
+    def _is_vsphere(self, service_name):
+        """
+        Checks if a service instance is defined as a vSphere service
+        :param service_name: Name of the service to lookup in list of defined services
+        :return: bool
+        """
+        # TODO: make "template" and other platform identifiers global 'constants'
+        if service_name not in self.services:
+            logging.error("Could not find service %s in the list of defined services", service_name)
+        elif "template" in self.services[service_name]:
+            return True
+        return False
 
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
