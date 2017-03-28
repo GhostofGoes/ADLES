@@ -33,7 +33,7 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import prompt_y_n_question, default_prompt, script_setup, name_or_path
+from adles.utils import prompt_y_n_question, default_prompt, script_setup, resolve_path
 import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
@@ -46,7 +46,7 @@ def main():
     server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
     if prompt_y_n_question("Multiple VMs? ", default="yes"):
-        folder, fname = name_or_path(server, "folder",
+        folder, fname = resolve_path(server, "folder",
                                      "that has the VMs/folders you want to destroy")
 
         # Display folder structure
@@ -92,7 +92,7 @@ def main():
         else:
             logging.info("Destruction cancelled")
     else:
-        vm, vm_name = name_or_path(server, "vm", "to destroy")
+        vm, vm_name = resolve_path(server, "vm", "to destroy")
 
         if prompt_y_n_question("Display VM info? "):
             logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))

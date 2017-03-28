@@ -33,7 +33,7 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import prompt_y_n_question, script_setup, name_or_path
+from adles.utils import prompt_y_n_question, script_setup, resolve_path
 from adles.vsphere.vm_utils import change_vm_state
 from adles.vsphere.vsphere_utils import is_vm
 from adles.vsphere.folder_utils import enumerate_folder, format_structure
@@ -52,7 +52,7 @@ def main():
     # TODO: prefixes
     # TODO: nesting
     if prompt_y_n_question("Multiple VMs? ", default="yes"):
-        folder, folder_name = name_or_path(server, "folder", "with VMs")
+        folder, folder_name = resolve_path(server, "folder", "with VMs")
         vms = [x for x in folder.childEntity if is_vm(x)]
         logging.info("Found %d VMs in folder '%s'", len(vms), folder_name)
         if prompt_y_n_question("Show the status of the VMs in the folder? "):
@@ -63,7 +63,7 @@ def main():
                 change_vm_state(vm, operation, attempt_guest)
 
     else:
-        vm, vm_name = name_or_path(server, "VM")
+        vm, vm_name = resolve_path(server, "VM")
         logging.info("Changing power state of '%s' to '%s'", vm_name, operation)
         change_vm_state(vm, operation, attempt_guest)
 

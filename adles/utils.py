@@ -286,7 +286,7 @@ def script_setup(logging_filename, args, script=None):
         exit(0)
 
 
-def name_or_path(server, thing, prompt=""):
+def resolve_path(server, thing, prompt=""):
     """
     This is a hacked together script util to get folders or VMs
     :param server: Vsphere instance
@@ -300,14 +300,12 @@ def name_or_path(server, thing, prompt=""):
     elif thing.lower() == "folder":
         get = server.get_folder
     else:
-        logging.error("Invalid thing passed to name_or_path: %s", thing)
-        return None, None
+        logging.error("Invalid thing passed to resolve_path: %s", thing)
+        raise ValueError
 
-    thing, thing_name = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
-                                   lambda x: traverse_path(server.get_folder(), x,
-                                                           lookup_root=server)
-                                   if '/' in x else get(x))
-    return thing, thing_name
+    return user_input("Name of or path to %s %s: " % (thing, prompt), thing,
+                      lambda x: traverse_path(server.get_folder(), x, lookup_root=server)
+                      if '/' in x else get(x))
 
 
 def setup_logging(filename, colors=True, console_verbose=False,

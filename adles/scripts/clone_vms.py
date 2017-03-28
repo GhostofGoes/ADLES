@@ -33,7 +33,7 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import prompt_y_n_question, pad, default_prompt, script_setup, name_or_path
+from adles.utils import prompt_y_n_question, pad, default_prompt, script_setup, resolve_path
 from adles.vsphere.vm_utils import clone_vm
 from adles.vsphere.folder_utils import format_structure, retrieve_items
 
@@ -49,12 +49,12 @@ def main():
 
     # Single-vm source
     if prompt_y_n_question("Do you want to clone from a single VM?"):
-        v, v_name = name_or_path(server, "VM", "or template you wish to clone")
+        v, v_name = resolve_path(server, "VM", "or template you wish to clone")
         vms.append(v)
         vm_names.append(str(input("Base name for instances to be created: ")))
     # Multi-VM source
     else:
-        folder_from, from_name = name_or_path(server, "folder", "you want to clone all VMs in")
+        folder_from, from_name = resolve_path(server, "folder", "you want to clone all VMs in")
         v, _ = retrieve_items(folder_from)  # Get VMs in the folder, ignore any folders
         vms.extend(v)
         logging.info("%d VMs found in source folder %s\n%s",
@@ -67,7 +67,7 @@ def main():
             names = list(map(lambda x: x.name, v))  # Same names as sources
         vm_names.extend(names)
 
-    create_in, create_in_name = name_or_path(server, "folder", "in which to create VMs")
+    create_in, create_in_name = resolve_path(server, "folder", "in which to create VMs")
     instance_folder_base = None
     if prompt_y_n_question("Do you want to create a folder for each instance? "):
         instance_folder_base = str(input("Enter instance folder base name: "))

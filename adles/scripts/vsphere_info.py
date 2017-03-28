@@ -34,7 +34,7 @@ import logging
 from docopt import docopt
 
 from adles.vsphere import vm_utils, vsphere_utils
-from adles.utils import script_setup, name_or_path, prompt_y_n_question
+from adles.utils import script_setup, resolve_path, prompt_y_n_question
 from adles.vsphere.folder_utils import enumerate_folder, format_structure
 
 __version__ = "0.5.0"
@@ -49,7 +49,7 @@ def main():
 
     # Single Virtual Machine
     if thing_type == "vm":
-        vm, vm_name = name_or_path(server, "vm", "you want to get information on")
+        vm, vm_name = resolve_path(server, "vm", "you want to get information on")
         logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))
 
     # Datastore
@@ -64,7 +64,7 @@ def main():
 
     # VM Folder
     elif thing_type == "folder":
-        folder, folder_name = name_or_path(server, "folder")
+        folder, folder_name = resolve_path(server, "folder")
         if prompt_y_n_question("Want to see power state of VMs in the folder?"):
             contents = enumerate_folder(folder, recursive=True, power_status=True)
         else:
