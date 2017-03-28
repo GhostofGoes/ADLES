@@ -1,4 +1,3 @@
----
 # Specification of syntax for files used to define a virtual environment for an educational exercise
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
@@ -59,7 +58,6 @@ metadata:
   template-path: "Path/To/Templates"              # Suggested   Path from server root to folder containing templates used to create the exercise
 
 
-
 # ** Groups/Teams **
 # User groups, such as teams, students, instructors, etc
 # These are used to apply permissions to the resources and machines in the generated virtual exercise environment
@@ -76,7 +74,6 @@ groups:
     instances: 10             # REQUIRED  Number of groups created from this template. If instances is specified, the group is a template.
     ad-group: "Group [X]"       # Option A  '[X]' is the instance number. AD group must exist  
     filename: "users.json"      # Option B  File format: specifications/user-json-specification.json
-
 
 
 # ** Services **
@@ -112,7 +109,6 @@ services:
     compose-file: "name of compose file"    # REQUIRED
 
 
-
 # ** Resources **
 # Cyber-physical resources that are to be utilized. These will be attached to folders, networks, or groups as needed
 # Examples: A wireless testbed or SCADA testbed in RADICL, a transformer in the power lab. 
@@ -120,7 +116,6 @@ resources:
   resource-p:
     lab: "power-lab"          # REQUIRED    Name of the lab the resource is associated with
     resource: "transformer"   # REQUIRED    Name of the specific resource
-
 
 
 # ** Networks **
@@ -148,7 +143,6 @@ networks:
       subnet: "x.x.x.x/x"
       vlan: 0         # VLAN is incremented per instance
       vswitch: "name of vswitch"
-
 
 
 # ** Folders **
@@ -180,5 +174,3 @@ folders:
             ports: [0]                # REQUIRED
             protocols: ["proto"]      # REQUIRED
             criteria: "filename.yaml" # REQUIRED
-
-...

@@ -1,11 +1,10 @@
----
 metadata:
   name: "PRCCDC 2016 Competition Scenario definition"
   description: "The competition scenario environment that students will use to compete"
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "0.8.0"
+  version: "0.8.1"
   infrastructure-config-file: "infra.yaml"
   folder-name: "prccdc-2016"
   root-path: "Competitions/PRCCDC/"
@@ -60,8 +59,6 @@ services:
       video: no # RDP is used
     os:
       name: "Windows Server 2012 R2 Datacenter"
-      version: "2012 R2"
-      distribution: "Datacenter"
       family: "Windows/NT"
   web-server:
     template: "PRCCDC Web Server"
@@ -83,8 +80,6 @@ services:
       video: no
     os:
       name: "Windows Server 2012 R2 Core"
-      version: "2012 R2"
-      distribution: "Core"
       family: "Windows/NT"
   mail-server:
     template: "PRCCDC Mail Server"
@@ -93,15 +88,12 @@ services:
       video: no # RDP is used
     os:
       name: "Windows Server 2003"
-      version: "2003"
-      family: "Windows/NT"
   hvac-server:
     image: "prccdc/hvac-server"
     note: "Default password is Password1"
     tag: "1"
     os:
       name: "FreeBSD"
-      family: "BSD"
 
 networks:
   unique-networks:
@@ -222,4 +214,3 @@ folders:
         description: "Server for Red Team collaboration, including Armitage, SFTP, and IRC"
         service: web-server
         networks: ["competition"]
-...

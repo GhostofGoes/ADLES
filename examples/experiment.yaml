@@ -1,5 +1,3 @@
----
-# TODO: monitoring annotations are critical for this example, once they're added to environemnt spec
 metadata:
   name: "Network Security Visualization Test Data Collection"
   description: "Testbed for collectiton of realistic network data for Network Security Visualization research"
@@ -119,5 +117,3 @@ folders:
         wan-router:
           service: vyos
           networks: ["WAN-NET", "CLIENT-WAN", "SERVER-WAN"]
-
-...

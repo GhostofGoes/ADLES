@@ -1,4 +1,3 @@
----
 metadata:
   name: "Tutorial 3 - ARP Cache Poisoning"
   description: "Environment for the ARP Cache Poisoning Tutorial" 
@@ -67,4 +66,3 @@ folders:
       attacker:
         service: kalibox
         networks: ["ARP-LAN"]
-...
