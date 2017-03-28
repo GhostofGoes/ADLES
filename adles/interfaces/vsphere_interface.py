@@ -59,6 +59,7 @@ class VsphereInterface:
         self.folders = spec["folders"]
         self.master_folder = None
         self.template_folder = None
+        self.net_table = {}  # Used to do lookups of Base/Generic networks during deployment
 
         # Instantiate the vSphere vCenter server instance class
         self.server = Vsphere(datacenter=infrastructure["datacenter"],
@@ -67,6 +68,9 @@ class VsphereInterface:
                               hostname=logins["host"],
                               port=int(logins["port"]),
                               datastore=infrastructure["datastore"])
+
+        # TODO: expand on this + put in infrastructure spec
+        self.host = self.server.get_host()
 
         # Instantiate and initialize Groups
         self.groups = self._init_groups()
@@ -306,21 +310,20 @@ class VsphereInterface:
         :param net_type: Top-level type of the network (unique | generic | base)
         :param default_create: Whether to create networks if they don't already exist
         """
-        host = self.server.get_host()  # TODO: define host/cluster to use in class
-        host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any recent changes
+        self.host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any recent changes
 
         for name, config in self.networks[net_type].items():
-            logging.info("Creating Master %s", net_type)
-            exists = get_net_obj(host=host, object_type="portgroup", name=name, refresh=False)
+            logging.info("Creating %s", net_type)
+            exists = get_net_obj(host=self.host, object_type="portgroup", name=name, refresh=False)
             if exists:
-                logging.debug("PortGroup '%s' already exists on host '%s'", name, host.name)
+                logging.debug("PortGroup '%s' already exists on host '%s'", name, self.host.name)
             else:  # NOTE: if monitoring, we want promiscuous=True
-                logging.warning("PortGroup '%s' does not exist on host '%s'", name, host.name)
+                logging.warning("PortGroup '%s' does not exist on host '%s'", name, self.host.name)
                 if default_create:
-                    logging.debug("Creating portgroup '%s' on host '%s'", name, host.name)
+                    logging.debug("Creating portgroup '%s' on host '%s'", name, self.host.name)
                     vlan = (int(config["vlan"]) if "vlan" in config else 0)  # Set the VLAN
                     vswitch = (config["vswitch"] if "vswitch" in config else self.vswitch_name)
-                    create_portgroup(name=name, host=host, vswitch_name=vswitch,
+                    create_portgroup(name=name, host=self.host, vswitch_name=vswitch,
                                      vlan=vlan, promiscuous=False)
 
     def _configure_nics(self, vm, networks):
@@ -351,7 +354,8 @@ class VsphereInterface:
                                  model=nic_model)
             num_nets = len(networks)
 
-        # Edit the interfaces. NOTE: any NICs that were added earlier shouldn't be affected by this
+        # Edit the interfaces
+        # NOTE: any NICs that were added earlier shouldn't be affected by this
         # TODO: traverse folder to get network?
         for net, i in zip(networks, range(1, num_nets + 1)):
             vm_utils.edit_nic(vm, nic_number=i,
@@ -522,6 +526,32 @@ class VsphereInterface:
                           type(services).__name__, str(services), str(path))
             return
 
+        # Aggregate all networks
+        aggregate_nets = []
+        for _, value in services.items():
+            aggregate_nets.extend(value["networks"])
+        services_nets = set(aggregate_nets)  # Remove duplicates
+        local_net_table = {}
+
+        for net in services_nets:
+            net_type = self._determine_net_type(net)
+            if net_type == "generic-networks":  # Append net number to the name
+                if net not in self.net_table:
+                    self.net_table[net] = 1
+                else:
+                    self.net_table[net] += 1
+                net_name = net + " GENERIC " + pad(self.net_table[net])
+                local_net_table[net] = net_name
+            elif net_type == "base-networks":  # TODO: fully implement
+                if net not in self.net_table:
+                    self.net_table[net] = 1
+                else:
+                    self.net_table[net] += 1
+                net_name = net + " BASE " + pad(self.net_table[net])
+                local_net_table[net] = net_name
+
+        # TODO: network creation function for generic networks + base networks
+
         # Iterate through the services
         for service_name, value in services.items():
             # Ignore non-vsphere services
@@ -534,21 +564,29 @@ class VsphereInterface:
             num_instances, prefix = self._instances_handler(spec=value, obj_name=service_name,
                                                             obj_type="service")
 
-            # TODO: verify service is Vsphere-type before trying to deploy it
             # Get the Master template instance to clone from
             service = futils.traverse_path(self.master_folder, self._path(path, value["service"]))
-            if service is None:
+            if service is None:  # Check if the lookup was successful
                 logging.error("Could not find Master instance for service '%s' in this path:\n%s",
                               value["service"], path)
                 continue  # Skip to the next service
 
-            # TODO: base + generic networks
+            # TODO: implement table lookup for NIC configuration (make as a function)
+            # We can use _configure_nics, but we'll need to modify the dict
+            # first to account for naming collisions
+            # nets = value["networks"]
 
             # Clone the instances of the service from the master
             for i in range(num_instances):
                 instance_name = prefix + service_name + (" " + pad(i) if num_instances > 1 else "")
                 vm_utils.clone_vm(vm=service, folder=parent, name=instance_name,
                                   clone_spec=self.server.gen_clone_spec())
+                # vm = futils.traverse_path(parent, instance_name)
+                # if vm:
+                #    self._configure_nics(vm=vm, networks=nets)
+                # else:
+                #    logging.error("Could not find cloned instance '%s' in folder '%s'",
+                #                  instance_name, service_name, parent.name)
 
     @staticmethod
     def _path(path, name):
@@ -635,6 +673,17 @@ class VsphereInterface:
         elif "template" in self.services[service_name]:
             return True
         return False
+
+    def _determine_net_type(self, network_label):
+        """
+        Determines the type of a network
+        :param network_label: Name of the network
+        :return: Type of the network
+        """
+        for net_name, net_value in self.networks.items():
+            if network_label in net_value:
+                return net_name
+        return ""
 
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
