@@ -5,7 +5,7 @@ metadata:
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "0.7.0"
+  version: "0.8.0"
   infrastructure-config-file: "infra.yaml"
   folder-name: "prccdc-2016"
   root-path: "Competitions/PRCCDC/"
@@ -33,8 +33,14 @@ services:
     note: "Default password is Windows1"
     os:
       name: "Windows 10 Enterprise"
-      version: "10"
+      version: "14393"
       family: "Windows/NT"
+  host-type-c:
+    template: "PRCCDC Ubuntu 14.04 Host"
+    note: "Default password is Password1"
+    os:
+      name: "Ubuntu 14.04 LTS"
+      family: "Linux/Debian"
   score-bot:
     image: "prccdc/score-bot"
     tag: "0.1.2"
@@ -62,8 +68,6 @@ services:
     note: "Default password is Password1"
     os:
       name: "Ubuntu 14.04 LTS"
-      version: "14.04"
-      distribution: "LTS"
       family: "Linux/Debian"
   database-server:
     image: "prccdc/mysql-server"
@@ -71,7 +75,6 @@ services:
     tag: "7"
     os:
       name: "Oracle SunOS 7"
-      version: "7"
       family: "Solaris"
   file-server:
     template: "PRCCDC File Server"
@@ -133,27 +136,34 @@ folders:
         description: "Provides DNS and DHCP"
         service: domain-controller
         networks: ["competition", "management"]
-      # Scorebots communicate over a back-end network to randomly select which team gets pinged from which scorebot
+      # Scorebots communicate over management network to randomly select which team gets pinged from which scorebot
       score-bot:  
         description: "Used to score teams"
         service: score-bot
         networks: ["competition", "management"]
-        instances: 10
+        instances:
+          number: 14
+          prefix: "Scorebot "
   blue-team:
     instances:
       number: 14
       prefix: "Blue Team "
     group: "Blue Team"
     services:
-      team-member-host:
-        description: "Hosts the blue team members use to access their services"
+      windows-hosts:
+        description: "Windows hosts that the blue team members use to access their services"
         instances: 
           prefix: "Host "
-          number: 8 # Number of users on a blue team
+          number: 6 # Number of users on a blue team
         service: host-type-a
         networks: ["hosts"]
-        # service-pool: [host-type-a, host-type-b]
-        # pool-distributions: [0.3, 0.7] # Must add up to 1
+      linux-hosts:
+        description: "Linux hosts that the Blue team members use to access their services"
+        instances: 
+          prefix: "Linux Host "
+          number: 2
+        service: host-type-b
+        networks: ["hosts"]
       gateway:
         description: "Gateway connecting Blue team networks to the larger competition network"
         service: firewall
@@ -203,7 +213,7 @@ folders:
     services:
       windows-hosts:
         instances:
-          number: 24
+          number: 28
           prefix: "Attacker "
         description: "Hosts used by Red Team to attack blue teams"
         service: host-type-b
