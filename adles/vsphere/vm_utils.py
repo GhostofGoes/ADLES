@@ -201,9 +201,9 @@ def change_power_state(vm, power_state):
     elif state == "suspend":
         task = vm.SuspendVM_Task()
     else:
-        logging.error("Invalid power_state %s for VM %s", state, vm.name)
+        logging.error("Invalid power_state %s for VM %s", power_state, vm.name)
         return
-    logging.debug("Changing power state of VM %s to: '%s'", vm.name, state)
+    logging.debug("Changing power state of VM %s to: '%s'", vm.name, power_state)
     vutils.wait_for_task(task)
 
 
@@ -227,7 +227,7 @@ def change_guest_state(vm, guest_state):
     else:
         logging.error("Invalid guest_state argument: %s", state)
         return
-    logging.debug("Changing guest power state of VM %s to: '%s'", vm.name, state)
+    logging.debug("Changing guest power state of VM %s to: '%s'", vm.name, guest_state)
     try:
         vutils.wait_for_task(task)
     except vim.fault.ToolsUnavailable:

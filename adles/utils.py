@@ -208,9 +208,9 @@ def prompt_y_n_question(question, default="no"):
 
     while True:
         try:
-            choice = input(question + prompt).lower()
+            choice = str(input(question + prompt)).lower()
         except KeyboardInterrupt:
-            print()
+            print()  # Output a blank line for readability
             logging.info("Exiting...")
             exit(0)
 
@@ -230,9 +230,9 @@ def default_prompt(prompt, default=None):
     :return: Value returned
     """
     try:
-        value = input(prompt + " [default: %s]: " % str(default))
+        value = str(input(prompt + " [default: %s]: " % str(default)))
     except KeyboardInterrupt:
-        print()
+        print()  # Output a blank line for readability
         logging.info("Exiting...")
         exit(0)
 
@@ -281,7 +281,7 @@ def script_setup(logging_filename, args, script=None):
     try:
         return make_vsphere(args["--file"])
     except KeyboardInterrupt:
-        print()
+        print()  # Output a blank line for readability
         logging.info("Exiting...")
         exit(0)
 

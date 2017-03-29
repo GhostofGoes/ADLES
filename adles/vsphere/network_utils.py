@@ -41,15 +41,16 @@ def get_net_obj(host, object_type, name, refresh=False):
     :return: The network object
     """
     objs = get_net_objs(host=host, object_type=object_type, refresh=refresh)
+    obj_name = name.lower()
     if objs is not None:
         for obj in objs:
             if object_type == "portgroup" or object_type == "proxyswitch":
-                if obj.spec.name.lower() == name.lower():
+                if obj.spec.name.lower() == obj_name:
                     return obj
             elif object_type == "pnic" or object_type == "vnic":
-                if obj.device.lower() == name.lower():
+                if obj.device.lower() == obj_name:
                     return obj
-            elif obj.name.lower() == name.lower():
+            elif obj.name.lower() == obj_name:
                 return obj
     return None
 

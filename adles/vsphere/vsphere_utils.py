@@ -26,7 +26,7 @@ def wait_for_task(task):
     if not task:
         logging.debug("No task was specified to wait for")
         return None
-    while True:
+    while True:  # TODO: set a timeout, perhaps based on type of task
         if task.info.state == 'success':
             return task.info.result
         elif task.info.state == 'error':
@@ -47,7 +47,7 @@ def get_datastore_info(ds_obj):
     if not ds_obj:
         logging.error("No Datastore was given to get_datastore_info")
         return None
-    import adles.utils as utils
+    from adles.utils import sizeof_fmt
     info_string = "\n"
     summary = ds_obj.summary
     ds_capacity = summary.capacity
@@ -59,13 +59,13 @@ def get_datastore_info(ds_obj):
 
     info_string += "Name                  : %s\n" % summary.name
     info_string += "URL                   : %s\n" % summary.url
-    info_string += "Capacity              : %s\n" % utils.sizeof_fmt(ds_capacity)
-    info_string += "Free Space            : %s\n" % utils.sizeof_fmt(ds_freespace)
-    info_string += "Uncommitted           : %s\n" % utils.sizeof_fmt(ds_uncommitted)
-    info_string += "Provisioned           : %s\n" % utils.sizeof_fmt(ds_provisioned)
+    info_string += "Capacity              : %s\n" % sizeof_fmt(ds_capacity)
+    info_string += "Free Space            : %s\n" % sizeof_fmt(ds_freespace)
+    info_string += "Uncommitted           : %s\n" % sizeof_fmt(ds_uncommitted)
+    info_string += "Provisioned           : %s\n" % sizeof_fmt(ds_provisioned)
     if ds_overp > 0:
         info_string += "Over-provisioned      : %s / %s %%\n" \
-                       % (utils.sizeof_fmt(ds_overp), ds_overp_pct)
+                       % (sizeof_fmt(ds_overp), ds_overp_pct)
     info_string += "Hosts                 : %d\n" % len(ds_obj.host)
     info_string += "Virtual Machines      : %d" % len(ds_obj.vm)
     return info_string

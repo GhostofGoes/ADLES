@@ -42,12 +42,9 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
                     return item
             logging.error("Could not find item of type '%s' in folder '%s'",
                           vimtype.__name__, folder.name)
-            return None
         else:
             logging.error("There are no items in folder %s", folder.name)
-            return None
-    else:  # Item was found in folder, return it
-        return item
+    return item
 
 
 @check(vim.Folder, "folder")
@@ -223,7 +220,7 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
     :param destroy_self: Destroy the folder specified [default: False]
     """
     logging.debug("Cleaning folder '%s'", folder.name)
-    import adles.vsphere.vm_utils as vm_utils
+    import adles.vsphere.vm_utils as vm_utils  # Prevents module-level import issues
 
     for item in folder.childEntity:
         if is_vm(item) and str(item.name).startswith(vm_prefix):  # Handle VMs
