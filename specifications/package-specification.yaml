@@ -1,0 +1,45 @@
+# Specification of a portable educational exercise package
+# Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
+# Author:           Christopher Goes
+# Creation Date:    March 29th, 2017
+# Current Version:  0.1.0
+# Changelog:
+#   0.1.0:  Created
+
+# *** Labels for syntactic components ***
+# Children do not have to be specified if parent is not defined
+# If no label is given, then context will determine label
+#
+# REQUIRED      These must be defined. Not doing so is an parse-time error
+# Suggested     These should be defined. Will give a warning during parsing
+# Optional      Do not have to be specified
+# Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
+
+# *** Definitions ***
+# vm    Virtual Machine
+# YAML  Yaml ain't a markup language, a file format syntax
+# json  JavaScript Object Notation, a file format syntax
+
+# *** Notes ***
+# Top-level definitions are only required if used (e.g resources, groups, networks)
+
+# ##################################
+# ### Beginning of Specification ###
+# ##################################
+
+metadata:
+  timestamp: "date package was created" # REQUIRED   UTC format: YYYY-MM-DD (Example: 2016-10-12)
+  tag: "tag-name"                       # REQUIRED   Unique identifier for this package
+  name: "name of the package"           # Suggested  Human-readable name for the package
+  description: "description of package" # Suggested  Human-readable detailed description of package
+  version: "0.0.0"                      # Optional   Semantic version of the package: major.minor.bugfix
+
+contents:
+  environment: "enviro-spec.yaml"       # REQUIRED    Name of the file containing the environment specification
+  infrastructure: "infra-spec.yaml"     # Suggested   Infrastructure configuration (This can be specified in environment spec as well)
+  scoring: "scoring-criteria.yaml"      # Suggested   Scoring criteria (This can be specified in environment spec as well)
+  templates: "name of folder"           # Suggested   Name of directory containing: VM OVFs, Docker Images/Dockerfiles
+  payloads: "name of folder"            # Suggested   Name of directory containing: provisioning scripts/packages, other payloads
+  materials: "name of folder"           # Suggested   Name of directory containing: presentations, exercise scripts, instructions/guides/documentation
+
+# TODO: results
