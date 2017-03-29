@@ -122,7 +122,7 @@ def read_json(filename):
     """
     from json import load
     try:
-        with open(filename, "r") as json_file:
+        with open(filename) as json_file:
             return load(fp=json_file)
     except ValueError as e:
         logging.error("Syntax Error in JSON file '%s': %s", filename, str(e))
@@ -144,7 +144,7 @@ def make_vsphere(filename=None):
     if filename:
         info = read_json(filename)
         user = (info["user"] if "user" in info else input("Username: "))
-        pswd = (info["pass"] if "pass" in info else getpass("Password: "))
+        pswd = (info["pass"] if "pass" in info else getpass())
         datacenter = (info["datacenter"] if "datacenter" in info else None)
         datastore = (info["datastore"] if "datastore" in info else None)
         port = (info["port"] if "port" in info else 443)
@@ -155,7 +155,7 @@ def make_vsphere(filename=None):
         host = input("Hostname: ")
         port = int(input("Port: "))
         user = input("Username: ")
-        pswd = getpass("Password: ")
+        pswd = getpass()
         datacenter = input("vSphere Datacenter: ")
         datastore = input("vSphere Datastore: ")
         return Vsphere(username=user, password=pswd, hostname=host,

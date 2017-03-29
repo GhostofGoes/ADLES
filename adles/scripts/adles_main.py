@@ -19,31 +19,31 @@
 Uses YAML specifications to manage and create virtual environments.
 
 Usage:
-    adles.py [options] --check-syntax FILE
-    adles.py [options] (--create-masters | --deploy) -s FILE
-    adles.py [options] --package-dir NAME
-    adles.py [options] (--cleanup-masters | --cleanup-enviro) [--network-cleanup] -s FILE
+    adles.py [options] -c SPEC
+    adles.py [options] (-m | -d) -s SPEC
+    adles.py [options] -p PATH
+    adles.py [options] (--cleanup-masters | --cleanup-enviro) [--network-cleanup] -s SPEC
     adles.py --version
     adles.py (-h | --help)
 
 Options:
-    -h, --help                  Shows this help
-    --version                   Prints current version
     --no-color                  Do not color terminal output
     -v, --verbose               Emit debugging logs to terminal
-    -c, --check-syntax FILE     Validates syntax is valid per specification
-    -s, --spec FILE             YAML file with the environment specification
-    -p, --package-dir NAME      Filepath of the exercise package directory
+    -c, --check-syntax SPEC     Validates syntax is valid per specification
+    -s, --spec SPEC             YAML file with the exercise environment specification
+    -p, --package-dir PATH      Filepath of the exercise package directory
     -m, --create-masters        Master creation phase of specification
     -d, --deploy                Environment deployment phase of specification
     --cleanup-masters           Cleanup masters created by a specification
     --cleanup-enviro            Cleanup environment created by a specification
     --network-cleanup           Cleanup networks created during either phase
+    -h, --help                  Shows this help
+    --version                   Prints current version
 
 Examples:
     adles.py --check-syntax examples/tutorial.yaml
-    adles.py -v --create-masters --spec examples/experiment.yaml
-    adles.py -d -s examples/competition.yaml
+    adles.py --verbose --create-masters --spec examples/experiment.yaml
+    adles.py -v -d -s examples/competition.yaml
     adles.py --cleanup-masters --network-cleanup -s examples/competition.yaml
 
 """
@@ -60,7 +60,6 @@ from adles import __version__
 
 def main():
     args = docopt(__doc__, version=__version__, help=True)
-
     colors = (False if args["--no-color"] else True)
     setup_logging(filename='adles.log', colors=colors, console_verbose=args["--verbose"])
 
@@ -68,7 +67,7 @@ def main():
         spec = check_syntax(args["--spec"])
         if spec is None:
             logging.error("Syntax check failed")
-            exit(0)
+            exit(1)
 
         interface = Interface(spec)
         if args["--create-masters"]:
@@ -90,6 +89,10 @@ def main():
             logging.error("Syntax check failed")
 
     elif args["--package-dir"]:
+        from os.path import exists
+        if not exists(args["--package-dir"]):
+            logging.error("Could not find package directory '%s'", args["--package-dir"])
+            exit(1)
         logging.error("PACKAGES ARE CURRENTLY UNSUPPORTED")
 
     else:

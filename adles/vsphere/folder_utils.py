@@ -60,14 +60,18 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
     :param vimtype: Type of object to search for [default: None]
     :return: Object found or None if nothing was found
     """
-    name = name.lower()
+    item_name = name.lower()  # Convert to lowercase for case-insensitive comparisons
+    found = None
     for item in folder.childEntity:
-        if hasattr(item, 'name') and item.name.lower() == name:  # Check if the name matches
+        if hasattr(item, 'name') and item.name.lower() == item_name:  # Check if the name matches
             if vimtype and not isinstance(item, vimtype):
                 continue
-            return item
+            found = item
         elif recursive and is_folder(item):  # Recurse into sub-folders
-            find_in_folder(item, name=name, recursive=recursive, vimtype=vimtype)
+            found = find_in_folder(item, name=item_name, recursive=recursive, vimtype=vimtype)
+        if found is not None:
+            return found
+    logging.debug("Could not find item '%s' in folder '%s'", item_name, folder.name)
     return None
 
 
@@ -83,9 +87,7 @@ def traverse_path(folder, path, lookup_root=None):
     logging.debug("Traversing path '%s' from folder '%s'", path, folder.name)
     from os.path import split
     folder_path, name = split(path.lower())  # Separate basename and convert to lowercase
-    folder_path = folder_path.split('/')     # Transform path into list
-    if folder_path[0] == '':
-        del folder_path[0]  # Remove empty string
+    folder_path = folder_path.lstrip('/').split('/')  # Transform path into list
 
     # Check if root of the path is in the folder
     # This is to allow relative paths to be used if lookup_root is defined
@@ -108,12 +110,7 @@ def traverse_path(folder, path, lookup_root=None):
                 break  # Break to outer loop to check this folder for the next part of the path
 
     if name != '':  # Since the split had a basename, look for an item with matching name
-        for item in current.childEntity:
-            if hasattr(item, 'name') and item.name.lower() == name:
-                return item
-        logging.debug("Could not find item %s while traversing path '%s' from folder '%s'",
-                      name, path, folder.name)
-        return None
+        return find_in_folder(folder, name)
     else:  # No basename, so just return whatever was at the end of the path
         return current
 

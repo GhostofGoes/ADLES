@@ -18,7 +18,7 @@ platform: "name of platform"    # REQUIRED
 server-hostname: "hostname"     # REQUIRED
 server-port: 0                  # REQUIRED   
 login-file: "filename.json"     # REQUIRED      Filename of JSON file with login information
-# NOTE: No linebreaks can be present between values
+
 # ** VMware vSphere-specific configurations ** 
 datacenter: "name of datacenter"            # Suggested     Name of the Datacenter on which to create environment
 datastore: "name of datastore"              # Suggested     Name of Datastore on which to create environment

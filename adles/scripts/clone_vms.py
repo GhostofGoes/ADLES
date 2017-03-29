@@ -86,7 +86,7 @@ def main():
                 vm_name = name
                 clone_vm(vm=vm, folder=f, name=vm_name, clone_spec=spec)
             else:
-                vm_name = name + pad(value=instance, length=2)    # Append instance number
+                vm_name = name + pad(instance)    # Append instance number
                 clone_vm(vm=vm, folder=create_in, name=vm_name, clone_spec=spec)
 
 
