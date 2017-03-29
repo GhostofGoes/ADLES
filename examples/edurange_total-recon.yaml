@@ -4,9 +4,9 @@ metadata:
   activity: "EduRange"
   prefix: "total-recon"
   date-created: "2017-02-16"
-  version: "0.2.0"
+  version: "0.2.1"
   infrastructure-config-file: "infra.yaml"
-  root-path: "EduRange"
+  folder-name: "EduRange"
 
 groups:
   Instructor:

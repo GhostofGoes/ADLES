@@ -84,7 +84,9 @@ def traverse_path(folder, path, lookup_root=None):
     logging.debug("Traversing path '%s' from folder '%s'", path, folder.name)
     from os.path import split
     folder_path, name = split(path.lower())  # Separate basename and convert to lowercase
-    folder_path = folder_path.lstrip('/').split('/')  # Transform path into list
+    folder_path = folder_path.split('/')  # Transform path into list
+    if folder_path[0] == '':
+        del folder_path[0]
 
     # Check if root of the path is in the folder
     # This is to allow relative paths to be used if lookup_root is defined
@@ -96,7 +98,7 @@ def traverse_path(folder, path, lookup_root=None):
             folder = lookup_root.get_folder(folder_path.pop(0))  # Lookup the path root on server
         else:
             logging.error("Could not find root '%s' of path '%s' in folder '%s'",
-                          folder_path[0], str(folder_path), folder.name)
+                          folder_path[0], path, folder.name)
             return None
 
     current = folder  # Start with the defined folder
@@ -107,7 +109,7 @@ def traverse_path(folder, path, lookup_root=None):
                 break  # Break to outer loop to check this folder for the next part of the path
 
     if name != '':  # Since the split had a basename, look for an item with matching name
-        return find_in_folder(folder, name)
+        return find_in_folder(current, name)
     else:  # No basename, so just return whatever was at the end of the path
         return current
 

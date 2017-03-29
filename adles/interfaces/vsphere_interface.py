@@ -46,7 +46,7 @@ class VsphereInterface:
     def __init__(self, infrastructure, logins, spec):
         """
         NOTE: it is assumed that the infrastructure and spec are both valid,
-        and thus checks on key existence and types are not performed.
+        and thus checks on key existence and types are not performed for REQUIRED elements.
         :param infrastructure: Dict of infrastructure information
         :param logins: Dict of infrastructure logins
         :param spec: Dict of a parsed specification
@@ -57,6 +57,7 @@ class VsphereInterface:
         self.services = spec["services"]
         self.networks = spec["networks"]
         self.folders = spec["folders"]
+        self.infra = infrastructure
         self.master_folder = None
         self.template_folder = None
         self.net_table = {}  # Used to do lookups of Base/Generic networks during deployment
@@ -84,19 +85,18 @@ class VsphereInterface:
                 exit(1)
         else:
             self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder
-
         logging.info("Server root folder: %s", self.server_root.name)
 
-        # Set environment root folder name
+        # Set environment root folder
         if "folder-name" not in self.metadata:
             self.root_name = self.metadata["name"]
+            self.root_path = ""
+            self.root_folder = futils.traverse_path(self.server_root, self.root_name)
         else:
-            self.root_name = self.metadata["folder-name"]
+            from os.path import split
+            self.root_path, self.root_name = split(self.metadata["folder-name"])
+            self.root_folder = futils.traverse_path(self.server_root, self.metadata["folder-name"])
         logging.debug("Environment root folder name: %s", self.root_name)
-
-        # Get the environment root folder, or create it if it doesn't already exist
-        self.root_path = self.metadata["root-path"]  # Guaranteed to be in metadata
-        self.root_folder = futils.traverse_path(self.server_root, self.root_path + self.root_name)
         if not self.root_folder:  # Create if it's not found
             parent = futils.traverse_path(self.server_root, self.root_path)
             self.root_folder = self.server.create_folder(self.root_name, parent)
@@ -107,7 +107,7 @@ class VsphereInterface:
             self.vswitch_name = infrastructure["vswitch"]
         else:  # TODO: is this a good default?
             from pyVmomi import vim
-            self.vswitch_name = self.server.get_item(vim.Network, name=None).name
+            self.vswitch_name = self.server.get_item(vim.Network).name
 
         logging.debug("Finished initializing VsphereInterface")
 
@@ -152,10 +152,10 @@ class VsphereInterface:
 
         # Get folder containing templates
         self.template_folder = futils.traverse_path(self.server_root,
-                                                    self.metadata["template-path"])
+                                                    self.infra["template-folder"])
         if not self.template_folder:
             logging.error("Could not find template folder in path '%s'",
-                          self.metadata["template-path"])
+                          self.infra["template-folder"])
             return
         else:
             logging.debug("Found template folder: '%s'", self.template_folder.name)

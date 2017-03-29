@@ -2,7 +2,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
 # Creation Date:    Febuary 6th, 2017
-# Version:          1.0.1
+# Version:          1.0.2
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -22,6 +22,6 @@ login-file: "filename.json"     # REQUIRED      Filename of JSON file with login
 # ** VMware vSphere-specific configurations ** 
 datacenter: "name of datacenter"            # Suggested     Name of the Datacenter on which to create environment
 datastore: "name of datastore"              # Suggested     Name of Datastore on which to create environment
-template-folder: "name of template folder"  # REQUIRED      Name of folder that contains VM templates
+template-folder: "path to template folder"  # REQUIRED      Path from server root to folder that contains VM templates
 server-root: "name of server root"          # Suggested     Name of folder that is the top-level folder (useful for large or multi-organization systems)
 vswitch: "name of default vswitch"          # Suggested     Name of vSwitch that will be used in leiu of configuration in the spec itself

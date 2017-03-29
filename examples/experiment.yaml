@@ -6,9 +6,7 @@ metadata:
   date-created: "2016-02-10"
   version: "0.2.0"
   infrastructure-config-file: "infra.yaml"
-  folder-name: "nsv-experiment"
-  root-path: "NSV-Research/"
-  template-path: "Templates/"
+  folder-name: "NSV-Research/nsv-experiment"
 
 groups:
   Researchers:

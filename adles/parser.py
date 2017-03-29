@@ -82,8 +82,7 @@ def _verify_metadata_syntax(metadata):
     :param metadata: Dict of metadata
     :return: (Number of errors, Number of warnings)
     """
-    warnings = ["description", "activity", "date-created", "folder-name",
-                "root-path", "template-path"]
+    warnings = ["description", "activity", "date-created", "folder-name"]
     errors = ["name", "prefix", "infrastructure-config-file"]
 
     num_warnings = _checker(warnings, "metadata", metadata, "warnings")

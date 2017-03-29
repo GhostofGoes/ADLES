@@ -4,11 +4,9 @@ metadata:
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "0.8.1"
+  version: "0.8.2"
   infrastructure-config-file: "infra.yaml"
-  folder-name: "prccdc-2016"
-  root-path: "Competitions/PRCCDC/"
-  template-path: "Templates/"
+  folder-name: "Competitions/PRCCDC/prccdc-2016"
 
 groups:
   Blue Team:  # Defenders
