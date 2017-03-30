@@ -240,6 +240,7 @@ def _verify_network(name, network):
     num_warnings = 0
     
     for key, value in network.items():
+        # Subnet verification
         if "subnet" not in value:
             logging.warning("No subnet specified for %s %s", name, key)
             num_warnings += 1
@@ -251,6 +252,15 @@ def _verify_network(name, network):
             elif not subnet.is_private():
                 logging.warning("Non-private subnet used for %s %s", name, key)
                 num_warnings += 1
+
+        # VLAN verification
+        if "vlan" in value:
+            if name == "unique-networks" and int(value["vlan"]) >= 2000:
+                logging.error("VLAN must be less than 2000 for network %s", key)
+                num_errors += 1
+            elif name == "generic-networks" or name == "base-networks":
+                logging.error("VLAN specification is not allowed for network %s", key)
+                num_errors += 1
     return num_errors, num_warnings
 
 
