@@ -58,9 +58,11 @@ class VsphereInterface:
         self.networks = spec["networks"]
         self.folders = spec["folders"]
         self.infra = infrastructure
+
         self.master_folder = None
         self.template_folder = None
         self.net_table = {}  # Used to do lookups of Base/Generic networks during deployment
+        self.unique_net_vlan = 2000  # Tracker to ensure unique networks get unique VLAN tags
 
         # Instantiate the vSphere vCenter server instance class
         self.server = Vsphere(datacenter=infrastructure["datacenter"],
@@ -262,8 +264,8 @@ class VsphereInterface:
             self._configure_nics(vm, networks=sconfig["networks"])  # Configure VM NICs
 
             # Post-creation snapshot
-            vm_utils.create_snapshot(vm, "mastering post-clone",
-                                     "Clean Post-Master cloning snapshot")
+            vm_utils.create_snapshot(vm, "initial mastering snapshot",
+                                     "Beginning of Master configuration")
 
     def _clone_service(self, folder, service_name):
         """
@@ -321,7 +323,13 @@ class VsphereInterface:
                 logging.warning("PortGroup '%s' does not exist on host '%s'", name, self.host.name)
                 if default_create:
                     logging.debug("Creating portgroup '%s' on host '%s'", name, self.host.name)
-                    vlan = (int(config["vlan"]) if "vlan" in config else 0)  # Set the VLAN
+                    if "vlan" in config:  # Set the VLAN from the config
+                        vlan = int(config["vlan"])
+                        if vlan > 2000:  # It hath strayed into ye dangerous global land
+                            logging.warning("Potential VLAN conflict for network: %s", name)
+                    else:  # Set VLAN using current "global" unique value
+                        vlan = self.unique_net_vlan
+                        self.unique_net_vlan += 1  # Increment VLAN tracker
                     vswitch = (config["vswitch"] if "vswitch" in config else self.vswitch_name)
                     create_portgroup(name=name, host=self.host, vswitch_name=vswitch,
                                      vlan=vlan, promiscuous=False)
@@ -407,11 +415,20 @@ class VsphereInterface:
         logging.debug("Converting Masters in folder '%s' to templates", folder.name)
         for item in folder.childEntity:
             if vutils.is_vm(item):
-                if vm_utils.powered_on(item):  # Cleanly power off VM before converting to template
+                # Cleanly power off VM before converting to template
+                if vm_utils.powered_on(item):
                     vm_utils.change_vm_state(item, "off", attempt_guest=True)
-                vm_utils.convert_to_template(item)  # Convert master to template
+
+                # Take a snapshot to allow reverts to start of exercise
+                vm_utils.create_snapshot(item, "Start of exercise",
+                                         "Beginning of deployment phase, post-master configuration")
+
+                # Convert master to template
+                vm_utils.convert_to_template(item)
                 logging.debug("Converted Master '%s' to Template. Verifying...", item.name)
-                if not vm_utils.is_template(item):  # Check if it converted successfully
+
+                # Check if it successfully converted to a snapshot
+                if not vm_utils.is_template(item):
                     logging.error("Master '%s' did not convert to template", item.name)
                 else:
                     logging.debug("Verified!")
