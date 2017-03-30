@@ -418,13 +418,14 @@ def snapshot_disk_usage(vm):
 
 # From: getallvms in pyvmomi-community-samples
 @utils.check(vim.VirtualMachine, "vm")
-def get_vm_info(vm, detailed=False, uuids=False, snapshot=False):
+def get_vm_info(vm, detailed=False, uuids=False, snapshot=False, vnics=False):
     """
     Get human-readable information for a VM
     :param vm: vim.VirtualMachine object
     :param detailed: Add more detailed information, such as maximum memory used [default: False]
     :param uuids: Whether to get UUID information [default: False]
     :param snapshot: Shows the current snapshot, if any [default: False]
+    :param vnics: Add information about the virtual network interfaces on the VM
     :return: String with the VM information
     """
     info_string = "\n"
@@ -443,7 +444,7 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False):
     info_string += "Memory (MB)   : %s\n" % summary.config.memorySizeMB
     if detailed:
         info_string += "Num vNICs     : %s\n" % summary.config.numEthernetCards
-        info_string += "Disks         : %s\n" % summary.config.numVirtualDisks
+        info_string += "Num Disks     : %s\n" % summary.config.numVirtualDisks
     info_string += "IsTemplate    : %s\n" % summary.config.template  # bool
     if detailed:
         info_string += "Path          : %s\n" % summary.config.vmPathName
@@ -453,6 +454,12 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False):
         info_string += "Hostname:     : %s\n" % vm.guest.hostName
         info_string += "Tools status  : %s\n" % vm.guest.toolsRunningStatus
         info_string += "Tools version : %s\n" % vm.guest.toolsVersionStatus2
+    if vnics:
+        vm_nics = get_nics(vm)
+        for num, vnic in zip(range(1, len(vm_nics) + 1), vm_nics):
+            info_string += "vNIC %d label   : %s\n" % (num, vnic.deviceInfo.label)
+            info_string += "vNIC %d summary : %s\n" % (num, vnic.deviceInfo.summary)
+            info_string += "vNIC %d network : %s\n" % (num, vnic.backing.network.name)
     if uuids:
         info_string += "Instance UUID : %s\n" % summary.config.instanceUuid
         info_string += "Bios UUID     : %s\n" % summary.config.uuid
@@ -496,7 +503,7 @@ def get_nics(vm):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-def get_nic(vm, name):
+def get_nic_by_name(vm, name):
     """
     Gets a Virtual Network Interface Card from a VM
     :param vm: vim.VirtualMachine
@@ -506,6 +513,33 @@ def get_nic(vm, name):
     for dev in vm.config.hardware.device:
         if vutils.is_vnic(dev) and dev.deviceInfo.label.lower() == name.lower():
             return dev
+    logging.debug("Could not find vNIC '%s' on VM '%s'", name, vm.name)
+    return None
+
+
+@utils.check(vim.VirtualMachine, "vm")
+def get_nic_by_id(vm, nic_id):
+    """
+    Get a vNIC by integer ID
+    :param vm: 
+    :param nic_id: 
+    :return: 
+    """
+    return get_nic_by_name(vm, "Network Adapter " + str(nic_id))
+
+
+@utils.check(vim.VirtualMachine, "vm")
+def get_nic_by_network(vm, network):
+    """
+    Finds a vNIC by it's network backing
+    :param vm: vim.VirtualMachine
+    :param network: vim.Network
+    :return: Name of the vNIC
+    """
+    for dev in vm.config.hardware.device:
+        if vutils.is_vnic(dev) and dev.backing.network == network:
+            return dev
+    logging.debug("Could not find vNIC with network '%s' on VM '%s'", network.name, vm.name)
     return None
 
 
@@ -519,7 +553,7 @@ def delete_nic(vm, nic_number):
     """
     nic_label = 'Network adapter ' + str(nic_number)
     logging.debug("Removing Virtual %s from '%s'", nic_label, vm.name)
-    virtual_nic_device = get_nic(vm, nic_label)
+    virtual_nic_device = get_nic_by_name(vm, nic_label)
 
     if not virtual_nic_device:
         logging.error("Virtual %s could not be found for VM '%s'", nic_label, vm.name)
@@ -533,17 +567,17 @@ def delete_nic(vm, nic_number):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-def edit_nic(vm, nic_number, port_group=None, summary=None):
+def edit_nic(vm, nic_id, port_group=None, summary=None):
     """
     Edits a VM NIC based on it's number
     :param vm: vim.VirtualMachine
-    :param nic_number: Number of network adapter on VM
+    :param nic_id: Number of network adapter on VM
     :param port_group: vim.Network object to assign NIC to [default: None]
     :param summary: Human-readable device description [default: None]
     """
-    nic_label = 'Network adapter ' + str(nic_number)
+    nic_label = 'Network adapter ' + str(nic_id)
     logging.debug("Changing '%s' on VM '%s'", nic_label, vm.name)
-    virtual_nic_device = get_nic(vm, nic_label)
+    virtual_nic_device = get_nic_by_name(vm, nic_label)
 
     if not virtual_nic_device:
         logging.error('Virtual %s could not be found!', nic_label)

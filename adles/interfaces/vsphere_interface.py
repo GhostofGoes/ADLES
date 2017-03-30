@@ -358,16 +358,22 @@ class VsphereInterface:
             logging.debug("VM '%s' is deficient %d NICs, adding...", vm.name, diff)
             for i in range(diff):   # Add NICs to VM and pop them from the list of networks
                 nic_model = ("vmxnet3" if vm_utils.has_tools(vm) else "e1000")
-                vm_utils.add_nic(vm, network=self.server.get_network(network_name=nets.pop()),
-                                 model=nic_model)
+                net_name = nets.pop()
+                vm_utils.add_nic(vm, network=self.server.get_network(net_name),
+                                 model=nic_model, summary=net_name)
             num_nets = len(networks)
 
         # Edit the interfaces
         # NOTE: any NICs that were added earlier shouldn't be affected by this
         # TODO: traverse folder to get network?
-        for net, i in zip(networks, range(1, num_nets + 1)):
-            vm_utils.edit_nic(vm, nic_number=i,
-                              port_group=self.server.get_network(net), summary=net)
+        for net_name, i in zip(networks, range(1, num_nets + 1)):
+            # Setting the summary to network name allows viewing of name without requiring
+            # read permissions to the network itself
+            network = self.server.get_network(net_name)
+            if vm_utils.get_nic_by_id(vm, i).backing.network == network:
+                continue  # Skip NICs that are already configured
+            else:
+                vm_utils.edit_nic(vm, nic_id=i, port_group=network, summary=net_name)
 
     def deploy_environment(self):
         """ Exercise Environment deployment phase """

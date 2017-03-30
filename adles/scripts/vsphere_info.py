@@ -37,7 +37,7 @@ from adles.vsphere import vm_utils, vsphere_utils
 from adles.utils import script_setup, resolve_path, prompt_y_n_question
 from adles.vsphere.folder_utils import enumerate_folder, format_structure
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 
 def main():
@@ -50,7 +50,7 @@ def main():
     # Single Virtual Machine
     if thing_type == "vm":
         vm, vm_name = resolve_path(server, "vm", "you want to get information on")
-        logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))
+        logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True, vnics=True))
 
     # Datastore
     elif thing_type == "datastore":

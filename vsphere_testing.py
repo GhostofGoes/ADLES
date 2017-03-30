@@ -57,8 +57,8 @@ folder = server.get_folder("monkeys")
 # vm_utils.create_vm(folder, vm_spec, pool)
 # attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
 
-# vm = server.get_vm("dummy")
-# logging.info(vm_utils.get_vm_info(vm, uuids=True, snapshot=True))
+vm = server.get_vm("real-vm")
+logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True, vnics=True))
 
 # vms = server.get_all_vms()
 # for vm in vms:
