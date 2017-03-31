@@ -24,7 +24,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.2"
+    __version__ = "0.9.3"
 
     def __init__(self, username, password, hostname,
                  datacenter=None, datastore=None,
