@@ -16,6 +16,16 @@ import logging
 from os.path import exists
 
 from netaddr import IPNetwork
+from yaml import load, YAMLError
+
+try:
+    from yaml import CLoader as Loader
+
+    logging.debug("Using C-based YAML parser")
+except ImportError:
+    from yaml import Loader
+
+    logging.debug("Using pure Python YAML parser")
 
 import adles.utils as utils
 
@@ -31,13 +41,6 @@ def parse_file(filename):
     :param filename: Name of YAML file to parse
     :return: dictionary of parsed file contents
     """
-    from yaml import load, YAMLError
-    try:
-        from yaml import CLoader as Loader  # TODO: package Windows wheel when building for win
-        logging.debug("Using C-based YAML parser")
-    except ImportError:
-        from yaml import Loader
-        logging.debug("Using pure Python YAML parser")
     with open(filename, 'r') as f:
         try:
             doc = load(f, Loader=Loader)  # Parses the YAML file into a dict
@@ -89,10 +92,14 @@ def _verify_metadata_syntax(metadata):
     num_errors = _checker(errors, "metadata", metadata, "errors")
 
     if "infrastructure-config-file" in metadata:
-        infra_contents = parse_file(metadata["infrastructure-config-file"])
-        e, w = _verify_infra_syntax(infra_contents)
-        num_errors += e
-        num_warnings += w
+        infra_file = metadata["infrastructure-config-file"]
+        if not exists(infra_file):
+            logging.error("Could not open infrastructure-config-file '%s'", infra_file)
+            num_errors += 1
+        else:
+            e, w = _verify_infra_syntax(parse_file(infra_file))
+            num_errors += e
+            num_warnings += w
     return num_errors, num_warnings
 
 
@@ -245,13 +252,18 @@ def _verify_network(name, network):
             logging.warning("No subnet specified for %s %s", name, key)
             num_warnings += 1
         else:
-            subnet = IPNetwork(value["subnet"])
-            if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
-                logging.error("%s %s is in a invalid IP address space", name, key)
+            try:
+                subnet = IPNetwork(value["subnet"])
+            except Exception:
+                logging.error("Invalid subnet '%s'", str(value["subnet"]))
                 num_errors += 1
-            elif not subnet.is_private():
-                logging.warning("Non-private subnet used for %s %s", name, key)
-                num_warnings += 1
+            else:
+                if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
+                    logging.error("%s %s is in a invalid IP address space", name, key)
+                    num_errors += 1
+                elif not subnet.is_private():
+                    logging.warning("Non-private subnet used for %s %s", name, key)
+                    num_warnings += 1
 
         # VLAN verification
         if "vlan" in value:
