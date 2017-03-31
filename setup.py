@@ -45,6 +45,9 @@ setup(
     license=__license__,
     keywords="adles virtualization automation vmware vsphere yaml "
              "cybersecurity education uidaho radicl environments",
+    setup_requires = [
+        "flake8==3.3.0"
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
