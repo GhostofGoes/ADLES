@@ -16,14 +16,6 @@ import logging
 from os.path import exists
 
 from netaddr import IPNetwork
-from yaml import load, YAMLError
-
-try:
-    from yaml import CLoader as Loader
-    logging.debug("Using C-based YAML parser")
-except ImportError:
-    from yaml import Loader
-    logging.debug("Using pure Python YAML parser")
 
 import adles.utils as utils
 
@@ -39,6 +31,14 @@ def parse_file(filename):
     :param filename: Name of YAML file to parse
     :return: dictionary of parsed file contents
     """
+    from yaml import load, YAMLError
+    try:
+        from yaml import CLoader as Loader
+        logging.debug("Using C-based YAML parser")
+    except ImportError:
+        from yaml import Loader
+        logging.debug("Using pure Python YAML parser")
+
     with open(filename, 'r') as f:
         try:
             doc = load(f, Loader=Loader)  # Parses the YAML file into a dict

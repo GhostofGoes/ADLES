@@ -2,7 +2,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
 # Creation Date:    October 12th, 2016
-# Current Version:  0.5.2
+# Current Version:  0.5.3
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
@@ -16,6 +16,7 @@
 #   0.5.0:  Renamed to "exercise-specification" from "environment-specification" (03-15-2017)
 #   0.5.1:  Removed template-path and root-path, as they should be defined in infra spec (03-29-2017)
 #   0.5.2:  Removed VLAN tag specification for Generic and Base-type networks, changed default for Unique-type networks (03-30-2017)
+#   0.5.3:  Made passwords for users optional (03-30-2017)
 
 # *** Syntax inspirations ***
 # https://docs.docker.com/compose/compose-file/
@@ -67,7 +68,7 @@ groups:
     # The three different methods of specifying users for a regular group
     ad-group: "Users"                                           # Option A  AD group must exist
     filename: "a-file.json"                                     # Option B  File format: specifications/user-json-specification.json
-    user-list: [ "user-a": "password", "user-b": "password" ]   # Option C  List of usernames and passwords
+    user-list: [ "user-a": "password", "user-b": "password" ]   # Option C  List of usernames, and optionally passwords
 
   # For creating batch groups from a common template base, the "template" type can be used
   Group Template Example:

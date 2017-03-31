@@ -12,12 +12,13 @@ install:
 script:
   - adles -h
   - adles --version
-  - adles -c examples/tutorial.yaml
-  - adles -v --check-syntax examples/tutorial.yaml
-  - adles --no-color -v -c examples/tutorial.yaml
+  - adles -c examples/arp-tutorial.yaml
+  - adles -v --check-syntax examples/arp-tutorial.yaml
+  - adles --no-color -v -c examples/arp-tutorial.yaml
   - adles -v -c examples/competition.yaml
   - adles --verbose --check-syntax examples/experiment.yaml
   - adles -v -c examples/edurange_total-recon.yaml
+  - adles -v -c examples/pentest-tutorial.yaml
   - clone-vms -h
   - cleanup-vms --help
   - vm-power -h
