@@ -37,7 +37,7 @@ from adles.vsphere import vm_utils, vsphere_utils
 from adles.utils import script_setup, resolve_path, prompt_y_n_question
 from adles.vsphere.folder_utils import enumerate_folder, format_structure
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
 
 
 def main():
@@ -62,14 +62,16 @@ def main():
     elif thing_type == "vsphere":
         logging.info("%s", str(server))
 
-    # VM Folder
+    # Folder
     elif thing_type == "folder":
         folder, folder_name = resolve_path(server, "folder")
-        if prompt_y_n_question("Want to see power state of VMs in the folder?"):
+        if "VirtualMachine" in folder.childType \
+                and prompt_y_n_question("Want to see power state of VMs in the folder?"):
             contents = enumerate_folder(folder, recursive=True, power_status=True)
         else:
             contents = enumerate_folder(folder, recursive=True, power_status=False)
-        logging.info("Contents of Folder %s\n%s", folder_name, format_structure(contents))
+        logging.info("Information for Folder %s\nTypes of items folder can contain: %s\n%s",
+                     folder_name, str(folder.childType), format_structure(contents))
 
     # That's not a thing!
     else:

@@ -102,6 +102,9 @@ class VsphereInterface:
         if not self.root_folder:  # Create if it's not found
             parent = futils.traverse_path(self.server_root, self.root_path)
             self.root_folder = self.server.create_folder(self.root_name, parent)
+            if not self.root_folder:
+                logging.error("Could not create root folder '%s'", self.root_name)
+                exit(1)
         logging.info("Environment root folder: %s", self.root_folder.name)
 
         # Set default vSwitch name
@@ -316,7 +319,7 @@ class VsphereInterface:
 
         for name, config in self.networks[net_type].items():
             logging.info("Creating %s", net_type)
-            exists = get_net_obj(host=self.host, object_type="portgroup", name=name, refresh=False)
+            exists = self.server.get_network(name)
             if exists:
                 logging.debug("PortGroup '%s' already exists on host '%s'", name, self.host.name)
             else:  # NOTE: if monitoring, we want promiscuous=True

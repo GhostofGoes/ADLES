@@ -37,9 +37,9 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
         if len(folder.childEntity) > 0 and vimtype is None:
             return folder.childEntity[0]
         elif len(folder.childEntity) > 0:
-            for item in folder.childEntity:
-                if isinstance(item, vimtype):
-                    return item
+            for i in folder.childEntity:
+                if isinstance(i, vimtype):
+                    return i
             logging.error("Could not find item of type '%s' in folder '%s'",
                           vimtype.__name__, folder.name)
         else:

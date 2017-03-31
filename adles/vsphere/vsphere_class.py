@@ -264,9 +264,9 @@ class Vsphere:
         :return: vim.Folder object
         """
         if folder_name:
-            return self.get_obj(self.datacenter.vmFolder, [vim.Folder], folder_name)
+            return self.get_obj(self.datacenter, [vim.Folder], folder_name)
         else:
-            return self.datacenter.vmFolder  # S.f.r: pyvmomi/docs/vim/Datacenter.rst
+            return self.datacenter  # S.f.r: pyvmomi/docs/vim/Datacenter.rst
 
     def get_vm(self, vm_name):
         """

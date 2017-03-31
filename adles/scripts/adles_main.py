@@ -51,6 +51,7 @@ Examples:
 import logging
 
 from docopt import docopt
+from pyVmomi import vim
 
 from adles.interfaces import Interface
 from adles.parser import check_syntax
@@ -69,20 +70,24 @@ def main():
             logging.error("Syntax check failed")
             exit(1)
 
-        interface = Interface(spec)
-        if args["--create-masters"]:
-            interface.create_masters()
-            logging.info("Finished creation of Masters for environment %s",
-                         spec["metadata"]["name"])
-        elif args["--deploy"]:
-            interface.deploy_environment()
-            logging.info("Finished deployment of environment %s", spec["metadata"]["name"])
-        elif args["--cleanup-masters"]:
-            interface.cleanup_masters(args["--network-cleanup"])
-        elif args["--cleanup-enviro"]:
-            interface.cleanup_environment(args["--network-cleanup"])
-        else:
-            logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
+        try:
+            interface = Interface(spec)
+            if args["--create-masters"]:
+                interface.create_masters()
+                logging.info("Finished creation of Masters for environment %s",
+                             spec["metadata"]["name"])
+            elif args["--deploy"]:
+                interface.deploy_environment()
+                logging.info("Finished deployment of environment %s", spec["metadata"]["name"])
+            elif args["--cleanup-masters"]:
+                interface.cleanup_masters(args["--network-cleanup"])
+            elif args["--cleanup-enviro"]:
+                interface.cleanup_environment(args["--network-cleanup"])
+            else:
+                logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
+        except vim.fault.NoPermission as e:
+            logging.error("You do not have the privilegeId '%s' on object '%s'",
+                          e.privilegeId, e.object.name)
 
     elif args["--check-syntax"]:
         if check_syntax(args["--check-syntax"]) is None:
