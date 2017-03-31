@@ -20,11 +20,9 @@ from yaml import load, YAMLError
 
 try:
     from yaml import CLoader as Loader
-
     logging.debug("Using C-based YAML parser")
 except ImportError:
     from yaml import Loader
-
     logging.debug("Using pure Python YAML parser")
 
 import adles.utils as utils
