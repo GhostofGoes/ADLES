@@ -2,7 +2,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes
 # Creation Date:    October 12th, 2016
-# Current Version:  0.5.3
+# Current Version:  0.5.4
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
@@ -17,6 +17,7 @@
 #   0.5.1:  Removed template-path and root-path, as they should be defined in infra spec (03-29-2017)
 #   0.5.2:  Removed VLAN tag specification for Generic and Base-type networks, changed default for Unique-type networks (03-30-2017)
 #   0.5.3:  Made passwords for users optional (03-30-2017)
+#   0.5.4:  Removed OS metadata from service definitions (03-31-2017)
 
 # *** Syntax inspirations ***
 # https://docs.docker.com/compose/compose-file/
@@ -93,11 +94,6 @@ services:
   all-service-types:  # Configurations that can appear in any of three service types
     note: "A note"                          # Optional    Human-readable note visible by end-user, such as default username/password
     network-interfaces: []                  # Optional    [default: template or container specific]
-    os:                                     # Optional    Metadata describing the OS. Useful for identifying or configuring services
-      name: "full name of the os"
-      version: "version"
-      distributions: "distribution"
-      family: "major family os belongs to"
   template-based-service:   # Option A
     template: "name of template in vSphere" # REQUIRED
     template-config:                        # Optional    Configuration of Template settings specified by name. This will override the template's existing settings
