@@ -45,6 +45,13 @@ setup(
     license=__license__,
     keywords="adles virtualization automation vmware vsphere yaml "
              "cybersecurity education uidaho radicl environments",
+    setup_requires = [
+        "pytest-runner==2.11.1"
+    ],
+    tests_require = [
+        "pytest==3.0.7",
+        "pytest-cov==2.4.0"
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
