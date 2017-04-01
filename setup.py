@@ -16,9 +16,24 @@
 from setuptools import setup, find_packages
 from adles import __version__, __email__, __author__, __url__, __license__
 
+import distutils
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
+
+class YapfCommand(distutils.cmd.Command):
+    description = 'Format python files using yapf'
+    user_options = []
+    
+    def initialize_options(self):
+        pass
+        
+    def finalize_options(self):
+        pass
+        
+    def run(self):
+        import yapf
+        yapf.main(['yapf', '--recursive', '--in-place'] +find_packages())
 
 setup(
     name='ADLES',
@@ -45,6 +60,12 @@ setup(
     license=__license__,
     keywords="adles virtualization automation vmware vsphere yaml "
              "cybersecurity education uidaho radicl environments",
+    cmdclass={
+        'yapf': YapfCommand
+    },
+    setup_requires=[
+        "yapf==0.16.1"
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
