@@ -80,6 +80,7 @@ class VsphereInterface:
 
         # Set the server root folder
         if "server-root" in infrastructure:
+            # TODO: network folder in infrastructure spec
             self.server_root = self.server.get_folder(infrastructure["server-root"])
             if not self.server_root:
                 logging.error("Could not find server-root folder '%s'",
@@ -90,6 +91,7 @@ class VsphereInterface:
         logging.info("Server root folder: %s", self.server_root.name)
 
         # Set environment root folder
+        # TODO: generate file path if it does not exist, notify user with a warning
         if "folder-name" not in self.metadata:
             self.root_name = self.metadata["name"]
             self.root_path = ""

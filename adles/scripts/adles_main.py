@@ -86,8 +86,11 @@ def main():
             else:
                 logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
         except vim.fault.NoPermission as e:
-            logging.error("You do not have the privilegeId '%s' on object '%s'",
-                          e.privilegeId, e.object.name)
+            logging.error("Permission error: \n%s", str(e))
+            exit(1)
+        except AttributeError:
+            logging.error("Critical fault: unexpected None-type object. Exiting...")
+            exit(1)
 
     elif args["--check-syntax"]:
         if check_syntax(args["--check-syntax"]) is None:

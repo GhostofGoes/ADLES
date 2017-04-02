@@ -1,0 +1,65 @@
+metadata:
+  name: "Network Firewalls"
+  description: "A tutorial on the usage and configuration of network firewalls"
+  activity: "CS 439 - Applied Security Concepts"
+  prefix: "CS439"
+  date-created: "2017-04-02"
+  version: "0.1.0"
+  infrastructure-config-file: "infra.yaml"
+  folder-name: "CS-439/TR-02/TU-11"  # CS 439, Tutorial Round 2, Tutorial 11
+
+groups:
+  Students: 
+    ad-group: "CS 439 Students"
+  Instructors:
+    user-list: ["gibl", "hotc"]
+
+services:
+  pfsense:
+    template: "PFSense 2.2.3 (64-bit)"
+    note: "Username: admin  Password: pfsense"
+  ubuntu:
+    template: "Ubuntu 16.04 (64-bit)"
+  vyos:
+    template: "VyOS 1.1.7 (64-bit)"
+    note: "Username: vyos   Password: vyos"
+  win-workstation:
+    template: "Windows 10 (64-bit)"
+  win-server:
+    template: "Windows Server 2012 R2 (64-bit)"
+  seed:
+    template: "Ubuntu 12.04 SEED (32-bit)"
+
+networks:
+  generic-networks:
+    FIREWALL-NET:
+      description: "Per-student activity network"
+      subnet: "192.168.0.0/24"
+      vswitch: "cs439_vswitch"
+
+folders:
+  workstations:
+    group: Students
+    master-group: Instructors
+    instances:
+      number: 15
+      prefix: "WS-"
+    services:
+      PFSense Firewall:
+        service: pfsense
+        networks: ["FIREWALL-NET"]
+      VyOS Firewall:
+        service: vyos
+        networks: ["FIREWALL-NET"]
+      Linux Server:
+        service: ubuntu
+        networks: ["FIREWALL-NET"]
+      Windows Server:
+        service: win-server
+        networks: ["FIREWALL-NET"]
+      Windows Workstation:
+        service: win-workstation
+        networks: ["FIREWALL-NET"]
+      SEED Workstation:
+        service: seed
+        networks: ["FIREWALL-NET"]
