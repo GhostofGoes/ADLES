@@ -4,7 +4,7 @@
 .. image:: https://travis-ci.org/GhostofGoes/ADLES.svg?branch=master
    :target: https://travis-ci.org/GhostofGoes/ADLES
    :alt: Build Status
-.. image:: https://www.versioneye.com/user/projects/589eac206a7781003b24318b/badge.svg?style=flat-square
+.. image:: https://www.versioneye.com/user/projects/589eac206a7781003b24318b/badge.svg
    :target: https://www.versioneye.com/user/projects/589eac206a7781003b24318b
    :alt: Dependency Status
 .. image:: https://codeclimate.com/github/GhostofGoes/ADLES/badges/gpa.svg
@@ -23,10 +23,10 @@ Automated Deployment of Lab Environments System (ADLES)
   purpose of cybersecurity and IT education.
 | The system enables educators to easily build deterministic and
   portable environments for their courses, saving significant amounts of
-  time and effort, and removes the need for advanced IT knowledge.
+  time and effort, and alieviates the requirement of possessing advanced IT knowledge.
 
 The system is a proof of concept implementation of my thesis research
-for a Master of Computer Science at the University of Idaho.
+as part of the requirements for a Master of Computer Science at the University of Idaho.
 
 
 Getting started
@@ -39,10 +39,9 @@ Getting started
    adles -h
 
 
--  Clone the GitHub repo, poke through the examples folder,
-   and try running a few of them
+-  Read some of the examples, and try running a fews
 -  Read the exercise specification at specifications/exercise-specification.yaml
--  Try writing your own, then run the syntax checker on it using ``adles -c example.yaml``
+-  Try writing your own! You can check it's syntax using ``adles -c example.yaml``
 
 
 System Requirements
@@ -64,7 +63,7 @@ See ``requirements.txt`` for specific versions
 -  pyyaml
 -  netaddr
 -  colorlog
--  setuptools (If you are installing manually)
+-  setuptools (If you are installing manually or developing)
 
 Virtualization Platforms
 ------------------------
@@ -73,25 +72,24 @@ VMware vSphere
 ~~~~~~~~~~~~~~
 
 -  **vSphere** >= 6.0
--  **ESXi** >= 6.0 (May work with 5.5, your mileage may vary)
+-  **ESXi** >= 6.0
+
+vSphere/ESXi 5.5 should work as well, but is untested.
 
 
 Project Goals
 =============
 
-| The short-term goal (other than graduating of course) is to create a
-  system that allows instructors and students using the RADICL lab to
-  automate their workloads.
-| Long-term, I’d like to see the creation of a repository, similiar to
+| The short-term goal is to create a system that allows instructors and students
+  teaching using virtual environments to automate their workloads.
+| Long-term, I’d like to see the creation of a open-source repository, similiar to
   Hashicorp’s Atlas and Docker’s Hub, where educators can share packages
-  and contribute to the overall ability to conduct security and IT
-  education globally.
+  and contribute to improving cyber education globally.
 
 Current Goals
 -------------
 
-In order to graduate on time, I am focusing on implementing the
-following components:
+Currently, I am focusing on implementing the following components:
 
 -  Overall system
 
@@ -130,9 +128,10 @@ Future Goals
    -  Resource extensions for testbeds (ICS/SCADA, Wireless, USB devices, car computers, etc.)
    -  Lab connectors
 
--  Vagrant image with a pre-configured VM running the system
+-  Vagrantfile that builds a lightweight VM running the system
+-  Dockerfile that builds a lightweight image running the system
 -  Public repository of packages
--  More example packages
+-  More example tutorials
 -  Improved documentation on how to make a package, how to setup a platform for system, etc.
 
 
