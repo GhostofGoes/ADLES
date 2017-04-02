@@ -59,9 +59,12 @@ package "Platform Interfaces" {
 
         class vSphere {
             + server
+            + datacenter
+            + datastore
             + create_folder()
             + gen_clone_spec()
             + set_motd()
+            + get_server_info()
             + get_folder()
             + get_vm()
             + get_network()
@@ -69,9 +72,26 @@ package "Platform Interfaces" {
             + get_cluster()
             + get_datastore()
             + get_pool()
-            + get_all_vms()
+            + get_obj()
+            + get_objs()
         }
 
+        object vsphere_utils {
+            + wait_for_task()
+        }
+        
+        object folder_utils {
+            + get_in_folder()
+            + find_in_folder()
+            + traverse_path()
+            + enumerate_folder()
+            + format_structure()
+            + move_into_folder()
+            + create_folder()
+            + cleanup()
+            + retrieve_items()
+        }
+        
         class pyvmomi {
 
         }
