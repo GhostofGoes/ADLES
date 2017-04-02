@@ -38,7 +38,7 @@ import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
 
-__version__ = "0.5.4"
+__version__ = "0.5.5"
 
 
 def main():
@@ -46,8 +46,8 @@ def main():
     server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
     if prompt_y_n_question("Multiple VMs? ", default="yes"):
-        folder, fname = resolve_path(server, "folder",
-                                     "that has the VMs/folders you want to destroy")
+        folder, folder_name = resolve_path(server, "folder",
+                                           "that has the VMs/folders you want to destroy")
 
         # Display folder structure
         if prompt_y_n_question("Display the folder structure? "):
@@ -68,10 +68,9 @@ def main():
             destroy_self = False
 
         # Show user what options they selected (TODO: do these options as cmdline arg flags?)
-        logging.info("VM Prefix: %s\tFolder Prefix: %s\tRecursive: %s",
-                     vm_prefix, folder_prefix, recursive)
-        logging.info("Folder-destruction: %s\tSelf-destruction: %s",
-                     destroy_folders, destroy_self)
+        logging.info("Options selected\nVM Prefix: %s\nFolder Prefix: %s\nRecursive: %s\n"
+                     "Folder-destruction: %s\nSelf-destruction: %s", str(vm_prefix),
+                     str(folder_prefix), recursive, destroy_folders, destroy_self)
 
         # Show how many items matched the options
         v, f = retrieve_items(folder, vm_prefix, folder_prefix, recursive=True)
@@ -86,7 +85,7 @@ def main():
 
         # Confirm and destroy
         if prompt_y_n_question("Continue with destruction? "):
-            logging.info("Destroying...")
+            logging.info("Destroying folder '%s'...", folder_name)
             cleanup(folder, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=recursive,
                     destroy_folders=destroy_folders, destroy_self=destroy_self)
         else:
@@ -95,7 +94,8 @@ def main():
         vm, vm_name = resolve_path(server, "vm", "to destroy")
 
         if prompt_y_n_question("Display VM info? "):
-            logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True))
+            logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True,
+                                              snapshot=True, vnics=True))
 
         if vm.config.template:  # Warn if template
             if not prompt_y_n_question("VM '%s' is a Template. Continue? " % vm_name):

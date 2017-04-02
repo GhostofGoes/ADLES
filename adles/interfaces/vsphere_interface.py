@@ -20,13 +20,13 @@ import adles.vsphere.vm_utils as vm_utils
 import adles.vsphere.vsphere_utils as vutils
 from adles.utils import pad
 from adles.vsphere import Vsphere
-from adles.vsphere.network_utils import create_portgroup, get_net_obj
+from adles.vsphere.network_utils import create_portgroup
 
 
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.7.2"
+    __version__ = "0.7.6"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -316,9 +316,9 @@ class VsphereInterface:
         :param default_create: Whether to create networks if they don't already exist
         """
         self.host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any recent changes
+        logging.info("Creating %s", net_type)
 
         for name, config in self.networks[net_type].items():
-            logging.info("Creating %s", net_type)
             exists = self.server.get_network(name)
             if exists:
                 logging.debug("PortGroup '%s' already exists on host '%s'", name, self.host.name)

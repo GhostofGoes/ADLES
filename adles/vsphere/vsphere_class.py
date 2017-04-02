@@ -24,7 +24,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.3"
+    __version__ = "0.9.4"
 
     def __init__(self, username, password, hostname,
                  datacenter=None, datastore=None,
@@ -38,7 +38,7 @@ class Vsphere:
         :param datacenter: Name of datacenter to use [default: First datacenter found on server]
         :param port: Port used to connect to vCenter instance [default: 443]
         """
-        logging.debug("Initializing Vsphere %s - [Datacenter: %s, Datastore: %s, SSL: %s]",
+        logging.debug("Initializing Vsphere %s\nDatacenter: %s\nDatastore: %s\nSSL: %s",
                       Vsphere.__version__, datacenter, datastore, str(use_ssl))
         if not password:
             from getpass import getpass
@@ -59,12 +59,11 @@ class Vsphere:
             logging.error("An exception occurred while trying to connect to vSphere: %s", str(e))
 
         if not self.server:
-            logging.error("Could not connect to %s@vSphere host %s:%d",
-                          username, hostname, port)
+            logging.error("Could not connect to %s@%s:%d", username, hostname, port)
             exit(1)
 
         from atexit import register
-        register(Disconnect, self.server)  # Ensures connection to server is closed upon exit
+        register(Disconnect, self.server)  # Ensures connection to server is closed on program exit
 
         logging.info("Connected to vSphere host %s:%d", hostname, port)
         logging.debug("Current server time: %s", str(self.server.CurrentTime()))
@@ -232,7 +231,7 @@ class Vsphere:
         try:
             return self.user_dir.RetrieveUserGroups(**kwargs)
         except vim.fault.NotFound:
-            logging.error("Could not find domain, group or user in call to get_users"
+            logging.debug("Could not find domain, group or user in call to get_users"
                           "\nkwargs: %s", str(kwargs))
             return None
         except vmodl.fault.NotSupported:
@@ -263,10 +262,12 @@ class Vsphere:
         :param folder_name: Name of the folder [default: Datacenter vmFolder]
         :return: vim.Folder object
         """
-        if folder_name:
+        if folder_name:  # Try to find the named folder in the datacenter
             return self.get_obj(self.datacenter, [vim.Folder], folder_name)
-        else:
-            return self.datacenter  # S.f.r: pyvmomi/docs/vim/Datacenter.rst
+        else:  # Default to the VM folder in the datacenter
+            logging.debug("Could not find folder '%s' in Datacenter '%s', defaulting to vmFolder",
+                          folder_name, self.datacenter.name)
+            return self.datacenter.vmFolder  # Reference: pyvmomi/docs/vim/Datacenter.rst
 
     def get_vm(self, vm_name):
         """

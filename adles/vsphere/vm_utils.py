@@ -33,7 +33,7 @@ def clone_vm(vm, folder, name, clone_spec):
     if is_template(vm) and not bool(clone_spec.location.pool):
         logging.error("Cannot clone Template '%s' without specifying a resource pool", vm.name)
     else:
-        logging.info("Cloning VM '%s' to folder '%s' with name '%s'", vm.name, folder.name, name)
+        logging.info("Cloning VM '%s' to folder '%s' as '%s'", vm.name, folder.name, name)
         try:
             vutils.wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
         except vim.fault.InvalidState:

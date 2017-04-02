@@ -32,7 +32,7 @@ Options:
 import logging
 
 from docopt import docopt
-from pyVmomi import vim
+# from pyVmomi import vim
 
 from adles.vsphere.vsphere_class import Vsphere
 from adles.vsphere import vm_utils

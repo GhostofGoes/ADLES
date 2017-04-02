@@ -164,7 +164,7 @@ def make_vsphere(filename=None):
 
 def user_input(prompt, obj_name, func):
     """
-    Continually bothers a user for input until we get what we want from them
+    Continually prompts a user for input until the specified object is found
     :param prompt: Prompt to bother user with
     :param obj_name: Name of the type of the object that we seek
     :param func: The function that shalt be called to discover the object
@@ -224,7 +224,7 @@ def prompt_y_n_question(question, default="no"):
 
 def default_prompt(prompt, default=None):
     """
-    Prompt the user for input. If they press enter, return the default
+    Prompt the user for input. If they press enter, return the default.
     :param prompt: Prompt to display to user (do not include default value)
     :param default: Default return value
     :return: Value returned
@@ -244,7 +244,10 @@ def default_prompt(prompt, default=None):
 
 
 def script_warning_prompt():
-    """ Prints a warning prompt. """
+    """
+    Generates a warning prompt
+    :return: The warning prompt
+    """
     from adles import __url__, __email__
     return str(
         '***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'

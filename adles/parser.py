@@ -290,7 +290,7 @@ def _verify_folders_syntax(folders):
                     logging.error("Number of instances for folder '%s' must be an Integer", key)
                     num_errors += 1
             elif "size-of" in value["instances"]:
-                pass
+                pass  # TODO: verify group existence
             else:
                 logging.error("Must specify number of instances for folder '%s'", key)
                 num_errors += 1
@@ -329,7 +329,6 @@ def _verify_folders_syntax(folders):
 def _verify_scoring_syntax(service_name, scoring):
     """
     Verifies syntax for the scoring definition of a service.
-    This is functionalized because it is likely to change in the future.
     :param service_name: Name of the service for which the scoring specification applies
     :param scoring: Dict of scoring parameters
     :return: (Number of errors, Number of warnings)
@@ -352,11 +351,6 @@ def _verify_scoring_syntax(service_name, scoring):
     if "criteria" not in scoring:
         logging.error("No criteria file specified for service %s", service_name)
         num_errors += 1
-    # TODO: need to pass package dir or path to where the environment file is
-    # elif not exists(scoring["criteria"]):
-    #    logging.error("Could not find criteria file %s for service %s",
-    #       scoring["criteria"], service_name)
-    #    num_errors += 1
     return num_errors, num_warnings
 
 
