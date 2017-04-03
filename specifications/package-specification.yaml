@@ -1,8 +1,9 @@
-# Specification of a portable educational exercise package
+# Specification of a portable educational exercise package for the ADLES system.
+# ADLES:            https://pypi.python.org/pypi/ADLES
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
-# Author:           Christopher Goes
+# Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    March 29th, 2017
-# Current Version:  0.1.0
+# Current Version:  0.1.1
 # Changelog:
 #   0.1.0:  Created
 
@@ -16,12 +17,9 @@
 # Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
 
 # *** Definitions ***
-# vm    Virtual Machine
-# YAML  Yaml ain't a markup language, a file format syntax
-# json  JavaScript Object Notation, a file format syntax
-
-# *** Notes ***
-# Top-level definitions are only required if used (e.g resources, groups, networks)
+# VM    Virtual Machine
+# YAML  Yaml Ain't Markup Language, a file format syntax (http://yaml.org/spec/1.1/)
+# JSON  JavaScript Object Notation, a file format syntax (http://www.json.org/)
 
 # ##################################
 # ### Beginning of Specification ###
@@ -41,5 +39,3 @@ contents:
   templates: "name of folder"           # Suggested   Name of directory containing: VM OVFs, Docker Images/Dockerfiles
   payloads: "name of folder"            # Suggested   Name of directory containing: provisioning scripts/packages, other payloads
   materials: "name of folder"           # Suggested   Name of directory containing: presentations, exercise scripts, instructions/guides/documentation
-
-# TODO: results

@@ -35,11 +35,11 @@
 # Option X      One of the options specified at that level of nesting must be defined. Not doing so is a parse-time error.
 
 # *** Definitions ***
-# vm    Virtual Machine
-# ad    Active Directory
+# VM    Virtual Machine
+# AD    Active Directory
 # CIDR  Classless Inter-Domain Routing, a concise format for representing subnet masks (https://tools.ietf.org/html/rfc4632)
 # YAML  Yaml Ain't Markup Language, a file format syntax (http://yaml.org/spec/1.1/)
-# json  JavaScript Object Notation, a file format syntax (http://www.json.org/)
+# JSON  JavaScript Object Notation, a file format syntax (http://www.json.org/)
 
 # *** Notes ***
 # "Instances" is assumed to be one unless specified otherwise. They cannot be negative or zero
@@ -65,7 +65,6 @@ metadata:
 # ** Groups/Teams **
 # User groups, such as teams, students, instructors, etc
 # These are used to apply permissions to the resources and machines in the generated virtual exercise environment
-# Can also be specified as "teams"
 groups:
   Group Regular Example:
     # The three different methods of specifying users for a regular group
@@ -83,19 +82,17 @@ groups:
 # ** Services **
 # Definition of services (nodes) that will be created in the exercise environment, such as hosts, servers, and routers
 # Case insensitive EXCEPT for resources, such as templates or images
+# Networks are attached to interfaces in order of their definition, unless explicitly mapped
 # Template configurations will be overridden if certain options are set
 # If containers are used, a GitLab server or Docker registry MUST be specified in the infrastructure-config file
 # Three types of services: template, container, compose
 # template:     Templatized VM in vSphere
 # container:    Docker container
-# compose:      Docker compose file
-#
-# network-interfaces: List of network interfaces and their optional configurations
-# Networks are attached to interfaces in order of their definition, unless explicitly mapped
+# compose:      Docker Compose file
 services:
   all-service-types:  # Configurations that can appear in any of three service types
     note: "A note"                          # Optional    Human-readable note visible by end-user, such as default username/password
-    network-interfaces: []                  # Optional    [default: template or container specific]
+    network-interfaces: []                  # Optional    List of network interfaces and their optional configurations  [default: template or container specific]
   template-based-service:   # Option A
     template: "name of template in vSphere" # REQUIRED
     template-config:                        # Optional    Configuration of Template settings specified by name. This will override the template's existing settings
