@@ -1,8 +1,9 @@
-# Specification of syntax for files used to define a virtual environment for an educational exercise
+# Specification of syntax for creating a virtual educational environment using the ADLES system.
+# ADLES:            https://pypi.python.org/pypi/ADLES
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
-# Author:           Christopher Goes
+# Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    October 12th, 2016
-# Current Version:  0.5.4
+# Current Version:  0.5.5
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
@@ -18,26 +19,27 @@
 #   0.5.2:  Removed VLAN tag specification for Generic and Base-type networks, changed default for Unique-type networks (03-30-2017)
 #   0.5.3:  Made passwords for users optional (03-30-2017)
 #   0.5.4:  Removed OS metadata from service definitions (03-31-2017)
+#   0.5.5:  Updated wording, added PyPI URL, added email (04-02-2017)
 
 # *** Syntax inspirations ***
-# https://docs.docker.com/compose/compose-file/
-# https://docs.ansible.com/ansible/YAMLSyntax.html
+# Docker Compose file:  https://docs.docker.com/compose/compose-file/
+# Ansible Playbooks:    https://docs.ansible.com/ansible/YAMLSyntax.html
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
 # If no label is given, then context will determine label (Everything should be labeled eventually)
 #
-# REQUIRED      These must be defined. Not doing so is an parse-time error
-# Suggested     These should be defined. Will give a warning during parsing
-# Optional      Do not have to be specified
-# Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
+# REQUIRED      These must be defined. Not doing so is an parse-time error.
+# Suggested     These should be defined. Not doing so will result in a parse-time warning.
+# Optional      Do not have to be specified.
+# Option X      One of the options specified at that level of nesting must be defined. Not doing so is a parse-time error.
 
 # *** Definitions ***
 # vm    Virtual Machine
 # ad    Active Directory
-# CIDR  Classless Inter-Domain Routing, a concise method of representing subnet masks
-# YAML  Yaml ain't a markup language, a file format syntax
-# json  JavaScript Object Notation, a file format syntax
+# CIDR  Classless Inter-Domain Routing, a concise format for representing subnet masks (https://tools.ietf.org/html/rfc4632)
+# YAML  Yaml Ain't Markup Language, a file format syntax (http://yaml.org/spec/1.1/)
+# json  JavaScript Object Notation, a file format syntax (http://www.json.org/)
 
 # *** Notes ***
 # "Instances" is assumed to be one unless specified otherwise. They cannot be negative or zero

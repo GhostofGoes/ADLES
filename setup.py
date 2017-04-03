@@ -40,15 +40,15 @@ setup(
              'adles/scripts/vsphere_info.py'],
     author=__author__,
     author_email=__email__,
-    description='Automated Deployment of Lab Environments System',
+    description='Automated Deployment of Lab Environments System (ADLES)',
     url=__url__,
     license=__license__,
     keywords="adles virtualization automation vmware vsphere yaml "
              "cybersecurity education uidaho radicl environments",
-    setup_requires = [
+    setup_requires=[
         "pytest-runner==2.11.1"
     ],
-    tests_require = [
+    tests_require=[
         "pytest==3.0.7",
         "pytest-cov==2.4.0"
     ],
@@ -65,7 +65,6 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
