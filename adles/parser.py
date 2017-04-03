@@ -20,10 +20,10 @@ from netaddr import IPNetwork
 import adles.utils as utils
 
 
-# Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
+# PyYAML Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
 def parse_file(filename):
     """
-    Parses the YAML file and returns a nested dictionary containing it's contents
+    Parses the YAML file and returns a nested dictionary containing it's contents.
 
     >>> parse_file("test.yaml")
     { "test": "value" }
