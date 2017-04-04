@@ -1,7 +1,7 @@
 @startuml
 
 
-package "Core Application" {
+'package "Core Application" {''
     object main {
         + main()
     }
@@ -20,6 +20,24 @@ package "Core Application" {
     }
 
     main -> parser
+'}'
+
+package "Scripts" {
+    object clone_vms {
+        + main()
+    }
+
+    object cleanup_vms {
+        + main()
+    }
+
+    object vm_power {
+        + main()
+    }
+
+    object vsphere_info {
+        + main()
+    }
 }
 
 
@@ -59,7 +77,7 @@ package "Platform Interfaces" {
             - _instances_handler()
         }
 
-        class vSphere {
+        class Vsphere {
             + server
             + datacenter
             + datastore
@@ -127,37 +145,30 @@ package "Platform Interfaces" {
         }
 
         Interface -- VsphereInterface
-        VsphereInterface -> vSphere
-        vSphere -> pyvmomi
-        vSphere -- vsphere_utils
-        vSphere -- folder_utils
-        vSphere -- vm_utils
-        vSphere -- network_utils
-    }
-
-    package "Docker" {
-
-        class DockerInterface {
-            + create_masters()
-            + cleanup_masters()
-            + deploy_environment()
-            + cleanup_environment()
-        }
-
-        class Docker {
-
-        }
-
-        class dockerpy {
-
-        }
-
-        Interface -- DockerInterface
-        DockerInterface -> Docker
-        Docker -> dockerpy
+        VsphereInterface -> Vsphere
+        Vsphere -> pyvmomi
+        Vsphere -- vsphere_utils
+        Vsphere -- folder_utils
+        Vsphere -- vm_utils
+        Vsphere -- network_utils
     }
 }
 
 main -> Interface
+main -- utils
+
+clone_vms - utils
+clone_vms --* Vsphere
+
+cleanup_vms - utils
+cleanup_vms --* Vsphere
+
+vm_power - utils
+vm_power --* Vsphere
+
+vsphere_info - utils
+vsphere_info --* Vsphere
+
+
 
 @enduml
