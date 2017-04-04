@@ -543,61 +543,6 @@ def get_nic_by_network(vm, network):
     return None
 
 
-# From: delete_nic_from_vm in pyvmomi-community-samples
-@utils.check(vim.VirtualMachine, "vm")
-def delete_nic(vm, nic_number):
-    """
-    Deletes VM vNIC based on it's number
-    :param vm: vim.VirtualMachine
-    :param nic_number: Integer unit of the vNIC to delete
-    """
-    nic_label = 'Network adapter ' + str(nic_number)
-    logging.debug("Removing Virtual %s from '%s'", nic_label, vm.name)
-    virtual_nic_device = get_nic_by_name(vm, nic_label)
-
-    if not virtual_nic_device:
-        logging.error("Virtual %s could not be found for VM '%s'", nic_label, vm.name)
-        return
-
-    virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
-    virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-    virtual_nic_spec.device = virtual_nic_device
-
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply the change to the VM
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def edit_nic(vm, nic_id, port_group=None, summary=None):
-    """
-    Edits a VM NIC based on it's number
-    :param vm: vim.VirtualMachine
-    :param nic_id: Number of network adapter on VM
-    :param port_group: vim.Network object to assign NIC to [default: None]
-    :param summary: Human-readable device description [default: None]
-    """
-    nic_label = 'Network adapter ' + str(nic_id)
-    logging.debug("Changing '%s' on VM '%s'", nic_label, vm.name)
-    virtual_nic_device = get_nic_by_name(vm, nic_label)
-
-    if not virtual_nic_device:
-        logging.error('Virtual %s could not be found!', nic_label)
-        return
-
-    nic_spec = vim.vm.device.VirtualDeviceSpec()
-    nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
-    nic_spec.device = virtual_nic_device
-
-    if summary:
-        nic_spec.device.deviceInfo.summary = str(summary)
-
-    if port_group:
-        logging.debug("Changing PortGroup to: '%s'", port_group.name)
-        nic_spec.device.backing.network = port_group
-        nic_spec.device.backing.deviceName = port_group.name
-
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
-
-
 # From: add_nic_to_vm in pyvmomi-community-samples
 @utils.check(vim.VirtualMachine, "vm")
 def add_nic(vm, network, summary="default-summary", model="e1000"):
@@ -632,25 +577,80 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
         logging.error("Invalid NIC model: '%s'\nDefaulting to e1000...", model)
         nic_spec.device = vim.vm.device.VirtualE1000()
 
-    nic_spec.device.addressType = 'generated'               # Sets how MAC address is assigned
-    nic_spec.device.wakeOnLanEnabled = False                # Disables Wake-on-lan capabilities
+    nic_spec.device.addressType = 'generated'  # Sets how MAC address is assigned
+    nic_spec.device.wakeOnLanEnabled = False  # Disables Wake-on-lan capabilities
 
     nic_spec.device.deviceInfo = vim.Description()
     nic_spec.device.deviceInfo.summary = summary
 
     nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
     nic_spec.device.backing.useAutoDetect = False
-    nic_spec.device.backing.network = network            # Sets port group to assign adapter to
-    nic_spec.device.backing.deviceName = network.name    # Sets name of device on host system
+    nic_spec.device.backing.network = network  # Sets port group to assign adapter to
+    nic_spec.device.backing.deviceName = network.name  # Sets name of device on host system
 
     nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-    nic_spec.device.connectable.startConnected = True       # Ensures adapter is connected at boot
-    nic_spec.device.connectable.allowGuestControl = True    # Allows guest OS to control device
+    nic_spec.device.connectable.startConnected = True  # Ensures adapter is connected at boot
+    nic_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
     nic_spec.device.connectable.connected = True
     nic_spec.device.connectable.status = 'untried'
     # TODO: configure guest IP address if statically assigned
 
     edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
+
+
+@utils.check(vim.VirtualMachine, "vm")
+def edit_nic(vm, nic_id, port_group=None, summary=None):
+    """
+    Edits a VM NIC based on it's number
+    :param vm: vim.VirtualMachine
+    :param nic_id: Number of network adapter on VM
+    :param port_group: vim.Network object to assign NIC to [default: None]
+    :param summary: Human-readable device description [default: None]
+    """
+    nic_label = 'Network adapter ' + str(nic_id)
+    logging.debug("Changing '%s' on VM '%s'", nic_label, vm.name)
+    virtual_nic_device = get_nic_by_name(vm, nic_label)
+
+    if not virtual_nic_device:
+        logging.error('Virtual %s could not be found!', nic_label)
+        return
+
+    nic_spec = vim.vm.device.VirtualDeviceSpec()
+    nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
+    nic_spec.device = virtual_nic_device
+
+    if summary:
+        nic_spec.device.deviceInfo.summary = str(summary)
+
+    if port_group:
+        logging.debug("Changing PortGroup to: '%s'", port_group.name)
+        nic_spec.device.backing.network = port_group
+        nic_spec.device.backing.deviceName = port_group.name
+
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
+
+
+# From: delete_nic_from_vm in pyvmomi-community-samples
+@utils.check(vim.VirtualMachine, "vm")
+def delete_nic(vm, nic_number):
+    """
+    Deletes VM vNIC based on it's number
+    :param vm: vim.VirtualMachine
+    :param nic_number: Integer unit of the vNIC to delete
+    """
+    nic_label = 'Network adapter ' + str(nic_number)
+    logging.debug("Removing Virtual %s from '%s'", nic_label, vm.name)
+    virtual_nic_device = get_nic_by_name(vm, nic_label)
+
+    if not virtual_nic_device:
+        logging.error("Virtual %s could not be found for VM '%s'", nic_label, vm.name)
+        return
+
+    virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
+    virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
+    virtual_nic_spec.device = virtual_nic_device
+
+    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply the change to the VM
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -669,7 +669,7 @@ def attach_iso(vm, iso_name, datastore, boot=True):
     drive_spec.device.unitNumber = 0
 
     # Find a disk controller to attach to
-    controller = find_free_ide_controller(vm)
+    controller = _find_free_ide_controller(vm)
     if controller:
         drive_spec.device.controllerKey = controller.key
     else:
@@ -699,7 +699,7 @@ def attach_iso(vm, iso_name, datastore, boot=True):
 
 # From: cdrom_vm in pyvmomi-community-samples
 @utils.check(vim.VirtualMachine, "vm")
-def find_free_ide_controller(vm):
+def _find_free_ide_controller(vm):
     """
     Finds a free IDE controller to use
     :param vm: vim.VirtualMachine

@@ -4,10 +4,10 @@
 package "Core Application" {
     object main {
         + main()
-        + check_syntax()
     }
 
     object parser {
+        + check_syntax()
         + parse_file()
         + verify_syntax()
     }
@@ -36,6 +36,8 @@ package "Platform Interfaces" {
         + name
         + size
         + users
+        + group_type
+        + get_ad_groups()
     }
     Interface -- Group
 
@@ -63,7 +65,6 @@ package "Platform Interfaces" {
             + datastore
             + create_folder()
             + gen_clone_spec()
-            + set_motd()
             + get_server_info()
             + get_folder()
             + get_vm()
@@ -78,6 +79,7 @@ package "Platform Interfaces" {
 
         object vsphere_utils {
             + wait_for_task()
+            + get_datastore_info()
         }
         
         object folder_utils {
@@ -91,14 +93,46 @@ package "Platform Interfaces" {
             + cleanup()
             + retrieve_items()
         }
+
+        object vm_utils {
+            + clone_vm()
+            + create_vm()
+            + gen_vm_spec()
+            + destroy_vm()
+            + edit_vm()
+            + upgrade_vm()
+            + change_vm_state()
+            + change_power_state()
+            + change_guest_state()
+            + convert_to_template()
+            + convert_to_vm()
+            + set_note()
+            + create_snapshot()
+            + get_vm_info()
+            + add_nic()
+            + edit_nic()
+            + delete_nic()
+            + attach_iso()
+        }
+
+        object network_utils {
+            + create_vswitch()
+            + create_portgroup()
+            + delete_network()
+        }
         
         class pyvmomi {
-
+            + vim
+            + vmodl
         }
 
         Interface -- VsphereInterface
         VsphereInterface -> vSphere
         vSphere -> pyvmomi
+        vSphere -- vsphere_utils
+        vSphere -- folder_utils
+        vSphere -- vm_utils
+        vSphere -- network_utils
     }
 
     package "Docker" {
