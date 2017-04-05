@@ -1,10 +1,10 @@
 metadata:
   name: "PRCCDC 2016 Competition Scenario definition"
-  description: "The competition scenario environment that students will use to compete"
+  description: "Same as the other competition example, only with some services defined as Docker containers."
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "0.9.0"
+  version: "0.8.3"
   infrastructure-config-file: "infra.yaml"
   folder-name: "Competitions/PRCCDC/prccdc-2016"
 
@@ -19,37 +19,48 @@ groups:
 
 services:
   host-type-a:
-    template: "Windows 7 (64-bit)"
+    template: "PRCCDC Windows 7 Host"
     note: "Default password is Windows1"
   host-type-b:
-    template: "Windows 10 (64-bit)"
+    template: "PRCCDC Windows 10 Host"
     note: "Default password is Windows1"
   host-type-c:
-    template: "Ubuntu Desktop 14.04 (64-bit)"
+    template: "PRCCDC Ubuntu 14.04 Host"
     note: "Default password is Password1"
   score-bot:
-    template: "PRCCDC Score Bot"
+    image: "prccdc/score-bot"
+    tag: "0.1.2"
   firewall:
-    template: "VyOS 1.1.7 (64-bit)"
+    template: "PRCCDC Firewall"
     note: "Default Username: vyos   Password: vyos"
+    template-config:
+      video: no
   domain-controller:
-    template: "Windows Server 2012 R2 (64-bit)"
+    template: "PRCCDC Domain Controller"
     note: "Default password is Windows1"
+    template-config:
+      video: no # RDP is used
   web-server:
-    template: "Ubuntu Server 14.04 (64-bit)"
+    template: "PRCCDC Web Server"
     note: "Default password is Password1"
   database-server:
-    image: "Fedora 22 (64-bit)"
+    image: "prccdc/mysql-server"
     note: "Default password is Password1"
+    tag: "7"
   file-server:
-    template: "Windows Server 2008 R2"
+    template: "PRCCDC File Server"
     note: "Default password is Windows1"
+    template-config:
+      video: no
   mail-server:
-    template: "Windows Server 2003"
+    template: "PRCCDC Mail Server"
     note: "Default password is Windows1"
+    template-config:
+      video: no # RDP is used
   hvac-server:
-    image: "SunOS 9.0.0"
+    image: "prccdc/hvac-server"
     note: "Default password is Password1"
+    tag: "1"
 
 networks:
   unique-networks:
