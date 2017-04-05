@@ -4,7 +4,7 @@ metadata:
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "0.9.1"
+  version: "2.9.1"
   infrastructure-config-file: "infra.yaml"
   folder-name: "Competitions/PRCCDC/prccdc-2016"
 

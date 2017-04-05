@@ -29,13 +29,12 @@ class Interface:
             logging.error("No infrastructure configuration file specified!")
             exit(1)
 
-        # Load infrastructure information
-        # TODO: testing only, either make this a CMD arg or remove
+        # Load infrastructure information from the configuration file
         from adles.parser import parse_file
-        # infrastructure = parse_file(metadata["infrastructure-config-file"])
-        infrastructure = parse_file("vsphere.yaml")
+        infrastructure = parse_file(self.metadata["infrastructure-config-file"])
+        # infrastructure = parse_file("vsphere.yaml")
 
-        # Load login information
+        # Load infrastructure login information from the file specified in infrastructure config
         from adles.utils import read_json
         logging.debug("Loading login information from file %s", infrastructure["login-file"])
         logins = read_json(infrastructure["login-file"])
@@ -43,7 +42,7 @@ class Interface:
             exit(1)
 
         # Select the Interface to use for the platform
-        # NOTE: moving group instantiation inside platform-specific interfaces for now
+        # TODO: moving group instantiation inside platform-specific interfaces for now
         #   This should be generalized at a later point in time.
         if infrastructure["platform"] == "vmware vsphere":
             from .vsphere_interface import VsphereInterface

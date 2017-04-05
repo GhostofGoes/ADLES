@@ -37,6 +37,7 @@ Options:
     --cleanup-masters           Cleanup masters created by a specification
     --cleanup-enviro            Cleanup environment created by a specification
     --network-cleanup           Cleanup networks created during either phase
+    -i, --infra FILE            Specifies the infrastructure configuration file to use. This will override whatever is configured in the exercise specification.
     -h, --help                  Shows this help
     --version                   Prints current version
 
@@ -69,6 +70,15 @@ def main():
         if spec is None:
             logging.error("Syntax check failed")
             exit(1)
+        if args["--infra"]:
+            from os.path import exists
+            infra_file = args["--infra"]
+            if not exists(infra_file):
+                logging.error("Specified infrastructure config file '%s' could not be found,"
+                              " falling back to exercise configuration", infra_file)
+            else:
+                logging.debug("Overriding infrastructure config file with '%s'", infra_file)
+                spec["metadata"]["infrastructure-config-file"] = infra_file
 
         try:
             interface = Interface(spec)

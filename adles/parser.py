@@ -33,6 +33,7 @@ def parse_file(filename):
     """
     from yaml import load, YAMLError
     try:
+        # noinspection PyUnresolvedReferences
         from yaml import CLoader as Loader
         logging.debug("Using C-based YAML parser")
     except ImportError:
@@ -83,7 +84,7 @@ def _verify_metadata_syntax(metadata):
     :param metadata: Dict of metadata
     :return: (Number of errors, Number of warnings)
     """
-    warnings = ["description", "activity", "date-created", "folder-name"]
+    warnings = ["description", "version", "folder-name"]
     errors = ["name", "prefix", "infrastructure-config-file"]
 
     num_warnings = _checker(warnings, "metadata", metadata, "warnings")
