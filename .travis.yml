@@ -12,10 +12,11 @@ script:
   - adles -h
   - adles --version
   - adles -c examples/arp-tutorial.yaml
-  - adles -v --check-syntax examples/arp-tutorial.yaml
+  - adles --verbose --check-syntax examples/arp-tutorial.yaml
   - adles --no-color -v -c examples/arp-tutorial.yaml
   - adles -v -c examples/competition.yaml
-  - adles --verbose --check-syntax examples/experiment.yaml
+  - adles -v -c examples/competition-with-docker.yaml
+  - adles -v -c examples/experiment.yaml
   - adles -v -c examples/edurange_total-recon.yaml
   - adles -v -c examples/pentest-tutorial.yaml
   - adles -v -c examples/firewall-tutorial.yaml

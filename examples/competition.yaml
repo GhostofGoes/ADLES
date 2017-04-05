@@ -4,7 +4,7 @@ metadata:
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "0.9.0"
+  version: "0.9.1"
   infrastructure-config-file: "infra.yaml"
   folder-name: "Competitions/PRCCDC/prccdc-2016"
 
@@ -17,16 +17,14 @@ groups:
   Black Team: # Infrastructure team
     ad-group: "Black Team"
 
+# Students and Red Teamers know from their team packets what the default logins are for most services
 services:
   host-type-a:
     template: "Windows 7 (64-bit)"
-    note: "Default password is Windows1"
   host-type-b:
     template: "Windows 10 (64-bit)"
-    note: "Default password is Windows1"
   host-type-c:
     template: "Ubuntu Desktop 14.04 (64-bit)"
-    note: "Default password is Password1"
   score-bot:
     template: "PRCCDC Score Bot"
   firewall:
@@ -34,22 +32,16 @@ services:
     note: "Default Username: vyos   Password: vyos"
   domain-controller:
     template: "Windows Server 2012 R2 (64-bit)"
-    note: "Default password is Windows1"
   web-server:
     template: "Ubuntu Server 14.04 (64-bit)"
-    note: "Default password is Password1"
   database-server:
-    image: "Fedora 22 (64-bit)"
-    note: "Default password is Password1"
+    template: "Fedora 22 (64-bit)"
   file-server:
     template: "Windows Server 2008 R2"
-    note: "Default password is Windows1"
   mail-server:
     template: "Windows Server 2003"
-    note: "Default password is Windows1"
   hvac-server:
-    image: "SunOS 9.0.0"
-    note: "Default password is Password1"
+    template: "SunOS 9.0.0"
 
 networks:
   unique-networks:
@@ -102,7 +94,7 @@ folders:
         description: "Windows hosts that the blue team members use to access their services"
         instances: 
           prefix: "Host "
-          number: 6 # Number of users on a blue team
+          number: 6
         service: host-type-a
         networks: ["hosts"]
       linux-hosts:
