@@ -11,9 +11,9 @@ install:
 script:
   - adles -h
   - adles --version
-  - adles -c examples/arp-tutorial.yaml
-  - adles --verbose --check-syntax examples/arp-tutorial.yaml
-  - adles --no-color -v -c examples/arp-tutorial.yaml
+  - adles -c examples/spoofing-tutorial.yaml
+  - adles --verbose --check-syntax examples/spoofing-tutorial.yaml
+  - adles --no-color -v -c examples/spoofing-tutorial.yaml
   - adles -v -c examples/competition.yaml
   - adles -v -c examples/competition-with-docker.yaml
   - adles -v -c examples/experiment.yaml
