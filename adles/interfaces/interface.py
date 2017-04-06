@@ -32,7 +32,6 @@ class Interface:
         # Load infrastructure information from the configuration file
         from adles.parser import parse_file
         infrastructure = parse_file(self.metadata["infrastructure-config-file"])
-        # infrastructure = parse_file("vsphere.yaml")
 
         # Load infrastructure login information from the file specified in infrastructure config
         from adles.utils import read_json
@@ -41,13 +40,10 @@ class Interface:
         if not logins:
             exit(1)
 
-        # Select the Interface to use for the platform
-        # TODO: moving group instantiation inside platform-specific interfaces for now
-        #   This should be generalized at a later point in time.
+        # Select the Interface to use based on the specified infrastructure platform
         if infrastructure["platform"] == "vmware vsphere":
             from .vsphere_interface import VsphereInterface
-            self.interface = VsphereInterface(infrastructure=infrastructure,
-                                              logins=logins, spec=spec)
+            self.interface = VsphereInterface(infrastructure, logins, spec)
         else:
             logging.error("Invalid platform: %s", infrastructure["platform"])
             exit(1)

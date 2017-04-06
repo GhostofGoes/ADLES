@@ -128,7 +128,7 @@ def read_json(filename):
         logging.error("Syntax Error in JSON file '%s': %s", filename, str(e))
         return None
     except Exception as e:
-        logging.error("Could not open file '%s': %s", filename, str(e))
+        logging.error("Could not open JSON file '%s': %s", filename, str(e))
         return None
 
 
@@ -344,6 +344,8 @@ def setup_logging(filename, colors=True, console_verbose=False,
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
     logging.debug("Configured logging to SysLog server %s:%s", server[0], str(server[1]))
+
+    # TODO: configure logging to Splunk (https://github.com/zach-taylor/splunk_handler)
 
     # Configure console output
     console = logging.StreamHandler(stream=stdout)

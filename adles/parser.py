@@ -114,6 +114,10 @@ def _verify_infra_syntax(infra):
 
     num_warnings = _checker(warnings, "infrastructure", infra, "warnings")
     num_errors = _checker(errors, "infrastructure", infra, "errors")
+    if "login-file" in infra and not exists(infra["login-file"]):
+        logging.error("Infrastructure login-file '%s' does not exist", infra["login-file"])
+        num_errors += 1
+
     return num_errors, num_warnings
 
 
@@ -338,14 +342,14 @@ def _verify_scoring_syntax(service_name, scoring):
     num_errors = 0
 
     if "ports" not in scoring:
-        logging.error("No scoring ports specified for service %s", service_name)
-        num_errors += 1
+        logging.warning("No scoring ports specified for service %s", service_name)
+        num_warnings += 1
     elif not isinstance(scoring["ports"], list):
         logging.error("Scoring ports must be a list for service %s", service_name)
         num_errors += 1
     if "protocols" not in scoring:
-        logging.error("No protocols specified for service %s", service_name)
-        num_errors += 1
+        logging.warning("No protocols specified for service %s", service_name)
+        num_warnings += 1
     elif not isinstance(scoring["protocols"], list):
         logging.error("Protocols must be a list for service %s", service_name)
         num_errors += 1
