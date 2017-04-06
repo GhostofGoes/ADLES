@@ -1,10 +1,10 @@
 metadata:
-  name: "Tutorial 3 - ARP Cache Poisoning"
-  description: "Environment for the ARP Cache Poisoning Tutorial" 
+  name: "Spoofing Tutorial"
+  description: "Learning about ARP spoofing and DNS spoofing, and implementing DNSSEC and DNSCrypt" 
   activity: "CS 439 - Applied Security Concepts"
   prefix: "CS439"
   date-created: "2016-11-06"
-  version: "0.4.2"
+  version: "0.5.0"
   infrastructure-config-file: "infra.yaml"
   folder-name: "CS-439/TR-01/TU-03"  # CS 439, Tutorial Round 1,Tutorial 03
 
@@ -22,15 +22,14 @@ services:
     note: "Username: root   Password: toor"
     template: "Clients/Linux/ARP Kalibox"
   server:
-    template: "Servers/Linux/arp-poisoning-server"
+    template: "Ubuntu 14.04 Server (64-bit)"
   router:
     template: "VyOS 1.1.7 (64-bit)"
-    note: "Username: vyos   Password: vyos"
 
 networks:
-  generic-networks:  # TODO: this shouldn't be generic
-    ARP-LAN:
-      description: "Used for ARP-spoofing tutorial"
+  generic-networks:
+    SPOOFING-LAN:
+      description: "Used for spoofing tutorial"
       subnet: "192.168.1.0/24"
       vswitch: "cs439_vswitch"
 
@@ -46,10 +45,10 @@ folders:
       services:
         server:
           service: server
-          networks: ["ARP-LAN"]
+          networks: ["SPOOFING-LAN"]
         router:
           service: router
-          networks: ["ARP-LAN"]
+          networks: ["SPOOFING-LAN"]
   workstations:
     description: "Workstations students use for the tutorial"
     group: Students
@@ -60,7 +59,7 @@ folders:
     services:
       host:
         service: windows
-        networks: ["ARP-LAN"]
+        networks: ["SPOOFING-LAN"]
       attacker:
         service: kalibox
-        networks: ["ARP-LAN"]
+        networks: ["SPOOFING-LAN"]
