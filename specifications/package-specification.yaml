@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    March 29th, 2017
-# Current Version:  0.1.1
+# Current Version:  0.1.2
 # Changelog:
 #   0.1.0:  Created
 
@@ -26,16 +26,16 @@
 # ##################################
 
 metadata:
-  timestamp: "date package was created" # REQUIRED   UTC format: YYYY-MM-DD (Example: 2016-10-12)
-  tag: "tag-name"                       # REQUIRED   Unique identifier for this package
-  name: "name of the package"           # Suggested  Human-readable name for the package
-  description: "description of package" # Suggested  Human-readable detailed description of package
-  version: "0.0.0"                      # Optional   Semantic version of the package: major.minor.bugfix
+  timestamp: "date"   # REQUIRED   Date package was created in UTC format: YYYY-MM-DD
+  tag: "tag-name"     # REQUIRED   Unique identifier for this package
+  name: "name of package"     # Suggested  Human-readable name for the package
+  description: "description"  # Suggested  Human-readable detailed description of package
+  version: "0.0.0"            # Optional   Semantic version of the package: major.minor.bugfix
 
 contents:
-  environment: "enviro-spec.yaml"       # REQUIRED    Name of the file containing the environment specification
-  infrastructure: "infra-spec.yaml"     # Suggested   Infrastructure configuration (This can be specified in environment spec as well)
-  scoring: "scoring-criteria.yaml"      # Suggested   Scoring criteria (This can be specified in environment spec as well)
-  templates: "name of folder"           # Suggested   Name of directory containing: VM OVFs, Docker Images/Dockerfiles
-  payloads: "name of folder"            # Suggested   Name of directory containing: provisioning scripts/packages, other payloads
-  materials: "name of folder"           # Suggested   Name of directory containing: presentations, exercise scripts, instructions/guides/documentation
+  environment: "enviro-spec.yaml"   # REQUIRED    Name of the file containing the environment specification
+  infrastructure: "infra-spec.yaml" # Suggested   Infrastructure configuration (This can be specified in environment spec as well)
+  scoring: "scoring-criteria.yaml"  # Suggested   Scoring criteria (This can be specified in environment spec as well)
+  templates: "name of folder"       # Suggested   Name of directory containing: VM OVFs, Docker Images/Dockerfiles
+  payloads: "name of folder"        # Suggested   Name of directory containing: provisioning scripts/packages, other payloads
+  materials: "name of folder"       # Suggested   Name of directory containing: presentations, exercise scripts, instructions/guides/documentation

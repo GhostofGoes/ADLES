@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    Febuary 6th, 2017
-# Current Version:  0.1.3
+# Current Version:  0.1.4
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -15,14 +15,14 @@
 # Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
 
 
-platform: "name of platform"    # REQUIRED
-server-hostname: "hostname"     # REQUIRED
-server-port: 0                  # REQUIRED
-login-file: "filename.json"     # REQUIRED      Filename of JSON file with login information
+platform: "name of platform"  # REQUIRED  Name of the platform (e.g "VMware vSphere")
+server-hostname: "hostname"   # REQUIRED  Hostname of the platform's server
+server-port: 0                # REQUIRED  Port of the platform's server
+login-file: "filename.json"   # REQUIRED  JSON file with infrastructure login information
 
 # ** VMware vSphere-specific configurations ** 
-datacenter: "name of datacenter"            # Suggested     Name of the Datacenter on which to create environment
-datastore: "name of datastore"              # Suggested     Name of Datastore on which to create environment
-template-folder: "path to template folder"  # REQUIRED      Path from server root to folder that contains VM templates
-server-root: "name of server root"          # Suggested     Name of folder that is the top-level folder (useful for large or multi-organization systems)
-vswitch: "name of default vswitch"          # Suggested     Name of vSwitch that will be used in leiu of configuration in the spec itself
+datacenter: "datacenter name"   # Suggested     Name of the Datacenter on which to create environment
+datastore: "datastore name"     # Suggested     Name of Datastore on which to create environment
+template-folder: "folder path"  # REQUIRED      Path from server root to folder that contains VM templates
+server-root: "folder name"      # Suggested     Name of folder that is the top-level folder (useful for large or multi-organization systems)
+vswitch: "vswitch name"         # Suggested     Name of vSwitch that will be used in leiu of configuration in the spec itself

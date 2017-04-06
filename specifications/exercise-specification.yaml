@@ -163,9 +163,9 @@ folders:
       services:                   # REQUIRED
         service-instance-name:
           service: service-label  # REQUIRED    Label as defined in services
-          instances: 2            # Optional    [default: 1]
+          instances: 10           # Optional    Same configurations as for base-type folders
           networks: ["subnet-a", "subnet-b"]    # Optional
-          scoring:  # Optional    Scoring for the service (e.g a competition or homework verification)
-            ports: [0]            # REQUIRED
-            protocols: ["proto"]  # REQUIRED
-            criteria: "file.yaml" # REQUIRED
+          scoring:  # Optional    Scoring for the service (e.g a competition, or verification of homework)
+            ports: [0]            # Suggested   Ports used for scoring
+            protocols: ["proto"]  # Suggested   Protocols used for scoring
+            criteria: "file.yaml" # REQUIRED    Criteria used to score the service
