@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    Febuary 6th, 2017
-# Current Version:  0.1.5
+# Current Version:  0.2.0
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined

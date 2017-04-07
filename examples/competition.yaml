@@ -58,10 +58,10 @@ networks:
     hosts:
       subnet: "10.0.0.0/24"
       vswitch: "competition_vswitch"
-  base-networks:
     services: 
       subnet: "192.168.0.0/24"
       vswitch: "competition_vswitch"
+      increment: yes
 
 folders:
   external:

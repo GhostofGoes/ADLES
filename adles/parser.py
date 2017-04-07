@@ -15,7 +15,7 @@
 import logging
 from os.path import exists
 
-from netaddr import IPNetwork
+from netaddr import IPNetwork, AddrFormatError
 
 import adles.utils as utils
 
@@ -63,6 +63,7 @@ def _checker(value_list, source, data, flag):
     :param flag: What to do if value not found ("warnings" | "errors")
     :return: Number of hits (warnings/errors)
     """
+    # TODO: add type checking, perhaps use a tuple of (value, type)
     num_hits = 0
     for value in value_list:
         if value not in data:
@@ -227,8 +228,8 @@ def _verify_networks_syntax(networks):
     """
     num_errors = 0
     num_warnings = 0
-    
-    net_types = ["unique-networks", "generic-networks", "base-networks"]
+
+    net_types = ["unique-networks", "generic-networks"]
     if not any(net in networks for net in net_types):
         logging.error("Network specification exists but is empty!")
         num_errors += 1
@@ -258,8 +259,8 @@ def _verify_network(name, network):
         else:
             try:
                 subnet = IPNetwork(value["subnet"])
-            except Exception:
-                logging.error("Invalid subnet '%s'", str(value["subnet"]))
+            except AddrFormatError:
+                logging.error("Invalid format for subnet '%s'", str(value["subnet"]))
                 num_errors += 1
             else:
                 if subnet.is_reserved() or subnet.is_multicast() or subnet.is_loopback():
@@ -274,8 +275,17 @@ def _verify_network(name, network):
             if name == "unique-networks" and int(value["vlan"]) >= 2000:
                 logging.error("VLAN must be less than 2000 for network %s", key)
                 num_errors += 1
-            elif name == "generic-networks" or name == "base-networks":
+            elif name == "generic-networks":
                 logging.error("VLAN specification is not allowed for network %s", key)
+                num_errors += 1
+
+        # Increment verification
+        if "increment" in value:
+            if name == "unique-networks":
+                logging.error("Increment cannot be used for network %s", key)
+                num_errors += 1
+            elif type(value["increment"]) != bool:
+                logging.error("Increment must be a boolean for network %s", key)
                 num_errors += 1
     return num_errors, num_warnings
 

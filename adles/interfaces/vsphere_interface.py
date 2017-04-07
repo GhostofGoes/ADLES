@@ -26,7 +26,7 @@ from adles.vsphere.network_utils import create_portgroup
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.7.7"
+    __version__ = "0.8.0"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -60,8 +60,7 @@ class VsphereInterface:
         self.infra = infrastructure
         self.master_folder = None
         self.template_folder = None
-        self.net_table = {}  # Used to do lookups of Base/Generic networks during deployment
-        self.vlan_tag_tracker = 2000  # Tracker to ensure networks get unique VLAN tags
+        self.net_table = {}  # Used to do lookups of Generic networks during deployment
 
         # Instantiate the vSphere vCenter server instance class
         self.server = Vsphere(username=logins.get("user", None),
@@ -174,11 +173,10 @@ class VsphereInterface:
 
         # Create PortGroups for networks
         # Networks
-        #   Create folder to hold portgroups (for easy deletion later)
+        #   Create folder to hold portgroups (for easy deletion later) (TODO)
         #   Create portgroup instances (ensure appending pad() to end of names)
         #   Create generic-networks
         #   Create base-networks
-        # TODO: networks
         for net in self.networks:  # Iterate through the base types
             self._create_master_networks(net_type=net, default_create=True)
 
@@ -327,22 +325,16 @@ class VsphereInterface:
                 logging.warning("PortGroup '%s' does not exist on host '%s'", name, self.host.name)
                 if default_create:
                     logging.debug("Creating portgroup '%s' on host '%s'", name, self.host.name)
-                    if "vlan" in config:  # Set the VLAN from the config
-                        vlan = int(config["vlan"])
-                        if vlan >= 2000:  # It hath strayed into ye dangerous global land
-                            logging.warning("Potential VLAN conflict for network: %s", name)
-                    else:  # Set VLAN using current "global" unique value
-                        vlan = self.vlan_tag_tracker
-                        self.vlan_tag_tracker += 1  # Increment VLAN tracker
-                    vswitch = (config["vswitch"] if "vswitch" in config else self.vswitch_name)
-                    create_portgroup(name=name, host=self.host, vswitch_name=vswitch,
-                                     vlan=vlan, promiscuous=False)
+                    create_portgroup(name=name, host=self.host, promiscuous=False,
+                                     vlan=int(config.get("vlan", self._get_vlan())),
+                                     vswitch_name=config.get("vswitch", self.vswitch_name))
 
-    def _configure_nics(self, vm, networks):
+    def _configure_nics(self, vm, networks, instance=None):
         """
         Configures Network Interfaces for a service instance
         :param vm: vim.VirtualMachine
         :param networks: List of networks to configure
+        :param instance: Current instance of a folder for Deployment purposes
         """
         logging.debug("Editing NICs for VM '%s'", vm.name)
         num_nics = len(list(vm.network))
@@ -373,6 +365,8 @@ class VsphereInterface:
         for net_name, i in zip(networks, range(1, num_nets + 1)):
             # Setting the summary to network name allows viewing of name without requiring
             # read permissions to the network itself
+            if instance is not None:  # Resolve generic networks for deployment phase
+                net_name = self._get_net(net_name, instance)
             network = self.server.get_network(net_name)
             if vm_utils.get_nic_by_id(vm, i).backing.network == network:
                 continue  # Skip NICs that are already configured
@@ -400,15 +394,11 @@ class VsphereInterface:
         self._convert_and_verify(folder=self.master_folder)
         logging.info("Finished converting Masters to Templates")
 
-        # Create base-networks (TODO)
-
         # Deployment
         #   Create folder structure
         #   Apply permissions
         #   Clone instances
         # TODO: Need to figure out when/how to apply permissions
-        # TODO: Base + Generic networks
-        # TODO: ensure base + generic have unique VLANs
 
         logging.info("Deploying environment...")
         self._deploy_parent_folder_gen(spec=self.folders, parent=self.root_folder, path="")
@@ -489,7 +479,7 @@ class VsphereInterface:
                     new_folder = self.server.create_folder(instance_name, create_in=parent)
 
                     if "services" in sub_value:  # It's a base folder
-                        self._deploy_base_folder_gen(folder_name=sub_name, folder_dict=sub_value,
+                        self._deploy_base_folder_gen(folder_name=sub_name, folder_items=sub_value,
                                                      parent=new_folder,
                                                      path=self._path(path, sub_name))
                     else:  # It's a parent folder
@@ -497,28 +487,26 @@ class VsphereInterface:
                                                        path=self._path(path, sub_name))
         # TODO: apply group permissions
 
-    def _deploy_base_folder_gen(self, folder_name, folder_dict, parent, path):
+    def _deploy_base_folder_gen(self, folder_name, folder_items, parent, path):
         """
         Generates folder tree for deployment stage
         :param folder_name: Name of the folder
-        :param folder_dict: Dict of items in the folder
+        :param folder_items: Dict of items in the folder
         :param parent: Parent vim.Folder
         :param path: Folders path at the current level
         """
-        if type(folder_dict) != dict:
+        if type(folder_items) != dict:
             logging.error("Invalid type '%s' for base-type folder '%s'\nPath: %s",
-                          type(folder_dict).__name__, str(folder_name), str(path))
+                          type(folder_items).__name__, str(folder_name), str(path))
             return
 
         # Set the group to apply permissions for
         # TODO: apply permissions
-        group = self._get_group(folder_dict["group"])
+        group = self._get_group(folder_items["group"])
 
         # Get number of instances and check if it exceeds configured limits
-        num_instances, prefix = self._instances_handler(spec=folder_dict, obj_name=folder_name,
+        num_instances, prefix = self._instances_handler(spec=folder_items, obj_name=folder_name,
                                                         obj_type="folder")
-
-        # TODO: base + generic networks
 
         # Create instances
         logging.info("Deploying base-type folder '%s'", folder_name)
@@ -536,49 +524,21 @@ class VsphereInterface:
 
             # Use the folder's name for the path, as that's what matches the Master version
             logging.info("Generating services for base-type folder instance '%s'", instance_name)
-            self._deploy_gen_services(services=folder_dict["services"], parent=new_folder,
-                                      path=self._path(path, folder_name))
+            self._deploy_gen_services(services=folder_items["services"], parent=new_folder,
+                                      path=self._path(path, folder_name), instance=i)
 
-    def _deploy_gen_services(self, services, parent, path):
+    def _deploy_gen_services(self, services, parent, path, instance):
         """
         Generates the services in a folder
         :param services: The "services" dict in a folder
         :param parent: Parent vim.Folder
         :param path: Folders path at the current level
+        :param instance: What instance of a base folder this is
         """
-        # Enumerate networks in folder
-        #   Create generic networks
-        #   Create next instance of a base network and increment base counter for folder
         if type(services) != dict:
             logging.error("Invalid type '%s' for services '%s'\nPath: %s",
                           type(services).__name__, str(services), str(path))
             return
-
-        # Aggregate all networks
-        aggregate_nets = []
-        for _, value in services.items():
-            aggregate_nets.extend(value["networks"])
-        services_nets = set(aggregate_nets)  # Remove duplicates
-        local_net_table = {}
-
-        for net in services_nets:
-            net_type = self._determine_net_type(net)
-            if net_type == "generic-networks":  # Append net number to the name
-                if net not in self.net_table:
-                    self.net_table[net] = 1
-                else:
-                    self.net_table[net] += 1
-                net_name = net + " GENERIC " + pad(self.net_table[net])
-                local_net_table[net] = net_name
-            elif net_type == "base-networks":  # TODO: fully implement
-                if net not in self.net_table:
-                    self.net_table[net] = 1
-                else:
-                    self.net_table[net] += 1
-                net_name = net + " BASE " + pad(self.net_table[net])
-                local_net_table[net] = net_name
-
-        # TODO: network creation function for generic networks + base networks
 
         # Iterate through the services
         for service_name, value in services.items():
@@ -599,22 +559,18 @@ class VsphereInterface:
                               value["service"], path)
                 continue  # Skip to the next service
 
-            # TODO: implement table lookup for NIC configuration (make as a function)
-            # We can use _configure_nics, but we'll need to modify the dict
-            # first to account for naming collisions
-            # nets = value["networks"]
-
             # Clone the instances of the service from the master
             for i in range(num_instances):
                 instance_name = prefix + service_name + (" " + pad(i) if num_instances > 1 else "")
                 vm_utils.clone_vm(vm=service, folder=parent, name=instance_name,
                                   clone_spec=self.server.gen_clone_spec())
-                # vm = futils.traverse_path(parent, instance_name)
-                # if vm:
-                #    self._configure_nics(vm=vm, networks=nets)
-                # else:
-                #    logging.error("Could not find cloned instance '%s' in folder '%s'",
-                #                  instance_name, service_name, parent.name)
+                vm = futils.traverse_path(parent, instance_name)
+                if vm:
+                    self._configure_nics(vm=vm, networks=value["networks"], instance=instance)
+                else:
+                    logging.error("Could not find cloned instance '%s' in folder '%s'",
+                                  instance_name, service_name, parent.name)
+
 
     @staticmethod
     def _path(path, name):
@@ -712,6 +668,47 @@ class VsphereInterface:
             if network_label in net_value:
                 return net_name
         return ""
+
+    @staticmethod
+    def _get_vlan():
+        """
+        Generates unique VLAN tags
+        :return: int VLAN tag 
+        """
+        for i in range(2000, 4096):
+            yield i
+
+    def _get_net(self, name, instance=-1):
+        """
+        
+        :param name: 
+        :param instance: 
+        :return: 
+        """
+        # TODO: could use this to do network lookups on the server as well
+        net_type = self._determine_net_type(name)
+        if net_type == "unique-networks":
+            return name
+        elif net_type == "generic-networks":
+            if instance == -1:
+                logging.error("Invalid instance for _get_net: %d", instance)
+                return ""
+            net_name = name + " GENERIC " + pad(instance)  # Generate full name for the generic net
+            if net_name not in self.net_table:
+                exists = self.server.get_network(net_name)
+                if exists:
+                    logging.debug("PortGroup '%s' already exists on host '%s'", net_name,
+                                  self.host.name)
+                else:  # NOTE: if monitoring, we want promiscuous=True
+                    # Create the generic network if it does not exist
+                    logging.debug("Creating portgroup '%s' on host '%s'", net_name, self.host.name)
+                    vsw = self.networks["generic-networks"][name].get("vswitch", self.vswitch_name)
+                    create_portgroup(name=net_name, host=self.host, promiscuous=False,
+                                     vlan=self._get_vlan(), vswitch_name=vsw)
+                self.net_table[net_name] = True  # Register the existence of the generic
+            return net_name
+        else:
+            logging.error("Invalid network type %s for network %s", net_type, name)
 
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
