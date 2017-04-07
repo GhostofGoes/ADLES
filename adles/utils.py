@@ -138,28 +138,21 @@ def make_vsphere(filename=None):
     :param filename: Name of JSON file with information needed [default: None]
     :return: vSphere object
     """
-    from getpass import getpass
     from adles.vsphere.vsphere_class import Vsphere
 
-    if filename:
+    if filename is not None:
         info = read_json(filename)
-        user = (info["user"] if "user" in info else input("Username: "))
-        pswd = (info["pass"] if "pass" in info else getpass())
-        datacenter = (info["datacenter"] if "datacenter" in info else None)
-        datastore = (info["datastore"] if "datastore" in info else None)
-        port = (info["port"] if "port" in info else 443)
-        return Vsphere(datacenter=datacenter, username=user, password=pswd,
-                       hostname=info["host"], port=port, datastore=datastore)
+        return Vsphere(username=info.get("user"),
+                       password=info.get("pass"),
+                       hostname=info.get("host"),
+                       port=info.get("port", 443),
+                       datacenter=info.get("datacenter"),
+                       datastore=info.get("datastore"))
     else:
         logging.info("Enter information to connect to vSphere environment")
-        host = input("Hostname: ")
-        port = int(input("Port: "))
-        user = input("Username: ")
-        pswd = getpass()
-        datacenter = input("vSphere Datacenter: ")
-        datastore = input("vSphere Datastore: ")
-        return Vsphere(username=user, password=pswd, hostname=host,
-                       datacenter=datacenter, datastore=datastore, port=port)
+        datacenter = input("Datacenter  : ")
+        datastore = input("Datastore   : ")
+        return Vsphere(datacenter=datacenter, datastore=datastore)
 
 
 def user_input(prompt, obj_name, func):

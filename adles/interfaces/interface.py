@@ -25,13 +25,15 @@ class Interface:
         from sys import exit
         self.metadata = spec["metadata"]
 
-        if not self.metadata["infrastructure-config-file"]:
-            logging.error("No infrastructure configuration file specified!")
-            exit(1)
-
         # Load infrastructure information from the configuration file
         from adles.parser import parse_file
         infrastructure = parse_file(self.metadata["infrastructure-config-file"])
+        if "server-hostname" not in infrastructure:
+            infrastructure["server-hostname"] = str(input("Enter hostname for infrastructure: "))
+        if "server-port" not in infrastructure:
+            infrastructure["server-port"] = int(input("Enter port for infrastructure server: "))
+        if "login-file" not in infrastructure:
+            infrastructure["login-file"] = str(input("Enter filename for infrastructure logins: "))
 
         # Load infrastructure login information from the file specified in infrastructure config
         from adles.utils import read_json

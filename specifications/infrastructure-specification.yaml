@@ -15,10 +15,10 @@
 # Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
 
 
-platform: "name of platform"  # REQUIRED  Name of the platform (e.g "VMware vSphere")
-server-hostname: "hostname"   # REQUIRED  Hostname of the platform's server
-server-port: 0                # REQUIRED  Port of the platform's server
-login-file: "filename.json"   # REQUIRED  JSON file with infrastructure login information
+platform: "name of platform"  # REQUIRED    Name of the platform (e.g "VMware vSphere")
+server-hostname: "hostname"   # Suggested   Hostname of the platform's server [default: prompt user]
+server-port: 0                # Suggested   Port of the platform's server [default: prompt user]
+login-file: "filename.json"   # Suggested   JSON file with infrastructure login information [default: prompt user]
 
 # ** VMware vSphere-specific configurations **
 datacenter: "datacenter name"   # Suggested     Name of the Datacenter on which to create environment

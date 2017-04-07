@@ -23,25 +23,30 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.4"
+    __version__ = "0.9.5"
 
-    def __init__(self, username, password, hostname,
+    def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
                  port=443, use_ssl=False):
         """
         Connects to a vCenter server and initializes a class instance.
-        :param username: Username of account to login with
-        :param password: Password of account to login with
-        :param hostname: DNS hostname or IP address of vCenter instance
+        :param username: Username of account to login with [default: prompt user]
+        :param password: Password of account to login with [default: prompt user]
+        :param hostname: DNS hostname or IP address of vCenter instance [default: prompt user]
         :param datastore: Name of datastore to use [default: first datastore found on server]
         :param datacenter: Name of datacenter to use [default: First datacenter found on server]
         :param port: Port used to connect to vCenter instance [default: 443]
+        :param use_ssl: If SSL should be used to connect [default: False]
         """
         logging.debug("Initializing Vsphere %s\nDatacenter: %s\nDatastore: %s\nSSL: %s",
                       Vsphere.__version__, datacenter, datastore, str(use_ssl))
+        if not username:
+            username = str(input("Enter username for vSphere: "))
         if not password:
             from getpass import getpass
-            password = getpass('Enter password for %s: ' % username)
+            password = str(getpass("Enter password for %s: " % username))
+        if not hostname:
+            hostname = str(input("Enter hostname for vSphere: "))
         try:
             logging.info("Connecting to vSphere: %s@%s:%d",
                          username, hostname, port)

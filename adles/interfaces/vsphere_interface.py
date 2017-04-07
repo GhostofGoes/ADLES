@@ -26,7 +26,7 @@ from adles.vsphere.network_utils import create_portgroup
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.7.6"
+    __version__ = "0.7.7"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -58,19 +58,18 @@ class VsphereInterface:
         self.networks = spec["networks"]
         self.folders = spec["folders"]
         self.infra = infrastructure
-
         self.master_folder = None
         self.template_folder = None
         self.net_table = {}  # Used to do lookups of Base/Generic networks during deployment
         self.vlan_tag_tracker = 2000  # Tracker to ensure networks get unique VLAN tags
 
         # Instantiate the vSphere vCenter server instance class
-        self.server = Vsphere(datacenter=infrastructure["datacenter"],
-                              username=logins["user"],
-                              password=logins["pass"],
-                              hostname=logins["host"],
-                              port=int(logins["port"]),
-                              datastore=infrastructure["datastore"])
+        self.server = Vsphere(username=logins.get("user", None),
+                              password=logins.get("pass", None),
+                              hostname=infrastructure.get("server-hostname", None),
+                              port=int(infrastructure.get("server-port")),
+                              datastore=infrastructure.get("datastore", None),
+                              datacenter=infrastructure.get("datacenter", None))
 
         # TODO: expand on this + put in infrastructure spec
         self.host = self.server.get_host()

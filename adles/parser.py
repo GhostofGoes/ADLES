@@ -108,9 +108,10 @@ def _verify_infra_syntax(infra):
     :param infra: Dict of infrastructure
     :return: (Number of errors, Number of warnings)
     """
-    warnings = ["datacenter", "datastore", "server-root"]
-    errors = ["platform", "server-hostname", "server-port",
-              "login-file", "template-folder"]
+    # TODO: platform-specific syntax checking
+    warnings = ["server-hostname", "server-port", "login-file",
+                "datacenter", "datastore", "server-root"]
+    errors = ["platform", "template-folder"]
 
     num_warnings = _checker(warnings, "infrastructure", infra, "warnings")
     num_errors = _checker(errors, "infrastructure", infra, "errors")
