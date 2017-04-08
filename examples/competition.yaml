@@ -92,6 +92,10 @@ folders:
       prefix: "Blue Team "
     group: "Blue Team"
     services:
+      gateway:
+        description: "Gateway connecting Blue team networks to the larger competition network"
+        service: firewall
+        networks: ["competition", "hosts", "services"]
       windows-hosts:
         description: "Windows hosts that the blue team members use to access their services"
         instances: 
@@ -106,10 +110,6 @@ folders:
           number: 2
         service: host-type-b
         networks: ["hosts"]
-      gateway:
-        description: "Gateway connecting Blue team networks to the larger competition network"
-        service: firewall
-        networks: ["competition", "hosts", "services"]
       dc: 
         description: "Domain Controller for Blue Team network. Runs DNS, DHCP, and Active Directory."
         service: domain-controller
