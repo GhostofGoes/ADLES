@@ -4,7 +4,7 @@ metadata:
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "0.8.3"
+  version: "0.9.0"
   infrastructure-config-file: "infra.yaml"
   folder-name: "Competitions/PRCCDC/prccdc-2016"
 
@@ -77,10 +77,10 @@ networks:
     hosts:
       subnet: "10.0.0.0/24"
       vswitch: "competition_vswitch"
-  base-networks:
     services: 
       subnet: "192.168.0.0/24"
       vswitch: "competition_vswitch"
+      increment: yes
 
 folders:
   external:

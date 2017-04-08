@@ -17,13 +17,13 @@ import logging
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim, vmodl
 
-from adles.vsphere.folder_utils import create_folder, get_in_folder
+from adles.vsphere.folder_utils import create_folder, get_in_folder, find_in_folder
 
 
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.5"
+    __version__ = "0.9.6"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -40,12 +40,12 @@ class Vsphere:
         """
         logging.debug("Initializing Vsphere %s\nDatacenter: %s\nDatastore: %s\nSSL: %s",
                       Vsphere.__version__, datacenter, datastore, str(use_ssl))
-        if not username:
+        if username is None:
             username = str(input("Enter username for vSphere: "))
-        if not password:
+        if password is None:
             from getpass import getpass
             password = str(getpass("Enter password for %s: " % username))
-        if not hostname:
+        if hostname is None:
             hostname = str(input("Enter hostname for vSphere: "))
         try:
             logging.info("Connecting to vSphere: %s@%s:%d",
@@ -281,16 +281,16 @@ class Vsphere:
         """
         return self.get_item(vim.VirtualMachine, vm_name)
 
-    def get_network(self, network_name=None, distributed=False):
+    def get_network(self, network_name, distributed=False):
         """
         Finds and returns the named Network
-        :param network_name: Name of the Network [default: first portgroup in datacenter]
+        :param network_name: Name of the Network
         :param distributed: If the Network is a Distributed PortGroup [default: False]
         :return: vim.Network or vim.dvs.DistributedVirtualPortgroup object
         """
         if not distributed:
-            return get_in_folder(folder=self.datacenter.networkFolder, name=network_name,
-                                 recursive=True, vimtype=vim.Network)
+            return find_in_folder(folder=self.datacenter.networkFolder, name=network_name,
+                                  recursive=True, vimtype=vim.Network)
         else:
             return self.get_item(vim.dvs.DistributedVirtualPortgroup,  network_name)
 

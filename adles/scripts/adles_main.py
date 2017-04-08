@@ -74,6 +74,10 @@ def main():
         if spec is None:
             logging.error("Syntax check failed")
             exit(1)
+        if "name" not in spec["metadata"]:
+            from os.path import basename, splitext
+            spec["metadata"]["name"] = splitext(basename(args["--spec"]))[0]
+
         if args["--infra"]:
             from os.path import exists
             infra_file = args["--infra"]
@@ -102,8 +106,11 @@ def main():
         except vim.fault.NoPermission as e:
             logging.error("Permission error: \n%s", str(e))
             exit(1)
-        except AttributeError:
-            logging.error("Critical fault: unexpected None-type object. Exiting...")
+        # except AttributeError:
+        #     logging.error("Critical fault: unexpected None-type object. Exiting...")
+        #     exit(1)
+        except KeyboardInterrupt:
+            logging.error("User terminated session prematurely")
             exit(1)
     elif args["--check-syntax"]:
         if check_syntax(args["--check-syntax"]) is None:

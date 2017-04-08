@@ -4,13 +4,13 @@ metadata:
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "2.9.1"
+  version: "2.10.1"
   infrastructure-config-file: "infra.yaml"
   folder-name: "Competitions/PRCCDC/prccdc-2016"
 
 groups:
   Blue Team:  # Defenders
-    instances: 10
+    instances: 14
     filename: "examples/blue-teams.json"
   Red Team:   # Attackers
     ad-group: "Red Team"

@@ -557,6 +557,9 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
     VMXNET adapters require VMware Tools to be installed, and provide enhanced performance.
     Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
     """
+    if not isinstance(network, vim.Network):
+        logging.error("Invalid network type when adding vNIC to VM '%s': %s",
+                      vm.name, type(network).__name__)
     logging.debug("Adding NIC to VM '%s'\nNetwork: '%s'\tSummary: '%s'\tNIC Model: '%s'",
                   vm.name, network.name, summary, model)
     nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create a base object to add configurations to

@@ -26,7 +26,7 @@ from adles.vsphere.network_utils import create_portgroup
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.8.0"
+    __version__ = "0.8.1"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -63,12 +63,13 @@ class VsphereInterface:
         self.net_table = {}  # Used to do lookups of Generic networks during deployment
 
         # Instantiate the vSphere vCenter server instance class
-        self.server = Vsphere(username=logins.get("user", None),
-                              password=logins.get("pass", None),
-                              hostname=infrastructure.get("server-hostname", None),
+        print(logins)
+        self.server = Vsphere(username=logins.get("user"),
+                              password=logins.get("pass"),
+                              hostname=infrastructure.get("server-hostname"),
                               port=int(infrastructure.get("server-port")),
-                              datastore=infrastructure.get("datastore", None),
-                              datacenter=infrastructure.get("datacenter", None))
+                              datastore=infrastructure.get("datastore"),
+                              datacenter=infrastructure.get("datacenter"))
 
         # TODO: expand on this + put in infrastructure spec
         self.host = self.server.get_host()
@@ -326,7 +327,7 @@ class VsphereInterface:
                 if default_create:
                     logging.debug("Creating portgroup '%s' on host '%s'", name, self.host.name)
                     create_portgroup(name=name, host=self.host, promiscuous=False,
-                                     vlan=int(config.get("vlan", self._get_vlan())),
+                                     vlan=int(config.get("vlan", next(self._get_vlan()))),
                                      vswitch_name=config.get("vswitch", self.vswitch_name))
 
     def _configure_nics(self, vm, networks, instance=None):
@@ -416,6 +417,10 @@ class VsphereInterface:
         logging.debug("Converting Masters in folder '%s' to templates", folder.name)
         for item in folder.childEntity:
             if vutils.is_vm(item):
+                if vm_utils.is_template(item):  # Skip if they've already been created
+                    logging.debug("Master '%s' is already a template", item.name)
+                    continue
+
                 # Cleanly power off VM before converting to template
                 if vm_utils.powered_on(item):
                     vm_utils.change_vm_state(item, "off", attempt_guest=True)
@@ -566,11 +571,11 @@ class VsphereInterface:
                                   clone_spec=self.server.gen_clone_spec())
                 vm = futils.traverse_path(parent, instance_name)
                 if vm:
+                    print(value["networks"])
                     self._configure_nics(vm=vm, networks=value["networks"], instance=instance)
                 else:
                     logging.error("Could not find cloned instance '%s' in folder '%s'",
                                   instance_name, service_name, parent.name)
-
 
     @staticmethod
     def _path(path, name):
@@ -662,11 +667,14 @@ class VsphereInterface:
         """
         Determines the type of a network
         :param network_label: Name of the network
-        :return: Type of the network
+        :return: Type of the network ("generic-networks" | "unique-networks")
         """
         for net_name, net_value in self.networks.items():
-            if network_label in net_value:
+            # TODO: when checking syntax, need to check networks match/exist with case sensitivity
+            vals = set(k.lower() for k in net_value)  # Case-insensitive comparisons..
+            if network_label.lower() in vals:
                 return net_name
+        logging.error("Couldn't find type for network '%s'", network_label)
         return ""
 
     @staticmethod
@@ -692,11 +700,11 @@ class VsphereInterface:
         elif net_type == "generic-networks":
             if instance == -1:
                 logging.error("Invalid instance for _get_net: %d", instance)
-                return ""
-            net_name = name + " GENERIC " + pad(instance)  # Generate full name for the generic net
+                raise ValueError
+            net_name = name + "-GENERIC-" + pad(instance)  # Generate full name for the generic net
             if net_name not in self.net_table:
                 exists = self.server.get_network(net_name)
-                if exists:
+                if exists is not None:
                     logging.debug("PortGroup '%s' already exists on host '%s'", net_name,
                                   self.host.name)
                 else:  # NOTE: if monitoring, we want promiscuous=True
@@ -704,11 +712,12 @@ class VsphereInterface:
                     logging.debug("Creating portgroup '%s' on host '%s'", net_name, self.host.name)
                     vsw = self.networks["generic-networks"][name].get("vswitch", self.vswitch_name)
                     create_portgroup(name=net_name, host=self.host, promiscuous=False,
-                                     vlan=self._get_vlan(), vswitch_name=vsw)
+                                     vlan=next(self._get_vlan()), vswitch_name=vsw)
                 self.net_table[net_name] = True  # Register the existence of the generic
             return net_name
         else:
             logging.error("Invalid network type %s for network %s", net_type, name)
+            raise TypeError
 
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""

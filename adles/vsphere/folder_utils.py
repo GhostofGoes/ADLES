@@ -31,7 +31,7 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
     :return: Object found or None if nothing was found
     """
     item = None
-    if name:
+    if name is not None:
         item = find_in_folder(folder, name, recursive=recursive, vimtype=vimtype)
     if item is None:  # Get first item found of type if can't find in folder or name isn't specified
         if len(folder.childEntity) > 0 and vimtype is None:
@@ -61,14 +61,14 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
     found = None
     for item in folder.childEntity:
         if hasattr(item, 'name') and item.name.lower() == item_name:  # Check if the name matches
-            if vimtype and not isinstance(item, vimtype):
+            if vimtype is not None and not isinstance(item, vimtype):
                 continue
             found = item
         elif recursive and is_folder(item):  # Recurse into sub-folders
             found = find_in_folder(item, name=item_name, recursive=recursive, vimtype=vimtype)
         if found is not None:
             return found
-    logging.debug("Could not find item '%s' in folder '%s'", item_name, folder.name)
+    # logging.debug("Could not find item '%s' in folder '%s'", item_name, folder.name)
     return None
 
 
