@@ -4,7 +4,7 @@ metadata:
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "2.10.1"
+  version: "2.11.0"
   infrastructure-config-file: "infra.yaml"
   folder-name: "Competitions/PRCCDC/prccdc-2016"
 
@@ -17,16 +17,18 @@ groups:
   Black Team: # Infrastructure team
     ad-group: "Black Team"
 
-# Students and Red Teamers know from their team packets what the default logins are for most services
+# Blue and Red teams know from their team packets what the default logins are for all services
 services:
+  score-bot:
+    template: "PRCCDC Score Bot"
+  evil-host:
+    template: "Kali 2.0 (64-bit)"
   host-type-a:
     template: "Windows 7 (64-bit)"
   host-type-b:
     template: "Windows 10 (64-bit)"
   host-type-c:
     template: "Ubuntu Desktop 14.04 (64-bit)"
-  score-bot:
-    template: "PRCCDC Score Bot"
   firewall:
     template: "VyOS 1.1.7 (64-bit)"
     note: "Default Username: vyos   Password: vyos"
@@ -151,12 +153,12 @@ folders:
   red-team:    
     group: "Red Team"
     services:
-      windows-hosts:
+      attacker-hosts:
         instances:
-          number: 28
+          number: 40
           prefix: "Attacker "
-        description: "Hosts used by Red Team to attack blue teams"
-        service: host-type-b
+        description: "Host used by Red Team to attack Blue teams"
+        service: evil-host
         networks: ["competition"]
       collaboration-server:
         description: "Server for Red Team collaboration, including Armitage, SFTP, and IRC"
