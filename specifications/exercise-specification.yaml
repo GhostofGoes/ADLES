@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    October 12th, 2016
-# Current Version:  0.6.0
+# Current Version:  0.6.1
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
@@ -83,7 +83,7 @@ groups:
 
 
 # ** Services **
-# Definition of services (nodes) that will be created in the exercise environment, such as hosts, servers, and routers
+# Definition of the services that will be created in the exercise environment, such as hosts, servers, and routers
 # Case insensitive EXCEPT for resources, such as templates or images
 # Networks are attached to interfaces in order of their definition, unless explicitly mapped
 # If containers are used, a GitLab server or Docker registry MUST be specified in the infrastructure-config file
@@ -117,9 +117,9 @@ resources:
 
 
 # ** Networks **
-# Layer 2/3 virtual networking
+# Definitions of virtual networks (Layers 2 and 3 of the OSI model)
 # Non-Private (RFC 1918) networks will result in a warning
-# IP version is implicitly defined by address
+# IP version (IPv4/IPv6) is implicitly defined by subnet address format
 networks: 
   unique-networks:    # Networks that are instantiated once and only once. Think of them as singletons.
     network-label:          # REQUIRED    Unique label used to identify the network (Replace "network-label" with the name of the network)
@@ -142,7 +142,7 @@ networks:
 # PHASES - Usually, there are two phases to creation of an exercise environment
 #   Mastering     "Master" instances are created and configured by humans
 #   Deployment    Full deployment of envrionment, using the Master instances created in the Mastering phase
-# PERMISSIONS - Permissions are applied hierarchically, so groups with permissions to parents have permissions to children
+# PERMISSIONS - Permissions are applied hierarchically. Groups with permissions to a given folder will have permissions for all of it's children as well.
 folders:
   parent-folder:  # Folders that contain other folders (replace "parent-folder" with name of the folder)
     group: group-label          # Optional    User group that will have permissions to the folder
@@ -153,15 +153,15 @@ folders:
       group: group-label          # REQUIRED    User group that will have permissions to the folder
       master-group: group-label   # Optional    User group for the pre-deployment masters [default: group specified for the folder]
       description: "description"  # Optional    Human-readable description of folder
-      instances:                  # Optional    Makes folder a template that is copied N-times (NOTE: instances can also simply be an integer representing N)
+      instances:  # Optional    Makes folder a template that is copied N-times (NOTE: instances can also simply be an integer representing N)
         number: 10            # OPTION A    Number of instances = integer
         size-of: group-label  # OPTION B    Number of instances = Size of named group
         prefix: "prefix"      # Optional    String to prepend to named instance numbers [default: name of folder]
-      services:                   # REQUIRED
+      services:   # REQUIRED    Define services that the base folder will contain
         service-instance-name:
           service: service-label  # REQUIRED    Label as defined in services
           instances: 10           # Optional    Same configurations as for base-type folders
-          networks: ["subnet-a", "subnet-b"]    # Optional
+          networks: ["subnet-a", "subnet-b"]    # Optional    Networks to attach the service instance to (Case sensitive!)
           scoring:  # Optional    Scoring for the service (e.g a competition, or verification of homework)
             ports: [0]            # Suggested   Ports used for scoring
             protocols: ["proto"]  # Suggested   Protocols used for scoring

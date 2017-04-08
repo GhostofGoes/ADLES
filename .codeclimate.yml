@@ -13,7 +13,7 @@ engines:
   radon:
     enabled: true
   pep8:
-    enabled: true
+    enabled: false
   markdownlint:
     enabled: true
   shellcheck:

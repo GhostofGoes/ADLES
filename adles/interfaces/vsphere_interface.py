@@ -26,11 +26,11 @@ from adles.vsphere.network_utils import create_portgroup
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.8.1"
+    __version__ = "0.8.2"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
-    master_root_name = "MASTER_FOLDERS"
+    master_root_name = "MASTER-FOLDERS"
 
     # Values at which to warn or error when exceeded
     # TODO: make these per-instance and configurable in spec?
@@ -63,7 +63,6 @@ class VsphereInterface:
         self.net_table = {}  # Used to do lookups of Generic networks during deployment
 
         # Instantiate the vSphere vCenter server instance class
-        print(logins)
         self.server = Vsphere(username=logins.get("user"),
                               password=logins.get("pass"),
                               hostname=infrastructure.get("server-hostname"),
@@ -90,7 +89,7 @@ class VsphereInterface:
         logging.info("Server root folder: %s", self.server_root.name)
 
         # Set environment root folder
-        # TODO: generate file path if it does not exist, notify user with a warning
+        # TODO: create folders along file path if it does not exist, notify user with a warning
         if "folder-name" not in self.metadata:
             self.root_name = self.metadata["name"]
             self.root_path = ""
@@ -111,7 +110,7 @@ class VsphereInterface:
         # Set default vSwitch name
         if "vswitch" in infrastructure:
             self.vswitch_name = infrastructure["vswitch"]
-        else:  # TODO: is this a good default?
+        else:  # TODO: is this a good default? (If you have to ask this, it's probably not)
             from pyVmomi import vim
             self.vswitch_name = self.server.get_item(vim.Network).name
 
@@ -172,12 +171,8 @@ class VsphereInterface:
         logging.info("Created master folder '%s' under folder '%s'",
                      VsphereInterface.master_root_name, self.root_name)
 
-        # Create PortGroups for networks
-        # Networks
-        #   Create folder to hold portgroups (for easy deletion later) (TODO)
-        #   Create portgroup instances (ensure appending pad() to end of names)
-        #   Create generic-networks
-        #   Create base-networks
+        # TODO: implement configuration of "network-interface" in the services top-level section
+        # Create networks for master instances
         for net in self.networks:  # Iterate through the base types
             self._create_master_networks(net_type=net, default_create=True)
 
@@ -208,7 +203,7 @@ class VsphereInterface:
             if sub_name == "instances":
                 pass  # Instances don't matter for the Master phase
             elif sub_name == "description":
-                pass  # NOTE: may use Tags or Custom Attributes to add descriptions to objects
+                pass  # Note: could use Tags or Custom Attributes to add descriptions to objects
             elif sub_name == "group":
                 group = self._get_group(sub_value)
             elif sub_name == "master-group":
@@ -226,7 +221,8 @@ class VsphereInterface:
 
         # TODO: apply master group permissions
         if master_group is None:
-            master_group = group  # Since group is required, we can safely assume it's been set
+            # Since group is required, we can safely assume it's been set (TODO: NO ITS NOT!)
+            master_group = group
 
     def _master_base_folder_gen(self, folder_name, folder_dict, parent):
         """
@@ -362,7 +358,7 @@ class VsphereInterface:
 
         # Edit the interfaces
         # NOTE: any NICs that were added earlier shouldn't be affected by this
-        # TODO: traverse folder to get network?
+        # TODO: traverse folder to get network? (need to switch to DVswitches I think)
         for net_name, i in zip(networks, range(1, num_nets + 1)):
             # Setting the summary to network name allows viewing of name without requiring
             # read permissions to the network itself
@@ -376,7 +372,6 @@ class VsphereInterface:
 
     def deploy_environment(self):
         """ Exercise Environment deployment phase """
-
         # Get the master folder root
         self.master_folder = futils.traverse_path(self.root_folder,
                                                   VsphereInterface.master_root_name)
@@ -389,17 +384,10 @@ class VsphereInterface:
         logging.debug("Master folder name: %s\tPrefix: %s",
                       self.master_folder.name, VsphereInterface.master_prefix)
 
-        # Verify and convert to templates
-        # This is to ensure they are preserved throughout creation and execution of exercise
+        # Verify and convert Master instances to templates
         logging.info("Converting Masters to Templates")
         self._convert_and_verify(folder=self.master_folder)
         logging.info("Finished converting Masters to Templates")
-
-        # Deployment
-        #   Create folder structure
-        #   Apply permissions
-        #   Clone instances
-        # TODO: Need to figure out when/how to apply permissions
 
         logging.info("Deploying environment...")
         self._deploy_parent_folder_gen(spec=self.folders, parent=self.root_folder, path="")
@@ -451,12 +439,7 @@ class VsphereInterface:
         :param parent: Parent vim.Folder
         :param path: Folders path at the current level
         """
-        if type(spec) != dict:
-            logging.error("Invalid type '%s' for parent-type folder '%s'\nPath: %s",
-                          type(spec).__name__, str(spec), str(path))
-            return
-
-        group = None
+        group = None  # TODO: apply group permissions
 
         for sub_name, sub_value in spec.items():
             if sub_name == "instances":
@@ -490,7 +473,6 @@ class VsphereInterface:
                     else:  # It's a parent folder
                         self._deploy_parent_folder_gen(parent=new_folder, spec=sub_value,
                                                        path=self._path(path, sub_name))
-        # TODO: apply group permissions
 
     def _deploy_base_folder_gen(self, folder_name, folder_items, parent, path):
         """
@@ -500,13 +482,7 @@ class VsphereInterface:
         :param parent: Parent vim.Folder
         :param path: Folders path at the current level
         """
-        if type(folder_items) != dict:
-            logging.error("Invalid type '%s' for base-type folder '%s'\nPath: %s",
-                          type(folder_items).__name__, str(folder_name), str(path))
-            return
-
-        # Set the group to apply permissions for
-        # TODO: apply permissions
+        # Set the group to apply permissions for (TODO: apply permissions)
         group = self._get_group(folder_items["group"])
 
         # Get number of instances and check if it exceeds configured limits
@@ -540,11 +516,6 @@ class VsphereInterface:
         :param path: Folders path at the current level
         :param instance: What instance of a base folder this is
         """
-        if type(services) != dict:
-            logging.error("Invalid type '%s' for services '%s'\nPath: %s",
-                          type(services).__name__, str(services), str(path))
-            return
-
         # Iterate through the services
         for service_name, value in services.items():
             # Ignore non-vsphere services
@@ -580,10 +551,10 @@ class VsphereInterface:
     @staticmethod
     def _path(path, name):
         """
-        Generates next step of the path for deployment of masters
-        :param path:
-        :param name:
-        :return:
+        Generates next step of the path for deployment of Masters
+        :param path: Current path
+        :param name: Name to add to the path
+        :return: The updated path
         """
         return str(path + '/' + VsphereInterface.master_prefix + name)
 
@@ -613,7 +584,7 @@ class VsphereInterface:
                     # if size_of[-2:] == ' X':
                     #     num = int(self._get_group(size_of[:-2])) # Lookup
                     num = int(self._get_group(size_of).size)
-                    if num < 1:  # WORKAROUND FOR AD-GROUPS
+                    if num < 1:  # TODO: WORKAROUND FOR AD-GROUPS
                         num = 1
                 else:
                     logging.error("Unknown instances specification: %s", str(spec["instances"]))
@@ -688,10 +659,11 @@ class VsphereInterface:
 
     def _get_net(self, name, instance=-1):
         """
-        
-        :param name: 
-        :param instance: 
-        :return: 
+        Resolves network names. This is mainly to handle generic-type networks.
+        If a generic network does not exist, it is created and added to the interface lookup table.
+        :param name: Name of the network
+        :param instance: Instance number (Only applies to generic-type networks)
+        :return: Resolved network name
         """
         # TODO: could use this to do network lookups on the server as well
         net_type = self._determine_net_type(name)

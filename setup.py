@@ -43,8 +43,8 @@ setup(
     description='Automated Deployment of Lab Environments System (ADLES)',
     url=__url__,
     license=__license__,
-    keywords="adles virtualization automation vmware vsphere yaml "
-             "cybersecurity education uidaho radicl environments",
+    keywords="adles virtualization automation vmware vsphere yaml labs virtual vms python pyvmomi "
+             "cybersecurity education uidaho radicl environments deployment docker compose lol",
     setup_requires=[
         "pytest-runner==2.11.1"
     ],

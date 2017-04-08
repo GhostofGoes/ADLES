@@ -16,7 +16,7 @@
 # limitations under the License.
 
 """ADLES: Automated Deployment of Lab Environments System.
-Uses YAML specifications to manage and create virtual environments.
+Uses formal YAML specifications to create virtual environments for educational purposes.
 
 Usage:
     adles.py [options] -c SPEC
@@ -45,6 +45,10 @@ Examples:
     adles.py --verbose --create-masters --spec examples/experiment.yaml
     adles.py -v -d -s examples/competition.yaml
     adles.py --cleanup-masters --network-cleanup -s examples/competition.yaml
+
+License:    Apache 2.0
+Author:     Christopher Goes <goes8945@vandals.uidaho.edu>
+Project:    https://github.com/GhostofGoes/ADLES
 
 """
 
@@ -106,9 +110,6 @@ def main():
         except vim.fault.NoPermission as e:
             logging.error("Permission error: \n%s", str(e))
             exit(1)
-        # except AttributeError:
-        #     logging.error("Critical fault: unexpected None-type object. Exiting...")
-        #     exit(1)
         except KeyboardInterrupt:
             logging.error("User terminated session prematurely")
             exit(1)
