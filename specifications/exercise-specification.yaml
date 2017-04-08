@@ -21,8 +21,8 @@
 #   0.5.4:  Removed OS metadata from service definitions (03-31-2017)
 #   0.5.5:  Updated wording, added PyPI URL, added email (04-02-2017)
 #   0.5.6:  Removed excess tabbing/spacing/words, renamed "normal" folders to "base", changed date-created and activity to Optional, changed version to suggested (04-04-2017)
-#   0.6.0:  Revamped base networks (04-07-2017)
-#   0.6.1:  Made "name" suggested and default to filename (04-07-2017)
+#   0.6.0:  Revamped networks. Removed base, replaced with increment flag, fundamentally changed generic. (04-07-2017)
+#   0.6.1:  Made "name" suggested, and to default to the filename of the spec (04-07-2017)
 #
 #
 
@@ -60,7 +60,7 @@ metadata:
   activity: "the activity"    # Optional    The activity the specification is being used for, e.g "CS 439" or "PRCCDC"
   prefix: "GLOBAL-PREFIX"     # REQUIRED    Globally unique prefix that distinguishes this exercise's environments from others on the same infrastructure
   date-created: "date"        # Optional    UTC format: YYYY-MM-DD (Example: 2016-10-12)
-  version: "0.0.0"            # Suggested   Semantic version of the document: major.minor.bugfix
+  version: "0.0.0"            # Suggested   Semantic version of the document: major.minor.bugfix (Refer to: http://semver.org/)
   infrastructure-config-file: "filename.yaml" # REQUIRED    YAML file specifying the infrastructure used to create the exercise environment (See: infrastructure-specification.yaml for syntax)
   folder-name: "/Path/To/Folder-Name"         # Suggested   Path of the folder that will contain the exercise, relative to root defined in the infrastructure configuration
 

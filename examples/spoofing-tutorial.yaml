@@ -4,7 +4,7 @@ metadata:
   activity: "CS 439 - Applied Security Concepts"
   prefix: "CS439"
   date-created: "2016-11-06"
-  version: "0.5.0"
+  version: "0.6.0"
   infrastructure-config-file: "infra.yaml"
   folder-name: "CS-439/TR-01/TU-03"  # CS 439, Tutorial Round 1,Tutorial 03
 
@@ -17,10 +17,10 @@ groups:
 services:
   windows:
     note: "Username: User   Password: Windows1"
-    template: "Clients/Windows/Windows 7 SP2 (64-bit)"
+    template: "Windows 7 SP2 (64-bit)"
   kalibox:
     note: "Username: root   Password: toor"
-    template: "Clients/Linux/ARP Kalibox"
+    template: "Kali 2.0 (64-bit)"
   server:
     template: "Ubuntu 14.04 Server (64-bit)"
   router:
