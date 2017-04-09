@@ -32,7 +32,7 @@ Options:
 import logging
 
 from docopt import docopt
-# from pyVmomi import vim
+from pyVmomi import vim
 
 from adles.vsphere.vsphere_class import Vsphere
 from adles.vsphere import vm_utils
@@ -42,8 +42,9 @@ from adles.utils import script_setup
 args = docopt(__doc__, version=Vsphere.__version__, help=True)
 server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
 
-folder = server.get_folder("monkeys")
-
+# from adles.vsphere.network_utils import create_vswitch
+# host = server.get_host()
+# create_vswitch("competition_vswitch", host)
 
 # bios_uuid = "42053029-1098-6ef1-da79-5e2c4103f600"
 # instance_uuid = "50056cfe-aaa0-c28d-a702-d72e68e50f3a"
@@ -57,8 +58,8 @@ folder = server.get_folder("monkeys")
 # vm_utils.create_vm(folder, vm_spec, pool)
 # attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
 
-vm = server.get_vm("real-vm")
-logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True, vnics=True))
+# vm = server.get_vm("real-vm")
+# logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True, vnics=True))
 
 # vms = server.get_all_vms()
 # for vm in vms:

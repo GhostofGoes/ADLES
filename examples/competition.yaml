@@ -57,10 +57,10 @@ networks:
       subnet: "10.10.10.0/24"
       vswitch: "competition_vswitch"
   generic-networks:
-    hosts:
+    blue-hosts:
       subnet: "10.0.0.0/24"
       vswitch: "competition_vswitch"
-    services: 
+    blue-services: 
       subnet: "192.168.0.0/24"
       vswitch: "competition_vswitch"
       increment: yes
@@ -95,29 +95,29 @@ folders:
       gateway:
         description: "Gateway connecting Blue team networks to the larger competition network"
         service: firewall
-        networks: ["competition", "hosts", "services"]
+        networks: ["competition", "blue-hosts", "blue-services"]
       windows-hosts:
         description: "Windows hosts that the blue team members use to access their services"
         instances: 
           prefix: "Host "
           number: 6
         service: host-type-a
-        networks: ["hosts"]
+        networks: ["blue-hosts"]
       linux-hosts:
         description: "Linux hosts that the Blue team members use to access their services"
         instances: 
           prefix: "Linux Host "
           number: 2
         service: host-type-b
-        networks: ["hosts"]
+        networks: ["blue-hosts"]
       dc: 
         description: "Domain Controller for Blue Team network. Runs DNS, DHCP, and Active Directory."
         service: domain-controller
-        networks: ["services"]
+        networks: ["blue-services"]
       web:
         description: "Web server hosting the team's page"
         service: web-server
-        networks: ["services"]
+        networks: ["blue-services"]
         scoring:
           ports: [80, 443]
           protocols: ["http", "https"]
@@ -125,11 +125,11 @@ folders:
       db:
         description: "Database"
         service: database-server
-        networks: ["services"]
+        networks: ["blue-services"]
       mail:
         description: "Mail Server"
         service: mail-server
-        networks: ["services"]
+        networks: ["blue-services"]
         scoring:
           ports: [25]
           protocols: ["smtp"]
@@ -137,7 +137,7 @@ folders:
       hvac:
         description: "HVAC Server"
         service: hvac-server
-        networks: ["services"]
+        networks: ["blue-services"]
         scoring:
           ports: [22]
           protocols: ["ssh"]
@@ -145,7 +145,7 @@ folders:
       file:
         description: "File Server"
         service: file-server
-        networks: ["services"]
+        networks: ["blue-services"]
         scoring:
           ports: [21, 445]
           protocols: ["sftp", "smb"]
