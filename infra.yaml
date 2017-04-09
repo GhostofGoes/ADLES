@@ -1,8 +1,8 @@
 ---
-platform: "vmware vsphere"
-server-hostname: "192.168.0.20"
-server-port: 443
-login-file: "users.json"
+platforms: ["vmware vsphere"]
+hostnames: ["192.168.0.20"]
+ports: [443]
+login-files: ["users.json"]
 datacenter: "datacenter"
 datastore: "Datastore"
 template-folder: "Templates/"

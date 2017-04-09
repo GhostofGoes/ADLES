@@ -20,47 +20,53 @@ from adles.utils import time_execution
 class Interface:
     """ Generic interface used to uniformly interact with platform-specific interfaces. """
 
-    def __init__(self, spec):
-        """ :param spec: Full specification """
-        from sys import exit
+    def __init__(self, spec, infra):
+        """ 
+        :param spec: Full exercise specification
+        :param infra: Full infrastructure configuration
+        """
+        self.interfaces = []
         self.metadata = spec["metadata"]
+        self.platforms = infra["platforms"]
+        self.num_plats = len(self.platforms)
 
-        # Load infrastructure information from the configuration file
-        from adles.parser import parse_file
-        infrastructure = parse_file(self.metadata["infrastructure-config-file"])
-        if "server-hostname" not in infrastructure:
-            infrastructure["server-hostname"] = str(input("Enter hostname for infrastructure: "))
-        if "server-port" not in infrastructure:
-            infrastructure["server-port"] = int(input("Enter port for infrastructure server: "))
-        if "login-file" not in infrastructure:
-            infrastructure["login-file"] = str(input("Enter filename for infrastructure logins: "))
+        # TODO: possible better way to do this is have a dict for each platforms info in spec
+        # Prompt user for missing information
+        keys = ["hostnames", "ports", "login-files"]
+        for k in keys:
+            if k not in infra:
+                infra[k] = []
+            while len(infra[k]) < self.num_plats:
+                infra[k].append(input("Enter %s for infrastructure: " % k[:-1]))
 
-        # Load infrastructure login information from the file specified in infrastructure config
+        # Load infrastructure login information from the files specified in infrastructure config
         from adles.utils import read_json
-        logging.debug("Loading login information from file %s", infrastructure["login-file"])
-        logins = read_json(infrastructure["login-file"])
-        if not logins:
-            exit(1)
+        logins = [read_json(f) for f in infra["login-files"]]  # TODO: is this secure?
 
         # Select the Interface to use based on the specified infrastructure platform
-        if infrastructure["platform"] == "vmware vsphere":
-            from .vsphere_interface import VsphereInterface
-            self.interface = VsphereInterface(infrastructure, logins, spec)
-        else:
-            logging.error("Invalid platform: %s", infrastructure["platform"])
-            exit(1)
+        for i in range(self.num_plats):
+            if self.platforms[i] == "vmware vsphere":
+                from .vsphere_interface import VsphereInterface
+                infra["hostname"] = infra["hostnames"][i]  # HACK HACK
+                infra["port"] = infra["ports"][i]  # HACK HACK  fix this by redoing infra spec
+                self.interfaces.append(VsphereInterface(infra, logins[i], spec))
+            else:
+                logging.error("Invalid platform: %s", self.platforms[i])
+                raise ValueError
 
     @time_execution
     def create_masters(self):
         """ Master creation phase """
         logging.info("Creating Master instances for %s", self.metadata["name"])
-        self.interface.create_masters()
+        for i in self.interfaces:
+            i.create_masters()
 
     @time_execution
     def deploy_environment(self):
         """ Environment deployment phase """
         logging.info("Deploying environment for %s", self.metadata["name"])
-        self.interface.deploy_environment()
+        for i in self.interfaces:
+            i.deploy_environment()
 
     @time_execution
     def cleanup_masters(self, network_cleanup=False):
@@ -69,7 +75,8 @@ class Interface:
         :param network_cleanup: If networks should be cleaned up [default: False]
         """
         logging.info("Cleaning up Master instances for %s", self.metadata["name"])
-        self.interface.cleanup_masters(network_cleanup=network_cleanup)
+        for i in self.interfaces:
+            i.cleanup_masters(network_cleanup=network_cleanup)
 
     @time_execution
     def cleanup_environment(self, network_cleanup=False):
@@ -78,4 +85,5 @@ class Interface:
         :param network_cleanup: If networks should be cleaned up [default: False]
         """
         logging.info("Cleaning up environment for %s", self.metadata["name"])
-        self.interface.cleanup_masters(network_cleanup=network_cleanup)
+        for i in self.interfaces:
+            i.cleanup_masters(network_cleanup=network_cleanup)

@@ -65,8 +65,8 @@ class VsphereInterface:
         # Instantiate the vSphere vCenter server instance class
         self.server = Vsphere(username=logins.get("user"),
                               password=logins.get("pass"),
-                              hostname=infrastructure.get("server-hostname"),
-                              port=int(infrastructure.get("server-port")),
+                              hostname=infrastructure.get("hostname"),
+                              port=int(infrastructure.get("port")),
                               datastore=infrastructure.get("datastore"),
                               datacenter=infrastructure.get("datacenter"))
 

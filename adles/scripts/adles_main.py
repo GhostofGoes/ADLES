@@ -58,7 +58,7 @@ from docopt import docopt
 from pyVmomi import vim
 
 from adles.interfaces import Interface
-from adles.parser import check_syntax
+from adles.parser import check_syntax, parse_file
 from adles.utils import setup_logging
 from adles import __version__
 
@@ -93,7 +93,7 @@ def main():
                 spec["metadata"]["infrastructure-config-file"] = infra_file
 
         try:
-            interface = Interface(spec)
+            interface = Interface(spec, parse_file(spec["metadata"]["infrastructure-config-file"]))
             if args["--create-masters"]:
                 interface.create_masters()
                 logging.info("Finished creation of Masters for environment %s",

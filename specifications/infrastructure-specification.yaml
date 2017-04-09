@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    Febuary 6th, 2017
-# Current Version:  0.2.0
+# Current Version:  0.3.0
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -15,10 +15,10 @@
 # Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
 
 
-platform: "name of platform"  # REQUIRED    Name of the platform (e.g "VMware vSphere")
-server-hostname: "hostname"   # Suggested   Hostname of the platform's server [default: prompt user]
-server-port: 0                # Suggested   Port of the platform's server [default: prompt user]
-login-file: "filename.json"   # Suggested   JSON file with infrastructure login information [default: prompt user]
+platforms: ["a", "b"]               # REQUIRED    Names of the platform_names being utilized (e.g "VMware vSphere")
+hostnames: ["host-a", "host-b"]     # Suggested   Hostnames of servers used to interface with platform_names [default: prompt user]
+ports: [0, 0]                       # Suggested   Port numbers of the servers used to interface with platform_names [default: prompt user]
+login-files: ["a.json", "b.json"]   # Suggested   Names of JSON files containing infrastructure login information [default: prompt user]
 
 # ** VMware vSphere-specific configurations **
 datacenter: "datacenter name"   # Suggested     Name of the Datacenter on which to create environment

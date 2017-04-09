@@ -110,16 +110,22 @@ def _verify_infra_syntax(infra):
     :return: (Number of errors, Number of warnings)
     """
     # TODO: platform-specific syntax checking
-    warnings = ["server-hostname", "server-port", "login-file",
+    warnings = ["hostnames", "ports", "login-files",
                 "datacenter", "datastore", "server-root"]
-    errors = ["platform", "template-folder"]
+    errors = ["platforms", "template-folder"]
+    lists = ["platforms", "hostnames", "ports", "login-files"]
 
     num_warnings = _checker(warnings, "infrastructure", infra, "warnings")
     num_errors = _checker(errors, "infrastructure", infra, "errors")
-    if "login-file" in infra and not exists(infra["login-file"]):
-        logging.error("Infrastructure login-file '%s' does not exist", infra["login-file"])
-        num_errors += 1
-
+    for l in lists:
+        if l in infra and type(infra[l]) is not list:
+            logging.error("%s must be a list", l)
+            num_errors += 1
+    if "login-files" in infra:
+        for f in infra["login-files"]:
+            if utils.read_json(f) is None:
+                logging.error("Invalid infrastructure login-file: %s", f)
+                num_errors += 1
     return num_errors, num_warnings
 
 
@@ -176,8 +182,8 @@ def _check_group_file(filename):
     num_errors = 0
     num_warnings = 0
 
-    if not exists(filename):
-        logging.error("Group user file %s does not exist", filename)
+    if utils.read_json(filename) is None:
+        logging.error("Invalid user info file %s", filename)
         num_errors += 1
     return num_errors, num_warnings
 
@@ -403,7 +409,6 @@ def verify_syntax(spec):
             e, w = func(spec[key])
             num_errors += e
             num_warnings += w
-
     return num_errors, num_warnings
 
 
