@@ -4,7 +4,7 @@ metadata:
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "2.11.0"
+  version: "2.11.1"
   infrastructure-config-file: "infra.yaml"
   folder-name: "Competitions/PRCCDC/prccdc-2016"
 
@@ -39,11 +39,11 @@ services:
   database-server:
     template: "Fedora 22 (64-bit)"
   file-server:
-    template: "Windows Server 2008 R2"
+    template: "Windows Server 2008 R2 (64-bit)"
   mail-server:
-    template: "Windows Server 2003"
+    template: "Windows Server 2003 (32-bit)"
   hvac-server:
-    template: "SunOS 9.0.0"
+    template: "Solaris 9 (32-bit)"
 
 networks:
   unique-networks:

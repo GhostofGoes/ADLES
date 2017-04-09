@@ -4,7 +4,7 @@ metadata:
   activity: "CS 439 - Applied Security Concepts"
   prefix: "CS439"
   date-created: "2016-11-06"
-  version: "0.6.0"
+  version: "0.6.1"
   infrastructure-config-file: "infra.yaml"
   folder-name: "CS-439/TR-01/TU-03"  # CS 439, Tutorial Round 1,Tutorial 03
 
@@ -22,7 +22,7 @@ services:
     note: "Username: root   Password: toor"
     template: "Kali 2.0 (64-bit)"
   server:
-    template: "Ubuntu 14.04 Server (64-bit)"
+    template: "Ubuntu Server 14.04 (64-bit)"
   router:
     template: "VyOS 1.1.7 (64-bit)"
 

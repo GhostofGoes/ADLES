@@ -40,7 +40,7 @@ def parse_file(filename):
         from yaml import Loader
         logging.debug("Using pure Python YAML parser")
 
-    with open(filename, 'r') as f:
+    with open(filename) as f:
         try:
             doc = load(f, Loader=Loader)  # Parses the YAML file into a dict
         except YAMLError as exc:

@@ -4,13 +4,13 @@ metadata:
   activity: "Experiments-2016"
   prefix: "EXPERIMENT"
   date-created: "2016-02-10"
-  version: "0.2.0"
+  version: "0.2.1"
   infrastructure-config-file: "infra.yaml"
   folder-name: "NSV-Research/nsv-experiment"
 
 groups:
   Researchers:
-    ad-group: "CSDS NSV Research Peoples"
+    ad-group: "CSDS NSV Research Team"
 
 services:
   vyos:
@@ -26,7 +26,7 @@ services:
   ntp:
     template: "FreeBSD 10 - NTP Server (32-bit)"
   server2012:
-    template: "Windows Server 2012 R2 - IIS (64-bit)"
+    template: "Windows Server 2012 R2 (64-bit)"
   apache:
     template: "Ubuntu Server 16.10 - Apache Web Server (64-bit)"
   nginx:

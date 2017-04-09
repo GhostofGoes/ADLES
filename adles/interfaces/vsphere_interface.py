@@ -26,7 +26,7 @@ from adles.vsphere.network_utils import create_portgroup
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.8.2"
+    __version__ = "0.8.3"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -190,10 +190,6 @@ class VsphereInterface:
         :param folder: Dict with the folder tree structure as in spec
         :param parent: Parent vim.Folder
         """
-        if type(folder) != dict:
-            logging.error("Invalid type '%s' for parent Master folder: %s",
-                          type(folder).__name__, str(folder))
-            return
 
         group = None
         master_group = None
@@ -231,13 +227,7 @@ class VsphereInterface:
         :param folder_dict: Dict with the base folder tree as in spec
         :param parent: Parent vim.Folder
         """
-        if type(folder_dict) != dict:
-            logging.error("Invalid type '%s' for base Master folder '%s'",
-                          type(folder_dict).__name__, folder_name)
-            return
-
-        # Set the group to apply permissions for
-        # TODO: apply permissions
+        # Set the group to apply permissions for (TODO: apply permissions)
         if "master-group" in folder_dict:
             master_group = self._get_group(folder_dict["master-group"])
         else:
@@ -542,7 +532,6 @@ class VsphereInterface:
                                   clone_spec=self.server.gen_clone_spec())
                 vm = futils.traverse_path(parent, instance_name)
                 if vm:
-                    print(value["networks"])
                     self._configure_nics(vm=vm, networks=value["networks"], instance=instance)
                 else:
                     logging.error("Could not find cloned instance '%s' in folder '%s'",
@@ -580,12 +569,9 @@ class VsphereInterface:
                     num = int(spec["instances"]["number"])
                 elif "size-of" in spec["instances"]:
                     size_of = spec["instances"]["size-of"]
-                    # TODO: template group size resolution
-                    # if size_of[-2:] == ' X':
-                    #     num = int(self._get_group(size_of[:-2])) # Lookup
                     num = int(self._get_group(size_of).size)
                     if num < 1:  # TODO: WORKAROUND FOR AD-GROUPS
-                        num = 1
+                        num = 1  # Need to implement template group size resolution
                 else:
                     logging.error("Unknown instances specification: %s", str(spec["instances"]))
                     num = 0
@@ -642,7 +628,7 @@ class VsphereInterface:
         """
         for net_name, net_value in self.networks.items():
             # TODO: when checking syntax, need to check networks match/exist with case sensitivity
-            vals = set(k.lower() for k in net_value)  # Case-insensitive comparisons..
+            vals = set(k.lower() for k in net_value)  # Case-insensitive comparisons
             if network_label.lower() in vals:
                 return net_name
         logging.error("Couldn't find type for network '%s'", network_label)
@@ -679,8 +665,7 @@ class VsphereInterface:
                 if exists is not None:
                     logging.debug("PortGroup '%s' already exists on host '%s'", net_name,
                                   self.host.name)
-                else:  # NOTE: if monitoring, we want promiscuous=True
-                    # Create the generic network if it does not exist
+                else:  # Create the generic network if it does not exist
                     logging.debug("Creating portgroup '%s' on host '%s'", net_name, self.host.name)
                     vsw = self.networks["generic-networks"][name].get("vswitch", self.vswitch_name)
                     create_portgroup(name=net_name, host=self.host, promiscuous=False,

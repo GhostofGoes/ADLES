@@ -68,7 +68,6 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
             found = find_in_folder(item, name=item_name, recursive=recursive, vimtype=vimtype)
         if found is not None:
             return found
-    # logging.debug("Could not find item '%s' in folder '%s'", item_name, folder.name)
     return None
 
 
