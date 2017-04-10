@@ -19,6 +19,7 @@
 Uses formal YAML specifications to create virtual environments for educational purposes.
 
 Usage:
+    adles.py -l NAME
     adles.py [options] -c SPEC
     adles.py [options] (-m | -d) [-p] -s SPEC
     adles.py [options] (--cleanup-masters | --cleanup-enviro) [--network-cleanup] -s SPEC
@@ -37,6 +38,7 @@ Options:
     --cleanup-enviro            Cleanup environment created by a specification
     --network-cleanup           Cleanup networks created during either phase
     -i, --infra FILE            Specifies the infrastructure configuration file to use
+    -l, --list-spec NAME        Prints the named specification exercise, package, infrastructure
     -h, --help                  Shows this help
     --version                   Prints current version
 
@@ -116,6 +118,16 @@ def main():
     elif args["--check-syntax"]:
         if check_syntax(args["--check-syntax"]) is None:
             logging.error("Syntax check failed")
+    elif args["--list-spec"]:
+        # from pkg_resources import Requirement, resource_filename
+        # spec = args["--list-spec"]
+        # specs = ["exercise", "package", "infrastructure"]
+        # if spec in specs:
+        #    filename = resource_filename(Requirement.parse("ADLES"), spec + "-specification.yaml")
+        #    print(open(filename).read())
+        # else:
+        #     logging.error("Invalid specification: %s", spec)
+        print("Not yet implemented yet...sorry")
     else:
         logging.error("Invalid arguments. Argument dump:\n%s", str(args))
 

@@ -25,6 +25,7 @@ setup(
     version=__version__,
     packages=find_packages(),
     include_package_data=True,
+    zip_safe=False,
     install_requires=required,
     entry_points={
         'console_scripts': [
@@ -35,9 +36,6 @@ setup(
             'vsphere-info = adles.scripts.vsphere_info:main'
         ]
     },
-    scripts=['adles/scripts/adles_main.py', 'adles/scripts/clone_vms.py',
-             'adles/scripts/cleanup_vms.py', 'adles/scripts/vm_power.py',
-             'adles/scripts/vsphere_info.py'],
     author=__author__,
     author_email=__email__,
     description='Automated Deployment of Lab Environments System (ADLES)',
@@ -55,8 +53,8 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
-        'Intended Audience :: Developers',
         'Intended Audience :: Education',
+        'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
         'Intended Audience :: Information Technology',
         'Intended Audience :: Science/Research',
@@ -71,6 +69,9 @@ setup(
         'Topic :: Education',
         'Topic :: Education :: Testing',
         'Topic :: Security',
-        'Topic :: Software Development'
+        'Topic :: Software Development',
+        'Topic :: System :: Systems Administration',
+        'Topic :: Utilities',
+        'Natural Language :: English'
     ]
 )
