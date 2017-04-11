@@ -44,12 +44,16 @@ class Interface:
         logins = [read_json(f) for f in infra["login-files"]]  # TODO: is this secure?
 
         # Select the Interface to use based on the specified infrastructure platform
+        # TODO: don't pass the whole infra to each interface
         for i in range(self.num_plats):
             if self.platforms[i] == "vmware vsphere":
                 from .vsphere_interface import VsphereInterface
                 infra["hostname"] = infra["hostnames"][i]  # HACK HACK
                 infra["port"] = infra["ports"][i]  # HACK HACK  fix this by redoing infra spec
                 self.interfaces.append(VsphereInterface(infra, logins[i], spec))
+            elif self.platforms[i] == "docker":
+                from .docker_interface import DockerInterface
+                self.interfaces.append(DockerInterface(infra, logins[i], spec))
             else:
                 logging.error("Invalid platform: %s", self.platforms[i])
                 raise ValueError
@@ -58,6 +62,7 @@ class Interface:
     def create_masters(self):
         """ Master creation phase """
         logging.info("Creating Master instances for %s", self.metadata["name"])
+        # TODO: subprocess each interface call
         for i in self.interfaces:
             i.create_masters()
 
@@ -65,6 +70,7 @@ class Interface:
     def deploy_environment(self):
         """ Environment deployment phase """
         logging.info("Deploying environment for %s", self.metadata["name"])
+        # TODO: subprocess each interface call
         for i in self.interfaces:
             i.deploy_environment()
 
@@ -75,6 +81,7 @@ class Interface:
         :param network_cleanup: If networks should be cleaned up [default: False]
         """
         logging.info("Cleaning up Master instances for %s", self.metadata["name"])
+        # TODO: subprocess each interface call
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
 
@@ -85,5 +92,6 @@ class Interface:
         :param network_cleanup: If networks should be cleaned up [default: False]
         """
         logging.info("Cleaning up environment for %s", self.metadata["name"])
+        # TODO: subprocess each interface call
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)

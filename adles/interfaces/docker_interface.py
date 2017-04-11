@@ -1,0 +1,72 @@
+# -*- coding: utf-8 -*-
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import logging
+
+import docker  # TODO: add to requirements.txt once implemented
+
+
+class DockerInterface:
+    """ Generic interface for the Docker platform """
+
+    __version__ = "0.1.0"
+
+    def __init__(self, infrastructure, logins, spec):
+        """
+        
+        :param infrastructure: Dict of infrastructure information
+        :param logins: Dict of infrastructure logins
+        :param spec: Dict of a parsed specification
+        """
+        logging.debug("Initializing DockerInterface %s", DockerInterface.__version__)
+        self.spec = spec
+        self.metadata = spec["metadata"]
+        self.services = spec["services"]
+        self.networks = spec["networks"]
+        self.folders = spec["folders"]
+        self.infra = infrastructure
+
+        # TODO: this is initial testing of client
+        # If needed, a wrapper class that simplifies the creation of containers will be made
+        # Reference: https://docker-py.readthedocs.io/en/stable/client.html#client-reference
+        # Initialize the Docker client
+        server = logins["host"] + ":" + logins["port"]  # TODO: Until I fix spec, this'll have to do
+        self.client = docker.DockerClient(base_url=server)
+
+        # Verify the connection to the client
+        self.client.ping()
+
+        # TODO: add interface-specific loggers so we know what interface is outputting
+        logging.debug("System info      : %s", str(self.client.info()))
+        logging.debug("System version   : %s", str(self.client.version()))
+
+        # Authenticate to registry, if configured
+        if "registry" in self.infra:
+            reg = self.infra["registry"]
+            self.client.login(username=reg["user"], password=reg["password"], registry=reg["url"])
+
+        # List images currently on the server
+        logging.debug("Images: %s", str(self.client.images.list()))
+
+    def create_masters(self):
+        pass
+
+    def deploy_environment(self):
+        pass
+
+    def cleanup_masters(self, network_cleanup):
+        pass
+
+    def cleanup_environment(self, network_cleanup):
+        pass

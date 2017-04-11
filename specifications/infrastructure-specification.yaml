@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    Febuary 6th, 2017
-# Current Version:  0.3.0
+# Current Version:  0.4.0
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -20,9 +20,15 @@ hostnames: ["host-a", "host-b"]     # Suggested   Hostnames of servers used to i
 ports: [0, 0]                       # Suggested   Port numbers of the servers used to interface with platform_names [default: prompt user]
 login-files: ["a.json", "b.json"]   # Suggested   Names of JSON files containing infrastructure login information [default: prompt user]
 
-# ** VMware vSphere-specific configurations **
+# ** VMware vSphere configurations **
 datacenter: "datacenter name"   # Suggested     Name of the Datacenter on which to create environment
 datastore: "datastore name"     # Suggested     Name of Datastore to use for environment VMs
 template-folder: "folder path"  # REQUIRED      Path from server root to folder that contains VM templates
 server-root: "folder name"      # Suggested     Name of folder considored to be "root" for the platform
 vswitch: "vswitch name"         # Suggested     Name of vSwitch to use as default
+
+# ** Docker configurations **
+registry:
+  user: "username"      # REQUIRED  Login username for the Docker registry
+  password: "password"  # REQUIRED  Password to login to the registry (THIS WILL BE CHANGED IN THE NEXT VERSION)
+  url: "url://"         # REQUIRED  URL of the registry
