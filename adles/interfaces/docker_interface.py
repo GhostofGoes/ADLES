@@ -16,17 +16,18 @@ import logging
 
 import docker  # TODO: add to requirements.txt once implemented
 
+import adles.utils as utils
+
 
 class DockerInterface:
     """ Generic interface for the Docker platform """
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
-    def __init__(self, infrastructure, logins, spec):
+    def __init__(self, infra, spec):
         """
         
-        :param infrastructure: Dict of infrastructure information
-        :param logins: Dict of infrastructure logins
+        :param infra: Dict of infrastructure information
         :param spec: Dict of a parsed specification
         """
         logging.debug("Initializing DockerInterface %s", DockerInterface.__version__)
@@ -35,14 +36,14 @@ class DockerInterface:
         self.services = spec["services"]
         self.networks = spec["networks"]
         self.folders = spec["folders"]
-        self.infra = infrastructure
+        self.infra = infra
 
         # TODO: this is initial testing of client
         # If needed, a wrapper class that simplifies the creation of containers will be made
         # Reference: https://docker-py.readthedocs.io/en/stable/client.html#client-reference
         # Initialize the Docker client
-        server = logins["host"] + ":" + logins["port"]  # TODO: Until I fix spec, this'll have to do
-        self.client = docker.DockerClient(base_url=server)
+        self.client = docker.DockerClient(base_url=infra.get("url", "unix:///var/run/docker.sock"),
+                                          tls=bool(infra.get("tls", True)))
 
         # Verify the connection to the client
         self.client.ping()
@@ -54,7 +55,9 @@ class DockerInterface:
         # Authenticate to registry, if configured
         if "registry" in self.infra:
             reg = self.infra["registry"]
-            self.client.login(username=reg["user"], password=reg["password"], registry=reg["url"])
+            reg_logins = utils.read_json(reg["login-file"])
+            self.client.login(username=reg_logins["user"], password=reg_logins["pass"],
+                              registry=reg["url"])
 
         # List images currently on the server
         logging.debug("Images: %s", str(self.client.images.list()))

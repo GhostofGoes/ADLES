@@ -18,7 +18,7 @@ from sys import exit
 import adles.vsphere.folder_utils as futils
 import adles.vsphere.vm_utils as vm_utils
 import adles.vsphere.vsphere_utils as vutils
-from adles.utils import pad
+from adles.utils import pad, read_json
 from adles.vsphere import Vsphere
 from adles.vsphere.network_utils import create_portgroup
 
@@ -26,7 +26,7 @@ from adles.vsphere.network_utils import create_portgroup
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.8.3"
+    __version__ = "0.8.4"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -43,32 +43,37 @@ class VsphereInterface:
             "error": 70}
     }
 
-    def __init__(self, infrastructure, logins, spec):
+    def __init__(self, infra, spec):
         """
         NOTE: it is assumed that the infrastructure and spec are both valid,
         and thus checks on key existence and types are not performed for REQUIRED elements.
-        :param infrastructure: Dict of infrastructure information
-        :param logins: Dict of infrastructure logins
+        :param infra: Dict of infrastructure information
         :param spec: Dict of a parsed specification
         """
         logging.debug("Initializing VsphereInterface %s", VsphereInterface.__version__)
+        # TODO: per-interface loggers so we know where output is coming from
         self.spec = spec
         self.metadata = spec["metadata"]
         self.services = spec["services"]
         self.networks = spec["networks"]
         self.folders = spec["folders"]
-        self.infra = infrastructure
+        self.infra = infra
         self.master_folder = None
         self.template_folder = None
         self.net_table = {}  # Used to do lookups of Generic networks during deployment
+        if "login-file" in infra:
+            logins = read_json(infra["login-file"])  # TODO: is this secure?
+        else:
+            logging.warning("No login-file specified, defaulting to user prompts...")
+            logins = {}
 
         # Instantiate the vSphere vCenter server instance class
         self.server = Vsphere(username=logins.get("user"),
                               password=logins.get("pass"),
-                              hostname=infrastructure.get("hostname"),
-                              port=int(infrastructure.get("port")),
-                              datastore=infrastructure.get("datastore"),
-                              datacenter=infrastructure.get("datacenter"))
+                              hostname=infra.get("hostname"),
+                              port=int(infra.get("port")),
+                              datastore=infra.get("datastore"),
+                              datacenter=infra.get("datacenter"))
 
         # TODO: expand on this + put in infrastructure spec
         self.host = self.server.get_host()
@@ -77,12 +82,12 @@ class VsphereInterface:
         self.groups = self._init_groups()
 
         # Set the server root folder
-        if "server-root" in infrastructure:
+        if "server-root" in infra:
             # TODO: network folder in infrastructure spec
-            self.server_root = self.server.get_folder(infrastructure["server-root"])
+            self.server_root = self.server.get_folder(infra["server-root"])
             if not self.server_root:
                 logging.error("Could not find server-root folder '%s'",
-                              infrastructure["server-root"])
+                              infra["server-root"])
                 exit(1)
         else:
             self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder
@@ -108,8 +113,8 @@ class VsphereInterface:
         logging.info("Environment root folder: %s", self.root_folder.name)
 
         # Set default vSwitch name
-        if "vswitch" in infrastructure:
-            self.vswitch_name = infrastructure["vswitch"]
+        if "vswitch" in infra:
+            self.vswitch_name = infra["vswitch"]
         else:  # TODO: is this a good default? (If you have to ask this, it's probably not)
             from pyVmomi import vim
             self.vswitch_name = self.server.get_item(vim.Network).name

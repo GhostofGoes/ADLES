@@ -32,13 +32,12 @@ def parse_file(filename):
     :return: dictionary of parsed file contents
     """
     from yaml import load, YAMLError
-    try:
+    try:  # Attempt to use C-based YAML parser if it's available
         # noinspection PyUnresolvedReferences
         from yaml import CLoader as Loader
         logging.debug("Using C-based YAML parser")
-    except ImportError:
+    except ImportError:  # Fallback to using pure python YAML parser
         from yaml import Loader
-        logging.debug("Using pure Python YAML parser")
 
     with open(filename) as f:
         try:
@@ -109,23 +108,24 @@ def _verify_infra_syntax(infra):
     :param infra: Dict of infrastructure
     :return: (Number of errors, Number of warnings)
     """
-    # TODO: platform-specific syntax checking
-    warnings = ["hostnames", "ports", "login-files",
-                "datacenter", "datastore", "server-root"]
-    errors = ["platforms", "template-folder"]
-    lists = ["platforms", "hostnames", "ports", "login-files"]
+    num_warnings = 0
+    num_errors = 0
 
-    num_warnings = _checker(warnings, "infrastructure", infra, "warnings")
-    num_errors = _checker(errors, "infrastructure", infra, "errors")
-    for l in lists:
-        if l in infra and type(infra[l]) is not list:
-            logging.error("%s must be a list", l)
-            num_errors += 1
-    if "login-files" in infra:
-        for f in infra["login-files"]:
-            if utils.read_json(f) is None:
-                logging.error("Invalid infrastructure login-file: %s", f)
+    for platform, config in infra.items():
+        if platform == "vmware-vsphere":  # VMware vSphere configurations
+            warnings = ["port", "login-file", "datacenter", "datastore", "server-root", "vswitch"]
+            errors = ["hostname", "template-folder"]
+            if "login-file" in config and utils.read_json(config["login-file"]) is None:
+                logging.error("Invalid infrastructure login-file: %s", config["login-file"])
                 num_errors += 1
+        elif platform == "docker":  # Docker configurations
+            warnings = ["url"]
+            errors = []
+        else:
+            logging.error("Unknown infrastructure platform: %s", str(platform))
+            continue  # Skip the syntax verification of unknown platforms
+        num_warnings += _checker(warnings, "infrastructure", config, "warnings")
+        num_errors += _checker(errors, "infrastructure", config, "errors")
     return num_errors, num_warnings
 
 
@@ -135,11 +135,11 @@ def _verify_groups_syntax(groups):
     :param groups: Dict of groups
     :return: (Number of errors, Number of warnings)
     """
-    num_errors = 0
     num_warnings = 0
+    num_errors = 0
     
     for key, value in groups.items():
-        if "instances" in value:  # Templates
+        if "instances" in value:  # Template groups
             if type(value["instances"]) != int:
                 logging.error("Instances must be an Integer for group %s", key)
                 num_errors += 1
@@ -154,7 +154,7 @@ def _verify_groups_syntax(groups):
             else:
                 logging.error("Invalid user specification method for template group %s", key)
                 num_errors += 1
-        else:  # Non-templates
+        else:  # Regular groups (not templates)
             if "ad-group" in value:
                 if type(value["ad-group"]) != str:
                     logging.error("AD group must be a string")
@@ -179,8 +179,8 @@ def _check_group_file(filename):
     :param filename: Name of user info JSON file
     :return: (Number of errors, Number of warnings)
     """
-    num_errors = 0
     num_warnings = 0
+    num_errors = 0
 
     if utils.read_json(filename) is None:
         logging.error("Invalid user info file %s", filename)
@@ -194,8 +194,8 @@ def _verify_services_syntax(services):
     :param services: Dict of services
     :return: (Number of errors, Number of warnings)
     """
-    num_errors = 0
     num_warnings = 0
+    num_errors = 0
     
     for key, value in services.items():
         if "network-interfaces" in value and not isinstance(value["network-interfaces"], list):
@@ -232,8 +232,8 @@ def _verify_networks_syntax(networks):
     :param networks: Dict of networks
     :return: (Number of errors, Number of warnings)
     """
-    num_errors = 0
     num_warnings = 0
+    num_errors = 0
 
     net_types = ["unique-networks", "generic-networks"]
     if not any(net in networks for net in net_types):
@@ -254,8 +254,8 @@ def _verify_network(name, network):
     :param network: Dict of the network
     :return: (Number of errors, Number of warnings)
     """
-    num_errors = 0
     num_warnings = 0
+    num_errors = 0
     
     for key, value in network.items():
         # Subnet verification
@@ -302,8 +302,8 @@ def _verify_folders_syntax(folders):
     :param folders: Dict of folders
     :return: (Number of errors, Number of warnings)
     """
-    num_errors = 0
     num_warnings = 0
+    num_errors = 0
 
     for key, value in folders.items():
         if "instances" in value:  # Check instances syntax, regardless of parent or base
@@ -376,7 +376,6 @@ def _verify_scoring_syntax(service_name, scoring):
     return num_errors, num_warnings
 
 
-@utils.time_execution
 def verify_syntax(spec):
     """
     Verifies the syntax for the dictionary representation of an environment specification
@@ -412,7 +411,6 @@ def verify_syntax(spec):
     return num_errors, num_warnings
 
 
-@utils.time_execution
 def check_syntax(specfile_path):
     """
     Checks the syntax of a specification file
