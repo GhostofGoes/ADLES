@@ -38,7 +38,7 @@ import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
 
-__version__ = "0.5.5"
+__version__ = "0.5.6"
 
 
 def main():
@@ -55,19 +55,27 @@ def main():
                 enumerate_folder(folder, recursive=True, power_status=True)))
 
         # Prompt user to configure destruction options
-        vm_prefix = default_prompt("Prefix of VMs you wish to destroy"
-                                   " (CASE SENSITIVE!)", default='')
-        recursive = prompt_y_n_question("Recursively descend into folders? ")
-        destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
-        if destroy_folders:
-            folder_prefix = default_prompt("Prefix of folders you wish to destroy"
-                                           " (CASE SENSITIVE!)", default='')
-            destroy_self = prompt_y_n_question("Destroy the folder itself? ")
-        else:
+        print("Answer the following questions to configure the cleanup")
+        if prompt_y_n_question("Destroy everything in and including the folder? "):
+            vm_prefix = ''
             folder_prefix = ''
-            destroy_self = False
+            recursive = True
+            destroy_folders = True
+            destroy_self = True
+        else:
+            vm_prefix = default_prompt("Prefix of VMs you wish to destroy"
+                                       " (CASE SENSITIVE!)", default='')
+            recursive = prompt_y_n_question("Recursively descend into folders? ")
+            destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
+            if destroy_folders:
+                folder_prefix = default_prompt("Prefix of folders you wish to destroy"
+                                               " (CASE SENSITIVE!)", default='')
+                destroy_self = prompt_y_n_question("Destroy the folder itself? ")
+            else:
+                folder_prefix = ''
+                destroy_self = False
 
-        # Show user what options they selected (TODO: do these options as cmdline arg flags?)
+        # Show user what options they selected (TODO: do these options as cmdline arg flags)
         logging.info("Options selected\nVM Prefix: %s\nFolder Prefix: %s\nRecursive: %s\n"
                      "Folder-destruction: %s\nSelf-destruction: %s", str(vm_prefix),
                      str(folder_prefix), recursive, destroy_folders, destroy_self)
