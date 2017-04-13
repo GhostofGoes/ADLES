@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    Febuary 6th, 2017
-# Current Version:  1.0.0
+# Current Version:  1.0.1
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -31,5 +31,5 @@ docker:
   url: "host:port"        # Suggested   URL to the Docker server [default: unix:///var/run/docker.sock]
   tls: true               # Optional    Use TLS to connect to the Docker server [default: True]
   registry: # Optional
-    login-file: "r.json"  # REQUIRED  JSON file containing login information for the Docker registry server
     url: "url://"         # REQUIRED  URL of the registry
+    login-file: "r.json"  # REQUIRED  JSON file containing login information for the Docker registry server
