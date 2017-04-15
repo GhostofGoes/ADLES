@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    Febuary 6th, 2017
-# Current Version:  1.0.1
+# Current Version:  1.1.0
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -25,6 +25,7 @@ vmware-vsphere:
   template-folder: "folder path"  # REQUIRED    Path from server root to folder that contains VM templates
   server-root: "folder name"      # Suggested   Name of folder considored to be "root" for the platform
   vswitch: "vswitch name"         # Suggested   Name of vSwitch to use as default
+  host-list: ["a", "b"]           # Optional    List of names of ESXi hosts to use [default: first host found in the datacenter]
 
 # ** Docker configurations **
 docker:

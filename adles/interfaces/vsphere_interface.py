@@ -61,6 +61,8 @@ class VsphereInterface:
         self.master_folder = None
         self.template_folder = None
         self.net_table = {}  # Used to do lookups of Generic networks during deployment
+
+        # Read infrastructure login information
         if "login-file" in infra:
             logins = read_json(infra["login-file"])  # TODO: is this secure?
         else:
@@ -86,8 +88,7 @@ class VsphereInterface:
             # TODO: network folder in infrastructure spec
             self.server_root = self.server.get_folder(infra["server-root"])
             if not self.server_root:
-                logging.error("Could not find server-root folder '%s'",
-                              infra["server-root"])
+                logging.error("Could not find server-root folder '%s'", infra["server-root"])
                 exit(1)
         else:
             self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder

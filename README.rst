@@ -41,10 +41,10 @@ Getting started
 -  Try writing your own! You can check it's syntax using ``adles -c example.yaml``
 
 
-System Requirements
+System requirements
 ===================
 
-Client Software
+Client software
 ---------------
 
 **Python**: 3.4+ (Reccomended), 2.7.6+
@@ -55,7 +55,7 @@ the future when full multi-lingual support and asyncronous operations are implem
 it is reccomended that Python 3 is used unless absolutely neccessary. (e.g CentOS 6)
 
 
-Python Packages
+Python packages
 ~~~~~~~~~~~~~~~
 
 See ``requirements.txt`` for specific versions
@@ -67,7 +67,7 @@ See ``requirements.txt`` for specific versions
 -  colorlog
 -  setuptools (If you are installing manually or developing)
 
-Virtualization Platforms
+Virtualization platforms
 ------------------------
 
 VMware vSphere
@@ -80,21 +80,15 @@ vSphere/ESXi 5.5 should work as well, but is untested.
 
 Docker
 ~~~~~~
+
 Docker is currently in a pre-alpha development state. Eventually, the DockerInterface will
 support Docker Machine, Docker Compose, and potentially Docker Swarm.
 
 
-Project Goals
+Current goals
 =============
-
-| The short-term goal is to create a system that allows instructors and students
-  teaching using virtual environments to automate their workloads.
-| Long-term, I’d like to see the creation of a open-source repository, similiar to
-  Hashicorp’s Atlas and Docker’s Hub, where educators can share packages
-  and contribute to improving cyber education globally.
-
-Current Goals
--------------
+The short-term goal is to create a system that allows instructors and students
+teaching using virtual environments to automate their workloads.
 
 Currently, I am focusing on implementing the following components:
 
@@ -119,11 +113,18 @@ Currently, I am focusing on implementing the following components:
 -  Basic Unit and Functional tests
 -  Packaging for PyPI
 
-Future Goals
-------------
+
+Future goals
+============
+
+Long-term, I’d like to see the creation of a open-source repository, similiar to
+Hashicorp’s Atlas and Docker’s Hub, where educators can share packages
+and contribute to improving cyber education globally.
+
 
 Support for additional platforms
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
+
 -  Docker: good for simulating large environments, with low resource overhead and quick load times
 
    -  Docker Machine
@@ -142,8 +143,9 @@ Support for additional platforms
    making them perfect for short-lived tutorials or competitions.
 
 
-Specification Extensions
-~~~~~~~~~~~~~~~~~~~~~~~~
+Specification extensions
+------------------------
+
 -  Monitoring extensions. This extension would add data collection configurations to relevant
    areas of the specifications, enabling the implementation of high-fidelity data collection. This
    would greatly enhance the system's research applicability, and enable other extensions such as
@@ -176,10 +178,13 @@ Specification Extensions
 -  Specification of system resources required for a service, e.g CPU, RAM, storage space.
 -  Collaboration and communications for an exercise, e.g video conferencing, TeamSpeak,
    IRC channel, Discord server.
+-  Flag for selective toggling of parts of specifications where it would be useful to do
+   so without having to remove or comment out the content, e.g a folder.
 
 
-System Improvements
-~~~~~~~~~~~~~~~~~~~
+System improvements
+-------------------
+
 -  Improved documentation on how to make a package, how to setup a platform for system, etc.
 -  Finish vSphere implementation (Users and Permissions)
 -  Redo the syntax verification component. Currently, any changes in spec involve a non-trivial
@@ -225,8 +230,8 @@ LICENSE for the full license text, and NOTICES for attributions to
 external projects that this project uses code from.
 
 
-History
-=======
+Project History
+===============
 
 The system began as a proof of concept implementation of my Master's thesis research at the
 University of Idaho in Fall of 2016. It was originally designed to run on the RADICL lab.
