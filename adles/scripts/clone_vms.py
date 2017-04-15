@@ -17,8 +17,6 @@
 
 Usage:
     clone-vms [options]
-    clone-vms --version
-    clone-vms (-h | --help)
 
 Options:
     -h, --help          Prints this page

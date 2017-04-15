@@ -17,8 +17,6 @@
 
 Usage:
     cleanup-vms [options]
-    cleanup-vms --version
-    cleanup-vms (-h | --help)
 
 Options:
     -h, --help          Prints this page

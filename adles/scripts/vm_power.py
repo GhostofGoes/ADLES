@@ -17,8 +17,6 @@
 
 Usage:
     vm-power [options]
-    vm-power --version
-    vm-power (-h | --help)
 
 Options:
     -h, --help          Prints this page

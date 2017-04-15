@@ -19,14 +19,10 @@
 Uses formal YAML specifications to create virtual environments for educational purposes.
 
 Usage:
+    adles [options]
     adles [options] -c SPEC
     adles [options] (-m | -d) [-p] -s SPEC
     adles [options] (--cleanup-masters | --cleanup-enviro) [--nets] -s SPEC
-    adles --list-examples
-    adles --print-example NAME
-    adles --print-spec NAME
-    adles --version
-    adles (-h | --help)
 
 Options:
     -n, --no-color              Do not color terminal output
@@ -39,7 +35,7 @@ Options:
     -d, --deploy                Environment deployment phase of specification
     --cleanup-masters           Cleanup masters created by a specification
     --cleanup-enviro            Cleanup environment created by a specification
-    --nets                  Cleanup networks created during either phase
+    --nets                      Cleanup networks created during either phase
     --print-spec NAME           Prints the named: exercise, package, infrastructure
     --list-examples             Prints the list of examples available
     --print-example NAME        Prints the named example
@@ -50,9 +46,8 @@ Examples:
     adles --list-examples
     adles -c examples/tutorial.yaml
     adles --verbose --masters --spec examples/experiment.yaml
-    adles --cleanup-masters --nets -s examples/competition.yaml
-    adles -vnms examples/competition.yaml
     adles -vds examples/competition.yaml
+    adles --cleanup-masters --nets -s examples/competition.yaml
 
 License:    Apache 2.0
 Author:     Christopher Goes <goes8945@vandals.uidaho.edu>

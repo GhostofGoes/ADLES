@@ -17,8 +17,6 @@
 
 Usage:
     vsphere-info [options]
-    vsphere-info --version
-    vsphere-info (-h | --help)
 
 Options:
     -h, --help          Prints this page
