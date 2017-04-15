@@ -153,15 +153,15 @@ Specification extensions
    configurations are:
 
    -  Secondary interfaces on services for aggregating their log data, such as Windows Event Logs,
-   Unix Syslog, application logs, etc.
+      Unix Syslog, application logs, etc.
    -  Network packet captures. These could be obtained by enabling promiscuous mode on a vSwitch, or
-   enabling a SPAN monitoring port to aggregate the network traffic.
+      enabling a SPAN monitoring port to aggregate the network traffic.
    -  Configuration of a centralized logging server to collect data, such as Splunk or ELK, including
-   specifying how the data aggregated should be "frozen" for inclusion with a package.
+      specifying how the data aggregated should be "frozen" for inclusion with a package.
    -  Configuration of Virtual Machine Introspection (VMI) on supported platforms for a high-fidelity
-   view of exercises during execution.
+      view of exercises during execution.
    -  Instrumentation of the platforms and aggregation of the resulting log data, including the logs
-   created by ADLES itself.
+      created by ADLES itself.
 
 -  Further Resource extensions for cyber-physical testbeds, and integration of Resources into more
    aspects of the exercise and package specifications. Examples of resources include testbeds for:

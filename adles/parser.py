@@ -116,11 +116,17 @@ def _verify_infra_syntax(infra):
             warnings = ["port", "login-file", "datacenter", "datastore", "server-root", "vswitch"]
             errors = ["hostname", "template-folder"]
             if "login-file" in config and utils.read_json(config["login-file"]) is None:
-                logging.error("Invalid infrastructure login-file: %s", config["login-file"])
+                logging.error("Invalid vSphere infrastructure login-file: %s", config["login-file"])
+                num_errors += 1
+            if "host-list" in config and type(config["host-list"]) is not list:
+                logging.error("Invalid type for vSphere host-list: %s", type(config["host-list"]))
                 num_errors += 1
         elif platform == "docker":  # Docker configurations
             warnings = ["url"]
             errors = []
+            if "registry" in config:
+                num_errors += _checker(["url", "login-file"], "infrastructure",
+                                       config["registry"], "errors")
         else:
             logging.error("Unknown infrastructure platform: %s", str(platform))
             continue  # Skip the syntax verification of unknown platforms
