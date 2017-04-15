@@ -26,7 +26,7 @@ from adles.vsphere.network_utils import create_portgroup
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.8.4"
+    __version__ = "0.8.5"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -77,8 +77,13 @@ class VsphereInterface:
                               datastore=infra.get("datastore"),
                               datacenter=infra.get("datacenter"))
 
-        # TODO: expand on this + put in infrastructure spec
-        self.host = self.server.get_host()
+        # Acquire ESXi hosts (TODO: make these their own classes /w network, etc methods)
+        if "hosts" in infra:
+            hosts = infra["hosts"]
+            self.host = self.server.get_host(hosts[0])  # TODO: temporary hack
+            self.hosts = [self.server.get_host(h) for h in hosts]  # Gather all the ESXi hosts
+        else:
+            self.host = self.server.get_host()  # First host found in Datacenter
 
         # Instantiate and initialize Groups
         self.groups = self._init_groups()
@@ -133,9 +138,7 @@ class VsphereInterface:
         # Instantiate Groups
         for name, config in self.spec["groups"].items():
             if "instances" in config:  # Template groups
-                groups[name] = []
-                for i in range(1, config["instances"] + 1):
-                    groups[name].append(Group(name=name, group=config, instance=i))
+                groups[name] = [Group(name, config, i) for i in range(1, config["instances"] + 1)]
             else:  # Standard groups
                 groups[name] = Group(name=name, group=config)
 
@@ -619,7 +622,7 @@ class VsphereInterface:
         :param service_name: Name of the service to lookup in list of defined services
         :return: bool
         """
-        # TODO: make "template" and other platform identifiers global 'constants'
+        # TODO: make "template" and other platform identifiers global keywords
         if service_name not in self.services:
             logging.error("Could not find service %s in the list of defined services", service_name)
         elif "template" in self.services[service_name]:

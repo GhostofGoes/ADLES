@@ -19,26 +19,29 @@
 Uses formal YAML specifications to create virtual environments for educational purposes.
 
 Usage:
-    adles.py -l NAME
     adles.py [options] -c SPEC
     adles.py [options] (-m | -d) [-p] -s SPEC
     adles.py [options] (--cleanup-masters | --cleanup-enviro) [--network-cleanup] -s SPEC
+    adles.py [options] --list-examples
+    adles.py [options] (--print-spec NAME | --print-example NAME)
     adles.py --version
     adles.py (-h | --help)
 
 Options:
     --no-color                  Do not color terminal output
     -v, --verbose               Emit debugging logs to terminal
-    -c, --check-syntax SPEC     Validates syntax of an exercise specification
-    -s, --spec SPEC             YAML file with the exercise environment specification
+    -c, --validate SPEC         Validates syntax of an exercise specification
+    -s, --spec SPEC             Name of a YAML specification file
+    -i, --infra FILE            Specifies the infrastructure configuration file to use
     -p, --package               Build environment from package specification
-    -m, --create-masters        Master creation phase of specification
+    -m, --masters               Master creation phase of specification
     -d, --deploy                Environment deployment phase of specification
     --cleanup-masters           Cleanup masters created by a specification
     --cleanup-enviro            Cleanup environment created by a specification
     --network-cleanup           Cleanup networks created during either phase
-    -i, --infra FILE            Specifies the infrastructure configuration file to use
-    -l, --list-spec NAME        Prints the named specification exercise, package, infrastructure
+    --print-spec NAME           Prints the named: exercise, package, infrastructure
+    --list-examples             Prints the list of examples available
+    --print-example NAME        Prints the named example
     -h, --help                  Shows this help
     --version                   Prints current version
 
@@ -96,7 +99,7 @@ def main():
 
         try:
             interface = Interface(spec, parse_file(spec["metadata"]["infrastructure-config-file"]))
-            if args["--create-masters"]:
+            if args["--masters"]:
                 interface.create_masters()
                 logging.info("Finished creation of Masters for environment %s",
                              spec["metadata"]["name"])
@@ -115,19 +118,46 @@ def main():
         except KeyboardInterrupt:
             logging.error("User terminated session prematurely")
             exit(1)
-    elif args["--check-syntax"]:
-        if check_syntax(args["--check-syntax"]) is None:
+    elif args["--validate"]:
+        if check_syntax(args["--validate"]) is None:
             logging.error("Syntax check failed")
-    elif args["--list-spec"]:
-        # from pkg_resources import Requirement, resource_filename
-        # spec = args["--list-spec"]
-        # specs = ["exercise", "package", "infrastructure"]
-        # if spec in specs:
-        #    filename = resource_filename(Requirement.parse("ADLES"), spec + "-specification.yaml")
-        #    print(open(filename).read())
-        # else:
-        #     logging.error("Invalid specification: %s", spec)
-        print("Not yet implemented yet...sorry")
+
+    elif args["--list-examples"] or args["--print-example"]:
+        from pkg_resources import Requirement, resource_filename
+        from os import listdir, path
+        example_dir = resource_filename(Requirement.parse("ADLES"), "examples")
+        examples = [x[:-5] for x in listdir(example_dir) if ".yaml" in x]  # Filter non-yaml
+        if args["--list-examples"]:
+            print("Example scenarios that can be listed using --print-example <name>")
+            print("Name".ljust(25) + "Version".ljust(10) + "Description")  # Print header
+            for example in examples:
+                metadata = parse_file(path.join(example_dir, example + ".yaml"))["metadata"]
+                name = str(example).ljust(25)
+                ver = str(metadata["version"]).ljust(10)
+                desc = str(metadata["description"])
+                print(name + ver + desc)
+        else:
+            example = args["--print-example"]
+            if example in examples:
+                with open(path.join(example_dir, example + ".yaml")) as f:
+                    print(f.read())
+            else:
+                logging.error("Invalid example: %s", example)
+
+    elif args["--print-spec"]:
+        from pkg_resources import Requirement, resource_filename
+        from os.path import join
+        spec = args["--print-spec"]
+        specs = ["exercise", "package", "infrastructure"]
+
+        if spec in specs:
+            filename = resource_filename(Requirement.parse("ADLES"),
+                                         join("specifications", spec + "-specification.yaml"))
+            with open(filename) as f:
+                print(f.read())
+        else:
+            logging.error("Invalid specification: %s", spec)
+
     else:
         logging.error("Invalid arguments. Argument dump:\n%s", str(args))
 

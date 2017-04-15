@@ -20,10 +20,14 @@ from adles import __version__, __email__, __author__, __url__, __license__
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
+with open('README.rst') as f:
+    long_description = f.read()
+
+
 setup(
     name='ADLES',
     version=__version__,
-    packages=find_packages(),
+    packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,
     zip_safe=False,
     install_requires=required,
@@ -39,10 +43,12 @@ setup(
     author=__author__,
     author_email=__email__,
     description='Automated Deployment of Lab Environments System (ADLES)',
+    long_description=long_description,
     url=__url__,
+    download_url='https://pypi.python.org/pypi/ADLES',
     license=__license__,
     keywords="adles virtualization automation vmware vsphere yaml labs virtual vms python pyvmomi "
-             "cybersecurity education uidaho radicl environments deployment docker compose lol",
+             "cybersecurity education uidaho radicl environments deployment docker lol 1337 setup",
     setup_requires=[
         "pytest-runner==2.11.1"
     ],
