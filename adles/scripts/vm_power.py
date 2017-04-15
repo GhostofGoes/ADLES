@@ -16,16 +16,19 @@
 """Power operations for Virtual Machines in vSphere.
 
 Usage:
-    vm_power.py [options]
-    vm_power.py --version
-    vm_power.py (-h | --help)
+    vm-power [options]
+    vm-power --version
+    vm-power (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
-    --no-color          Do not color terminal output
+    -n, --no-color      Do not color terminal output
     -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
+
+Examples:
+    vm-power -vf logins.json
 
 """
 
@@ -38,7 +41,7 @@ from adles.vsphere.vm_utils import change_vm_state
 from adles.vsphere.vsphere_utils import is_vm
 from adles.vsphere.folder_utils import enumerate_folder, format_structure
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 
 def main():

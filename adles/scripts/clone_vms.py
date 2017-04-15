@@ -16,16 +16,19 @@
 """Clone multiple Virtual Machines in vSphere.
 
 Usage:
-    clone_vms.py [options]
-    clone_vms.py --version
-    clone_vms.py (-h | --help)
+    clone-vms [options]
+    clone-vms --version
+    clone-vms (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
-    --no-color          Do not color terminal output
+    -n, --no-color      Do not color terminal output
     -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
+
+Examples:
+    clone-vms -vf logins.json
 
 """
 
@@ -37,7 +40,7 @@ from adles.utils import prompt_y_n_question, pad, default_prompt, script_setup, 
 from adles.vsphere.vm_utils import clone_vm
 from adles.vsphere.folder_utils import format_structure, retrieve_items
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 
 def main():

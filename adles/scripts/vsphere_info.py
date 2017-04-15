@@ -16,16 +16,19 @@
 """Query information about a vSphere environment and objects within it.
 
 Usage:
-    vsphere_info.py [options]
-    vsphere_info.py --version
-    vsphere_info.py (-h | --help)
+    vsphere-info [options]
+    vsphere-info --version
+    vsphere-info (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
-    --no-color          Do not color terminal output
+    -n, -no-color       Do not color terminal output
     -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
+
+Examples:
+    vsphere-info -vf logins.json
 
 """
 
@@ -37,7 +40,7 @@ from adles.vsphere import vm_utils, vsphere_utils
 from adles.utils import script_setup, resolve_path, prompt_y_n_question
 from adles.vsphere.folder_utils import enumerate_folder, format_structure
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 
 def main():

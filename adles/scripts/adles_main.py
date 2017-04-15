@@ -19,16 +19,17 @@
 Uses formal YAML specifications to create virtual environments for educational purposes.
 
 Usage:
-    adles.py [options] -c SPEC
-    adles.py [options] (-m | -d) [-p] -s SPEC
-    adles.py [options] (--cleanup-masters | --cleanup-enviro) [--network-cleanup] -s SPEC
-    adles.py [options] --list-examples
-    adles.py [options] (--print-spec NAME | --print-example NAME)
-    adles.py --version
-    adles.py (-h | --help)
+    adles [options] -c SPEC
+    adles [options] (-m | -d) [-p] -s SPEC
+    adles [options] (--cleanup-masters | --cleanup-enviro) [--nets] -s SPEC
+    adles --list-examples
+    adles --print-example NAME
+    adles --print-spec NAME
+    adles --version
+    adles (-h | --help)
 
 Options:
-    --no-color                  Do not color terminal output
+    -n, --no-color              Do not color terminal output
     -v, --verbose               Emit debugging logs to terminal
     -c, --validate SPEC         Validates syntax of an exercise specification
     -s, --spec SPEC             Name of a YAML specification file
@@ -38,7 +39,7 @@ Options:
     -d, --deploy                Environment deployment phase of specification
     --cleanup-masters           Cleanup masters created by a specification
     --cleanup-enviro            Cleanup environment created by a specification
-    --network-cleanup           Cleanup networks created during either phase
+    --nets                  Cleanup networks created during either phase
     --print-spec NAME           Prints the named: exercise, package, infrastructure
     --list-examples             Prints the list of examples available
     --print-example NAME        Prints the named example
@@ -46,10 +47,12 @@ Options:
     --version                   Prints current version
 
 Examples:
-    adles.py --check-syntax examples/tutorial.yaml
-    adles.py --verbose --create-masters --spec examples/experiment.yaml
-    adles.py -v -d -s examples/competition.yaml
-    adles.py --cleanup-masters --network-cleanup -s examples/competition.yaml
+    adles --list-examples
+    adles -c examples/tutorial.yaml
+    adles --verbose --masters --spec examples/experiment.yaml
+    adles --cleanup-masters --nets -s examples/competition.yaml
+    adles -vnms examples/competition.yaml
+    adles -vds examples/competition.yaml
 
 License:    Apache 2.0
 Author:     Christopher Goes <goes8945@vandals.uidaho.edu>
@@ -107,9 +110,9 @@ def main():
                 interface.deploy_environment()
                 logging.info("Finished deployment of environment %s", spec["metadata"]["name"])
             elif args["--cleanup-masters"]:
-                interface.cleanup_masters(args["--network-cleanup"])
+                interface.cleanup_masters(args["--nets"])
             elif args["--cleanup-enviro"]:
-                interface.cleanup_environment(args["--network-cleanup"])
+                interface.cleanup_environment(args["--nets"])
             else:
                 logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
         except vim.fault.NoPermission as e:
@@ -122,13 +125,14 @@ def main():
         if check_syntax(args["--validate"]) is None:
             logging.error("Syntax check failed")
 
+    # TODO: run example as input (should do this by supporting stdin)
     elif args["--list-examples"] or args["--print-example"]:
         from pkg_resources import Requirement, resource_filename
         from os import listdir, path
         example_dir = resource_filename(Requirement.parse("ADLES"), "examples")
         examples = [x[:-5] for x in listdir(example_dir) if ".yaml" in x]  # Filter non-yaml
         if args["--list-examples"]:
-            print("Example scenarios that can be listed using --print-example <name>")
+            print("Example scenarios that can be printed using --print-example <name>")
             print("Name".ljust(25) + "Version".ljust(10) + "Description")  # Print header
             for example in examples:
                 metadata = parse_file(path.join(example_dir, example + ".yaml"))["metadata"]

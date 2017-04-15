@@ -16,16 +16,19 @@
 """Cleanup and Destroy VMs and VM Folders in a vSphere environment.
 
 Usage:
-    cleanup_vms.py [options]
-    cleanup_vms.py --version
-    cleanup_vms.py (-h | --help)
+    cleanup-vms [options]
+    cleanup-vms --version
+    cleanup-vms (-h | --help)
 
 Options:
     -h, --help          Prints this page
     --version           Prints current version
-    --no-color          Do not color terminal output
+    -n, --no-color      Do not color terminal output
     -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
+
+Examples:
+    cleanup-vms -vf logins.json
 
 """
 
@@ -38,7 +41,7 @@ import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
 
-__version__ = "0.5.6"
+__version__ = "0.5.7"
 
 
 def main():
