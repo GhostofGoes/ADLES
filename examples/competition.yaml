@@ -1,10 +1,10 @@
 metadata:
   name: "PRCCDC 2016 Competition Scenario definition"
-  description: "The competition scenario environment that students will use to compete"
+  description: "The competition scenario environment"
   activity: "Pacific Rim Collegiate Cyber Defense Competition"
   prefix: "PRCCDC"
   date-created: "2016-11-01"
-  version: "2.11.1"
+  version: "2.11.2"
   infrastructure-config-file: "infra.yaml"
   folder-name: "Competitions/PRCCDC/prccdc-2016"
 
@@ -68,10 +68,10 @@ networks:
 folders:
   external:
     group: "Black Team"
-    description: "The open competition network, where red team and the score bot sit" 
+    description: "The open competition network with red teams and scorebots" 
     services:
       edge-router: 
-        description: "Connection to outside internet"
+        description: "Connection to Internet"
         service: firewall
         networks: ["outside-world", "competition", "management"]
       competition-dc: 
@@ -93,7 +93,7 @@ folders:
     group: "Blue Team"
     services:
       gateway:
-        description: "Gateway connecting Blue team networks to the larger competition network"
+        description: "Gateway connecting Blue teams to main competition network"
         service: firewall
         networks: ["competition", "blue-hosts", "blue-services"]
       windows-hosts:

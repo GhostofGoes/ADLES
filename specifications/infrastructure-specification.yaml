@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    Febuary 6th, 2017
-# Current Version:  1.1.0
+# Current Version:  1.2.0
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -34,3 +34,12 @@ docker:
   registry: # Optional
     url: "url://"         # REQUIRED  URL of the registry
     login-file: "r.json"  # REQUIRED  JSON file containing login information for the Docker registry server
+
+# ** Amazon Web Services configurations **
+amazon-aws:
+  cred-file: "path"     # REQUIRED  Path to file with AWS access credentials
+  config-file: "path"   # Suggested   Path to file with service configurations
+
+# ** Digital Ocean configurations **
+digital-ocean:
+  token-file: "path"    # REQUIRED  Path to file containing access token
