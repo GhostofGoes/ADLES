@@ -16,7 +16,7 @@ import logging
 
 from pyVmomi import vim
 
-from adles.utils import check
+from adles.utils import check, split_path
 from adles.vsphere.vsphere_utils import is_folder, is_vm, wait_for_task
 
 
@@ -72,7 +72,7 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
 
 
 @check(vim.Folder, "folder")
-def traverse_path(folder, path, lookup_root=None):
+def traverse_path(folder, path, lookup_root=None, generate=False):
     """
     Traverses a folder path to find a object with a specific name
     :param folder: vim.Folder to search in
@@ -81,11 +81,7 @@ def traverse_path(folder, path, lookup_root=None):
     :return: Object at end of path
     """
     logging.debug("Traversing path '%s' from folder '%s'", path, folder.name)
-    from os.path import split
-    folder_path, name = split(path.lower())  # Separate basename and convert to lowercase
-    folder_path = folder_path.split('/')  # Transform path into list
-    if folder_path[0] == '':
-        del folder_path[0]
+    folder_path, name = split_path(path)
 
     # Check if root of the path is in the folder
     # This is to allow relative paths to be used if lookup_root is defined
@@ -102,10 +98,16 @@ def traverse_path(folder, path, lookup_root=None):
 
     current = folder  # Start with the defined folder
     for f in folder_path:  # Try each folder name in the path
+        found = None
         for item in current.childEntity:  # Iterate through items in the current folder
             if is_folder(item) and item.name.lower() == f:  # If Folder is part of path
-                current = item  # This is the next folder in the path
+                found = item  # This is the next folder in the path
                 break  # Break to outer loop to check this folder for the next part of the path
+        if generate and found is None:  # Can't find the folder, so create it
+            logging.warning("Generating folder %s in path", f)
+            create_folder(folder, f)  # Generate the folder
+        elif found is not None:
+            current = found
 
     if name != '':  # Since the split had a basename, look for an item with matching name
         return find_in_folder(current, name)
@@ -152,7 +154,7 @@ def format_structure(structure, indent=4, _depth=0):
     Converts a nested structure of folders into a formatted string
     :param structure: structure to format
     :param indent: Number of spaces to indent each level of nesting [default: 4]
-    :param _depth: Current depth (USE INTERNALLY BY FUNCTION)
+    :param _depth: Current depth (USED INTERNALLY BY FUNCTION)
     :return: Formatted string
     """
     fmat = ""

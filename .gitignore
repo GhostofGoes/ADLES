@@ -11,6 +11,9 @@ automation/vsphere.yaml
 **/logins.json
 **/vsphere.yaml
 **/server*.json
+**/red.yaml
+**/blue.yaml
+**/*-logins.json
 
 # Packaging
 pip-packages/

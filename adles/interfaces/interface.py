@@ -17,6 +17,7 @@ import logging
 from adles.utils import time_execution
 
 
+# TODO: subclass this for platform-sepcific interfaces
 class Interface:
     """ Generic interface used to uniformly interact with platform-specific interfaces. """
 
@@ -80,3 +81,18 @@ class Interface:
         # TODO: subprocess each interface call
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
+
+    def __repr__(self):
+        return "Interface(%s,%s" % (str(self.interfaces), str(self.infra))
+
+    def __str__(self):
+        return str([x for x in self.infra.keys()])
+
+    def __hash__(self):
+        return hash(self.interfaces)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.interfaces == other.interfaces
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

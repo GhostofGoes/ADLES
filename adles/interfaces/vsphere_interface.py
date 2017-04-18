@@ -14,6 +14,7 @@
 
 import logging
 from sys import exit
+import os.path
 
 import adles.vsphere.folder_utils as futils
 import adles.vsphere.vm_utils as vm_utils
@@ -88,9 +89,8 @@ class VsphereInterface:
         # Instantiate and initialize Groups
         self.groups = self._init_groups()
 
-        # Set the server root folder
+        # Set the server root folder (TODO: network folder in infrastructure spec)
         if "server-root" in infra:
-            # TODO: network folder in infrastructure spec
             self.server_root = self.server.get_folder(infra["server-root"])
             if not self.server_root:
                 logging.error("Could not find server-root folder '%s'", infra["server-root"])
@@ -99,16 +99,18 @@ class VsphereInterface:
             self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder
         logging.info("Server root folder: %s", self.server_root.name)
 
-        # Set environment root folder
-        # TODO: create folders along file path if it does not exist, notify user with a warning
+        # Set environment root folder (TODO: this can be simplified and consolidated)
         if "folder-name" not in self.metadata:
-            self.root_name = self.metadata["name"]
-            self.root_path = ""
-            self.root_folder = futils.traverse_path(self.server_root, self.root_name)
+            self.root_path, self.root_name = ("", self.metadata["name"])
+            self.root_folder = futils.traverse_path(folder=self.server_root,
+                                                    path=self.root_name,
+                                                    generate=True)
         else:
-            from os.path import split
-            self.root_path, self.root_name = split(self.metadata["folder-name"])
-            self.root_folder = futils.traverse_path(self.server_root, self.metadata["folder-name"])
+            self.root_path, self.root_name = os.path.split(self.metadata["folder-name"])
+            self.root_folder = futils.traverse_path(folder=self.server_root,
+                                                    path=self.metadata["folder-name"],
+                                                    generate=True)
+
         logging.debug("Environment root folder name: %s", self.root_name)
         if not self.root_folder:  # Create if it's not found
             parent = futils.traverse_path(self.server_root, self.root_path)
@@ -145,7 +147,8 @@ class VsphereInterface:
         # Initialize Active Directory-type Group user names
         ad_groups = get_ad_groups(groups)
         for g in ad_groups:
-            res = self.server.get_users(belong_to_group=g.ad_group, find_users=True)
+            # res = self.server.get_users(belong_to_group=g.ad_group, find_users=True) (TODO)
+            res = None
             if res is not None:
                 for r in res:
                     if r.group is True:  # Reference: pyvmomi/docs/vim/UserSearchResult.rst
@@ -180,7 +183,7 @@ class VsphereInterface:
         logging.info("Created master folder '%s' under folder '%s'",
                      VsphereInterface.master_root_name, self.root_name)
 
-        # TODO: implement configuration of "network-interface" in the services top-level section
+        # TODO: implement configuration of "network-interface" in the "services" top-level section
         # Create networks for master instances
         for net in self.networks:  # Iterate through the base types
             self._create_master_networks(net_type=net, default_create=True)
@@ -577,10 +580,10 @@ class VsphereInterface:
                 if "number" in spec["instances"]:
                     num = int(spec["instances"]["number"])
                 elif "size-of" in spec["instances"]:
-                    size_of = spec["instances"]["size-of"]
-                    num = int(self._get_group(size_of).size)
-                    if num < 1:  # TODO: WORKAROUND FOR AD-GROUPS
-                        num = 1  # Need to implement template group size resolution
+                    # size_of = spec["instances"]["size-of"]
+                    # num = int(self._get_group(size_of).size)
+                    # if num < 1:
+                    num = 1  # TODO: WORKAROUND FOR AD-GROUPS
                 else:
                     logging.error("Unknown instances specification: %s", str(spec["instances"]))
                     num = 0
@@ -713,3 +716,19 @@ class VsphereInterface:
         # Cleanup networks (TODO: use network folders to aid in this, during creation phase)
         if network_cleanup:
             pass
+
+    def __repr__(self):
+        return str("VsphereInterface(%s,%s)" % (str(self.infra), str(self.spec)))
+
+    def __str__(self):
+        return str(self.server) + str(self.groups) + str(self.hosts)
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.server == other.server and \
+               self.groups == other.groups and self.hosts == other.hosts
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

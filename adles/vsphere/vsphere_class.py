@@ -89,23 +89,6 @@ class Vsphere:
 
         logging.debug("Finished initializing vSphere")
 
-    def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.hostname == other.hostname \
-               and self.port == other.port and self.username == other.username
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash((self.hostname, self.port, self.username))
-
-    def __repr__(self):
-        return "vSphere({}, {}, {}:{})".format(self.datacenter.name, self.datastore.name,
-                                               self.hostname, self.port)
-
-    def __str__(self):
-        return str(self.get_server_info())
-
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
     def create_folder(self, folder_name, create_in=None):
         """
@@ -459,3 +442,20 @@ class Vsphere:
         :return: vim.ManagedEntity
         """
         return self.content.searchIndex.FindByInventoryPath(inventoryPath=str(path))
+
+    def __repr__(self):
+        return "vSphere(%s, %s, %s:%s)" % (self.datacenter.name, self.datastore.name,
+                                           self.hostname, self.port)
+
+    def __str__(self):
+        return str(self.get_server_info())
+
+    def __hash__(self):
+        return hash((self.hostname, self.port, self.username))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.hostname == other.hostname \
+               and self.port == other.port and self.username == other.username
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

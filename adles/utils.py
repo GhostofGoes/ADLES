@@ -132,6 +132,19 @@ def read_json(filename):
         return None
 
 
+def split_path(path):
+    """
+    
+    :param path: 
+    :return: (Path, basename)
+    """
+    folder_path, name = os.path.split(path.lower())  # Separate basename and convert to lowercase
+    folder_path = folder_path.split('/')  # Transform path into list
+    if folder_path[0] == '':
+        del folder_path[0]
+    return folder_path, name
+
+
 def make_vsphere(filename=None):
     """
     Creates a vSphere object using either a JSON file or by prompting the user
