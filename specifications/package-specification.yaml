@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    March 29th, 2017
-# Current Version:  0.1.3
+# Current Version:  0.1.4
 # Changelog:
 #   0.1.0:  Created
 
@@ -27,7 +27,7 @@ metadata:
   tag: "tag-name"     # REQUIRED   Unique identifier for this package
   name: "name of package"     # Suggested  Human-readable name for the package  [default: filename]
   description: "description"  # Suggested  Human-readable detailed description of package
-  version: "0.0.0"            # Optional   Semantic version of the package: major.minor.bugfix
+  version: "0.0.0"            # Suggested  Semantic version of the package: major.minor.bugfix
 
 contents:
   environment: "enviro-spec.yaml"   # REQUIRED    Name of the file containing the environment specification

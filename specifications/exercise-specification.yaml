@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    October 12th, 2016
-# Current Version:  0.6.1
+# Current Version:  0.7.1
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
@@ -23,7 +23,7 @@
 #   0.5.6:  Removed excess tabbing/spacing/words, renamed "normal" folders to "base", changed date-created and activity to Optional, changed version to suggested (04-04-2017)
 #   0.6.0:  Revamped networks. Removed base, replaced with increment flag, fundamentally changed generic. (04-07-2017)
 #   0.6.1:  Made "name" suggested, and to default to the filename of the spec (04-07-2017)
-#
+#   0.7.0:  Added Resource-config, added Provisioners, added dockerfiles (04-19-2017)
 #
 
 # *** Syntax inspirations ***
@@ -66,7 +66,7 @@ metadata:
 
 
 # ** Groups/Teams **
-# User groups, such as teams, students, instructors, etc
+# User groups, such as teams, students or instructors
 # These are used to apply permissions to the resources and machines in the generated virtual exercise environment
 groups:
   Group Regular Example:
@@ -84,15 +84,14 @@ groups:
 
 # ** Services **
 # Definition of the services that will be created in the exercise environment, such as hosts, servers, and routers
-# Case insensitive EXCEPT for resources, such as templates or images
+# Case insensitive EXCEPT for names of sources, such as templates or images
 # Networks are attached to interfaces in order of their definition, unless explicitly mapped
-# If containers are used, a GitLab server or Docker registry MUST be specified in the infrastructure-config file
 # Three types of services: template, container, compose
 # template:     Templatized VM in vSphere
 # container:    Docker container
 # compose:      Docker Compose file
 services:
-  all-service-types:  # Configurations that can appear in any of three service types
+  all-service-types:  # Configurations that can appear in any service definition
     note: "A note"          # Optional    Human-readable note visible by end-user, such as default username/password
     network-interfaces: []  # Optional    List of network interfaces and their optional configurations  [default: template or container specific]
     provisioner:  # Optional
@@ -103,8 +102,8 @@ services:
       memory: 0       # Optional  Amount of RAM in MB
       storage: 0      # Optional  Amount of persistent storage in GB
   template-based-service:   # Option A
-    template: "name of template"  # REQUIRED
-    template-config:        # Optional    Configuration of Template settings using key-value pairs
+    template: "name"  # REQUIRED
+    template-config:  # Optional    Configuration of Template settings using key-value pairs
       key: "value"
     guest-extensions: no    # Optional    Guest extensions will be installed or enabled (e.g VMware Tools)
   container-based-service:  # Option B
@@ -115,7 +114,7 @@ services:
 
 
 # ** Resources **
-# Cyber-physical resources that are to be utilized. These will be attached to folders, networks, or groups as needed
+# Cyber-physical resources that are to be utilized. These will be attached to folders, networks, or groups as needed.
 # Examples: A wireless testbed or SCADA testbed in RADICL, a transformer in the power lab. 
 resources:
   resource-p:
