@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    Febuary 6th, 2017
-# Current Version:  1.2.0
+# Current Version:  1.3.0
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -15,7 +15,7 @@
 # Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
 
 
-# ** VMware vSphere configurations **
+# VMware vSphere
 vmware-vsphere:
   hostname: "hostname"            # REQUIRED    Hostname of the vCenter server
   port: 0                         # Suggested   Port used to connect to the vCenter server [default: 443]
@@ -27,7 +27,7 @@ vmware-vsphere:
   vswitch: "vswitch name"         # Suggested   Name of vSwitch to use as default
   host-list: ["a", "b"]           # Optional    List of names of ESXi hosts to use [default: first host found in the datacenter]
 
-# ** Docker configurations **
+# Docker
 docker:
   url: "host:port"        # Suggested   URL to the Docker server [default: unix:///var/run/docker.sock]
   tls: true               # Optional    Use TLS to connect to the Docker server [default: True]
@@ -35,11 +35,19 @@ docker:
     url: "url://"         # REQUIRED  URL of the registry
     login-file: "r.json"  # REQUIRED  JSON file containing login information for the Docker registry server
 
-# ** Amazon Web Services configurations **
+# Amazon Web Services
 amazon-aws:
   cred-file: "path"     # REQUIRED  Path to file with AWS access credentials
   config-file: "path"   # Suggested   Path to file with service configurations
 
-# ** Digital Ocean configurations **
+# Digital Ocean
 digital-ocean:
   token-file: "path"    # REQUIRED  Path to file containing access token
+
+# Microsoft Hyper-V Server
+hyper-v:
+  hostname: "hostname"    # REQUIRED    Hostname of the Hyper-V server
+  port: 0                 # Suggested   Port used to connect to Hyper-V server
+  login-file: "path"      # REQUIRED    Path to file containing login information for the Hyper-V server
+  version: "v2"           # Suggested   Version of the Hyper-V API to use
+  vswitch: "name"         # Suggested   Name of VirtualEthernetSwitch to use as default

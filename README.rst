@@ -47,7 +47,7 @@ System requirements
 Client software
 ---------------
 
-**Python**: 3.4+ (Reccomended), 2.7.6+
+**Python**: 3.4+ (Recommended), 2.7.6+
 
 
 Note on 2.7: While efforts have been made to maintain backward compatibility, Python 2.7 will be deprecated in
