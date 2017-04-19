@@ -95,14 +95,21 @@ services:
   all-service-types:  # Configurations that can appear in any of three service types
     note: "A note"          # Optional    Human-readable note visible by end-user, such as default username/password
     network-interfaces: []  # Optional    List of network interfaces and their optional configurations  [default: template or container specific]
+    provisioner:  # Optional
+      name: "name"  # REQUIRED  Name of provisioning tool, e.g Ansible, Chef, Puppet
+      file: "file"  # REQUIRED  File to use for provisioner, e.g Playbook, Cookbook, Manifest
+    resource-config:  # Optional  Resource allocation configurations for the service
+      cpu-cores: 0    # Optional  Number of CPU cores
+      memory: 0       # Optional  Amount of RAM in MB
+      storage: 0      # Optional  Amount of persistent storage in GB
   template-based-service:   # Option A
     template: "name of template"  # REQUIRED
     template-config:        # Optional    Configuration of Template settings using key-value pairs
       key: "value"
     guest-extensions: no    # Optional    Guest extensions will be installed or enabled (e.g VMware Tools)
   container-based-service:  # Option B
-    image: "name of docker image" # REQUIRED
-    tag: "tag for the image"      # Optional    [default: "default"]
+    dockerfile: "file"  # Option A    Dockerfile to build a image
+    image: "name/tag"   # Option B    Name and Tag of a pre-built image
   compose-based-service:    # Option C
     compose-file: "filename.yml"  # REQUIRED
 
@@ -162,6 +169,7 @@ folders:
           service: service-label  # REQUIRED    Label as defined in services
           instances: 10           # Optional    Same configurations as for base-type folders
           networks: ["subnet-a", "subnet-b"]    # Optional    Networks to attach the service instance to (Case sensitive!)
+          provisioner-file: "file"  # Optional  Override provisioner configuration file for a service
           scoring:  # Optional    Scoring for the service (e.g a competition, or verification of homework)
             ports: [0]            # Suggested   Ports used for scoring
             protocols: ["proto"]  # Suggested   Protocols used for scoring
