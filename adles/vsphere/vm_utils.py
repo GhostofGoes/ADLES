@@ -517,9 +517,9 @@ def get_nic_by_name(vm, name):
 def get_nic_by_id(vm, nic_id):
     """
     Get a vNIC by integer ID
-    :param vm: 
-    :param nic_id: 
-    :return: 
+    :param vm: vim.VirtualMachine
+    :param nic_id: ID of the vNIC
+    :return: vim.vm.device.VirtualEthernetCard
     """
     return get_nic_by_name(vm, "Network Adapter " + str(nic_id))
 
@@ -575,7 +575,6 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
     else:
         logging.error("Invalid NIC model: '%s'\nDefaulting to e1000...", model)
         nic_spec.device = vim.vm.device.VirtualE1000()
-
     nic_spec.device.addressType = 'generated'  # Sets how MAC address is assigned
     nic_spec.device.wakeOnLanEnabled = False  # Disables Wake-on-lan capabilities
 
@@ -609,7 +608,6 @@ def edit_nic(vm, nic_id, port_group=None, summary=None):
     nic_label = 'Network adapter ' + str(nic_id)
     logging.debug("Changing '%s' on VM '%s'", nic_label, vm.name)
     virtual_nic_device = get_nic_by_name(vm, nic_label)
-
     if not virtual_nic_device:
         logging.error('Virtual %s could not be found!', nic_label)
         return
@@ -617,15 +615,12 @@ def edit_nic(vm, nic_id, port_group=None, summary=None):
     nic_spec = vim.vm.device.VirtualDeviceSpec()
     nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
     nic_spec.device = virtual_nic_device
-
     if summary:
         nic_spec.device.deviceInfo.summary = str(summary)
-
     if port_group:
         logging.debug("Changing PortGroup to: '%s'", port_group.name)
         nic_spec.device.backing.network = port_group
         nic_spec.device.backing.deviceName = port_group.name
-
     edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
 
 

@@ -18,20 +18,21 @@ from pyVmomi import vim
 
 import adles.utils as utils
 from adles.vsphere.vsphere_utils import wait_for_task, is_vnic
+from adles.vsphere.folder_utils import find_in_folder
 
 
 class VM:
     """ Represents a VMware vSphere Virtual Machine instance. """
     __version__ = "0.1.0"
 
-    def __init__(self, name, folder, resource_pool, datastore, host, vm):
+    def __init__(self, name, folder, resource_pool, datastore, host):
         """
+        NOTE: VM.create() must be called post-init
         :param name: Name of the VM
         :param folder: Name of the folder VM is located
         :param resource_pool: Resource pool to use for the VM
         :param datastore: Datastore the VM is stored on
         :param host: Host the VM runs on
-        :param vm: vim.VirtualMachine to use for the VM
         """
         self._log = logging.getLogger('VM')
         self.name = str(name)
@@ -39,15 +40,7 @@ class VM:
         self.resource_pool = resource_pool  # vim.Pool or something object
         self.datastore = datastore      # vim.Datastore object
         self.host = host        # vim.HostSystem, but may be Host class soon
-        if isinstance(vm, vim.VirtualMachine):
-            self._vm = vm
-            if name != self._vm.name:
-                logging.error("Names do not match for '%s'", name)
-            self.name = self._vm.name
-        else:
-            self._log.error("Invalid type '%s' for VM initializer, must be vim.VirtualMachine",
-                            type(vm))
-            exit(1)
+        self._vm = None
 
     def create(self, template=None, cpus=1, cores=1, memory=512, max_consoles=None,
                version=None, firmware='efi', datastore_path=None):
@@ -97,6 +90,7 @@ class VM:
             spec.files = vim.vm.FileInfo(vmPathName=vm_path)
             self._log.debug("Creating VM '%s' in folder '%s'", self.name, self.folder.name)
             wait_for_task(self.folder.CreateVM_Task(spec, self.resource_pool, self.host))
+        self._vm = find_in_folder(self.folder, self.name, vimtype=vim.VirtualMachine)
 
     def destroy(self):
         """ Destroy the VM """
@@ -191,13 +185,6 @@ class VM:
         spec = vim.vm.ConfigSpec()
         spec.annotation = note
         self._edit(spec)
-
-    def get_nics(self):
-        """
-        Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
-        :return: list of vim.vm.device.VirtualEthernetCard
-        """
-        return [dev for dev in self._vm.config.hardware.device if is_vnic(dev)]
 
     def get_vm_info(self, detailed=False, uuids=False, snapshot=False, vnics=False):
         """
@@ -361,9 +348,140 @@ class VM:
         Removes the device from the VM
         :param device: vim.vm.device.VirtualDeviceSpec
         """
-        logging.debug("Removing device '%s' from VM '%s'", device.name, self.name)
+        logging.debug("Removing device '%s' from '%s'", device.name, self.name)
         device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
         self._edit(vim.vm.ConfigSpec(deviceChange=[device]))
+
+    def get_nics(self):
+        """
+        Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
+        :return: list of vim.vm.device.VirtualEthernetCard
+        """
+        return [dev for dev in self._vm.config.hardware.device if is_vnic(dev)]
+
+    def get_nic_by_name(self, name):
+        """
+        Gets a Virtual Network Interface Card from a VM
+        :param name: Name of the vNIC
+        :return: vim.vm.device.VirtualEthernetCard
+        """
+        for dev in self._vm.config.hardware.device:
+            if is_vnic(dev) and dev.deviceInfo.label.lower() == name.lower():
+                return dev
+        logging.debug("Could not find vNIC '%s' on '%s'", name, self.name)
+        return None
+
+    def get_nic_by_id(self, nic_id):
+        """
+        Get a vNIC by integer ID
+        :param nic_id: ID of the vNIC
+        :return: vim.vm.device.VirtualEthernetCard
+        """
+        return self.get_nic_by_name("Network Adapter " + str(nic_id))
+
+    def get_nic_by_network(self, network):
+        """
+        Finds a vNIC by it's network backing
+        :param network: vim.Network
+        :return: Name of the vNIC
+        """
+        for dev in self._vm.config.hardware.device:
+            if is_vnic(dev) and dev.backing.network == network:
+                return dev
+        logging.debug("Could not find vNIC with network '%s' on '%s'", network.name, self.name)
+        return None
+
+    def add_nic(self, network, summary="default-summary", model="e1000"):
+        """
+        Add a NIC in the portgroup to the VM
+        :param network: vim.Network to attach NIC to
+        :param summary: Human-readable device info [default: default-summary]
+        :param model: Model of virtual network adapter. [default: e1000]
+        Options: (e1000 | e1000e | vmxnet | vmxnet2 | vmxnet3)
+        e1000 will work on Windows Server 2003+, and e1000e is supported on Windows Server 2012+.
+        VMXNET adapters require VMware Tools to be installed, and provide enhanced performance.
+        Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
+        """
+        if not isinstance(network, vim.Network):
+            logging.error("Invalid network type when adding vNIC to VM '%s': %s",
+                          self.name, type(network).__name__)
+        logging.debug("Adding NIC to VM '%s'\nNetwork: '%s'\tSummary: '%s'\tNIC Model: '%s'",
+                      self.name, network.name, summary, model)
+        nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create base object to add configurations to
+        nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
+
+        # Set the type of network adapter
+        if model == "e1000":
+            nic_spec.device = vim.vm.device.VirtualE1000()
+        elif model == "e1000e":
+            nic_spec.device = vim.vm.device.VirtualE1000e()
+        elif model == "vmxnet":
+            nic_spec.device = vim.vm.device.VirtualVmxnet()
+        elif model == "vmxnet2":
+            nic_spec.device = vim.vm.device.VirtualVmxnet2()
+        elif model == "vmxnet3":
+            nic_spec.device = vim.vm.device.VirtualVmxnet3()
+        else:
+            logging.error("Invalid NIC model: '%s'\nDefaulting to e1000...", model)
+            nic_spec.device = vim.vm.device.VirtualE1000()
+        nic_spec.device.addressType = 'generated'  # Sets how MAC address is assigned
+        nic_spec.device.wakeOnLanEnabled = False  # Disables Wake-on-lan capabilities
+
+        nic_spec.device.deviceInfo = vim.Description()
+        nic_spec.device.deviceInfo.summary = summary
+
+        nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
+        nic_spec.device.backing.useAutoDetect = False
+        nic_spec.device.backing.network = network  # Sets port group to assign adapter to
+        nic_spec.device.backing.deviceName = network.name  # Sets name of device on host system
+
+        nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
+        nic_spec.device.connectable.startConnected = True  # Ensures adapter is connected at boot
+        nic_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
+        nic_spec.device.connectable.connected = True
+        nic_spec.device.connectable.status = 'untried'
+        # TODO: configure guest IP address if statically assigned
+        self._edit(vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply change to VM
+
+    def edit_nic(self, nic_id, port_group=None, summary=None):
+        """
+        Edits a VM NIC based on it's number
+        :param nic_id: Number of network adapter on VM
+        :param port_group: vim.Network object to assign NIC to [default: None]
+        :param summary: Human-readable device description [default: None]
+        """
+        nic_label = 'Network adapter ' + str(nic_id)
+        logging.debug("Changing '%s' on VM '%s'", nic_label, self.name)
+        virtual_nic_device = self.get_nic_by_name(nic_label)
+        if not virtual_nic_device:
+            logging.error('Virtual %s could not be found!', nic_label)
+            return
+        nic_spec = vim.vm.device.VirtualDeviceSpec()
+        nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
+        nic_spec.device = virtual_nic_device
+        if summary:
+            nic_spec.device.deviceInfo.summary = str(summary)
+        if port_group:
+            logging.debug("Changing PortGroup to: '%s'", port_group.name)
+            nic_spec.device.backing.network = port_group
+            nic_spec.device.backing.deviceName = port_group.name
+        self._edit(vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply change to VM
+
+    def delete_nic(self, nic_number):
+        """
+        Deletes VM vNIC based on it's number
+        :param nic_number: Integer unit of the vNIC to delete
+        """
+        nic_label = 'Network adapter ' + str(nic_number)
+        logging.debug("Removing Virtual %s from '%s'", nic_label, self.name)
+        virtual_nic_device = self.get_nic_by_name(nic_label)
+        if virtual_nic_device is not None:
+            virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
+            virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
+            virtual_nic_spec.device = virtual_nic_device
+            self._edit(vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply change to VM
+        else:
+            logging.error("Virtual %s could not be found for '%s'", nic_label, self.name)
 
     def attach_iso(self, iso_name, datastore, boot=True):
         """
@@ -372,7 +490,7 @@ class VM:
         :param datastore: vim.Datastore where the ISO resides
         :param boot: Set VM to boot from the attached ISO
         """
-        logging.debug("Adding ISO '%s' to VM '%s'", iso_name, self.name)
+        logging.debug("Adding ISO '%s' to '%s'", iso_name, self.name)
         drive_spec = vim.vm.device.VirtualDeviceSpec()
         drive_spec.device = vim.vm.device.VirtualCdrom()
         drive_spec.device.key = -1
@@ -383,7 +501,7 @@ class VM:
         if controller:
             drive_spec.device.controllerKey = controller.key
         else:
-            logging.error("Could not find a free IDE controller on VM '%s' to attach ISO '%s'",
+            logging.error("Could not find a free IDE controller on '%s' to attach ISO '%s'",
                           self.name, iso_name)
             return
 
@@ -397,14 +515,12 @@ class VM:
 
         drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
         vm_spec = vim.vm.ConfigSpec(deviceChange=[drive_spec])
-
         if boot:  # Set the VM to boot from the ISO upon power on
             logging.debug("Setting '%s' to boot from ISO '%s'", self.name, iso_name)
             order = [vim.vm.BootOptions.BootableCdromDevice()]
             order.extend(list(self._vm.config.bootOptions.bootOrder))
             vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)
-
-        self._edit(vm_spec)  # Apply the change to the VM
+        self._edit(vm_spec)  # Apply change to VM
 
     def _find_free_ide_controller(self):
         """
@@ -466,7 +582,7 @@ class VM:
             logging.error("Cannot edit VM '%s': invalid Datastore '%s'", self.name, e.datastore)
 
     def __str__(self):
-        return str(self.get_vm_info(detailed=True, uuids=True, snapshot=True, vnics=True))
+        return str(self.name)
 
     def __hash__(self):
         return hash(self._vm.summary.config.instanceUuid)
