@@ -677,7 +677,7 @@ def attach_iso(vm, iso_name, datastore, boot=True):
         return
 
     drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
-    drive_spec.device.backing.fileName = "[{0}] {1}".format(datastore.name, iso_name)  # Attach ISO
+    drive_spec.device.backing.fileName = "[%s] %s" % (datastore.name, iso_name)  # Attach ISO
     drive_spec.device.backing.datastore = datastore  # Set datastore ISO is in
 
     drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()

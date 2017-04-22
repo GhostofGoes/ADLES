@@ -14,7 +14,7 @@
 
 import logging
 
-from pyVmomi import vim, vmodl
+from pyVmomi import vim
 
 import adles.utils as utils
 from adles.vsphere.vsphere_utils import wait_for_task

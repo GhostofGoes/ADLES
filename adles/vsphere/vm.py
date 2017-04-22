@@ -14,7 +14,7 @@
 
 import logging
 
-from pyVmomi import vim, vmodl
+from pyVmomi import vim
 
 import adles.utils as utils
 from adles.vsphere.vsphere_utils import wait_for_task, is_vnic
@@ -364,6 +364,47 @@ class VM:
         logging.debug("Removing device '%s' from VM '%s'", device.name, self.name)
         device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
         self._edit(vim.vm.ConfigSpec(deviceChange=[device]))
+
+    def attach_iso(self, iso_name, datastore, boot=True):
+        """
+        Attaches an ISO image to a VM
+        :param iso_name: Name of the ISO image to attach
+        :param datastore: vim.Datastore where the ISO resides
+        :param boot: Set VM to boot from the attached ISO
+        """
+        logging.debug("Adding ISO '%s' to VM '%s'", iso_name, self.name)
+        drive_spec = vim.vm.device.VirtualDeviceSpec()
+        drive_spec.device = vim.vm.device.VirtualCdrom()
+        drive_spec.device.key = -1
+        drive_spec.device.unitNumber = 0
+
+        # Find a disk controller to attach to
+        controller = self._find_free_ide_controller()
+        if controller:
+            drive_spec.device.controllerKey = controller.key
+        else:
+            logging.error("Could not find a free IDE controller on VM '%s' to attach ISO '%s'",
+                          self.name, iso_name)
+            return
+
+        drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
+        drive_spec.device.backing.fileName = "[%s] %s" % (datastore.name, iso_name)  # Attach ISO
+        drive_spec.device.backing.datastore = datastore  # Set datastore ISO is in
+
+        drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
+        drive_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
+        drive_spec.device.connectable.startConnected = True  # Ensures ISO is connected at boot
+
+        drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
+        vm_spec = vim.vm.ConfigSpec(deviceChange=[drive_spec])
+
+        if boot:  # Set the VM to boot from the ISO upon power on
+            logging.debug("Setting '%s' to boot from ISO '%s'", self.name, iso_name)
+            order = [vim.vm.BootOptions.BootableCdromDevice()]
+            order.extend(list(self._vm.config.bootOptions.bootOrder))
+            vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)
+
+        self._edit(vm_spec)  # Apply the change to the VM
 
     def _find_free_ide_controller(self):
         """
