@@ -78,6 +78,7 @@ def traverse_path(folder, path, lookup_root=None, generate=False):
     :param folder: vim.Folder to search in
     :param path: String with path in POSIX format (Templates/Windows/ to get the 'Windows' folder)
     :param lookup_root: If root of path is not found in folder, lookup using this Vsphere object
+    :param generate: Parts of the path that do not exist are created.
     :return: Object at end of path
     """
     logging.debug("Traversing path '%s' from folder '%s'", path, folder.name)
@@ -172,16 +173,6 @@ def format_structure(structure, indent=4, _depth=0):
         logging.error("Unexpected type in folder structure for item '%s': %s",
                       str(structure), type(structure))
     return fmat
-
-
-@check(vim.Folder, "folder")
-def move_into_folder(folder, entity_list):
-    """
-    Moves a list of managed entities into the named folder.
-    :param folder: vim.Folder object with type matching the entity list
-    :param entity_list: List of vim.ManagedEntity
-    """
-    wait_for_task(folder.MoveIntoFolder_Task(entity_list))
 
 
 @check(vim.Folder, "folder")

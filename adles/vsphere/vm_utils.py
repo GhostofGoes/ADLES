@@ -159,10 +159,9 @@ def upgrade_vm(vm, version=''):
 @utils.check(vim.VirtualMachine, "vm")
 def change_vm_state(vm, state, attempt_guest=True):
     """
-    Generic power state change function that uses guest operations if available
     :param vm: vim.VirtualMachine object to change state of
     :param state: State to change to (on | off | reset | suspend)
-    :param attempt_guest:
+    :param attempt_guest: Whether to attempt to use guest operations to change power state
     """
     if is_template(vm):
         logging.error("VM '%s' is a Template, so state cannot be changed to '%s'", vm.name, state)
@@ -356,7 +355,7 @@ def get_all_snapshots(vm):
 def _get_snapshots_recursive(snap_tree):
     """
     Recursively finds all snapshots in the tree
-    :param snap_tree:
+    :param snap_tree: Tree of snapshots
     :return: Nested List of vim.Snapshot objects
     """
     local_snap = []
@@ -412,7 +411,6 @@ def snapshot_disk_usage(vm):
         ss_disk = search('0000\d\d', disk.name)
         if ss_disk:
             size += disk.size
-
     return utils.sizeof_fmt(size)
 
 
@@ -467,11 +465,9 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False, vnics=False):
         info_string += "Question      : %s\n" % summary.runtime.question.text
     if summary.config.annotation:
         info_string += "Annotation    : %s\n" % summary.config.annotation
-
     if snapshot and vm.snapshot and hasattr(vm.snapshot, 'currentSnapshot'):
         info_string += "Current Snapshot: %s\n" % vm.snapshot.currentSnapshot.config.name
         info_string += "Disk usage of all snapshots: %s\n" % snapshot_disk_usage(vm=vm)
-
     if detailed and summary.runtime:
         info_string += "Last Poweron  : %s\n" % str(summary.runtime.bootTime)  # datetime object
         info_string += "Max CPU usage : %s\n" % summary.runtime.maxCpuUsage
