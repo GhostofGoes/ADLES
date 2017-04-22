@@ -23,7 +23,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder, find_in_fol
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.7"
+    __version__ = "0.9.8"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -38,8 +38,9 @@ class Vsphere:
         :param port: Port used to connect to vCenter instance [default: 443]
         :param use_ssl: If SSL should be used to connect [default: False]
         """
-        logging.debug("Initializing Vsphere %s\nDatacenter: %s\nDatastore: %s\nSSL: %s",
-                      Vsphere.__version__, datacenter, datastore, str(use_ssl))
+        self._log = logging.getLogger('Vsphere')
+        self._log.debug("Initializing Vsphere %s\nDatacenter: %s\nDatastore: %s\nSSL: %s",
+                        Vsphere.__version__, datacenter, datastore, str(use_ssl))
         if username is None:
             username = str(input("Enter username for vSphere: "))
         if password is None:
@@ -48,26 +49,24 @@ class Vsphere:
         if hostname is None:
             hostname = str(input("Enter hostname for vSphere: "))
         try:
-            logging.info("Connecting to vSphere: %s@%s:%d",
-                         username, hostname, port)
+            self._log.info("Connecting to vSphere: %s@%s:%d", username, hostname, port)
             if use_ssl:  # Connect to server using SSL certificate verification
-                self.server = SmartConnect(host=hostname, user=username, pwd=password,
-                                           port=port)
+                self.server = SmartConnect(host=hostname, user=username, pwd=password, port=port)
             else:
                 self.server = SmartConnectNoSSL(host=hostname, user=username, pwd=password,
                                                 port=port)
         except vim.fault.InvalidLogin:
-            logging.error("Invalid vSphere login credentials for user %s", username)
+            self._log.error("Invalid vSphere login credentials for user %s", username)
             exit(1)
         except Exception as e:
-            logging.error("An exception occurred while trying to connect to vSphere: %s", str(e))
+            self._log.error("An exception occurred while trying to connect to vSphere: %s", str(e))
             exit(1)
 
         from atexit import register
         register(Disconnect, self.server)  # Ensures connection to server is closed on program exit
 
-        logging.info("Connected to vSphere host %s:%d", hostname, port)
-        logging.debug("Current server time: %s", str(self.server.CurrentTime()))
+        self._log.info("Connected to vSphere host %s:%d", hostname, port)
+        self._log.debug("Current server time: %s", str(self.server.CurrentTime()))
 
         self.username = username
         self.hostname = hostname
@@ -79,15 +78,15 @@ class Vsphere:
 
         self.datacenter = self.get_item(vim.Datacenter, name=datacenter)
         if not self.datacenter:
-            logging.error("Could not find a datacenter to initialize with!")
+            self._log.error("Could not find a datacenter to initialize with!")
             exit(1)
 
         self.datastore = self.get_datastore(datastore)
         if not self.datastore:
-            logging.error("Could not find a datastore to initialize with!")
+            self._log.error("Could not find a datastore to initialize with!")
             exit(1)
 
-        logging.debug("Finished initializing vSphere")
+        self._log.debug("Finished initializing vSphere")
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
     def create_folder(self, folder_name, create_in=None):
@@ -100,7 +99,7 @@ class Vsphere:
         """
         if create_in:
             if type(create_in) is str:  # create_in is a string, so we look it up on the server
-                logging.debug("Retrieving parent folder '%s' from server", create_in)
+                self._log.debug("Retrieving parent folder '%s' from server", create_in)
                 parent = self.get_folder(folder_name=create_in)
             else:
                 parent = create_in  # create_in is a vim.Folder object, so we just assign it
@@ -132,7 +131,7 @@ class Vsphere:
         Sets vCenter server Message of the Day (MOTD)
         :param message: Message to set
         """
-        logging.info("Setting vCenter MOTD to %s", message)
+        self._log.info("Setting vCenter MOTD to %s", message)
         self.content.sessionManager.UpdateServiceMessage(message=message)
 
     def set_entity_permissions(self, entity, permission):
@@ -144,22 +143,22 @@ class Vsphere:
         try:
             self.auth.SetEntityPermissions(entity=entity, permission=permission)
         except vim.fault.UserNotFound as e:
-            logging.error("Could not find user '%s' to set permission '%s' on entity '%s'",
-                          e.principal, str(permission), entity.name)
+            self._log.error("Could not find user '%s' to set permission '%s' on entity '%s'",
+                            e.principal, str(permission), entity.name)
         except vim.fault.NotFound:
-            logging.error("Invalid role ID for permission '%s'", str(permission))
+            self._log.error("Invalid role ID for permission '%s'", str(permission))
         except vmodl.fault.ManagedObjectNotFound as e:
-            logging.error("Entity '%s' does not exist to set permission on", str(e.obj))
+            self._log.error("Entity '%s' does not exist to set permission on", str(e.obj))
         except vim.fault.NoPermission as e:
-            logging.error("Could not set permissions for entity '%s': the current session "
-                          "does not have privilege '%s' to set permissions for the entity '%s'",
-                          entity.name, e.privilegeId, e.object)
+            self._log.error("Could not set permissions for entity '%s': the current session "
+                            "does not have privilege '%s' to set permissions for the entity '%s'",
+                            entity.name, e.privilegeId, e.object)
         except vmodl.fault.InvalidArgument as e:
-            logging.error("Invalid argument to set permission '%s' on entity '%s': %s",
-                          entity.name, str(permission), str(e))
+            self._log.error("Invalid argument to set permission '%s' on entity '%s': %s",
+                            entity.name, str(permission), str(e))
         except Exception as e:
-            logging.error("Unknown error while setting permissions for entity '%s': %s",
-                          entity.name, str(e))
+            self._log.error("Unknown error while setting permissions for entity '%s': %s",
+                            entity.name, str(e))
 
     def get_entity_permissions(self, entity, inherited=True):
         """
@@ -171,7 +170,7 @@ class Vsphere:
         try:
             return self.auth.RetrieveEntityPermissions(entity=entity, inherited=inherited)
         except vmodl.fault.ManagedObjectNotFound as e:
-            logging.error("Could not find entity '%s' to get permissions from", str(e.obj))
+            self._log.error("Could not find entity '%s' to get permissions from", str(e.obj))
             return None
 
     def get_role_permissions(self, role_id):
@@ -183,7 +182,7 @@ class Vsphere:
         try:
             return self.auth.RetrieveRolePermissions(roleId=int(role_id))
         except vim.fault.NotFound:
-            logging.error("Role ID %d does not exist", int(role_id))
+            self._log.error("Role ID %d does not exist", int(role_id))
             return None
 
     def get_users(self, search='', domain='', exact=False,
@@ -215,11 +214,11 @@ class Vsphere:
         try:
             return self.user_dir.RetrieveUserGroups(**kwargs)
         except vim.fault.NotFound:
-            logging.debug("Could not find domain, group or user in call to get_users"
-                          "\nkwargs: %s", str(kwargs))
+            self._log.debug("Could not find domain, group or user in call to get_users"
+                            "\nkwargs: %s", str(kwargs))
             return None
         except vmodl.fault.NotSupported:
-            logging.error("System does not support domains or by-membership queries for get_users")
+            self._log.error("System doesn't support domains or by-membership queries for get_users")
             return None
 
     def get_server_info(self):
@@ -249,8 +248,8 @@ class Vsphere:
         if folder_name:  # Try to find the named folder in the datacenter
             return self.get_obj(self.datacenter, [vim.Folder], folder_name)
         else:  # Default to the VM folder in the datacenter
-            logging.debug("Could not find folder '%s' in Datacenter '%s', defaulting to vmFolder",
-                          folder_name, self.datacenter.name)
+            self._log.debug("Could not find folder '%s' in Datacenter '%s', defaulting to vmFolder",
+                            folder_name, self.datacenter.name)
             return self.datacenter.vmFolder  # Reference: pyvmomi/docs/vim/Datacenter.rst
 
     def get_vm(self, vm_name):
@@ -412,7 +411,7 @@ class Vsphere:
             return self.content.searchIndex.FindByDatastorePath(datacenter=self.datacenter,
                                                                 path=str(path))
         except vim.fault.InvalidDatastore:
-            logging.error("Invalid datastore in path: %s", str(path))
+            self._log.error("Invalid datastore in path: %s", str(path))
             return None
 
     def find_by_ip(self, ip, vm_search=True):

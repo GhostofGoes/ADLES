@@ -27,7 +27,7 @@ from adles.vsphere.network_utils import create_portgroup
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.8.5"
+    __version__ = "0.8.6"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -51,8 +51,9 @@ class VsphereInterface:
         :param infra: Dict of infrastructure information
         :param spec: Dict of a parsed specification
         """
-        logging.debug("Initializing VsphereInterface %s", VsphereInterface.__version__)
-        # TODO: per-interface loggers so we know where output is coming from
+        self._log = logging.getLogger('VsphereInterface')
+        self._log.debug("Initializing VsphereInterface %s", VsphereInterface.__version__)
+
         self.spec = spec
         self.metadata = spec["metadata"]
         self.services = spec["services"]
@@ -67,7 +68,7 @@ class VsphereInterface:
         if "login-file" in infra:
             logins = read_json(infra["login-file"])  # TODO: is this secure?
         else:
-            logging.warning("No login-file specified, defaulting to user prompts...")
+            self._log.warning("No login-file specified, defaulting to user prompts...")
             logins = {}
 
         # Instantiate the vSphere vCenter server instance class
@@ -93,11 +94,11 @@ class VsphereInterface:
         if "server-root" in infra:
             self.server_root = self.server.get_folder(infra["server-root"])
             if not self.server_root:
-                logging.error("Could not find server-root folder '%s'", infra["server-root"])
+                self._log.error("Could not find server-root folder '%s'", infra["server-root"])
                 exit(1)
         else:
             self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder
-        logging.info("Server root folder: %s", self.server_root.name)
+        self._log.info("Server root folder: %s", self.server_root.name)
 
         # Set environment root folder (TODO: this can be simplified and consolidated)
         if "folder-name" not in self.metadata:
@@ -111,14 +112,14 @@ class VsphereInterface:
                                                     path=self.metadata["folder-name"],
                                                     generate=True)
 
-        logging.debug("Environment root folder name: %s", self.root_name)
+        self._log.debug("Environment root folder name: %s", self.root_name)
         if not self.root_folder:  # Create if it's not found
             parent = futils.traverse_path(self.server_root, self.root_path)
             self.root_folder = self.server.create_folder(self.root_name, parent)
             if not self.root_folder:
-                logging.error("Could not create root folder '%s'", self.root_name)
+                self._log.error("Could not create root folder '%s'", self.root_name)
                 exit(1)
-        logging.info("Environment root folder: %s", self.root_folder.name)
+        self._log.info("Environment root folder: %s", self.root_folder.name)
 
         # Set default vSwitch name
         if "vswitch" in infra:
@@ -127,7 +128,7 @@ class VsphereInterface:
             from pyVmomi import vim
             self.vswitch_name = self.server.get_item(vim.Network).name
 
-        logging.debug("Finished initializing VsphereInterface")
+        self._log.debug("Finished initializing VsphereInterface")
 
     def _init_groups(self):
         """
@@ -152,15 +153,15 @@ class VsphereInterface:
             if res is not None:
                 for r in res:
                     if r.group is True:  # Reference: pyvmomi/docs/vim/UserSearchResult.rst
-                        logging.error("Result '%s' is not a user", str(r))
+                        self._log.error("Result '%s' is not a user", str(r))
                     else:
                         g.users.append(r.principal)
                 g.size = (len(g.users) if len(g.users) > 1 else 1)  # Set the size, default to 1
             else:
-                logging.error("Could not initialize AD-group %s", str(g.ad_group))
+                self._log.error("Could not initialize AD-group %s", str(g.ad_group))
 
         if hasattr(self.server.user_dir, "domainList"):
-            logging.debug("Domains on server: %s", str(self.server.user_dir.domainList))
+            self._log.debug("Domains on server: %s", str(self.server.user_dir.domainList))
 
         return groups
 
@@ -171,17 +172,17 @@ class VsphereInterface:
         self.template_folder = futils.traverse_path(self.server_root,
                                                     self.infra["template-folder"])
         if not self.template_folder:
-            logging.error("Could not find template folder in path '%s'",
-                          self.infra["template-folder"])
+            self._log.error("Could not find template folder in path '%s'",
+                            self.infra["template-folder"])
             return
         else:
-            logging.debug("Found template folder: '%s'", self.template_folder.name)
+            self._log.debug("Found template folder: '%s'", self.template_folder.name)
 
         # Create master folder to hold base service instances
         self.master_folder = self.server.create_folder(
             VsphereInterface.master_root_name, self.root_folder)
-        logging.info("Created master folder '%s' under folder '%s'",
-                     VsphereInterface.master_root_name, self.root_name)
+        self._log.info("Created master folder '%s' under folder '%s'",
+                       VsphereInterface.master_root_name, self.root_name)
 
         # TODO: implement configuration of "network-interface" in the "services" top-level section
         # Create networks for master instances
@@ -193,7 +194,7 @@ class VsphereInterface:
         self._master_parent_folder_gen(self.folders, self.master_folder)
 
         # Output fully deployed master folder tree to debugging
-        logging.debug(futils.format_structure(
+        self._log.debug(futils.format_structure(
             futils.enumerate_folder(self.root_folder)))
 
     def _master_parent_folder_gen(self, folder, parent):
@@ -221,10 +222,10 @@ class VsphereInterface:
                 new_folder = self.server.create_folder(folder_name, create_in=parent)
 
                 if "services" in sub_value:  # It's a base folder
-                    logging.info("Generating Master base-type folder %s", sub_name)
+                    self._log.info("Generating Master base-type folder %s", sub_name)
                     self._master_base_folder_gen(sub_name, sub_value, new_folder)
                 else:  # It's a parent folder, recurse
-                    logging.info("Generating Master parent-type folder %s", sub_name)
+                    self._log.info("Generating Master parent-type folder %s", sub_name)
                     self._master_parent_folder_gen(sub_value, parent=new_folder)
 
         # TODO: apply master group permissions
@@ -248,17 +249,17 @@ class VsphereInterface:
         # Create Master instances
         for sname, sconfig in folder_dict["services"].items():
             if not self._is_vsphere(sconfig["service"]):
-                logging.debug("Skipping non-vsphere service '%s'", sname)
+                self._log.debug("Skipping non-vsphere service '%s'", sname)
                 continue
 
-            logging.info("Creating Master instance '%s' from service '%s'",
-                         sname, sconfig["service"])
+            self._log.info("Creating Master instance '%s' from service '%s'",
+                           sname, sconfig["service"])
 
             vm = self._clone_service(parent, sconfig["service"])
 
             if not vm:
-                logging.error("Failed to create Master instance '%s' in folder '%s'",
-                              sname, folder_name)
+                self._log.error("Failed to create Master instance '%s' in folder '%s'",
+                                sname, folder_name)
                 continue  # Skip to the next service
 
             # NOTE: management interfaces matter here!
@@ -276,19 +277,19 @@ class VsphereInterface:
         :return: The service vim.VirtualMachine instance
         """
         if not self._is_vsphere(service_name):
-            logging.debug("Skipping non-vsphere service '%s'", service_name)
+            self._log.debug("Skipping non-vsphere service '%s'", service_name)
             return None
 
         config = self.services[service_name]
 
-        logging.debug("Cloning service '%s'", service_name)
+        self._log.debug("Cloning service '%s'", service_name)
         vm_name = VsphereInterface.master_prefix + service_name
 
         # Find the template that matches the service definition
         template = futils.traverse_path(self.template_folder, config["template"])
         if not template:
-            logging.error("Could not find template '%s' for service '%s'",
-                          config["template"], service_name)
+            self._log.error("Could not find template '%s' for service '%s'",
+                            config["template"], service_name)
             return None
 
         # Clone the template to create the Master instance
@@ -298,13 +299,13 @@ class VsphereInterface:
         # Get new cloned instance
         vm = futils.traverse_path(folder, vm_name)
         if vm:
-            logging.debug("Successfully cloned service '%s' to folder '%s'",
-                          service_name, folder.name)
+            self._log.debug("Successfully cloned service '%s' to folder '%s'",
+                            service_name, folder.name)
             if "note" in config:  # Set VM note if specified
                 vm_utils.set_note(vm, note=config["note"])
             return vm
         else:
-            logging.error("Failed to clone VM '%s' for service '%s'", vm_name, service_name)
+            self._log.error("Failed to clone VM '%s' for service '%s'", vm_name, service_name)
             return None
 
     def _create_master_networks(self, net_type, default_create):
@@ -314,16 +315,17 @@ class VsphereInterface:
         :param default_create: Whether to create networks if they don't already exist
         """
         self.host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any recent changes
-        logging.info("Creating %s", net_type)
+        self._log.info("Creating %s", net_type)
 
         for name, config in self.networks[net_type].items():
             exists = self.server.get_network(name)
             if exists:
-                logging.debug("PortGroup '%s' already exists on host '%s'", name, self.host.name)
+                self._log.debug("PortGroup '%s' already exists on host '%s'", name, self.host.name)
             else:  # NOTE: if monitoring, we want promiscuous=True
-                logging.warning("PortGroup '%s' does not exist on host '%s'", name, self.host.name)
+                self._log.warning("PortGroup '%s' does not exist on host '%s'",
+                                  name, self.host.name)
                 if default_create:
-                    logging.debug("Creating portgroup '%s' on host '%s'", name, self.host.name)
+                    self._log.debug("Creating portgroup '%s' on host '%s'", name, self.host.name)
                     create_portgroup(name=name, host=self.host, promiscuous=False,
                                      vlan=int(config.get("vlan", next(self._get_vlan()))),
                                      vswitch_name=config.get("vswitch", self.vswitch_name))
@@ -335,7 +337,7 @@ class VsphereInterface:
         :param networks: List of networks to configure
         :param instance: Current instance of a folder for Deployment purposes
         """
-        logging.debug("Editing NICs for VM '%s'", vm.name)
+        self._log.debug("Editing NICs for VM '%s'", vm.name)
         num_nics = len(list(vm.network))
         num_nets = len(networks)
         nets = networks  # Copy the passed variable so we can edit it later
@@ -344,13 +346,13 @@ class VsphereInterface:
         # Note that monitoring interfaces will be counted and included in the networks list
         if num_nics > num_nets:     # Remove excess interfaces
             diff = int(num_nics - num_nets)
-            logging.debug("VM '%s' has %d extra NICs, removing...", vm.name, diff)
+            self._log.debug("VM '%s' has %d extra NICs, removing...", vm.name, diff)
             for i, nic in zip(range(1, diff + 1), reversed(range(num_nics))):
                 vm_utils.delete_nic(vm, nic_number=nic)
 
         elif num_nics < num_nets:   # Create missing interfaces
             diff = int(num_nets - num_nics)
-            logging.debug("VM '%s' is deficient %d NICs, adding...", vm.name, diff)
+            self._log.debug("VM '%s' is deficient %d NICs, adding...", vm.name, diff)
             for i in range(diff):   # Add NICs to VM and pop them from the list of networks
                 nic_model = ("vmxnet3" if vm_utils.has_tools(vm) else "e1000")
                 net_name = nets.pop()
@@ -378,25 +380,25 @@ class VsphereInterface:
         self.master_folder = futils.traverse_path(self.root_folder,
                                                   VsphereInterface.master_root_name)
         if self.master_folder is None:
-            logging.error("Could not find Master folder '%s'. "
-                          "Please ensure the  Master Creation phase has been run "
-                          "and the folder exists before attempting Deployment",
-                          VsphereInterface.master_root_name)
+            self._log.error("Could not find Master folder '%s'. "
+                            "Please ensure the  Master Creation phase has been run "
+                            "and the folder exists before attempting Deployment",
+                            VsphereInterface.master_root_name)
             exit(1)
-        logging.debug("Master folder name: %s\tPrefix: %s",
-                      self.master_folder.name, VsphereInterface.master_prefix)
+        self._log.debug("Master folder name: %s\tPrefix: %s",
+                        self.master_folder.name, VsphereInterface.master_prefix)
 
         # Verify and convert Master instances to templates
-        logging.info("Converting Masters to Templates")
+        self._log.info("Converting Masters to Templates")
         self._convert_and_verify(folder=self.master_folder)
-        logging.info("Finished converting Masters to Templates")
+        self._log.info("Finished converting Masters to Templates")
 
-        logging.info("Deploying environment...")
+        self._log.info("Deploying environment...")
         self._deploy_parent_folder_gen(spec=self.folders, parent=self.root_folder, path="")
-        logging.info("Finished deploying environment")
+        self._log.info("Finished deploying environment")
 
         # Output fully deployed environment tree to debugging
-        logging.debug(futils.format_structure(futils.enumerate_folder(self.root_folder)))
+        self._log.debug(futils.format_structure(futils.enumerate_folder(self.root_folder)))
 
     def _convert_and_verify(self, folder):
         """
@@ -404,11 +406,11 @@ class VsphereInterface:
         This also ensures they are powered off before being cloned.
         :param folder: vim.Folder
         """
-        logging.debug("Converting Masters in folder '%s' to templates", folder.name)
+        self._log.debug("Converting Masters in folder '%s' to templates", folder.name)
         for item in folder.childEntity:
             if vutils.is_vm(item):
                 if vm_utils.is_template(item):  # Skip if they've already been created
-                    logging.debug("Master '%s' is already a template", item.name)
+                    self._log.debug("Master '%s' is already a template", item.name)
                     continue
 
                 # Cleanly power off VM before converting to template
@@ -421,18 +423,18 @@ class VsphereInterface:
 
                 # Convert master to template
                 vm_utils.convert_to_template(item)
-                logging.debug("Converted Master '%s' to Template. Verifying...", item.name)
+                self._log.debug("Converted Master '%s' to Template. Verifying...", item.name)
 
                 # Check if it successfully converted to a snapshot
                 if not vm_utils.is_template(item):
-                    logging.error("Master '%s' did not convert to template", item.name)
+                    self._log.error("Master '%s' did not convert to template", item.name)
                 else:
-                    logging.debug("Verified!")
+                    self._log.debug("Verified!")
             elif vutils.is_folder(item):  # Recurse into sub-folders
                 self._convert_and_verify(item)
             else:
-                logging.debug("Unknown item found while converting Masters to templates:"
-                              " %s", str(item))
+                self._log.debug("Unknown item found while converting Masters to templates: %s",
+                                str(item))
 
     def _deploy_parent_folder_gen(self, spec, parent, path):
         """
@@ -457,7 +459,7 @@ class VsphereInterface:
                                                                 obj_type="folder")
 
                 # Create instances of the parent folder
-                logging.debug("Deploying parent-type folder '%s'", sub_name)
+                self._log.debug("Deploying parent-type folder '%s'", sub_name)
                 for i in range(num_instances):
                     # If prefix is undefined or there's a single instance, use the folder's name
                     instance_name = (sub_name if prefix == "" or num_instances == 1 else prefix)
@@ -492,7 +494,7 @@ class VsphereInterface:
                                                         obj_type="folder")
 
         # Create instances
-        logging.info("Deploying base-type folder '%s'", folder_name)
+        self._log.info("Deploying base-type folder '%s'", folder_name)
         for i in range(num_instances):
             # If no prefix is defined or there's only a single instance, use the folder's name
             instance_name = (folder_name if prefix == "" or num_instances == 1 else prefix)
@@ -506,7 +508,7 @@ class VsphereInterface:
                 new_folder = parent
 
             # Use the folder's name for the path, as that's what matches the Master version
-            logging.info("Generating services for base-type folder instance '%s'", instance_name)
+            self._log.info("Generating services for base-type folder instance '%s'", instance_name)
             self._deploy_gen_services(services=folder_items["services"], parent=new_folder,
                                       path=self._path(path, folder_name), instance=i)
 
@@ -522,9 +524,9 @@ class VsphereInterface:
         for service_name, value in services.items():
             # Ignore non-vsphere services
             if not self._is_vsphere(value["service"]):
-                logging.debug("Skipping non-vsphere service '%s'", service_name)
+                self._log.debug("Skipping non-vsphere service '%s'", service_name)
                 continue
-            logging.info("Generating service '%s' in folder '%s'", service_name, parent.name)
+            self._log.info("Generating service '%s' in folder '%s'", service_name, parent.name)
 
             # Get number of instances for the service and check if it exceeds configured limits
             num_instances, prefix = self._instances_handler(spec=value, obj_name=service_name,
@@ -533,8 +535,8 @@ class VsphereInterface:
             # Get the Master template instance to clone from
             service = futils.traverse_path(self.master_folder, self._path(path, value["service"]))
             if service is None:  # Check if the lookup was successful
-                logging.error("Could not find Master instance for service '%s' in this path:\n%s",
-                              value["service"], path)
+                self._log.error("Could not find Master instance for service '%s' in this path:\n%s",
+                                value["service"], path)
                 continue  # Skip to the next service
 
             # Clone the instances of the service from the master
@@ -546,8 +548,8 @@ class VsphereInterface:
                 if vm:
                     self._configure_nics(vm=vm, networks=value["networks"], instance=instance)
                 else:
-                    logging.error("Could not find cloned instance '%s' in folder '%s'",
-                                  instance_name, service_name, parent.name)
+                    self._log.error("Could not find cloned instance '%s' in folder '%s'",
+                                    instance_name, service_name, parent.name)
 
     @staticmethod
     def _path(path, name):
@@ -585,19 +587,19 @@ class VsphereInterface:
                     # if num < 1:
                     num = 1  # TODO: WORKAROUND FOR AD-GROUPS
                 else:
-                    logging.error("Unknown instances specification: %s", str(spec["instances"]))
+                    self._log.error("Unknown instances specification: %s", str(spec["instances"]))
                     num = 0
 
         # Check if the number of instances exceeds the configured thresholds for the interface
         if num > self.thresholds[obj_type]["error"]:
-            logging.error("%d instances of %s '%s' is beyond the configured %s threshold of %d",
-                          num, obj_type, obj_name, self.__name__,
-                          self.thresholds[obj_type]["error"])
+            self._log.error("%d instances of %s '%s' is beyond the configured %s threshold of %d",
+                            num, obj_type, obj_name, self.__name__,
+                            self.thresholds[obj_type]["error"])
             raise Exception("Threshold exception")
         elif num > self.thresholds[obj_type]["warn"]:
-            logging.warning("%d instances of %s '%s' is beyond the configured %s threshold of %d",
-                            num, obj_type, obj_name, self.__name__,
-                            self.thresholds[obj_type]["warn"])
+            self._log.warning("%d instances of %s '%s' is beyond the configured %s threshold of %d",
+                              num, obj_type, obj_name, self.__name__,
+                              self.thresholds[obj_type]["warn"])
 
         return num, prefix
 
@@ -615,9 +617,9 @@ class VsphereInterface:
             elif isinstance(g, list):   # Template groups
                 return g[0]
             else:
-                logging.error("Unknown type for group '%s': %s", str(group_name), str(type(g)))
+                self._log.error("Unknown type for group '%s': %s", str(group_name), str(type(g)))
         else:
-            logging.error("Could not get group '%s' from VsphereInterface groups", group_name)
+            self._log.error("Could not get group '%s' from VsphereInterface groups", group_name)
 
     def _is_vsphere(self, service_name):
         """
@@ -627,7 +629,8 @@ class VsphereInterface:
         """
         # TODO: make "template" and other platform identifiers global keywords
         if service_name not in self.services:
-            logging.error("Could not find service %s in the list of defined services", service_name)
+            self._log.error("Could not find service %s in the list of defined services",
+                            service_name)
         elif "template" in self.services[service_name]:
             return True
         return False
@@ -643,7 +646,7 @@ class VsphereInterface:
             vals = set(k.lower() for k in net_value)  # Case-insensitive comparisons
             if network_label.lower() in vals:
                 return net_name
-        logging.error("Couldn't find type for network '%s'", network_label)
+        self._log.error("Couldn't find type for network '%s'", network_label)
         return ""
 
     @staticmethod
@@ -669,23 +672,24 @@ class VsphereInterface:
             return name
         elif net_type == "generic-networks":
             if instance == -1:
-                logging.error("Invalid instance for _get_net: %d", instance)
+                self._log.error("Invalid instance for _get_net: %d", instance)
                 raise ValueError
             net_name = name + "-GENERIC-" + pad(instance)  # Generate full name for the generic net
             if net_name not in self.net_table:
                 exists = self.server.get_network(net_name)
                 if exists is not None:
-                    logging.debug("PortGroup '%s' already exists on host '%s'", net_name,
-                                  self.host.name)
+                    self._log.debug("PortGroup '%s' already exists on host '%s'", net_name,
+                                    self.host.name)
                 else:  # Create the generic network if it does not exist
-                    logging.debug("Creating portgroup '%s' on host '%s'", net_name, self.host.name)
+                    self._log.debug("Creating portgroup '%s' on host '%s'", net_name,
+                                    self.host.name)
                     vsw = self.networks["generic-networks"][name].get("vswitch", self.vswitch_name)
                     create_portgroup(name=net_name, host=self.host, promiscuous=False,
                                      vlan=next(self._get_vlan()), vswitch_name=vsw)
                 self.net_table[net_name] = True  # Register the existence of the generic
             return net_name
         else:
-            logging.error("Invalid network type %s for network %s", net_type, name)
+            self._log.error("Invalid network type %s for network %s", net_type, name)
             raise TypeError
 
     def cleanup_masters(self, network_cleanup=False):
@@ -694,8 +698,8 @@ class VsphereInterface:
         # TODO: look at getorphanedvms in pyvmomi-community-samples for how to do this
         # Get the folder to cleanup in
         master_folder = futils.find_in_folder(self.root_folder, self.master_root_name)
-        logging.info("Found master folder '%s' under folder '%s', proceeding with cleanup...",
-                     master_folder.name, self.root_folder.name)
+        self._log.info("Found master folder '%s' under folder '%s', proceeding with cleanup...",
+                       master_folder.name, self.root_folder.name)
 
         # Recursively descend from master folder, destroying anything with the prefix
         futils.cleanup(folder=master_folder, vm_prefix=self.master_prefix,

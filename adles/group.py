@@ -24,11 +24,12 @@ class Group:
         :param group: Dict specification of the group
         :param instance: Instance number of a template group [default: None]
         """
-        logging.debug("Initializing Group '%s'", name)
+        self._log = logging.getLogger('Group')
+        self._log.debug("Initializing Group '%s'", name)
 
         if type(group) != dict:
-            logging.error("Class Group must be initialized with a dict, not a %s. "
-                          "\nThe offending object: %s", type(group).__name__, str(group))
+            self._log.error("Class Group must be initialized with a dict, not a %s. "
+                            "\nThe offending object: %s", type(group).__name__, str(group))
             raise Exception()
 
         if instance:
@@ -60,15 +61,15 @@ class Group:
             users = group["user-list"]
 
         else:
-            logging.error("Invalid group dict for group '%s': %s", name, str(group))
+            self._log.error("Invalid group dict for group '%s': %s", name, str(group))
             raise Exception()
 
         self.group_type = group_type
         self.users = users
         self.size = int(len(self.users))
         self.name = str(name)
-        logging.debug("Finished initializing Group '%s' with %d users",
-                      self.name, self.size)
+        self._log.debug("Finished initializing Group '%s' with %d users",
+                        self.name, self.size)
 
 
 def get_ad_groups(groups):

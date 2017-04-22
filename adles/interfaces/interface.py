@@ -17,17 +17,18 @@ import logging
 from adles.utils import time_execution
 
 
-# TODO: subclass this for platform-sepcific interfaces
+# TODO: subclass this for platform-specific interfaces
 class Interface:
     """ Generic interface used to uniformly interact with platform-specific interfaces. """
 
-    __version__ = "1.0.0"  # This should match version of infrastructure-specification.yaml
+    __version__ = "1.0.1"  # This should match version of infrastructure-specification.yaml
 
     def __init__(self, spec, infra):
         """ 
         :param spec: Full exercise specification
         :param infra: Full infrastructure configuration
         """
+        self._log = logging.getLogger('PlatformInterface')
         self.interfaces = []  # List of instantiated platform interfaces
         self.metadata = spec["metadata"]  # Save the exercise specification metadata
         self.infra = infra  # Save the infrastructure configuration
@@ -41,13 +42,13 @@ class Interface:
                 from .docker_interface import DockerInterface
                 self.interfaces.append(DockerInterface(config, spec))
             else:
-                logging.error("Invalid platform: %s", str(platform))
+                self._log.error("Invalid platform: %s", str(platform))
                 raise ValueError
 
     @time_execution
     def create_masters(self):
         """ Master creation phase """
-        logging.info("Creating Master instances for %s", self.metadata["name"])
+        self._log.info("Creating Master instances for %s", self.metadata["name"])
         # TODO: subprocess each interface call
         for i in self.interfaces:
             i.create_masters()
@@ -55,7 +56,7 @@ class Interface:
     @time_execution
     def deploy_environment(self):
         """ Environment deployment phase """
-        logging.info("Deploying environment for %s", self.metadata["name"])
+        self._log.info("Deploying environment for %s", self.metadata["name"])
         # TODO: subprocess each interface call
         for i in self.interfaces:
             i.deploy_environment()
@@ -66,7 +67,7 @@ class Interface:
         Cleans up master instances
         :param network_cleanup: If networks should be cleaned up [default: False]
         """
-        logging.info("Cleaning up Master instances for %s", self.metadata["name"])
+        self._log.info("Cleaning up Master instances for %s", self.metadata["name"])
         # TODO: subprocess each interface call
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
@@ -77,7 +78,7 @@ class Interface:
         Cleans up a deployed environment
         :param network_cleanup: If networks should be cleaned up [default: False]
         """
-        logging.info("Cleaning up environment for %s", self.metadata["name"])
+        self._log.info("Cleaning up environment for %s", self.metadata["name"])
         # TODO: subprocess each interface call
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)

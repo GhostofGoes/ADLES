@@ -22,7 +22,7 @@ import adles.utils as utils
 class DockerInterface:
     """ Generic interface for the Docker platform """
 
-    __version__ = "0.1.1"
+    __version__ = "0.1.2"
 
     def __init__(self, infra, spec):
         """
@@ -30,7 +30,9 @@ class DockerInterface:
         :param infra: Dict of infrastructure information
         :param spec: Dict of a parsed specification
         """
-        logging.debug("Initializing DockerInterface %s", DockerInterface.__version__)
+        self._log = logging.getLogger('DockerInterface')
+        self._log.debug("Initializing DockerInterface %s", DockerInterface.__version__)
+
         self.spec = spec
         self.metadata = spec["metadata"]
         self.services = spec["services"]
@@ -49,8 +51,8 @@ class DockerInterface:
         self.client.ping()
 
         # TODO: add interface-specific loggers so we know what interface is outputting
-        logging.debug("System info      : %s", str(self.client.info()))
-        logging.debug("System version   : %s", str(self.client.version()))
+        self._log.debug("System info      : %s", str(self.client.info()))
+        self._log.debug("System version   : %s", str(self.client.version()))
 
         # Authenticate to registry, if configured
         if "registry" in self.infra:
@@ -60,7 +62,7 @@ class DockerInterface:
                               registry=reg["url"])
 
         # List images currently on the server
-        logging.debug("Images: %s", str(self.client.images.list()))
+        self._log.debug("Images: %s", str(self.client.images.list()))
 
     def create_masters(self):
         pass
