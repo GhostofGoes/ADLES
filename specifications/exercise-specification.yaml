@@ -154,11 +154,13 @@ folders:
     group: group-label          # Optional    User group that will have permissions to the folder
     master-group: group-label   # Optional    User group for the pre-deployment masters [default: group specified for the folder]
     description: "description"  # Optional    Human-readable description of folder
+    enabled: yes                # Optional    Flag to selectivly disable a folder, so changes can be easily tested [default: yes]
     instances: 10               # Optional    Same configurations as for base-type folders
     base-folder:  # Folders that contain services (replace "base-folder" with name of the folder)
       group: group-label          # REQUIRED    User group that will have permissions to the folder
       master-group: group-label   # Optional    User group for the pre-deployment masters [default: group specified for the folder]
       description: "description"  # Optional    Human-readable description of folder
+      enabled: yes                # Optional    Flag to selectivly disable a folder, so changes can be easily tested [default: yes]
       instances:  # Optional    Makes folder a template that is copied N-times (NOTE: instances can also simply be an integer representing N)
         number: 10            # OPTION A    Number of instances = integer
         size-of: group-label  # OPTION B    Number of instances = Size of named group

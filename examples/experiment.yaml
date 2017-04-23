@@ -1,16 +1,16 @@
 metadata:
   name: "Network Security Visualization Test Data Collection"
-  description: "Testbed for collectiton of realistic network data for Network Security Visualization research"
-  activity: "Experiments-2016"
+  description: "Testbed for collection of realistic network data for Network Security Visualization research"
+  activity: "Experiments-2017"
   prefix: "EXPERIMENT"
-  date-created: "2016-02-10"
-  version: "0.2.1"
+  date-created: "2017-02-10"
+  version: "0.3.0"
   infrastructure-config-file: "infra.yaml"
   folder-name: "NSV-Research/nsv-experiment"
 
 groups:
   Researchers:
-    ad-group: "CSDS NSV Research Team"
+    ad-group: "NSV Research Team"
 
 services:
   vyos:
@@ -20,22 +20,27 @@ services:
     template: "PFSense 2.2.3 (64-bit)"
     note: "Web Interface is used to configure this. Username: admin Password: pfsense"
   dc:
-    template: "Windows Server 2012 R2 - Domain Controller (64-bit)"
+    template: "Windows Server 2012 R2 (64-bit)"
+    note: "Domain Controller"
   dns:
-    template: "RHEL 6 - DNS Server (32-bit)"
+    template: "RHEL 6 (32-bit)"
+    note: "DNS server"
   ntp:
-    template: "FreeBSD 10 - NTP Server (32-bit)"
+    template: "FreeBSD 10 (32-bit)"
+    note: "NTP server"
   server2012:
     template: "Windows Server 2012 R2 (64-bit)"
   apache:
-    template: "Ubuntu Server 16.10 - Apache Web Server (64-bit)"
+    template: "Ubuntu Server 16.10 LAMP (64-bit)"
+    note: "Linux Apache MySQL PHP (LAMP) server"
   nginx:
-    template: "NGINX Load Balancer"
+    template: "NGINX"
+    note: "NGINX load balancer for servers"
   windows:
-    template: "Clients/Windows/Windows 7 SP2 (64-bit)"
+    template: "Windows 7 SP2 (64-bit)"
     note: "Username: Tester   Password: Windows1"
   kali:
-    template: "Research Kali Linux"
+    template: "Kali 2016.2 (64-bit)"
     note: "Username: root     Password: toor"
 
 networks:
