@@ -279,6 +279,7 @@ def _verify_network(name, network):
     return num_errors, num_warnings
 
 
+# TODO: check if networks, services, groups, resources are properly configured and matched
 def _verify_folders_syntax(folders):
     """
     Verifies that the syntax for folders matches the specification

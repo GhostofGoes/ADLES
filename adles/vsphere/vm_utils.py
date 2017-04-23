@@ -33,7 +33,7 @@ def clone_vm(vm, folder, name, clone_spec):
     if is_template(vm) and not bool(clone_spec.location.pool):
         logging.error("Cannot clone Template '%s' without specifying a resource pool", vm.name)
     else:
-        logging.info("Cloning VM '%s' to folder '%s' as '%s'", vm.name, folder.name, name)
+        logging.debug("Cloning VM '%s' to folder '%s' as '%s'", vm.name, folder.name, name)
         try:
             vutils.wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
         except vim.fault.InvalidState:
@@ -54,7 +54,7 @@ def create_vm(folder, config, pool, host=None):
     :param pool: vim.ResourcePool to which the virtual machine will be attached
     :param host: vim.HostSystem on which the VM will run [default: None]
     """
-    logging.info("Creating VM '%s' in folder '%s'", config.name, folder.name)
+    logging.debug("Creating VM '%s' in folder '%s'", config.name, folder.name)
     vutils.wait_for_task(folder.CreateVM_Task(config, pool, host))
 
 
@@ -108,9 +108,9 @@ def destroy_vm(vm):
     :param vm: vim.VirtualMachine object
     """
     name = vm.name
-    logging.info("Destroying VM '%s'", name)
+    logging.debug("Destroying VM '%s'", name)
     if powered_on(vm):
-        logging.info("VM '%s' is still on, powering off before destroying...", name)
+        logging.warning("VM '%s' is still on, powering off before destroying...", name)
         change_vm_state(vm, "off", attempt_guest=False)
     vutils.wait_for_task(vm.Destroy_Task())
 
@@ -288,7 +288,7 @@ def create_snapshot(vm, name, description='default', memory=False):
     :param memory: Memory dump of the VM is included in the snapshot
     :param description: Text description of the snapshot
     """
-    logging.info("Creating snapshot '%s' of '%s'", name, vm.name)
+    logging.debug("Creating snapshot '%s' of '%s'", name, vm.name)
     vutils.wait_for_task(vm.CreateSnapshot_Task(name=name, description=description,
                                                 memory=bool(memory), quiesce=True))
 
@@ -301,7 +301,7 @@ def revert_to_snapshot(vm, snapshot_name):
     :param vm: vim.VirtualMachine object
     :param snapshot_name: Name of the snapshot to revert to
     """
-    logging.info("Reverting '%s' to the snapshot '%s'", vm.name, snapshot_name)
+    logging.debug("Reverting '%s' to the snapshot '%s'", vm.name, snapshot_name)
     snap = get_snapshot(vm, snapshot_name)
     vutils.wait_for_task(snap.RevertToSnapshot_Task())
 
@@ -313,7 +313,7 @@ def revert_to_current_snapshot(vm):
     Reverts the VM to the most recent snapshot
     :param vm: vim.VirtualMachine object
     """
-    logging.info("Reverting '%s' to the current snapshot", vm.name)
+    logging.debug("Reverting '%s' to the current snapshot", vm.name)
     vutils.wait_for_task(vm.RevertToCurrentSnapshot_Task())
 
 
@@ -378,7 +378,7 @@ def remove_snapshot(vm, snapshot_name, remove_children=True, consolidate_disks=T
     :param consolidate_disks: Virtual disks of deleted snapshot will be merged with
     other disks if possible [default: True]
     """
-    logging.info("Removing snapshot '%s' from '%s'", snapshot_name, vm.name)
+    logging.debug("Removing snapshot '%s' from '%s'", snapshot_name, vm.name)
     snapshot = get_snapshot(vm, snapshot_name)
     vutils.wait_for_task(snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks))
 
@@ -391,7 +391,7 @@ def remove_all_snapshots(vm, consolidate_disks=True):
     :param consolidate_disks: Virtual disks of the deleted snapshot will be merged with
     other disks if possible [default: True]
     """
-    logging.info("Removing ALL snapshots for the '%s'", vm.name)
+    logging.debug("Removing ALL snapshots for the '%s'", vm.name)
     vutils.wait_for_task(vm.RemoveAllSnapshots_Task(consolidate_disks))
 
 

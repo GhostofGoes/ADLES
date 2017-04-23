@@ -169,8 +169,7 @@ class VsphereInterface:
         """ Exercise Environment Master creation phase """
 
         # Get folder containing templates
-        self.template_folder = futils.traverse_path(self.server_root,
-                                                    self.infra["template-folder"])
+        self.template_folder = futils.traverse_path(self.server_root, self.infra["template-folder"])
         if not self.template_folder:
             self._log.error("Could not find template folder in path '%s'",
                             self.infra["template-folder"])
@@ -179,10 +178,8 @@ class VsphereInterface:
             self._log.debug("Found template folder: '%s'", self.template_folder.name)
 
         # Create master folder to hold base service instances
-        self.master_folder = self.server.create_folder(
-            VsphereInterface.master_root_name, self.root_folder)
-        self._log.info("Created master folder '%s' under folder '%s'",
-                       VsphereInterface.master_root_name, self.root_name)
+        self.master_folder = self.server.create_folder(self.master_root_name, self.root_folder)
+        self._log.info("Created Master folder '%s' in '%s'", self.master_root_name, self.root_name)
 
         # TODO: implement configuration of "network-interface" in the "services" top-level section
         # Create networks for master instances
@@ -194,8 +191,7 @@ class VsphereInterface:
         self._master_parent_folder_gen(self.folders, self.master_folder)
 
         # Output fully deployed master folder tree to debugging
-        self._log.debug(futils.format_structure(
-            futils.enumerate_folder(self.root_folder)))
+        self._log.debug(futils.format_structure(futils.enumerate_folder(self.root_folder)))
 
     def _master_parent_folder_gen(self, folder, parent):
         """
@@ -203,34 +199,41 @@ class VsphereInterface:
         :param folder: Dict with the folder tree structure as in spec
         :param parent: Parent vim.Folder
         """
+        skip_keys = ["instances", "description", "enabled"]
+        if self._is_enabled(folder):  # Check if disabled
+            self._log.warning("Skipping disabled parent-type folder %s", parent.name)
+            return
 
         group = None
         master_group = None
 
         # We have to check every item, as they could be either keywords or sub-folders
         for sub_name, sub_value in folder.items():
-            if sub_name == "instances":
-                pass  # Instances don't matter for the Master phase
-            elif sub_name == "description":
-                pass  # Note: could use Tags or Custom Attributes to add descriptions to objects
+            if sub_name in skip_keys:  # Skip configurations that are not relevant
+                continue
             elif sub_name == "group":
                 group = self._get_group(sub_value)
             elif sub_name == "master-group":
                 master_group = self._get_group(sub_value)
             else:
-                folder_name = VsphereInterface.master_prefix + sub_name
+                folder_name = self.master_prefix + sub_name
                 new_folder = self.server.create_folder(folder_name, create_in=parent)
 
                 if "services" in sub_value:  # It's a base folder
-                    self._log.info("Generating Master base-type folder %s", sub_name)
-                    self._master_base_folder_gen(sub_name, sub_value, new_folder)
+                    if self._is_enabled(sub_value):
+                        self._log.info("Generating Master base-type folder %s", sub_name)
+                        self._master_base_folder_gen(sub_name, sub_value, new_folder)
+                    else:
+                        self._log.warning("Skipping disabled base-type folder %s", sub_name)
                 else:  # It's a parent folder, recurse
-                    self._log.info("Generating Master parent-type folder %s", sub_name)
-                    self._master_parent_folder_gen(sub_value, parent=new_folder)
+                    if self._is_enabled(sub_value):
+                        self._master_parent_folder_gen(sub_value, parent=new_folder)
+                        self._log.info("Generating Master parent-type folder %s", sub_name)
+                    else:
+                        self._log.warning("Skipping disabled parent-type folder %s", sub_name)
 
         # TODO: apply master group permissions
         if master_group is None:
-            # Since group is required, we can safely assume it's been set (TODO: NO ITS NOT!)
             master_group = group
 
     def _master_base_folder_gen(self, folder_name, folder_dict, parent):
@@ -293,7 +296,7 @@ class VsphereInterface:
             return None
 
         # Clone the template to create the Master instance
-        vm_utils.clone_vm(template, folder=folder, name=vm_name,
+        vm_utils.clone_vm(vm=template, folder=folder, name=vm_name,
                           clone_spec=self.server.gen_clone_spec())
 
         # Get new cloned instance
@@ -377,16 +380,15 @@ class VsphereInterface:
     def deploy_environment(self):
         """ Exercise Environment deployment phase """
         # Get the master folder root
-        self.master_folder = futils.traverse_path(self.root_folder,
-                                                  VsphereInterface.master_root_name)
-        if self.master_folder is None:
+        self.master_folder = futils.traverse_path(self.root_folder, self.master_root_name)
+        if self.master_folder is None:  # Check if Master folder was found
             self._log.error("Could not find Master folder '%s'. "
                             "Please ensure the  Master Creation phase has been run "
                             "and the folder exists before attempting Deployment",
-                            VsphereInterface.master_root_name)
+                            self.master_root_name)
             exit(1)
         self._log.debug("Master folder name: %s\tPrefix: %s",
-                        self.master_folder.name, VsphereInterface.master_prefix)
+                        self.master_folder.name, self.master_prefix)
 
         # Verify and convert Master instances to templates
         self._log.info("Converting Masters to Templates")
@@ -409,7 +411,7 @@ class VsphereInterface:
         self._log.debug("Converting Masters in folder '%s' to templates", folder.name)
         for item in folder.childEntity:
             if vutils.is_vm(item):
-                if vm_utils.is_template(item):  # Skip if they've already been created
+                if vm_utils.is_template(item):  # Skip if they already exist from a previous run
                     self._log.debug("Master '%s' is already a template", item.name)
                     continue
 
@@ -443,23 +445,19 @@ class VsphereInterface:
         :param parent: Parent vim.Folder
         :param path: Folders path at the current level
         """
-        group = None  # TODO: apply group permissions
+        skip_keys = ["instances", "description", "master-group", "enabled"]
+        if not self._is_enabled(spec):  # Check if disabled
+            self._log.warning("Skipping disabled parent-type folder %s", parent.name)
+            return
 
         for sub_name, sub_value in spec.items():
-            if sub_name == "instances":
-                pass  # The instances have already been handled
-            elif sub_name == "description":
-                pass  # NOTE: may use Tags or Custom Attributes to add descriptions to objects
-            elif sub_name == "group":
-                group = self._get_group(sub_value)
-            elif sub_name == "master-group":
-                pass  # Not applicable for Deployment phase
-            else:
-                num_instances, prefix = self._instances_handler(spec=spec, obj_name=sub_name,
-                                                                obj_type="folder")
-
-                # Create instances of the parent folder
+            if sub_name in skip_keys:  # Skip configurations that are not relevant
+                continue
+            elif sub_name == "group":  # Configure group
+                group = self._get_group(sub_value)  # TODO: apply group permissions
+            else:  # Create instances of the parent folder
                 self._log.debug("Deploying parent-type folder '%s'", sub_name)
+                num_instances, prefix = self._instances_handler(spec, sub_name, "folder")
                 for i in range(num_instances):
                     # If prefix is undefined or there's a single instance, use the folder's name
                     instance_name = (sub_name if prefix == "" or num_instances == 1 else prefix)
@@ -471,12 +469,18 @@ class VsphereInterface:
                     new_folder = self.server.create_folder(instance_name, create_in=parent)
 
                     if "services" in sub_value:  # It's a base folder
-                        self._deploy_base_folder_gen(folder_name=sub_name, folder_items=sub_value,
-                                                     parent=new_folder,
-                                                     path=self._path(path, sub_name))
+                        if self._is_enabled(sub_value):
+                            self._deploy_base_folder_gen(folder_name=sub_name,
+                                                         folder_items=sub_value, parent=new_folder,
+                                                         path=self._path(path, sub_name))
+                        else:
+                            self._log.warning("Skipping disabled base-type folder %s", sub_name)
                     else:  # It's a parent folder
-                        self._deploy_parent_folder_gen(parent=new_folder, spec=sub_value,
-                                                       path=self._path(path, sub_name))
+                        if self._is_enabled(sub_value):
+                            self._deploy_parent_folder_gen(parent=new_folder, spec=sub_value,
+                                                           path=self._path(path, sub_name))
+                        else:
+                            self._log.warning("Skipping disabled parent-type folder %s", sub_name)
 
     def _deploy_base_folder_gen(self, folder_name, folder_items, parent, path):
         """
@@ -490,8 +494,7 @@ class VsphereInterface:
         group = self._get_group(folder_items["group"])
 
         # Get number of instances and check if it exceeds configured limits
-        num_instances, prefix = self._instances_handler(spec=folder_items, obj_name=folder_name,
-                                                        obj_type="folder")
+        num_instances, prefix = self._instances_handler(folder_items, folder_name, "folder")
 
         # Create instances
         self._log.info("Deploying base-type folder '%s'", folder_name)
@@ -522,15 +525,13 @@ class VsphereInterface:
         """
         # Iterate through the services
         for service_name, value in services.items():
-            # Ignore non-vsphere services
-            if not self._is_vsphere(value["service"]):
+            if not self._is_vsphere(value["service"]):  # Ignore non-vsphere services
                 self._log.debug("Skipping non-vsphere service '%s'", service_name)
                 continue
             self._log.info("Generating service '%s' in folder '%s'", service_name, parent.name)
 
             # Get number of instances for the service and check if it exceeds configured limits
-            num_instances, prefix = self._instances_handler(spec=value, obj_name=service_name,
-                                                            obj_type="service")
+            num_instances, prefix = self._instances_handler(value, service_name, "service")
 
             # Get the Master template instance to clone from
             service = futils.traverse_path(self.master_folder, self._path(path, value["service"]))
@@ -625,12 +626,11 @@ class VsphereInterface:
         """
         Checks if a service instance is defined as a vSphere service
         :param service_name: Name of the service to lookup in list of defined services
-        :return: bool
+        :return: bool indicating if a service is a vSphere-type service
         """
         # TODO: make "template" and other platform identifiers global keywords
         if service_name not in self.services:
-            self._log.error("Could not find service %s in the list of defined services",
-                            service_name)
+            self._log.error("Could not find service %s in list of services", service_name)
         elif "template" in self.services[service_name]:
             return True
         return False
@@ -642,11 +642,10 @@ class VsphereInterface:
         :return: Type of the network ("generic-networks" | "unique-networks")
         """
         for net_name, net_value in self.networks.items():
-            # TODO: when checking syntax, need to check networks match/exist with case sensitivity
-            vals = set(k.lower() for k in net_value)  # Case-insensitive comparisons
-            if network_label.lower() in vals:
+            vals = set(k for k in net_value)
+            if network_label in vals:
                 return net_name
-        self._log.error("Couldn't find type for network '%s'", network_label)
+        self._log.error("Could not find type for network '%s'", network_label)
         return ""
 
     @staticmethod
@@ -681,6 +680,7 @@ class VsphereInterface:
                     self._log.debug("PortGroup '%s' already exists on host '%s'", net_name,
                                     self.host.name)
                 else:  # Create the generic network if it does not exist
+                    # NOTE: lookup of name is case-sensitive! This can lead to bugs
                     self._log.debug("Creating portgroup '%s' on host '%s'", net_name,
                                     self.host.name)
                     vsw = self.networks["generic-networks"][name].get("vswitch", self.vswitch_name)
@@ -691,6 +691,17 @@ class VsphereInterface:
         else:
             self._log.error("Invalid network type %s for network %s", net_type, name)
             raise TypeError
+
+    def _is_enabled(self, spec):
+        """
+        Determines if a spec is enabled
+        :param spec: 
+        :return: 
+        """
+        if "enabled" in spec:
+            return bool(spec["enabled"])
+        else:
+            return True
 
     def cleanup_masters(self, network_cleanup=False):
         """ Cleans up any master instances"""
