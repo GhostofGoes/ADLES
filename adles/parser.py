@@ -78,60 +78,27 @@ def _checker(value_list, source, data, flag):
     return num_hits
 
 
-def _verify_metadata_syntax(metadata):
+def _verify_exercise_metadata_syntax(metadata):
     """
-    Verifies that the syntax for metadata matches the specification
+    Verifies that the syntax for exercise metadata matches the specification
     :param metadata: Dict of metadata
     :return: (Number of errors, Number of warnings)
     """
     warnings = ["description", "version", "folder-name"]
-    errors = ["name", "prefix", "infrastructure-config-file"]
+    errors = ["name", "prefix", "infra-file"]
 
     num_warnings = _checker(warnings, "metadata", metadata, "warnings")
     num_errors = _checker(errors, "metadata", metadata, "errors")
 
-    if "infrastructure-config-file" in metadata:
-        infra_file = metadata["infrastructure-config-file"]
+    if "infra-file" in metadata:
+        infra_file = metadata["infra-file"]
         if not exists(infra_file):
-            logging.error("Could not open infrastructure-config-file '%s'", infra_file)
+            logging.error("Could not open infra-file '%s'", infra_file)
             num_errors += 1
         else:
-            e, w = _verify_infra_syntax(parse_file(infra_file))
+            e, w = verify_infra_syntax(parse_file(infra_file))
             num_errors += e
             num_warnings += w
-    return num_errors, num_warnings
-
-
-def _verify_infra_syntax(infra):
-    """
-    Verifies syntax of infrastructure-config-file
-    :param infra: Dict of infrastructure
-    :return: (Number of errors, Number of warnings)
-    """
-    num_warnings = 0
-    num_errors = 0
-
-    for platform, config in infra.items():
-        if platform == "vmware-vsphere":  # VMware vSphere configurations
-            warnings = ["port", "login-file", "datacenter", "datastore", "server-root", "vswitch"]
-            errors = ["hostname", "template-folder"]
-            if "login-file" in config and utils.read_json(config["login-file"]) is None:
-                logging.error("Invalid vSphere infrastructure login-file: %s", config["login-file"])
-                num_errors += 1
-            if "host-list" in config and type(config["host-list"]) is not list:
-                logging.error("Invalid type for vSphere host-list: %s", type(config["host-list"]))
-                num_errors += 1
-        elif platform == "docker":  # Docker configurations
-            warnings = ["url"]
-            errors = []
-            if "registry" in config:
-                num_errors += _checker(["url", "login-file"], "infrastructure",
-                                       config["registry"], "errors")
-        else:
-            logging.error("Unknown infrastructure platform: %s", str(platform))
-            continue  # Skip the syntax verification of unknown platforms
-        num_warnings += _checker(warnings, "infrastructure", config, "warnings")
-        num_errors += _checker(errors, "infrastructure", config, "errors")
     return num_errors, num_warnings
 
 
@@ -207,9 +174,19 @@ def _verify_services_syntax(services):
         if "network-interfaces" in value and not isinstance(value["network-interfaces"], list):
             logging.error("Network interfaces must be a list for service %s", key)
             num_errors += 1
+        if "provisioner" in value:
+            if "name" not in value["provisioner"]:
+                logging.error("Must specify name of provisioner for service %s", key)
+                num_errors += 1
+            if "file" not in value["provisioner"]:
+                logging.error("Must specify provisioning file for service %s", key)
+                num_errors += 1
+        if "note" in value and not isinstance(value["note"], str):
+            logging.error("Note must be a string for service %s", key)
+            num_errors += 1
         if "template" in value:
             pass
-        elif "image" in value:
+        elif "image" in value or "dockerfile" in value:
             pass
         elif "compose-file" in value:
             pass
@@ -310,10 +287,19 @@ def _verify_folders_syntax(folders):
     """
     num_warnings = 0
     num_errors = 0
+    keywords = ["group", "master-group", "instances", "description", "enabled"]
 
     for key, value in folders.items():
+        if key in keywords:
+            continue
+        if type(value) is not dict:
+            logging.error("Invalid configuration %s", str(key))
+            num_errors += 1
+            continue
         if "instances" in value:  # Check instances syntax, regardless of parent or base
-            if "number" in value["instances"]:
+            if type(value["instances"]) is int:
+                pass
+            elif "number" in value["instances"]:
                 if type(value["instances"]["number"]) != int:
                     logging.error("Number of instances for folder '%s' must be an Integer", key)
                     num_errors += 1
@@ -341,9 +327,7 @@ def _verify_folders_syntax(folders):
                     num_errors += e
                     num_warnings += w
         else:  # It's a parent folder
-            if key == "group" or key == "instances" or key == "description":
-                pass
-            elif not isinstance(value, dict):
+            if not isinstance(value, dict):
                 logging.error("Could not verify syntax of folder '%s': '%s' is not a folder!",
                               str(key), str(value))
                 num_errors += 1
@@ -382,15 +366,56 @@ def _verify_scoring_syntax(service_name, scoring):
     return num_errors, num_warnings
 
 
-def verify_syntax(spec):
+def verify_infra_syntax(infra):
     """
-    Verifies the syntax for the dictionary representation of an environment specification
+    Verifies the syntax of an infrastructure specification.
+    :param infra: Dict of infrastructure
+    :return: (Number of errors, Number of warnings)
+    """
+    num_warnings = 0
+    num_errors = 0
+    warnings = []
+    errors = []
+
+    for platform, config in infra.items():
+        if platform == "vmware-vsphere":  # VMware vSphere configurations
+            warnings = ["port", "login-file", "datacenter", "datastore", "server-root", "vswitch"]
+            errors = ["hostname", "template-folder"]
+            if "login-file" in config and utils.read_json(config["login-file"]) is None:
+                logging.error("Invalid vSphere infrastructure login-file: %s", config["login-file"])
+                num_errors += 1
+            if "host-list" in config and type(config["host-list"]) is not list:
+                logging.error("Invalid type for vSphere host-list: %s", type(config["host-list"]))
+                num_errors += 1
+        elif platform == "docker":  # Docker configurations
+            warnings = ["url"]
+            errors = []
+            if "registry" in config:
+                num_errors += _checker(["url", "login-file"], "infrastructure",
+                                       config["registry"], "errors")
+        elif platform == "amazon-aws":
+            pass
+        elif platform == "digital-ocean":
+            pass
+        elif platform == "hyper-v":
+            pass
+        else:
+            logging.error("Unknown infrastructure platform: %s", str(platform))
+            continue  # Skip the syntax verification of unknown platforms
+        num_warnings += _checker(warnings, "infrastructure", config, "warnings")
+        num_errors += _checker(errors, "infrastructure", config, "errors")
+    return num_errors, num_warnings
+
+
+def verify_exercise_syntax(spec):
+    """
+    Verifies the syntax of an environment specification.
     :param spec: Dictionary of environment specification
     :return: (Number of errors, Number of warnings)
     """
     num_warnings = 0
     num_errors = 0
-    funcs = {"metadata": _verify_metadata_syntax,
+    funcs = {"metadata": _verify_exercise_metadata_syntax,
              "groups": _verify_groups_syntax,
              "services": _verify_services_syntax,
              "resources": _verify_resources_syntax,
@@ -417,10 +442,43 @@ def verify_syntax(spec):
     return num_errors, num_warnings
 
 
-def check_syntax(specfile_path):
+def verify_package_syntax(package):
+    """
+    Verifies the syntax of an package specification.
+    :param package: Dictionary representation of the package specification
+    :return: (Number of errors, Number of warnings)
+    """
+    num_warnings = 0
+    num_errors = 0
+
+    # Check syntax of metadata section
+    if "metadata" not in package:
+        logging.error("Metadata section not specified for package!")
+        num_errors += 1
+    else:
+        metadata_warnings = ["name", "description", "version"]
+        metadata_errors = ["timestamp", "tag"]
+        num_warnings += _checker(metadata_warnings, "metadata", package["metadata"], "warnings")
+        num_errors += _checker(metadata_errors, "metadata", package["metadata"], "errors")
+
+    # Check syntax of contents section
+    if "contents" not in package:
+        logging.error("Contents section not specified for package!")
+        num_errors += 1
+    else:
+        content_warnings = ["infrastructure", "scoring", "results", "templates", "materials"]
+        content_errors = ["environment"]
+        num_warnings += _checker(content_warnings, "contents", package["contents"], "warnings")
+        num_errors += _checker(content_errors, "contents", package["contents"], "errors")
+
+    return num_errors, num_warnings
+
+
+def check_syntax(specfile_path, spec_type="exercise"):
     """
     Checks the syntax of a specification file
     :param specfile_path: Path to the specification file
+    :param spec_type: Type of specification file (exercise | package | infra)
     :return: The specification
     """
     from os.path import exists, basename
@@ -434,7 +492,16 @@ def check_syntax(specfile_path):
         return None
     logging.info("Successfully ingested specification file %s", basename(specfile_path))
     logging.info("Checking syntax...")
-    errors, warnings = verify_syntax(spec)
+    if spec_type == "exercise":
+        errors, warnings = verify_exercise_syntax(spec)
+    elif spec_type == "package":
+        errors, warnings = verify_package_syntax(spec)
+    elif spec_type == "infra":
+        errors, warnings = verify_infra_syntax(spec)
+    else:
+        logging.error("Unknown specification type in for check_syntax: %s", str(spec_type))
+        return None
+
     if errors == 0 and warnings == 0:
         logging.info("Syntax check successful!")
         return spec

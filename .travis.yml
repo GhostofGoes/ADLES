@@ -18,6 +18,8 @@ script:
   - adles -v -c examples/edurange_total-recon.yaml
   - adles -v -c examples/pentest-tutorial.yaml
   - adles -v -c examples/firewall-tutorial.yaml
+  - adles -v -c infra.yaml -t infra
+  - adles -v -c examples/experiment.yaml -t exercise
   - clone-vms -h
   - cleanup-vms --help
   - vm-power -h

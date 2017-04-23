@@ -5,7 +5,7 @@ metadata:
   prefix: "EXPERIMENT"
   date-created: "2017-02-10"
   version: "0.3.0"
-  infrastructure-config-file: "infra.yaml"
+  infra-file: "infra.yaml"
   folder-name: "NSV-Research/nsv-experiment"
 
 groups:

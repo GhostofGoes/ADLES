@@ -20,7 +20,7 @@ Uses formal YAML specifications to create virtual environments for educational p
 
 Usage:
     adles [options]
-    adles [options] -c SPEC
+    adles [options] -c SPEC [-t TYPE]
     adles [options] (-m | -d) [-p] -s SPEC
     adles [options] (--cleanup-masters | --cleanup-enviro) [--nets] -s SPEC
 
@@ -28,6 +28,7 @@ Options:
     -n, --no-color              Do not color terminal output
     -v, --verbose               Emit debugging logs to terminal
     -c, --validate SPEC         Validates syntax of an exercise specification
+    -t, --type TYPE             Type of specification to validate: exercise, package, infra
     -s, --spec SPEC             Name of a YAML specification file
     -i, --infra FILE            Specifies the infrastructure configuration file to use
     -p, --package               Build environment from package specification
@@ -93,10 +94,10 @@ def main():
                               " falling back to exercise configuration", infra_file)
             else:
                 logging.debug("Overriding infrastructure config file with '%s'", infra_file)
-                spec["metadata"]["infrastructure-config-file"] = infra_file
+                spec["metadata"]["infra-file"] = infra_file
 
         try:
-            interface = Interface(spec, parse_file(spec["metadata"]["infrastructure-config-file"]))
+            interface = Interface(spec, parse_file(spec["metadata"]["infra-file"]))
             if args["--masters"]:
                 interface.create_masters()
                 logging.info("Finished creation of Masters for environment %s",
@@ -116,8 +117,14 @@ def main():
         except KeyboardInterrupt:
             logging.error("User terminated session prematurely")
             exit(1)
+
     elif args["--validate"]:
-        if check_syntax(args["--validate"]) is None:
+        if args["--type"]:
+            spec_type = args["--type"]
+        else:
+            spec_type = "exercise"
+
+        if check_syntax(args["--validate"], spec_type) is None:
             logging.error("Syntax check failed")
 
     # TODO: run example as input (should do this by supporting stdin)

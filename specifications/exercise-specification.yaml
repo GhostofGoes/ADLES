@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    October 12th, 2016
-# Current Version:  0.7.1
+# Current Version:  0.7.2
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Substantial changes
@@ -24,7 +24,7 @@
 #   0.6.0:  Revamped networks. Removed base, replaced with increment flag, fundamentally changed generic. (04-07-2017)
 #   0.6.1:  Made "name" suggested, and to default to the filename of the spec (04-07-2017)
 #   0.7.0:  Added Resource-config, added Provisioners, added dockerfiles (04-19-2017)
-#
+#   0.7.1:  Added "enabled" flag to folders
 
 # *** Syntax inspirations ***
 # Docker Compose file:  https://docs.docker.com/compose/compose-file/
@@ -61,8 +61,8 @@ metadata:
   prefix: "GLOBAL-PREFIX"     # REQUIRED    Globally unique prefix that distinguishes this exercise's environments from others on the same infrastructure
   date-created: "date"        # Optional    UTC format: YYYY-MM-DD (Example: 2016-10-12)
   version: "0.0.0"            # Suggested   Semantic version of the document: major.minor.bugfix (Refer to: http://semver.org/)
-  infrastructure-config-file: "filename.yaml" # REQUIRED    YAML file specifying the infrastructure used to create the exercise environment (See: infrastructure-specification.yaml for syntax)
-  folder-name: "/Path/To/Folder-Name"         # Suggested   Path of the folder that will contain the exercise, relative to root defined in the infrastructure configuration
+  infra-file: "filename.yaml"           # REQUIRED    YAML file specifying the infrastructure used to create the exercise environment (See: infrastructure-specification.yaml for syntax)
+  folder-name: "/Path/To/Folder-Name"   # Suggested   Path of the folder that will contain the exercise, relative to root defined in the infrastructure configuration
 
 
 # ** Groups/Teams **

@@ -5,7 +5,7 @@ metadata:
   prefix: "PRCCDC"
   date-created: "2016-11-01"
   version: "0.9.0"
-  infrastructure-config-file: "infra.yaml"
+  infra-file: "infra.yaml"
   folder-name: "Competitions/PRCCDC/prccdc-2016"
 
 groups:

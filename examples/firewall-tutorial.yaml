@@ -4,7 +4,7 @@ metadata:
   activity: "CS 439 - Applied Security Concepts"
   prefix: "CS439-TR03-TU16"
   version: "0.3.0"
-  infrastructure-config-file: "infra.yaml"
+  infra-file: "infra.yaml"
   folder-name: "CS-439/TR-02/TU-11"  # CS 439, Tutorial Round 2, Tutorial 11
 
 groups:
