@@ -23,7 +23,7 @@ from adles.vsphere.folder_utils import find_in_folder
 
 class VM:
     """ Represents a VMware vSphere Virtual Machine instance. """
-    __version__ = "0.1.0"
+    __version__ = "0.2.0"
 
     def __init__(self, name, folder, resource_pool, datastore, host):
         """
@@ -55,8 +55,8 @@ class VM:
         :param firmware: Firmware to emulate for the VM (efi | bios) [default: efi]
         :param datastore_path: Path to existing VM files on datastore [default: None]
         """
-        # Use a template to create the VM
-        if template is not None:
+        if template is not None:  # Use a template to create the VM
+            self._log.debug("Creating VM '%s' by cloning %s", self.name, template.name)
             clonespec = vim.vm.CloneSpec()
             clonespec.location = vim.vm.RelocateSpec(pool=self.resource_pool,
                                                      datastore=self.datastore)
@@ -70,8 +70,8 @@ class VM:
                 logging.error("Could not make clone '%s': invalid customization", self.name)
             except vim.fault.VmConfigFault:
                 logging.error("Could not make clone '%s': invalid configuration", self.name)
-        else:
-            # Generate the specification for the new VM
+        else:  # Generate the specification for and create the new VM
+            self._log.debug("Creating VM '%s' from scratch", self.name)
             spec = vim.vm.ConfigSpec()
             spec.name = self.name
             spec.numCPUs = int(cpus)
@@ -91,6 +91,11 @@ class VM:
             self._log.debug("Creating VM '%s' in folder '%s'", self.name, self.folder.name)
             wait_for_task(self.folder.CreateVM_Task(spec, self.resource_pool, self.host))
         self._vm = find_in_folder(self.folder, self.name, vimtype=vim.VirtualMachine)
+        if not self._vm:
+            self._log.error("Failed to create VM %s", self.name)
+        else:
+            self._log.debug("Created VM %s", self.name)
+            # TODO: if cloned, reconfigure to match anything given as parameters, e.g memory
 
     def destroy(self):
         """ Destroy the VM """

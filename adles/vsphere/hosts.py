@@ -21,11 +21,19 @@ import adles.utils as utils
 
 class Host:
     """ Represents an ESXi host in a VMware vSphere environment. """
-    __version__ = "0.1.0"
+    __version__ = "0.2.0"
 
     def __init__(self, host):
         self.host = host
         self.name = str(host.name)
+        self.config = host.config
+
+    def get_host_info(self):
+        """
+        Get information about the host
+        :return: Formatted String with host information
+        """
+        return str(self.config)  # TODO: host information much like get_vm_info()
 
     def get_net_item(self, object_type, name):
         """
@@ -70,7 +78,6 @@ class Host:
         """
         if refresh:
             self.host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up recent changes
-
         net_type = object_type.lower()
         if net_type == "portgroup":
             objects = self.host.configManager.networkSystem.networkInfo.portgroup
@@ -94,10 +101,8 @@ class Host:
         :param num_ports: Number of ports the vSwitch should have [default: 512]
         """
         logging.info("Creating vSwitch %s with %d ports on host %s", name, num_ports, self.name)
-
         vswitch_spec = vim.host.VirtualSwitch.Specification()
         vswitch_spec.numPorts = int(num_ports)
-
         try:
             self.host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
         except vim.fault.AlreadyExists:
@@ -140,7 +145,6 @@ class Host:
         :param network_type: Type of the network to remove ("vswitch" | "portgroup")
         """
         logging.info("Deleting %s '%s' from host '%s'", network_type, name, self.name)
-
         try:
             if network_type.lower() == "vswitch":
                 self.host.configManager.networkSystem.RemoveVirtualSwitch(name)
@@ -152,6 +156,18 @@ class Host:
         except vim.fault.ResourceInUse:
             logging.error("%s '%s' can't be removed because there are vNICs associated with it",
                           network_type, name)
+
+    def __str__(self):
+        return str(self.name)
+
+    def __hash__(self):
+        return hash(self.host)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class Cluster:

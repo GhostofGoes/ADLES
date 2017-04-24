@@ -37,10 +37,29 @@ from pyVmomi import vim
 from adles.vsphere.vsphere_class import Vsphere
 from adles.vsphere import vm_utils
 from adles.utils import script_setup
+from adles.vsphere.vm import VM
+from adles.vsphere.hosts import Host
 
 
 args = docopt(__doc__, version=Vsphere.__version__, help=True)
 server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
+
+folder = server.get_folder("monkeys")
+service = VM(name="test-vm", folder=folder, resource_pool=server.get_pool(),
+             datastore=server.get_datastore(), host=server.get_host())
+template = server.get_vm("dummy")
+service.create(template=template)
+service.set_note("testing 1... 2... 3...")
+print(str(service))
+print(hash(service))
+print(service.get_vm_info(True, True, True, True))
+service.convert_template()
+service.destroy()
+
+host = Host(server.get_host())
+print(str(host))
+print(hash(host))
+print(host.get_host_info())
 
 # from adles.vsphere.network_utils import create_vswitch
 # host = server.get_host()

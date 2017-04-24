@@ -33,7 +33,6 @@ class Folder:
     def move_into(self, entity_list):
         """
         Moves a list of managed entities into the named folder.
-        :param folder: vim.Folder object with type matching the entity list
         :param entity_list: List of vim.ManagedEntity
         """
         wait_for_task(self.folder.MoveIntoFolder_Task(entity_list))

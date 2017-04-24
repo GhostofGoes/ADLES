@@ -22,12 +22,13 @@ import adles.vsphere.vsphere_utils as vutils
 from adles.utils import pad, read_json
 from adles.vsphere import Vsphere
 from adles.vsphere.network_utils import create_portgroup
+from adles.vsphere.vm import VM
 
 
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
 
-    __version__ = "0.8.6"
+    __version__ = "0.9.0"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -297,6 +298,14 @@ class VsphereInterface:
             self._log.error("Could not find template '%s' for service '%s'",
                             config["template"], service_name)
             return None
+
+        # service = VM(name=service_name, folder=folder, resource_pool=self.server.get_pool(),
+        #              datastore=self.server.datastore, host=self.host)
+        # kwargs = {"template": template}
+        # if "resource-config" in config:  # Resource configurations (minus storage currently)
+        #     for val, conf in config["resource-config"].items():
+        #         kwargs[val] = int(conf)
+        # service.create(**kwargs)
 
         # Clone the template to create the Master instance
         vm_utils.clone_vm(vm=template, folder=folder, name=vm_name,

@@ -98,9 +98,9 @@ services:
       name: "name"  # REQUIRED  Name of provisioning tool, e.g Ansible, Chef, Puppet
       file: "file"  # REQUIRED  File to use for provisioner, e.g Playbook, Cookbook, Manifest
     resource-config:  # Optional  Resource allocation configurations for the service
-      cpu-cores: 0    # Optional  Number of CPU cores
-      memory: 0       # Optional  Amount of RAM in MB
-      storage: 0      # Optional  Amount of persistent storage in GB
+      cores: 0    # Optional  Number of CPU cores
+      memory: 0   # Optional  Amount of RAM in MB
+      storage: 0  # Optional  Amount of persistent storage in GB
   template-based-service:   # Option A
     template: "name"  # REQUIRED
     template-config:  # Optional    Configuration of Template settings using key-value pairs
