@@ -16,8 +16,6 @@ import logging
 
 from pyVmomi import vim
 
-import adles.utils as utils
-
 
 class Host:
     """ Represents an ESXi host in a VMware vSphere environment. """

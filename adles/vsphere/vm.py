@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+import os
 
 from pyVmomi import vim
 
@@ -23,9 +24,10 @@ from adles.vsphere.folder_utils import find_in_folder
 
 class VM:
     """ Represents a VMware vSphere Virtual Machine instance. """
-    __version__ = "0.2.0"
+    __version__ = "0.3.0"
 
-    def __init__(self, name, folder, resource_pool, datastore, host):
+    def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
+                 datastore=None, host=None):
         """
         NOTE: VM.create() must be called post-init
         :param name: Name of the VM
@@ -33,14 +35,25 @@ class VM:
         :param resource_pool: Resource pool to use for the VM
         :param datastore: Datastore the VM is stored on
         :param host: Host the VM runs on
+        :param vm: vim.VirtualMachine object to use instead of calling create()
         """
         self._log = logging.getLogger('VM')
-        self.name = str(name)
-        self.folder = folder    # vim.Folder, but may be Folder class eventually
-        self.resource_pool = resource_pool  # vim.Pool or something object
-        self.datastore = datastore      # vim.Datastore object
-        self.host = host        # vim.HostSystem, but may be Host class soon
-        self._vm = None
+        if vm is not None:
+            self._vm = vm
+            self.vm_folder = os.path.split(self._vm.summary.config.vmPathName)[0]
+            self.name = vm.name
+            self.folder = vm.parent
+            self.resource_pool = vm.resourcePool
+            self.datastore = vm.datastore[0]
+            self.host = vm.summary.runtime.host
+        else:
+            self._vm = None
+            self.vm_folder = None  # Note: this is the path to the VM's files on the Datastore
+            self.name = name
+            self.folder = folder  # vim.Folder, but may be Folder class eventually
+            self.resource_pool = resource_pool  # vim.Pool or something object
+            self.datastore = datastore  # vim.Datastore object
+            self.host = host  # vim.HostSystem, but may be Host class soon
 
     def create(self, template=None, cpus=1, cores=1, memory=512, max_consoles=None,
                version=None, firmware='efi', datastore_path=None):
@@ -60,16 +73,7 @@ class VM:
             clonespec = vim.vm.CloneSpec()
             clonespec.location = vim.vm.RelocateSpec(pool=self.resource_pool,
                                                      datastore=self.datastore)
-            try:
-                wait_for_task(template.CloneVM_Task(folder=self.folder, name=self.name,
-                                                    spec=clonespec))
-            except vim.fault.InvalidState:
-                logging.error("Could not make clone '%s': invalid state for VM '%s'", self.name,
-                              template.name)
-            except vim.fault.CustomizationFault:
-                logging.error("Could not make clone '%s': invalid customization", self.name)
-            except vim.fault.VmConfigFault:
-                logging.error("Could not make clone '%s': invalid configuration", self.name)
+            wait_for_task(template.CloneVM_Task(folder=self.folder, name=self.name, spec=clonespec))
         else:  # Generate the specification for and create the new VM
             self._log.debug("Creating VM '%s' from scratch", self.name)
             spec = vim.vm.ConfigSpec()
@@ -90,12 +94,14 @@ class VM:
             spec.files = vim.vm.FileInfo(vmPathName=vm_path)
             self._log.debug("Creating VM '%s' in folder '%s'", self.name, self.folder.name)
             wait_for_task(self.folder.CreateVM_Task(spec, self.resource_pool, self.host))
+
         self._vm = find_in_folder(self.folder, self.name, vimtype=vim.VirtualMachine)
         if not self._vm:
             self._log.error("Failed to create VM %s", self.name)
         else:
             self._log.debug("Created VM %s", self.name)
             # TODO: if cloned, reconfigure to match anything given as parameters, e.g memory
+        self.vm_folder = os.path.split(self._vm.summary.config.vmPathName)[0]
 
     def destroy(self):
         """ Destroy the VM """
@@ -153,13 +159,11 @@ class VM:
         Upgrades the hardware version of the VM
         :param version: Version of hardware to upgrade VM to [default: latest VM's host supports]
         """
+        full_version = "vmx-" + str(version)
         try:
-            wait_for_task(self._vm.UpgradeVM(str(version)))
+            wait_for_task(self._vm.UpgradeVM_Task(full_version))
         except vim.fault.AlreadyUpgraded:
-            logging.error("Hardware version is already up-to-date for %s", self.name)
-        except vim.fault.InvalidPowerState as e:
-            logging.error("Cannot upgrade '%s': invalid power state '%s'", self.name,
-                          e.existingState)
+            logging.warning("Hardware version is already up-to-date for %s", self.name)
 
     def convert_template(self):
         """
@@ -167,7 +171,7 @@ class VM:
         :return: 
         """
         if self.is_template():
-            self._log.debug("%s is already a template", self.name)
+            self._log.warning("%s is already a template", self.name)
         else:
             self._log.debug("Converting %s to template", self.name)
             self._vm.MarkAsTemplate()
@@ -201,16 +205,23 @@ class VM:
         :return: String with the VM information
         """
         info_string = "\n"
+        # http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.vm.Summary.html
         summary = self._vm.summary
-        info_string += "Name          : %s\n" % summary.config.name
+        # http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.vm.ConfigInfo.html
+        config = self._vm.config
+        info_string += "Name          : %s\n" % self.name
         info_string += "Status        : %s\n" % str(summary.overallStatus)
         info_string += "Power State   : %s\n" % summary.runtime.powerState
         if self._vm.guest:
             info_string += "Guest State   : %s\n" % self._vm.guest.guestState
         info_string += "Last modified : %s\n" % str(self._vm.config.modified)  # datetime object
+        if hasattr(summary.runtime, 'cleanPowerOff'):
+            info_string += "Clean poweroff: %s\n" % summary.runtime.cleanPowerOff
         if detailed:
             info_string += "Num consoles  : %d\n" % summary.runtime.numMksConnections
-        info_string += "Host          : %s\n" % summary.runtime.host.name
+        info_string += "Host          : %s\n" % self.host.name
+        info_string += "Datastore     : %s\n" % self.datastore
+        info_string += "HW Version    : %s\n" % config.version
         info_string += "Guest OS      : %s\n" % summary.config.guestFullName
         info_string += "Num CPUs      : %s\n" % summary.config.numCpu
         info_string += "Memory (MB)   : %s\n" % summary.config.memorySizeMB
@@ -219,7 +230,7 @@ class VM:
             info_string += "Num Disks     : %s\n" % summary.config.numVirtualDisks
         info_string += "IsTemplate    : %s\n" % summary.config.template  # bool
         if detailed:
-            info_string += "Path          : %s\n" % summary.config.vmPathName
+            info_string += "Config Path   : %s\n" % summary.config.vmPathName
         info_string += "Folder:       : %s\n" % self._vm.parent.name
         if self._vm.guest:
             info_string += "IP            : %s\n" % self._vm.guest.ipAddress
@@ -248,6 +259,14 @@ class VM:
             info_string += "Max Mem usage : %s\n" % summary.runtime.maxMemoryUsage
             info_string += "Last suspended: %s\n" % summary.runtime.suspendTime
         return info_string
+
+    def screenshot(self):
+        """
+        Takes a screenshot of a VM
+        :return: Path to datastore location of the screenshot
+        """
+        results = wait_for_task(self._vm.CreateScreenshot_Task())
+        return results
 
     def snapshot_disk_usage(self):
         """
@@ -541,6 +560,10 @@ class VM:
                 return dev  # If there are less than 2 devices attached, we can use it
         return None
 
+    def mount_tools(self):
+        """ Mounts the installer for VMware Tools """
+        wait_for_task(self._vm.MountToolsInstaller())
+
     def has_tools(self):
         """
         Checks if VMware Tools is installed and working
@@ -571,24 +594,11 @@ class VM:
         return bool(str(self._vm.config.guestId).lower().startswith("win"))
 
     def _edit(self, config):
-        try:
-            wait_for_task(self._vm.ReconfigVM_Task(config))
-        except vim.fault.TaskInProgress as e:
-            logging.error("Cannot edit VM '%s': it is busy with task '%s'", self.name, e.task)
-        except vim.fault.VmConfigFault:
-            logging.error("Cannot edit VM '%s': invalid configuration", self.name)
-        except vim.fault.InvalidState:
-            logging.error("Cannot edit VM '%s': it is in an invalid state", self.name)
-        except vim.fault.InvalidName as e:
-            logging.error("Cannot edit VM '%s': name '%s' is not valid", self.name, e.name)
-        except vim.fault.DuplicateName as e:
-            logging.error("Cannot edit VM '%s': there is a duplicate with name '%s'", self.name,
-                          e.name)
-        except vim.fault.InvalidPowerState as e:
-            logging.error("Cannot edit VM '%s': invalid power state '%s'", self.name,
-                          e.existingState)
-        except vim.fault.InvalidDatastore as e:
-            logging.error("Cannot edit VM '%s': invalid Datastore '%s'", self.name, e.datastore)
+        """
+        Reconfigures VM using the given configuration specification
+        :param config: vim.vm.ConfigSpec
+        """
+        wait_for_task(self._vm.ReconfigVM_Task(config))
 
     def __str__(self):
         return str(self.name)

@@ -149,7 +149,7 @@ def upgrade_vm(vm, version=''):
     :param version: Version of hardware to upgrade VM to [default: latest VM's host supports]
     """
     try:
-        vutils.wait_for_task(vm.UpgradeVM(str(version)))
+        vutils.wait_for_task(vm.UpgradeVM_Task(str(version)))
     except vim.fault.AlreadyUpgraded:
         logging.error("VM '%s' hardware version is already up-to-date", vm.name)
     except vim.fault.InvalidPowerState as e:

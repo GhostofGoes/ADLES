@@ -21,20 +21,52 @@ def wait_for_task(task):
     """
     Waits for a single vCenter task to finish and return it's result
     :param task: vim.Task object of the task to wait for
-    :return: Task result information
+    :return: Task result information (task.info.result)
     """
-    if not task:
-        logging.debug("No task was specified to wait for")
+    if not task:  # Check if there's actually a task
+        logging.error("No task was specified to wait for")
         return None
-    while True:  # TODO: set a timeout, perhaps based on type of task
-        if task.info.state == 'success':
-            return task.info.result
-        elif task.info.state == 'error':
-            # TODO: parse error messages to generate more meaningful errors or warnings
-            #   Examples: "already exists", "Cancelled", "permission error" or whatnot
-            logging.error("There was an error while completing a task: '%s'",
-                          task.info.error.msg)
-            return None
+    name = task.info.name
+    obj = task.info.entityName
+    try:
+        while True:  # TODO: set a timeout, perhaps based on type of task
+            if task.info.state == 'success':
+                return task.info.result
+            elif task.info.state == 'error':
+                logging.error("Error during task %s: %'", name, task.info.error.msg)
+                return None
+    except vim.fault.NoPermission as e:
+        logging.error("Permission denied for task %s on %s: need privilege %s",
+                      name, obj, e.privilegeId)
+    except vim.fault.TaskInProgress as e:
+        logging.error("Cannot complete task %s: task %s is already in progress on %s",
+                      name, e.task.info.name, obj)
+    except vim.fault.InvalidPowerState as e:
+        logging.error("Cannot complete task %s: %s is in invalid power state %s",
+                      name, obj, e.existingState)
+    except vim.fault.InvalidState as e:
+        logging.error("Cannot complete task %s: invalid state for %s\n%s", name, obj, str(e))
+    except vim.fault.CustomizationFault:
+        logging.error("Cannot complete task %s: invalid customization for %s", name, obj)
+    except vim.fault.VmConfigFault:
+        logging.error("Cannot complete task %s: invalid configuration for VM %s", name, obj)
+    except vim.fault.InvalidName as e:
+        logging.error("Cannot complete task %s for object %s: name '%s' is not valid",
+                      name, obj, e.name)
+    except vim.fault.DuplicateName as e:
+        logging.error("Cannot complete task %s for %s: there is a duplicate named %s",
+                      name, obj, e.name)
+    except vim.fault.InvalidDatastore as e:
+        logging.error("Cannot complete task %s for %s: invalid Datastore '%s'",
+                      name, obj, e.datastore)
+    except vim.fault.AlreadyExists:
+        logging.error("Cannot complete task %s: %s already exists", name, obj)
+    except vim.fault.NotFound:
+        logging.error("Cannot complete task %s: %s does not exist", name, obj)
+    except vim.fault.ResourceInUse:
+        logging.error("Cannot complete task %s: resource %s is in use", name, obj)
+    finally:
+        return None
 
 
 # From: list_dc_datastore_info in pyvmomi-community-samples
