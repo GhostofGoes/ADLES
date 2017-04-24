@@ -45,7 +45,6 @@ def clone_vm(vm, folder, name, clone_spec):
 
 
 @utils.check(vim.Folder, "folder")
-@utils.time_execution
 def create_vm(folder, config, pool, host=None):
     """
     Creates a VM with the specified configuration in the given folder
@@ -101,7 +100,6 @@ def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=5
 
 
 @utils.check(vim.VirtualMachine, "vm")
-@utils.time_execution
 def destroy_vm(vm):
     """
     Destroys a Virtual Machine
@@ -279,7 +277,6 @@ def set_note(vm, note):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-@utils.time_execution
 def create_snapshot(vm, name, description='default', memory=False):
     """
     Create a snapshot of the VM
@@ -294,7 +291,6 @@ def create_snapshot(vm, name, description='default', memory=False):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-@utils.time_execution
 def revert_to_snapshot(vm, snapshot_name):
     """
     Reverts VM to the named snapshot
@@ -307,7 +303,6 @@ def revert_to_snapshot(vm, snapshot_name):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-@utils.time_execution
 def revert_to_current_snapshot(vm):
     """
     Reverts the VM to the most recent snapshot

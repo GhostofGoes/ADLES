@@ -257,13 +257,13 @@ def script_warning_prompt():
     from adles import __url__, __email__
     return str(
         '***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
-        '\nGetting help:'
-        '\n\t* "<script>.py --help": flags, arguments, and usage'
-        '\n\t* "cat <script>.py": read the source code and see how it works'
-        '\n\t* "cd ./documentation && ls -la": show available documentation'
-        '\n\t+ Open an issue on the project GitHub: %s'
-        '\n\t+ Email the script author: %s'
-        '\n\n' % (__url__, __email__))
+        '\n ** Help and Documentation **'
+        '\n* "<script>.py --help": flags, arguments, and usage'
+        '\n* "cat <script>.py": read the source code and see how it works'
+        '\n* "cd ./documentation && ls -la": show available documentation'
+        '\n+ Open an issue on the project GitHub: %s'
+        '\n+ Email the script author: %s'
+        '\n' % (__url__, __email__))
 
 
 def script_setup(logging_filename, args, script=None):

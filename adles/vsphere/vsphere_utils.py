@@ -26,14 +26,15 @@ def wait_for_task(task):
     if not task:  # Check if there's actually a task
         logging.error("No task was specified to wait for")
         return None
-    name = task.info.name
-    obj = task.info.entityName
+    name = str(task.info.descriptionId)
+    obj = str(task.info.entityName)
     try:
         while True:  # TODO: set a timeout, perhaps based on type of task
             if task.info.state == 'success':
                 return task.info.result
             elif task.info.state == 'error':
-                logging.error("Error during task %s: %'", name, task.info.error.msg)
+                logging.error("Error during task %s on object '%s': %s",
+                              name, obj, str(task.info.error.msg))
                 return None
     except vim.fault.NoPermission as e:
         logging.error("Permission denied for task %s on %s: need privilege %s",
