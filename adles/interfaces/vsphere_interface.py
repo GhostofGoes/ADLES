@@ -178,8 +178,11 @@ class VsphereInterface:
             self._log.debug("Found template folder: '%s'", self.template_folder.name)
 
         # Create master folder to hold base service instances
-        self.master_folder = self.server.create_folder(self.master_root_name, self.root_folder)
-        self._log.info("Created Master folder '%s' in '%s'", self.master_root_name, self.root_name)
+        self.master_folder = futils.traverse_path(self.root_folder, self.master_root_name)
+        if not self.master_folder:
+            self.master_folder = self.server.create_folder(self.master_root_name, self.root_folder)
+            self._log.info("Created Master folder '%s' in '%s'",
+                           self.master_root_name, self.root_name)
 
         # TODO: implement configuration of "network-interface" in the "services" top-level section
         # Create networks for master instances

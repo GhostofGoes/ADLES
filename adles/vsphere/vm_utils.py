@@ -541,14 +541,14 @@ def get_nic_by_network(vm, network):
 
 # From: add_nic_to_vm in pyvmomi-community-samples
 @utils.check(vim.VirtualMachine, "vm")
-def add_nic(vm, network, summary="default-summary", model="e1000"):
+def add_nic(vm, network, summary="", model="e1000"):
     """
     Add a NIC in the portgroup to the VM
     :param vm: vim.VirtualMachine
     :param network: vim.Network to attach NIC to
     :param summary: Human-readable device info [default: default-summary]
     :param model: Model of virtual network adapter. [default: e1000]
-    Options: (e1000 | e1000e | vmxnet | vmxnet2 | vmxnet3)
+    Options: (e1000 | e1000e | vmxnet | vmxnet2 | vmxnet3 | pcnet32 | sriov)
     e1000 will work on Windows Server 2003+, and e1000e is supported on Windows Server 2012+.
     VMXNET adapters require VMware Tools to be installed, and provide enhanced performance.
     Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
@@ -572,10 +572,14 @@ def add_nic(vm, network, summary="default-summary", model="e1000"):
         nic_spec.device = vim.vm.device.VirtualVmxnet2()
     elif model == "vmxnet3":
         nic_spec.device = vim.vm.device.VirtualVmxnet3()
+    elif model == "pcnet32":
+        nic_spec.device = vim.vm.device.VirtualPCNet32()
+    elif model == "sriov":
+        nic_spec.device = vim.vm.device.VirtualSriovEthernetCard()
     else:
         logging.error("Invalid NIC model: '%s'\nDefaulting to e1000...", model)
         nic_spec.device = vim.vm.device.VirtualE1000()
-    nic_spec.device.addressType = 'generated'  # Sets how MAC address is assigned
+    nic_spec.device.addressType = 'assigned'  # MAC address assigned by vCenter
     nic_spec.device.wakeOnLanEnabled = False  # Disables Wake-on-lan capabilities
 
     nic_spec.device.deviceInfo = vim.Description()
