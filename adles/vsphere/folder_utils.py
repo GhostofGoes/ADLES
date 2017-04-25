@@ -218,6 +218,7 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
 
     for item in folder.childEntity:
         if is_vm(item) and str(item.name).startswith(vm_prefix):  # Handle VMs
+            # TODO: this is janky and breaks separation, should pass a function to call as arg
             vm_utils.destroy_vm(vm=item)  # Delete the VM from the Datastore
         elif is_folder(item) and str(item.name).startswith(folder_prefix):   # Handle folders
             if destroy_folders:  # Destroys folder and ALL of it's sub-objects

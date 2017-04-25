@@ -23,7 +23,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder, find_in_fol
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.8"
+    __version__ = "0.9.9"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -132,7 +132,7 @@ class Vsphere:
         :param message: Message to set
         """
         self._log.info("Setting vCenter MOTD to %s", message)
-        self.content.sessionManager.UpdateServiceMessage(message=message)
+        self.content.sessionManager.UpdateServiceMessage(message=str(message))
 
     def set_entity_permissions(self, entity, permission):
         """
@@ -182,7 +182,7 @@ class Vsphere:
         try:
             return self.auth.RetrieveRolePermissions(roleId=int(role_id))
         except vim.fault.NotFound:
-            self._log.error("Role ID %d does not exist", int(role_id))
+            self._log.error("Role ID %s does not exist", str(role_id))
             return None
 
     def get_users(self, search='', domain='', exact=False,
@@ -221,7 +221,7 @@ class Vsphere:
             self._log.error("System doesn't support domains or by-membership queries for get_users")
             return None
 
-    def get_server_info(self):
+    def get_info(self):
         """
         Retrieves and formats basic information about the vSphere instance
         :return: string with formatted server information
@@ -447,7 +447,7 @@ class Vsphere:
                                            self.hostname, self.port)
 
     def __str__(self):
-        return str(self.get_server_info())
+        return str(self.get_info())
 
     def __hash__(self):
         return hash((self.hostname, self.port, self.username))

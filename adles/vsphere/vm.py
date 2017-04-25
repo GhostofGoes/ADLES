@@ -24,7 +24,7 @@ from adles.vsphere.folder_utils import find_in_folder
 
 class VM:
     """ Represents a VMware vSphere Virtual Machine instance. """
-    __version__ = "0.3.0"
+    __version__ = "0.4.0"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -142,7 +142,7 @@ class VM:
             try:
                 wait_for_task(task)
             except vim.fault.ToolsUnavailable:
-                self._log.error("Cannot change guest state of '%s': Tools are not running", self.name)
+                self._log.error("Can't change guest state of '%s': Tools aren't running", self.name)
         else:
             if state == "on":
                 task = self._vm.PowerOnVM_Task()
@@ -186,7 +186,7 @@ class VM:
         self._edit(spec)
         self.name = str(name)
 
-    def upgrade_vm(self, version):
+    def upgrade(self, version):
         """
         Upgrades the hardware version of the VM
         :param version: Version of hardware to upgrade VM to [default: latest VM's host supports]
@@ -217,85 +217,6 @@ class VM:
         """
         self._edit(vim.vm.ConfigSpec(annotation=str(note)))
 
-    def get_vm_info(self, detailed=False, uuids=False, snapshot=False, vnics=False):
-        """
-        Get human-readable information for a VM
-        :param detailed: Add more detailed information, such as maximum memory used [default: False]
-        :param uuids: Whether to get UUID information [default: False]
-        :param snapshot: Shows the current snapshot, if any [default: False]
-        :param vnics: Add information about the virtual network interfaces on the VM
-        :return: String with the VM information
-        """
-        info_string = "\n"
-        # http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.vm.Summary.html
-        summary = self._vm.summary
-        # http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.vm.ConfigInfo.html
-        config = self._vm.config
-        info_string += "Name          : %s\n" % self.name
-        info_string += "Status        : %s\n" % str(summary.overallStatus)
-        info_string += "Power State   : %s\n" % summary.runtime.powerState
-        if self._vm.guest:
-            info_string += "Guest State   : %s\n" % self._vm.guest.guestState
-        info_string += "Last modified : %s\n" % str(self._vm.config.modified)  # datetime object
-        if hasattr(summary.runtime, 'cleanPowerOff'):
-            info_string += "Clean poweroff: %s\n" % summary.runtime.cleanPowerOff
-        if detailed:
-            info_string += "Num consoles  : %d\n" % summary.runtime.numMksConnections
-        info_string += "Host          : %s\n" % self.host.name
-        info_string += "Datastore     : %s\n" % self.datastore
-        info_string += "HW Version    : %s\n" % config.version
-        info_string += "Guest OS      : %s\n" % summary.config.guestFullName
-        info_string += "Num CPUs      : %s\n" % summary.config.numCpu
-        info_string += "Memory (MB)   : %s\n" % summary.config.memorySizeMB
-        if detailed:
-            info_string += "Num vNICs     : %s\n" % summary.config.numEthernetCards
-            info_string += "Num Disks     : %s\n" % summary.config.numVirtualDisks
-        info_string += "IsTemplate    : %s\n" % summary.config.template  # bool
-        if detailed:
-            info_string += "Config Path   : %s\n" % summary.config.vmPathName
-        info_string += "Folder:       : %s\n" % self._vm.parent.name
-        if self._vm.guest:
-            info_string += "IP            : %s\n" % self._vm.guest.ipAddress
-            info_string += "Hostname:     : %s\n" % self._vm.guest.hostName
-            info_string += "Tools status  : %s\n" % self._vm.guest.toolsRunningStatus
-            info_string += "Tools version : %s\n" % self._vm.guest.toolsVersionStatus2
-        if vnics:
-            vm_nics = self.get_nics()
-            for num, vnic in zip(range(1, len(vm_nics) + 1), vm_nics):
-                info_string += "vNIC %d label   : %s\n" % (num, vnic.deviceInfo.label)
-                info_string += "vNIC %d summary : %s\n" % (num, vnic.deviceInfo.summary)
-                info_string += "vNIC %d network : %s\n" % (num, vnic.backing.network.name)
-        if uuids:
-            info_string += "Instance UUID : %s\n" % summary.config.instanceUuid
-            info_string += "Bios UUID     : %s\n" % summary.config.uuid
-        if summary.runtime.question:
-            info_string += "Question      : %s\n" % summary.runtime.question.text
-        if summary.config.annotation:
-            info_string += "Annotation    : %s\n" % summary.config.annotation
-        if snapshot and self._vm.snapshot and hasattr(self._vm.snapshot, 'currentSnapshot'):
-            info_string += "Current Snapshot: %s\n" % self._vm.snapshot.currentSnapshot.config.name
-            info_string += "Disk usage of all snapshots: %s\n" % self.snapshot_disk_usage()
-        if detailed and summary.runtime:
-            info_string += "Last Poweron  : %s\n" % str(summary.runtime.bootTime)  # datetime object
-            info_string += "Max CPU usage : %s\n" % summary.runtime.maxCpuUsage
-            info_string += "Max Mem usage : %s\n" % summary.runtime.maxMemoryUsage
-            info_string += "Last suspended: %s\n" % summary.runtime.suspendTime
-        return info_string
-
-    def get_vim_vm(self):
-        """
-        Get the vim.VirtualMachine instance of the VM
-        :return: vim.VirtualMachine
-        """
-        return self._vm
-
-    def screenshot(self):
-        """
-        Takes a screenshot of a VM
-        :return: Path to datastore location of the screenshot
-        """
-        return wait_for_task(self._vm.CreateScreenshot_Task())
-
     def snapshot_disk_usage(self):
         """
         Determines the total disk usage of a VM's snapshots
@@ -311,43 +232,6 @@ class VM:
             if ss_disk:
                 size += disk.size
         return utils.sizeof_fmt(size)
-
-    def get_snapshot(self, snapshot=None):
-        """
-        Retrieves the named snapshot from the VM
-        :param snapshot: Name of the snapshot to get [default: current snapshot]
-        :return: vim.Snapshot object
-        """
-        if snapshot is None:
-            return self._vm.snapshot.currentSnapshot
-        else:
-            for snap in self.get_all_snapshots():
-                if snap.name == snapshot:
-                    return snap.snapshot
-            return None
-
-    def get_all_snapshots(self):
-        """
-        Retrieves a list of all snapshots of the VM
-        :return: Nested List of vim.Snapshot objects
-        """
-        return self._get_snapshots_recursive(self._vm.snapshot.rootSnapshotList)
-
-    # From: https://github.com/imsweb/ezmomi
-    def _get_snapshots_recursive(self, snap_tree):
-        """
-        Recursively finds all snapshots in the tree
-        :param snap_tree: Tree of snapshots
-        :return: Nested List of vim.Snapshot objects
-        """
-        local_snap = []
-        for snap in snap_tree:
-            local_snap.append(snap)
-        for snap in snap_tree:
-            recurse_snap = self._get_snapshots_recursive(snap.childSnapshotList)
-            if recurse_snap:
-                local_snap.extend(recurse_snap)
-        return local_snap
 
     def create_snapshot(self, name, description='', memory=False):
         """
@@ -373,17 +257,17 @@ class VM:
         self._log.info("Reverting '%s' to the current snapshot", self.name)
         wait_for_task(self._vm.RevertToCurrentSnapshot_Task())
 
-    def remove_snapshot(self, snapshot_name, remove_children=True, consolidate_disks=True):
+    def remove_snapshot(self, snapshot, remove_children=True, consolidate_disks=True):
         """
         Removes the named snapshot from the VM
-        :param snapshot_name: Name of the snapshot to remove
+        :param snapshot: Name of the snapshot to remove
         :param remove_children: Removal of the entire snapshot subtree [default: True]
         :param consolidate_disks: Virtual disks of deleted snapshot will be merged with
         other disks if possible [default: True]
         """
-        self._log.info("Removing snapshot '%s' from '%s'", snapshot_name, self.name)
-        snapshot = self.get_snapshot(snapshot_name)
-        wait_for_task(snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks))
+        self._log.info("Removing snapshot '%s' from '%s'", snapshot, self.name)
+        wait_for_task(self.get_snapshot(snapshot).RemoveSnapshot_Task(remove_children,
+                                                                      consolidate_disks))
 
     def remove_all_snapshots(self, consolidate_disks=True):
         """
@@ -391,57 +275,10 @@ class VM:
         :param consolidate_disks: Virtual disks of the deleted snapshot will be merged with
         other disks if possible [default: True]
         """
-        self._log.info("Removing ALL snapshots for the '%s'", self.name)
+        self._log.info("Removing ALL snapshots for %s", self.name)
         wait_for_task(self._vm.RemoveAllSnapshots_Task(consolidate_disks))
 
-    def remove_device(self, device):
-        """
-        Removes the device from the VM
-        :param device: vim.vm.device.VirtualDeviceSpec
-        """
-        self._log.debug("Removing device '%s' from '%s'", device.name, self.name)
-        device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-        self._edit(vim.vm.ConfigSpec(deviceChange=[device]))
-
-    def get_nics(self):
-        """
-        Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
-        :return: list of vim.vm.device.VirtualEthernetCard
-        """
-        return [dev for dev in self._vm.config.hardware.device if is_vnic(dev)]
-
-    def get_nic_by_name(self, name):
-        """
-        Gets a Virtual Network Interface Card from a VM
-        :param name: Name of the vNIC
-        :return: vim.vm.device.VirtualEthernetCard
-        """
-        for dev in self._vm.config.hardware.device:
-            if is_vnic(dev) and dev.deviceInfo.label.lower() == name.lower():
-                return dev
-        self._log.debug("Could not find vNIC '%s' on '%s'", name, self.name)
-        return None
-
-    def get_nic_by_id(self, nic_id):
-        """
-        Get a vNIC by integer ID
-        :param nic_id: ID of the vNIC
-        :return: vim.vm.device.VirtualEthernetCard
-        """
-        return self.get_nic_by_name("Network Adapter " + str(nic_id))
-
-    def get_nic_by_network(self, network):
-        """
-        Finds a vNIC by it's network backing
-        :param network: vim.Network
-        :return: Name of the vNIC
-        """
-        for dev in self._vm.config.hardware.device:
-            if is_vnic(dev) and dev.backing.network == network:
-                return dev
-        self._log.debug("Could not find vNIC with network '%s' on '%s'", network.name, self.name)
-        return None
-
+    # Originally based on: add_nic_to_vm in pyvmomi-community-samples
     def add_nic(self, network, summary="default-summary", model="e1000"):
         """
         Add a NIC in the portgroup to the VM
@@ -522,7 +359,8 @@ class VM:
             nic_spec.device.backing.deviceName = port_group.name
         self._edit(vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply change to VM
 
-    def delete_nic(self, nic_number):
+    # Originally based on: delete_nic_from_vm in pyvmomi-community-samples
+    def remove_nic(self, nic_number):
         """
         Deletes VM vNIC based on it's number
         :param nic_number: Integer unit of the vNIC to delete
@@ -537,6 +375,15 @@ class VM:
             self._edit(vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply change to VM
         else:
             self._log.error("Virtual %s could not be found for '%s'", nic_label, self.name)
+
+    def remove_device(self, device):
+        """
+        Removes the device from the VM
+        :param device: vim.vm.device.VirtualDeviceSpec
+        """
+        self._log.debug("Removing device '%s' from '%s'", device.name, self.name)
+        device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
+        self._edit(vim.vm.ConfigSpec(deviceChange=[device]))
 
     def attach_iso(self, iso_name, datastore=None, boot=True):
         """
@@ -593,6 +440,161 @@ class VM:
     def mount_tools(self):
         """ Mounts the installer for VMware Tools """
         wait_for_task(self._vm.MountToolsInstaller())
+
+    def get_vim_vm(self):
+        """
+        Get the vim.VirtualMachine instance of the VM
+        :return: vim.VirtualMachine
+        """
+        return self._vm
+
+    def get_nics(self):
+        """
+        Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
+        :return: list of vim.vm.device.VirtualEthernetCard
+        """
+        return [dev for dev in self._vm.config.hardware.device if is_vnic(dev)]
+
+    def get_nic_by_name(self, name):
+        """
+        Gets a Virtual Network Interface Card from a VM
+        :param name: Name of the vNIC
+        :return: vim.vm.device.VirtualEthernetCard
+        """
+        for dev in self._vm.config.hardware.device:
+            if is_vnic(dev) and dev.deviceInfo.label.lower() == name.lower():
+                return dev
+        self._log.debug("Could not find vNIC '%s' on '%s'", name, self.name)
+        return None
+
+    def get_nic_by_id(self, nic_id):
+        """
+        Get a vNIC by integer ID
+        :param nic_id: ID of the vNIC
+        :return: vim.vm.device.VirtualEthernetCard
+        """
+        return self.get_nic_by_name("Network Adapter " + str(nic_id))
+
+    def get_nic_by_network(self, network):
+        """
+        Finds a vNIC by it's network backing
+        :param network: vim.Network
+        :return: Name of the vNIC
+        """
+        for dev in self._vm.config.hardware.device:
+            if is_vnic(dev) and dev.backing.network == network:
+                return dev
+        self._log.debug("Could not find vNIC with network '%s' on '%s'", network.name, self.name)
+        return None
+
+    def get_snapshot(self, snapshot=None):
+        """
+        Retrieves the named snapshot from the VM
+        :param snapshot: Name of the snapshot to get [default: current snapshot]
+        :return: vim.Snapshot object
+        """
+        if snapshot is None:
+            return self._vm.snapshot.currentSnapshot
+        else:
+            for snap in self.get_all_snapshots():
+                if snap.name == snapshot:
+                    return snap.snapshot
+            return None
+
+    def get_all_snapshots(self):
+        """
+        Retrieves a list of all snapshots of the VM
+        :return: Nested List of vim.Snapshot objects
+        """
+        return self._get_snapshots_recursive(self._vm.snapshot.rootSnapshotList)
+
+    # From: https://github.com/imsweb/ezmomi
+    def _get_snapshots_recursive(self, snap_tree):
+        """
+        Recursively finds all snapshots in the tree
+        :param snap_tree: Tree of snapshots
+        :return: Nested List of vim.Snapshot objects
+        """
+        local_snap = []
+        for snap in snap_tree:
+            local_snap.append(snap)
+        for snap in snap_tree:
+            recurse_snap = self._get_snapshots_recursive(snap.childSnapshotList)
+            if recurse_snap:
+                local_snap.extend(recurse_snap)
+        return local_snap
+
+    def get_info(self, detailed=False, uuids=False, snapshot=False, vnics=False):
+        """
+        Get human-readable information for a VM
+        :param detailed: Add more detailed information, such as maximum memory used [default: False]
+        :param uuids: Whether to get UUID information [default: False]
+        :param snapshot: Shows the current snapshot, if any [default: False]
+        :param vnics: Add information about the virtual network interfaces on the VM
+        :return: String with the VM information
+        """
+        info_string = "\n"
+        # http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.vm.Summary.html
+        summary = self._vm.summary
+        # http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.vm.ConfigInfo.html
+        config = self._vm.config
+        info_string += "Name          : %s\n" % self.name
+        info_string += "Status        : %s\n" % str(summary.overallStatus)
+        info_string += "Power State   : %s\n" % summary.runtime.powerState
+        if self._vm.guest:
+            info_string += "Guest State   : %s\n" % self._vm.guest.guestState
+        info_string += "Last modified : %s\n" % str(self._vm.config.modified)  # datetime object
+        if hasattr(summary.runtime, 'cleanPowerOff'):
+            info_string += "Clean poweroff: %s\n" % summary.runtime.cleanPowerOff
+        if detailed:
+            info_string += "Num consoles  : %d\n" % summary.runtime.numMksConnections
+        info_string += "Host          : %s\n" % self.host.name
+        info_string += "Datastore     : %s\n" % self.datastore
+        info_string += "HW Version    : %s\n" % config.version
+        info_string += "Guest OS      : %s\n" % summary.config.guestFullName
+        info_string += "Num CPUs      : %s\n" % summary.config.numCpu
+        info_string += "Memory (MB)   : %s\n" % summary.config.memorySizeMB
+        if detailed:
+            info_string += "Num vNICs     : %s\n" % summary.config.numEthernetCards
+            info_string += "Num Disks     : %s\n" % summary.config.numVirtualDisks
+        info_string += "IsTemplate    : %s\n" % summary.config.template  # bool
+        if detailed:
+            info_string += "Config Path   : %s\n" % summary.config.vmPathName
+        info_string += "Folder:       : %s\n" % self._vm.parent.name
+        if self._vm.guest:
+            info_string += "IP            : %s\n" % self._vm.guest.ipAddress
+            info_string += "Hostname:     : %s\n" % self._vm.guest.hostName
+            info_string += "Tools status  : %s\n" % self._vm.guest.toolsRunningStatus
+            info_string += "Tools version : %s\n" % self._vm.guest.toolsVersionStatus2
+        if vnics:
+            vm_nics = self.get_nics()
+            for num, vnic in zip(range(1, len(vm_nics) + 1), vm_nics):
+                info_string += "vNIC %d label   : %s\n" % (num, vnic.deviceInfo.label)
+                info_string += "vNIC %d summary : %s\n" % (num, vnic.deviceInfo.summary)
+                info_string += "vNIC %d network : %s\n" % (num, vnic.backing.network.name)
+        if uuids:
+            info_string += "Instance UUID : %s\n" % summary.config.instanceUuid
+            info_string += "Bios UUID     : %s\n" % summary.config.uuid
+        if summary.runtime.question:
+            info_string += "Question      : %s\n" % summary.runtime.question.text
+        if summary.config.annotation:
+            info_string += "Annotation    : %s\n" % summary.config.annotation
+        if snapshot and self._vm.snapshot and hasattr(self._vm.snapshot, 'currentSnapshot'):
+            info_string += "Current Snapshot: %s\n" % self._vm.snapshot.currentSnapshot.config.name
+            info_string += "Disk usage of all snapshots: %s\n" % self.snapshot_disk_usage()
+        if detailed and summary.runtime:
+            info_string += "Last Poweron  : %s\n" % str(summary.runtime.bootTime)  # datetime object
+            info_string += "Max CPU usage : %s\n" % summary.runtime.maxCpuUsage
+            info_string += "Max Mem usage : %s\n" % summary.runtime.maxMemoryUsage
+            info_string += "Last suspended: %s\n" % summary.runtime.suspendTime
+        return info_string
+
+    def screenshot(self):
+        """
+        Takes a screenshot of a VM
+        :return: Path to datastore location of the screenshot
+        """
+        return wait_for_task(self._vm.CreateScreenshot_Task())
 
     def has_tools(self):
         """

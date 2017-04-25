@@ -57,8 +57,8 @@ service.change_state("off")
 # service.set_note("testing 1... 2... 3...")
 # print(str(service))
 # print(hash(service))
-print(service.get_vm_info(True, True, True, True))
-# service.upgrade_vm(12)
+print(service.get_info(True, True, True, True))
+# service.upgrade(12)
 # service.convert_template()
 # service.destroy()
 
@@ -74,7 +74,7 @@ print(service.get_vm_info(True, True, True, True))
 # instance_uuid = "50056cfe-aaa0-c28d-a702-d72e68e50f3a"
 # vm = server.find_by_uuid(uuid=instance_uuid)
 # vm = server.find_by_ds_path(path="[Datastore] (MASTER) apache/(MASTER) apache.vmx")
-# logging.info("%s", vm_utils.get_vm_info(vm, uuids=True))
+# logging.info("%s", vm_utils.get_info(vm, uuids=True))
 
 # pool = server.get_item(vim.ResourcePool)
 # vm_spec = vm_utils.gen_vm_spec(name="test_vm", datastore_name="Datastore",
@@ -83,11 +83,11 @@ print(service.get_vm_info(True, True, True, True))
 # attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
 
 # vm = server.get_vm("real-vm")
-# logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True, vnics=True))
+# logging.info(vm_utils.get_info(vm, detailed=True, uuids=True, snapshot=True, vnics=True))
 
 # vms = server.get_all_vms()
 # for vm in vms:
-#     logging.info(vm_utils.get_vm_info(vm))
+#     logging.info(vm_utils.get_info(vm))
 
 # net = server.get_network("ARP-LAN")
 # logging.info(str(net))
@@ -101,7 +101,7 @@ print(service.get_vm_info(True, True, True, True))
 # from adles.vsphere.folder_utils import traverse_path
 # folder = server.get_folder("script_testing")
 # vm = traverse_path(folder, "/Templates/Routers/VyOS 1.1.7 (64-bit)")
-# logging.info(get_vm_info(vm))
+# logging.info(get_info(vm))
 
 # datastore = server.get_datastore("Datastore")
 # logging.info(get_datastore_info(datastore))
@@ -110,7 +110,7 @@ print(service.get_vm_info(True, True, True, True))
 # logging.info("Portgroup: %s", str(portgroup))
 # vm_utils.add_nic(vm, portgroup, "test_summary")
 # vm_utils.edit_nic(vm, 2, summary="lol")
-# vm_utils.delete_nic(vm, 1)
+# vm_utils.remove_nic(vm, 1)
 
 # create_portgroup("test_portgroup", server.get_host(), "test_vswitch")
 # delete_portgroup("test_portgroup", server.get_host())

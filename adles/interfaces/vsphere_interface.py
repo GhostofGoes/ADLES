@@ -357,7 +357,7 @@ class VsphereInterface:
             diff = int(num_nics - num_nets)
             self._log.debug("VM '%s' has %d extra NICs, removing...", vm.name, diff)
             for i, nic in zip(range(1, diff + 1), reversed(range(num_nics))):
-                vm.delete_nic(nic)
+                vm.remove_nic(nic)
 
         elif num_nics < num_nets:   # Create missing interfaces
             diff = int(num_nets - num_nics)

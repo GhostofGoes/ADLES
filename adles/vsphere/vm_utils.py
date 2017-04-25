@@ -44,61 +44,6 @@ def clone_vm(vm, folder, name, clone_spec):
             logging.error("Could not make clone '%s': invalid configuration", name)
 
 
-@utils.check(vim.Folder, "folder")
-def create_vm(folder, config, pool, host=None):
-    """
-    Creates a VM with the specified configuration in the given folder
-    :param folder: vim.Folder in which to create the VM
-    :param config: vim.vm.ConfigSpec defining the new VM
-    :param pool: vim.ResourcePool to which the virtual machine will be attached
-    :param host: vim.HostSystem on which the VM will run [default: None]
-    """
-    logging.debug("Creating VM '%s' in folder '%s'", config.name, folder.name)
-    vutils.wait_for_task(folder.CreateVM_Task(config, pool, host))
-
-
-def gen_vm_spec(name, datastore_name, annotation=None, cpus=1, cores=1, memory=512,
-                version=None, firmware='efi', max_consoles=None, datastore_path=None):
-    """
-    Generates a Virtual Machine creation spec
-    :param name: Name of the VM
-    :param datastore_name: Name of datastore to put VM on
-    :param version: Hardware version of the VM [default: highest host supports]
-    :param annotation: String annotation for the VM [default: None]
-    :param cpus: Number of CPUs [default: 1]
-    :param cores: Number of cores per CPU [default: 1]
-    :param memory: Memory in MB [default: 512]
-    :param firmware: (efi | bios) [default: efi]
-    :param max_consoles: Maximum number of active remote display connections
-    [default: datacenter-defined]
-    :param datastore_path: Path to existing VM files on datastore [default: None]
-    :return: vim.vm.ConfigSpec
-    """
-    spec = vim.vm.ConfigSpec()
-    spec.name = str(name)
-    spec.numCPUs = int(cpus)
-    spec.numCoresPerSocket = int(cores)
-    spec.memoryMB = int(memory)
-    spec.memoryHotAddEnabled = True
-    spec.firmware = str(firmware).lower()
-
-    if version:
-        spec.version = str(version)
-
-    if annotation:
-        spec.annotation = str(annotation)
-
-    if max_consoles:
-        spec.maxMksConnections = int(max_consoles)
-
-    vm_path = '[' + datastore_name + '] '
-    if datastore_path:
-        vm_path += str(datastore_path)
-    vm_path += name + '/' + name + '.vmx'
-    spec.files = vim.vm.FileInfo(vmPathName=vm_path)
-    return spec
-
-
 @utils.check(vim.VirtualMachine, "vm")
 def destroy_vm(vm):
     """
@@ -136,21 +81,6 @@ def edit_vm(vm, config):
         logging.error("Cannot edit VM '%s': invalid power state '%s'", vm.name, e.existingState)
     except vim.fault.InvalidDatastore as e:
         logging.error("Cannot edit VM '%s': invalid Datastore '%s'", vm.name, e.datastore)
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def upgrade_vm(vm, version=''):
-    """
-    Upgrades the hardware version of the VM
-    :param vm: vim.VirtualMachine object
-    :param version: Version of hardware to upgrade VM to [default: latest VM's host supports]
-    """
-    try:
-        vutils.wait_for_task(vm.UpgradeVM_Task(str(version)))
-    except vim.fault.AlreadyUpgraded:
-        logging.error("VM '%s' hardware version is already up-to-date", vm.name)
-    except vim.fault.InvalidPowerState as e:
-        logging.error("Cannot upgrade VM '%s': invalid power state '%s'", vm.name, e.existingState)
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -228,49 +158,6 @@ def change_guest_state(vm, guest_state):
         vutils.wait_for_task(task)
     except vim.fault.ToolsUnavailable:
         logging.error("Cannot change guest state of '%s': Tools are not running", vm.name)
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def convert_to_template(vm):
-    """
-    Converts a Virtual Machine to a template
-    :param vm: vim.VirtualMachine object to convert
-    """
-    if is_template(vm):
-        logging.warning("VM '%s' is already a template", vm.name)
-        return
-    try:
-        logging.debug("Converting VM '%s' to Template", vm.name)
-        vm.MarkAsTemplate()
-    except vim.fault.InvalidPowerState as e:
-        logging.error("Cannot convert '%s' to a template while in state '%s'",
-                      vm.name, e.existingState)
-    except vim.fault.InvalidState:
-        logging.error("Cannot '%s' to template: it is in an invalid state", vm.name)
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def convert_to_vm(vm, resource_pool, host=None):
-    """
-    Converts a Template to a Virtual Machine
-    :param vm: vim.VirtualMachine object to convert
-    :param resource_pool: vim.ResourcePool to associate with the VM
-    :param host: vim.HostSystem on which the VM should run [default: None]
-    """
-    logging.debug("Converting Template '%s' to VM and assigning to resource pool '%s'",
-                  vm.name, resource_pool.name)
-    vm.MarkAsVirtualMachine(resource_pool, host)
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def set_note(vm, note):
-    """
-    Sets the note on the VM to note
-    :param vm: vim.VirtualMachine object
-    :param note: String to set the note to
-    """
-    logging.debug("Setting note of VM '%s' to '%s'", vm.name, note)
-    edit_vm(vim.vm.ConfigSpec(annotation=str(note)))
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -360,33 +247,6 @@ def _get_snapshots_recursive(snap_tree):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-def remove_snapshot(vm, snapshot_name, remove_children=True, consolidate_disks=True):
-    """
-    Removes the named snapshot from the VM
-    :param vm: vim.VirtualMachine object
-    :param snapshot_name: Name of the snapshot to remove
-    :param remove_children: Removal of the entire snapshot subtree [default: True]
-    :param consolidate_disks: Virtual disks of deleted snapshot will be merged with
-    other disks if possible [default: True]
-    """
-    logging.debug("Removing snapshot '%s' from '%s'", snapshot_name, vm.name)
-    snapshot = get_snapshot(vm, snapshot_name)
-    vutils.wait_for_task(snapshot.RemoveSnapshot_Task(remove_children, consolidate_disks))
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def remove_all_snapshots(vm, consolidate_disks=True):
-    """
-    Removes all snapshots associated with the VM
-    :param vm: vim.VirtualMachine object
-    :param consolidate_disks: Virtual disks of the deleted snapshot will be merged with
-    other disks if possible [default: True]
-    """
-    logging.debug("Removing ALL snapshots for the '%s'", vm.name)
-    vutils.wait_for_task(vm.RemoveAllSnapshots_Task(consolidate_disks))
-
-
-@utils.check(vim.VirtualMachine, "vm")
 def snapshot_disk_usage(vm):
     """
     Determines the total disk usage of a VM's snapshots
@@ -468,18 +328,6 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False, vnics=False):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-def remove_device(vm, device):
-    """
-    Removes the device from the VM
-    :param vm: vim.VirtualMachine
-    :param device: vim.vm.device.VirtualDeviceSpec
-    """
-    logging.debug("Removing device '%s' from VM '%s'", device.name, vm.name)
-    device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[device]))
-
-
-@utils.check(vim.VirtualMachine, "vm")
 def get_nics(vm):
     """
     Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
@@ -487,217 +335,6 @@ def get_nics(vm):
     :return: list of vim.vm.device.VirtualEthernetCard
     """
     return [dev for dev in vm.config.hardware.device if vutils.is_vnic(dev)]
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def get_nic_by_name(vm, name):
-    """
-    Gets a Virtual Network Interface Card from a VM
-    :param vm: vim.VirtualMachine
-    :param name: Name of the vNIC
-    :return: vim.vm.device.VirtualEthernetCard
-    """
-    for dev in vm.config.hardware.device:
-        if vutils.is_vnic(dev) and dev.deviceInfo.label.lower() == name.lower():
-            return dev
-    logging.debug("Could not find vNIC '%s' on VM '%s'", name, vm.name)
-    return None
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def get_nic_by_id(vm, nic_id):
-    """
-    Get a vNIC by integer ID
-    :param vm: vim.VirtualMachine
-    :param nic_id: ID of the vNIC
-    :return: vim.vm.device.VirtualEthernetCard
-    """
-    return get_nic_by_name(vm, "Network Adapter " + str(nic_id))
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def get_nic_by_network(vm, network):
-    """
-    Finds a vNIC by it's network backing
-    :param vm: vim.VirtualMachine
-    :param network: vim.Network
-    :return: Name of the vNIC
-    """
-    for dev in vm.config.hardware.device:
-        if vutils.is_vnic(dev) and dev.backing.network == network:
-            return dev
-    logging.debug("Could not find vNIC with network '%s' on VM '%s'", network.name, vm.name)
-    return None
-
-
-# From: add_nic_to_vm in pyvmomi-community-samples
-@utils.check(vim.VirtualMachine, "vm")
-def add_nic(vm, network, summary="", model="e1000"):
-    """
-    Add a NIC in the portgroup to the VM
-    :param vm: vim.VirtualMachine
-    :param network: vim.Network to attach NIC to
-    :param summary: Human-readable device info [default: default-summary]
-    :param model: Model of virtual network adapter. [default: e1000]
-    Options: (e1000 | e1000e | vmxnet | vmxnet2 | vmxnet3 | pcnet32 | sriov)
-    e1000 will work on Windows Server 2003+, and e1000e is supported on Windows Server 2012+.
-    VMXNET adapters require VMware Tools to be installed, and provide enhanced performance.
-    Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
-    """
-    if not isinstance(network, vim.Network):
-        logging.error("Invalid network type when adding vNIC to VM '%s': %s",
-                      vm.name, type(network).__name__)
-    logging.debug("Adding NIC to VM '%s'\nNetwork: '%s'\tSummary: '%s'\tNIC Model: '%s'",
-                  vm.name, network.name, summary, model)
-    nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create a base object to add configurations to
-    nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
-
-    # Set the type of network adapter
-    if model == "e1000":
-        nic_spec.device = vim.vm.device.VirtualE1000()
-    elif model == "e1000e":
-        nic_spec.device = vim.vm.device.VirtualE1000e()
-    elif model == "vmxnet":
-        nic_spec.device = vim.vm.device.VirtualVmxnet()
-    elif model == "vmxnet2":
-        nic_spec.device = vim.vm.device.VirtualVmxnet2()
-    elif model == "vmxnet3":
-        nic_spec.device = vim.vm.device.VirtualVmxnet3()
-    elif model == "pcnet32":
-        nic_spec.device = vim.vm.device.VirtualPCNet32()
-    elif model == "sriov":
-        nic_spec.device = vim.vm.device.VirtualSriovEthernetCard()
-    else:
-        logging.error("Invalid NIC model: '%s'\nDefaulting to e1000...", model)
-        nic_spec.device = vim.vm.device.VirtualE1000()
-    nic_spec.device.addressType = 'assigned'  # MAC address assigned by vCenter
-    nic_spec.device.wakeOnLanEnabled = False  # Disables Wake-on-lan capabilities
-
-    nic_spec.device.deviceInfo = vim.Description()
-    nic_spec.device.deviceInfo.summary = summary
-
-    nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
-    nic_spec.device.backing.useAutoDetect = False
-    nic_spec.device.backing.network = network  # Sets port group to assign adapter to
-    nic_spec.device.backing.deviceName = network.name  # Sets name of device on host system
-
-    nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-    nic_spec.device.connectable.startConnected = True  # Ensures adapter is connected at boot
-    nic_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
-    nic_spec.device.connectable.connected = True
-    nic_spec.device.connectable.status = 'untried'
-    # TODO: configure guest IP address if statically assigned
-
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def edit_nic(vm, nic_id, port_group=None, summary=None):
-    """
-    Edits a VM NIC based on it's number
-    :param vm: vim.VirtualMachine
-    :param nic_id: Number of network adapter on VM
-    :param port_group: vim.Network object to assign NIC to [default: None]
-    :param summary: Human-readable device description [default: None]
-    """
-    nic_label = 'Network adapter ' + str(nic_id)
-    logging.debug("Changing '%s' on VM '%s'", nic_label, vm.name)
-    virtual_nic_device = get_nic_by_name(vm, nic_label)
-    if not virtual_nic_device:
-        logging.error('Virtual %s could not be found!', nic_label)
-        return
-
-    nic_spec = vim.vm.device.VirtualDeviceSpec()
-    nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
-    nic_spec.device = virtual_nic_device
-    if summary:
-        nic_spec.device.deviceInfo.summary = str(summary)
-    if port_group:
-        logging.debug("Changing PortGroup to: '%s'", port_group.name)
-        nic_spec.device.backing.network = port_group
-        nic_spec.device.backing.deviceName = port_group.name
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply the change to the VM
-
-
-# From: delete_nic_from_vm in pyvmomi-community-samples
-@utils.check(vim.VirtualMachine, "vm")
-def delete_nic(vm, nic_number):
-    """
-    Deletes VM vNIC based on it's number
-    :param vm: vim.VirtualMachine
-    :param nic_number: Integer unit of the vNIC to delete
-    """
-    nic_label = 'Network adapter ' + str(nic_number)
-    logging.debug("Removing Virtual %s from '%s'", nic_label, vm.name)
-    virtual_nic_device = get_nic_by_name(vm, nic_label)
-
-    if not virtual_nic_device:
-        logging.error("Virtual %s could not be found for VM '%s'", nic_label, vm.name)
-        return
-
-    virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
-    virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-    virtual_nic_spec.device = virtual_nic_device
-
-    edit_vm(vm, vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply the change to the VM
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def attach_iso(vm, iso_name, datastore, boot=True):
-    """
-    Attaches an ISO image to a VM
-    :param vm: vim.VirtualMachine
-    :param iso_name: Name of the ISO image to attach
-    :param datastore: vim.Datastore where the ISO resides
-    :param boot: Set VM to boot from the attached ISO
-    """
-    logging.debug("Adding ISO '%s' to VM '%s'", iso_name, vm.name)
-    drive_spec = vim.vm.device.VirtualDeviceSpec()
-    drive_spec.device = vim.vm.device.VirtualCdrom()
-    drive_spec.device.key = -1
-    drive_spec.device.unitNumber = 0
-
-    # Find a disk controller to attach to
-    controller = _find_free_ide_controller(vm)
-    if controller:
-        drive_spec.device.controllerKey = controller.key
-    else:
-        logging.error("Could not find a free IDE controller on VM '%s' to attach ISO '%s'",
-                      vm.name, iso_name)
-        return
-
-    drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
-    drive_spec.device.backing.fileName = "[%s] %s" % (datastore.name, iso_name)  # Attach ISO
-    drive_spec.device.backing.datastore = datastore  # Set datastore ISO is in
-
-    drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-    drive_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
-    drive_spec.device.connectable.startConnected = True     # Ensures ISO is connected at boot
-
-    drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
-    vm_spec = vim.vm.ConfigSpec(deviceChange=[drive_spec])
-
-    if boot:  # Set the VM to boot from the ISO upon power on
-        logging.debug("Setting '%s' to boot from ISO '%s'", vm.name, iso_name)
-        order = [vim.vm.BootOptions.BootableCdromDevice()]
-        order.extend(list(vm.config.bootOptions.bootOrder))
-        vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)
-
-    edit_vm(vm, vm_spec)  # Apply the change to the VM
-
-
-# From: cdrom_vm in pyvmomi-community-samples
-@utils.check(vim.VirtualMachine, "vm")
-def _find_free_ide_controller(vm):
-    """
-    Finds a free IDE controller to use
-    :param vm: vim.VirtualMachine
-    :return: vim.vm.device.VirtualIDEController
-    """
-    for dev in vm.config.hardware.device:
-        if isinstance(dev, vim.vm.device.VirtualIDEController) and len(dev.device) < 2:
-            return dev  # If there are less than 2 devices attached, we can use it
-    return None
 
 
 @utils.check(vim.VirtualMachine, "vm")

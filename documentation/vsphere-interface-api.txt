@@ -1,7 +1,7 @@
 @startuml
 
 
-'package "Core Application" {''
+package "Core Application" {
     object main {
         + main()
     }
@@ -20,7 +20,7 @@
     }
 
     main -> parser
-'}'
+}
 
 package "Scripts" {
     object clone_vms {
@@ -64,26 +64,15 @@ package "Platform Interfaces" {
         class VsphereInterface {
             + create_masters()
             + cleanup_masters()
-            - _master_folder_gen()
-            - _clone_service()
-            - _create_master_networks()
-            - _configure_nics()
             + deploy_environment()
             + cleanup_environment()
-            - _convert_and_verify()
-            - _gen_services()
-            - _parent_folder_gen()
-            - _deploy_folder_gen()
-            - _instances_handler()
         }
 
         class Vsphere {
-            + server
-            + datacenter
-            + datastore
             + create_folder()
             + gen_clone_spec()
-            + get_server_info()
+            .. Getters ..
+            + get_info()
             + get_folder()
             + get_vm()
             + get_network()
@@ -93,64 +82,89 @@ package "Platform Interfaces" {
             + get_pool()
             + get_obj()
             + get_objs()
+            __ public __
+            + server
+            + datacenter
+            + datastore
         }
 
-        object vsphere_utils {
-            + wait_for_task()
-            + get_datastore_info()
-        }
-        
-        object folder_utils {
-            + get_in_folder()
-            + find_in_folder()
-            + traverse_path()
-            + enumerate_folder()
-            + format_structure()
-            + move_into_folder()
-            + create_folder()
-            + cleanup()
-            + retrieve_items()
-        }
-
-        object vm_utils {
-            + clone_vm()
-            + create_vm()
-            + gen_vm_spec()
-            + destroy_vm()
-            + edit_vm()
-            + upgrade_vm()
-            + change_vm_state()
-            + change_power_state()
-            + change_guest_state()
-            + convert_to_template()
-            + convert_to_vm()
+        class VM {
+            + create()
+            + destroy()
+            + change_state()
+            .. Edit operations ..
+            + edit_resources()
+            + rename()
+            + upgrade()
+            + convert_template()
+            + convert_vm()
             + set_note()
+            .. Snapshots ..
+            + snapshot_disk_usage()
             + create_snapshot()
-            + get_vm_info()
+            + revert_to_snapshot()
+            + revert_to_current_snapshot()
+            + remove_snapshot()
+            + remove_all_snapshots()
+            .. Device operations ..
             + add_nic()
             + edit_nic()
-            + delete_nic()
+            + remove_nic()
+            + remove_device()
             + attach_iso()
+            + mount_tools()
+            .. Getters ..
+            + get_vim_vm()
+            + get_nics()
+            + get_nic_by_name()
+            + get_nic_by_id()
+            + get_nic_by_network()
+            + get_snapshot()
+            + get_all_snapshots()
+            .. Query status/info ..
+            + get_info()
+            + screenshot()
+            + has_tools()
+            + powered_on()
+            + is_template()
+            + is_windows()
+            __ public __
+            + name
+            + folder
+            + resource_pool
+            + datastore
+            + host
+            + vm_folder
+            __ private __
+            - _vm
+            - _log
         }
-
-        object network_utils {
+        
+        class Host {
             + create_vswitch()
             + create_portgroup()
             + delete_network()
+            .. Getters ..
+            + get_info()
+            + get_net_item()
+            + get_net_obj()
+            + get_net_objs()
+            __ public __
+            + host
+            + name
+            + config
         }
         
-        class pyvmomi {
+        object pyvmomi {
             + vim
             + vmodl
         }
 
         Interface -- VsphereInterface
-        VsphereInterface -> Vsphere
-        Vsphere -> pyvmomi
-        Vsphere -- vsphere_utils
-        Vsphere -- folder_utils
-        Vsphere -- vm_utils
-        Vsphere -- network_utils
+        VsphereInterface -- Vsphere
+        VsphereInterface --* VM
+        VsphereInterface --* Host
+        Vsphere - pyvmomi
     }
 }
 
@@ -168,7 +182,6 @@ vm_power --* Vsphere
 
 vsphere_info - utils
 vsphere_info --* Vsphere
-
 
 
 @enduml

@@ -19,78 +19,12 @@ from pyVmomi import vim
 
 class Host:
     """ Represents an ESXi host in a VMware vSphere environment. """
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
 
     def __init__(self, host):
         self.host = host
         self.name = str(host.name)
         self.config = host.config
-
-    def get_host_info(self):
-        """
-        Get information about the host
-        :return: Formatted String with host information
-        """
-        return str(self.config)  # TODO: host information much like get_vm_info()
-
-    def get_net_item(self, object_type, name):
-        """
-        Retrieves a network object of the specified type and name from a host
-        :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
-        :param name: Name of network object [default: first object found]
-        :return: The network object
-        """
-        if name:
-            return self.get_net_obj(object_type, name)
-        else:
-            return self.get_net_objs(object_type)[0]
-
-    def get_net_obj(self, object_type, name, refresh=False):
-        """
-        Retrieves a network object of the specified type and name from a host
-        :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
-        :param name: Name of network object
-        :param refresh: Refresh the host's network system information [default: False]
-        :return: The network object
-        """
-        objs = self.get_net_objs(object_type=object_type, refresh=refresh)
-        obj_name = name.lower()
-        if objs is not None:
-            for obj in objs:
-                if object_type == "portgroup" or object_type == "proxyswitch":
-                    if obj.spec.name.lower() == obj_name:
-                        return obj
-                elif object_type == "pnic" or object_type == "vnic":
-                    if obj.device.lower() == obj_name:
-                        return obj
-                elif obj.name.lower() == obj_name:
-                    return obj
-        return None
-
-    def get_net_objs(self, object_type, refresh=False):
-        """
-        Retrieves all network objects of the specified type from the host
-        :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
-        :param refresh: Refresh the host's network system information [default: False]
-        :return: list of the network objects
-        """
-        if refresh:
-            self.host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up recent changes
-        net_type = object_type.lower()
-        if net_type == "portgroup":
-            objects = self.host.configManager.networkSystem.networkInfo.portgroup
-        elif net_type == "vswitch":
-            objects = self.host.configManager.networkSystem.networkInfo.vswitch
-        elif net_type == "proxyswitch":
-            objects = self.host.configManager.networkSystem.networkInfo.proxySwitch
-        elif net_type == "vnic ":
-            objects = self.host.configManager.networkSystem.networkInfo.vnic
-        elif net_type == "pnic ":
-            objects = self.host.configManager.networkSystem.networkInfo.pnic
-        else:
-            logging.error("Invalid type %s for get_net_objs", object_type)
-            return None
-        return list(objects)
 
     def create_vswitch(self, name, num_ports=512):
         """
@@ -154,6 +88,72 @@ class Host:
         except vim.fault.ResourceInUse:
             logging.error("%s '%s' can't be removed because there are vNICs associated with it",
                           network_type, name)
+
+    def get_info(self):
+        """
+        Get information about the host
+        :return: Formatted String with host information
+        """
+        return str(self.config)  # TODO: host information much like get_info()
+
+    def get_net_item(self, object_type, name):
+        """
+        Retrieves a network object of the specified type and name from a host
+        :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
+        :param name: Name of network object [default: first object found]
+        :return: The network object
+        """
+        if name:
+            return self.get_net_obj(object_type, name)
+        else:
+            return self.get_net_objs(object_type)[0]
+
+    def get_net_obj(self, object_type, name, refresh=False):
+        """
+        Retrieves a network object of the specified type and name from a host
+        :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
+        :param name: Name of network object
+        :param refresh: Refresh the host's network system information [default: False]
+        :return: The network object
+        """
+        objs = self.get_net_objs(object_type=object_type, refresh=refresh)
+        obj_name = name.lower()
+        if objs is not None:
+            for obj in objs:
+                if object_type == "portgroup" or object_type == "proxyswitch":
+                    if obj.spec.name.lower() == obj_name:
+                        return obj
+                elif object_type == "pnic" or object_type == "vnic":
+                    if obj.device.lower() == obj_name:
+                        return obj
+                elif obj.name.lower() == obj_name:
+                    return obj
+        return None
+
+    def get_net_objs(self, object_type, refresh=False):
+        """
+        Retrieves all network objects of the specified type from the host
+        :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
+        :param refresh: Refresh the host's network system information [default: False]
+        :return: list of the network objects
+        """
+        if refresh:
+            self.host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up recent changes
+        net_type = object_type.lower()
+        if net_type == "portgroup":
+            objects = self.host.configManager.networkSystem.networkInfo.portgroup
+        elif net_type == "vswitch":
+            objects = self.host.configManager.networkSystem.networkInfo.vswitch
+        elif net_type == "proxyswitch":
+            objects = self.host.configManager.networkSystem.networkInfo.proxySwitch
+        elif net_type == "vnic ":
+            objects = self.host.configManager.networkSystem.networkInfo.vnic
+        elif net_type == "pnic ":
+            objects = self.host.configManager.networkSystem.networkInfo.pnic
+        else:
+            logging.error("Invalid type %s for get_net_objs", object_type)
+            return None
+        return list(objects)
 
     def __str__(self):
         return str(self.name)

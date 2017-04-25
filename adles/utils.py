@@ -332,7 +332,7 @@ def setup_logging(filename, colors=True, console_verbose=False,
         logfile.write(2 * '\n')
 
     # Format log output so it's human readable yet verbose
-    base_format = "[%(asctime)s] %(name)-8s %(levelname)-8s %(message)s"
+    base_format = "%(asctime)s %(levelname)-8s %(name)-10s %(message)s"
     time_format = "%Y-%m-%d %H:%M:%S"
     formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
 
