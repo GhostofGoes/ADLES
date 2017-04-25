@@ -105,10 +105,9 @@ def destroy_vm(vm):
     Destroys a Virtual Machine
     :param vm: vim.VirtualMachine object
     """
-    name = vm.name
-    logging.debug("Destroying VM '%s'", name)
+    logging.debug("Destroying VM '%s'", vm.name)
     if powered_on(vm):
-        logging.warning("VM '%s' is still on, powering off before destroying...", name)
+        logging.warning("VM '%s' is still on, powering off before destroying...", vm.name)
         change_vm_state(vm, "off", attempt_guest=False)
     vutils.wait_for_task(vm.Destroy_Task())
 
@@ -271,9 +270,7 @@ def set_note(vm, note):
     :param note: String to set the note to
     """
     logging.debug("Setting note of VM '%s' to '%s'", vm.name, note)
-    spec = vim.vm.ConfigSpec()
-    spec.annotation = note
-    edit_vm(vm, spec)
+    edit_vm(vim.vm.ConfigSpec(annotation=str(note)))
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -298,8 +295,7 @@ def revert_to_snapshot(vm, snapshot_name):
     :param snapshot_name: Name of the snapshot to revert to
     """
     logging.debug("Reverting '%s' to the snapshot '%s'", vm.name, snapshot_name)
-    snap = get_snapshot(vm, snapshot_name)
-    vutils.wait_for_task(snap.RevertToSnapshot_Task())
+    vutils.wait_for_task(get_snapshot(vm, snapshot_name).RevertToSnapshot_Task())
 
 
 @utils.check(vim.VirtualMachine, "vm")

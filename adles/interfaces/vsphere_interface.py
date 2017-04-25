@@ -538,7 +538,6 @@ class VsphereInterface:
 
             # Get the Master template instance to clone from
             master = self.masters.get(self.master_prefix + value["service"], None)
-            # service = futils.traverse_path(self.master_folder, self._path(path, value["service"]))
             if master is None:  # Check if the lookup was successful
                 self._log.error("Couldn't find Master for service '%s' in this path:\n%s",
                                 value["service"], path)
