@@ -16,17 +16,53 @@ import logging
 
 from pyVmomi import vim
 
+from adles.vsphere.vsphere_utils import wait_for_task
+
 
 # TODO: edit vswitch, edit portgroup
 class Host:
     """ Represents an ESXi host in a VMware vSphere environment. """
-    __version__ = "0.2.2"
+    __version__ = "0.3.0"
 
     def __init__(self, host):
         self._log = logging.getLogger('Host')
         self.host = host
         self.name = str(host.name)
         self.config = host.config
+
+    def reboot(self, force=False):
+        """
+        Reboots the host
+        :param force: Force a reboot even if the host is not in maintenance mode
+        """
+        self._log.warning("Rebooting host %s", self.name)
+        wait_for_task(self.host.RebootHost_Task(force=bool(force)))
+
+    def shutdown(self, force=False):
+        """
+        Shuts down the host
+        :param force: Force a reboot even if the host is not in maintenance mode
+        """
+        self._log.warning("Shutting down host %s", self.name)
+        wait_for_task(self.host.ShutdownHost_Task(force=bool(force)))
+
+    def enter_maintenance_mode(self, timeout=0, spec=None):
+        """
+        Enter maintenance mode
+        :param timeout: Seconds to wait [default: 0]
+        :param spec: Actions to be taken upon entering maintenance mode (HostMaintenanceSpec)
+        """
+        self._log.warning("%s is entering maintainence mode", self.name)
+        wait_for_task(self.host.EnterMaintenanceMode_Task(timeout=int(timeout),
+                                                          maintenanceSpec=spec))
+
+    def exit_maintenance_mode(self, timeout=0):
+        """
+        Exit maintenance mode
+        :param timeout: Seconds to wait [default: 0]
+        """
+        self._log.info("%s is exiting maintainence mode", self.name)
+        wait_for_task(self.host.ExitMaintenanceMode_Task(timeout=int(timeout)))
 
     def create_vswitch(self, name, num_ports=512):
         """

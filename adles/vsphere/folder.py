@@ -31,6 +31,15 @@ class Folder:
         self.name = folder.name
         self.host = host
 
+    def rename(self, name):
+        """
+        Renames the folder
+        :param name: New name for the folder
+        """
+        self._log.debug("Renaming %s to %s", self.name, name)
+        wait_for_task(self.folder.Rename_Task(newName=str(name)))
+        self.name = str(name)
+
     def move_into(self, entity_list):
         """
         Moves a list of managed entities into the named folder.

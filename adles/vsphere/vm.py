@@ -179,11 +179,11 @@ class VM:
 
     def rename(self, name):
         """
-        Rename the VM
+        Renames the VM
         :param name: New name for the VM
         """
-        spec = vim.vm.ConfigSpec(name=str(name))
-        self._edit(spec)
+        self._log.debug("Renaming VM %s to %s", self.name, name)
+        wait_for_task(self._vm.Rename_Task(newName=str(name)))
         self.name = str(name)
 
     def upgrade(self, version):
