@@ -26,7 +26,7 @@ from adles.vsphere.vm import VM
 
 class VsphereInterface:
     """ Generic interface for the VMware vSphere platform """
-    __version__ = "0.9.0"
+    __version__ = "0.9.1"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -280,7 +280,7 @@ class VsphereInterface:
             return None
 
         config = self.services[service_name]
-        vm_name = VsphereInterface.master_prefix + service_name
+        vm_name = self.master_prefix + service_name
 
         test = futils.traverse_path(folder, vm_name)  # Check service already exists
         if test is None:
@@ -291,7 +291,7 @@ class VsphereInterface:
                                 config["template"], service_name)
                 return None
             self._log.debug("Cloning service '%s'", service_name)
-            vm = VM(name=service_name, folder=folder, resource_pool=self.server.get_pool(),
+            vm = VM(name=vm_name, folder=folder, resource_pool=self.server.get_pool(),
                     datastore=self.server.datastore, host=self.host)
             if not vm.create(template=template):
                 return None
@@ -316,21 +316,6 @@ class VsphereInterface:
         vm.create_snapshot("Start of Mastering", "Beginning of Mastering phase ")
 
         return vm
-
-        # Clone the template to create the Master instance
-        # vm_utils.clone_vm(vm=template, folder=folder, name=vm_name,
-        #                   clone_spec=self.server.gen_clone_spec())
-        # Get new cloned instance
-        # vm = futils.traverse_path(folder, vm_name)
-        # if vm:
-        #     self._log.debug("Successfully cloned service '%s' to folder '%s'",
-        #                     service_name, folder.name)
-        #     if "note" in config:  # Set VM note if specified
-        #         vm_utils.set_note(vm, note=config["note"])
-        #     return vm
-        # else:
-        #     self._log.error("Failed to clone VM '%s' for service '%s'", vm_name, service_name)
-        #     return None
 
     def _create_master_networks(self, net_type, default_create):
         """
@@ -412,7 +397,7 @@ class VsphereInterface:
 
         # Verify and convert Master instances to templates
         self._log.info("Validating and converting Masters to Templates")
-        self._convert_and_verify(folder=self.master_folder, _path="")
+        self._convert_and_verify(folder=self.master_folder)
         self._log.info("Finished validating and converting Masters to Templates")
 
         self._log.info("Deploying environment...")
@@ -422,18 +407,17 @@ class VsphereInterface:
         # Output fully deployed environment tree to debugging
         self._log.debug(futils.format_structure(futils.enumerate_folder(self.root_folder)))
 
-    def _convert_and_verify(self, folder, _path):
+    def _convert_and_verify(self, folder):
         """
         Converts masters to templates before deployment.
         This also ensures they are powered off before being cloned.
         :param folder: vim.Folder
-        :param _path: Current path
         """
         self._log.debug("Converting Masters in folder '%s' to templates", folder.name)
         for item in folder.childEntity:
             if is_vm(item):
                 vm = VM(vm=item)
-                self.masters[_path + vm.name] = vm
+                self.masters[vm.name] = vm
                 if vm.is_template():  # Skip if they already exist from a previous run
                     self._log.debug("Master '%s' is already a template", vm.name)
                     continue
@@ -453,7 +437,7 @@ class VsphereInterface:
                 else:
                     self._log.debug("Converted Master '%s' to Template", vm.name)
             elif is_folder(item):  # Recurse into sub-folders
-                self._convert_and_verify(item, _path=self._path(_path, item.name))
+                self._convert_and_verify(item)
             else:
                 self._log.debug("Unknown item found while templatizing Masters: %s", str(item))
 
@@ -532,7 +516,7 @@ class VsphereInterface:
             # Use the folder's name for the path, as that's what matches the Master version
             self._log.info("Generating services for base-type folder instance '%s'", instance_name)
             self._deploy_gen_services(services=folder_items["services"], parent=new_folder,
-                                      path=self._path(path, folder_name), instance=i)
+                                      path=path, instance=i)
 
     def _deploy_gen_services(self, services, parent, path, instance):
         """
@@ -553,9 +537,9 @@ class VsphereInterface:
             num_instances, prefix = self._instances_handler(value, service_name, "service")
 
             # Get the Master template instance to clone from
-            service = self.masters.get(self._path(path, value["service"]), None)
+            master = self.masters.get(self.master_prefix + value["service"], None)
             # service = futils.traverse_path(self.master_folder, self._path(path, value["service"]))
-            if service is None:  # Check if the lookup was successful
+            if master is None:  # Check if the lookup was successful
                 self._log.error("Couldn't find Master for service '%s' in this path:\n%s",
                                 value["service"], path)
                 continue  # Skip to the next service
@@ -565,7 +549,7 @@ class VsphereInterface:
                 instance_name = prefix + service_name + (" " + pad(i) if num_instances > 1 else "")
                 vm = VM(name=instance_name, folder=parent, resource_pool=self.server.get_pool(),
                         datastore=self.server.datastore, host=self.host)
-                if not vm.create(template=service):
+                if not vm.create(template=master.get_vim_vm()):
                     self._log.error("Failed to create instance %s", instance_name)
                 else:
                     self._configure_nics(vm, value["networks"], instance=instance)
