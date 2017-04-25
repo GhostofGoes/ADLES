@@ -79,7 +79,7 @@ def get_datastore_info(ds_obj):
     """
     if not ds_obj:
         logging.error("No Datastore was given to get_datastore_info")
-        return None
+        return ""
     from adles.utils import sizeof_fmt
     info_string = "\n"
     summary = ds_obj.summary

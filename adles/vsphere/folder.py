@@ -20,6 +20,7 @@ import adles.utils as utils
 from adles.vsphere.vsphere_utils import wait_for_task
 
 
+# TODO: finish implementing
 class Folder:
     """ Represents a VMware vSphere Folder instance. """
     __version__ = "0.1.0"

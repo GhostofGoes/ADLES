@@ -23,7 +23,7 @@ from adles.vsphere.folder_utils import create_folder, get_in_folder, find_in_fol
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.9"
+    __version__ = "0.9.10"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -51,10 +51,10 @@ class Vsphere:
         try:
             self._log.info("Connecting to vSphere: %s@%s:%d", username, hostname, port)
             if use_ssl:  # Connect to server using SSL certificate verification
-                self.server = SmartConnect(host=hostname, user=username, pwd=password, port=port)
+                self._server = SmartConnect(host=hostname, user=username, pwd=password, port=port)
             else:
-                self.server = SmartConnectNoSSL(host=hostname, user=username, pwd=password,
-                                                port=port)
+                self._server = SmartConnectNoSSL(host=hostname, user=username, pwd=password,
+                                                 port=port)
         except vim.fault.InvalidLogin:
             self._log.error("Invalid vSphere login credentials for user %s", username)
             exit(1)
@@ -63,16 +63,16 @@ class Vsphere:
             exit(1)
 
         from atexit import register
-        register(Disconnect, self.server)  # Ensures connection to server is closed on program exit
+        register(Disconnect, self._server)  # Ensures connection to server is closed on program exit
 
         self._log.info("Connected to vSphere host %s:%d", hostname, port)
-        self._log.debug("Current server time: %s", str(self.server.CurrentTime()))
+        self._log.debug("Current server time: %s", str(self._server.CurrentTime()))
 
         self.username = username
         self.hostname = hostname
         self.port = port
 
-        self.content = self.server.RetrieveContent()
+        self.content = self._server.RetrieveContent()
         self.auth = self.content.authorizationManager
         self.user_dir = self.content.userDirectory
 
@@ -133,6 +133,28 @@ class Vsphere:
         """
         self._log.info("Setting vCenter MOTD to %s", message)
         self.content.sessionManager.UpdateServiceMessage(message=str(message))
+
+    def map_items(self, vimtypes, func, name=None, container=None, recursive=True):
+        """
+        Apply a function to item(s)
+        :param vimtypes: List of vimtype objects to look for
+        :param func: Function to apply
+        :param name: Name of item to apply to [default: None]
+        :param container: Container to search in [default: content.rootFolder]
+        :param recursive: Recursively descend or only look in the current level [default: True]
+        :return: List of values returned from the function call(s)
+        """
+        contain = (self.content.rootFolder if not container else container)
+        con_view = self.content.viewManager.CreateContainerView(contain, vimtypes, recursive)
+        returns = []
+        for item in con_view.view:
+            if name:
+                if hasattr(item, 'name') and item.name.lower() == name.lower():
+                    returns.append(func(item))
+            else:
+                returns.append(func(item))
+        con_view.Destroy()
+        return returns
 
     def set_entity_permissions(self, entity, permission):
         """
@@ -367,28 +389,6 @@ class Vsphere:
             return self.get_objs(contain, [vimtype], recursive)[0]
         else:
             return self.get_obj(contain, [vimtype], name, recursive)
-
-    def map_items(self, vimtypes, func, name=None, container=None, recursive=True):
-        """
-        Apply a function to item(s)
-        :param vimtypes: List of vimtype objects to look for
-        :param func: Function to apply
-        :param name: Name of item to apply to [default: None]
-        :param container: Container to search in [default: content.rootFolder]
-        :param recursive: Recursively descend or only look in the current level [default: True]
-        :return: List of values returned from the function call(s)
-        """
-        contain = (self.content.rootFolder if not container else container)
-        con_view = self.content.viewManager.CreateContainerView(contain, vimtypes, recursive)
-        returns = []
-        for item in con_view.view:
-            if name:
-                if hasattr(item, 'name') and item.name.lower() == name.lower():
-                    returns.append(func(item))
-            else:
-                returns.append(func(item))
-        con_view.Destroy()
-        return returns
 
     def find_by_uuid(self, uuid, instance_uuid=True):
         """

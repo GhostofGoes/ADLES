@@ -39,7 +39,7 @@ import adles.vsphere.vm_utils as vm_utils
 from adles.vsphere.folder_utils import enumerate_folder, \
     format_structure, cleanup, retrieve_items
 
-__version__ = "0.5.7"
+__version__ = "0.5.8"
 
 
 def main():
@@ -106,7 +106,7 @@ def main():
             logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True,
                                               snapshot=True, vnics=True))
 
-        if vm.config.template:  # Warn if template
+        if vm_utils.is_template(vm):  # Warn if template
             if not prompt_y_n_question("VM '%s' is a Template. Continue? " % vm_name):
                 exit(0)
 

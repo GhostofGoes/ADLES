@@ -66,11 +66,24 @@ package "Platform Interfaces" {
             + cleanup_masters()
             + deploy_environment()
             + cleanup_environment()
+            + server
+            + spec
+            + infra
+            + groups
+            + hosts
+            - _log
         }
 
         class Vsphere {
             + create_folder()
             + gen_clone_spec()
+            + set_motd()
+            + map_items()
+            .. Permissions ..
+            + set_entity_permissions()
+            + get_entity_permissions()
+            + get_role_permissions()
+            + get_users()
             .. Getters ..
             + get_info()
             + get_folder()
@@ -82,10 +95,25 @@ package "Platform Interfaces" {
             + get_pool()
             + get_obj()
             + get_objs()
+            .. Finders ..
+            + find_by_uuid()
+            + find_by_ds_path()
+            + find_by_ip()
+            + find_by_hostname()
+            + find_by_inv_path()
             __ public __
             + server
             + datacenter
             + datastore
+            + content
+            + auth
+            + user_dir
+            + username
+            + hostname
+            + port
+            __ private __
+            - _server
+            - _log
         }
 
         class VM {
@@ -155,16 +183,17 @@ package "Platform Interfaces" {
             + config
         }
         
-        object pyvmomi {
+        object pyVmomi {
             + vim
             + vmodl
         }
 
         Interface -- VsphereInterface
+
         VsphereInterface -- Vsphere
         VsphereInterface --* VM
         VsphereInterface --* Host
-        Vsphere - pyvmomi
+        Vsphere - pyVmomi
     }
 }
 

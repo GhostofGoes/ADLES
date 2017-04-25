@@ -17,11 +17,13 @@ import logging
 from pyVmomi import vim
 
 
+# TODO: edit vswitch, edit portgroup
 class Host:
     """ Represents an ESXi host in a VMware vSphere environment. """
-    __version__ = "0.2.1"
+    __version__ = "0.2.2"
 
     def __init__(self, host):
+        self._log = logging.getLogger('Host')
         self.host = host
         self.name = str(host.name)
         self.config = host.config
@@ -32,13 +34,13 @@ class Host:
         :param name: Name of the vSwitch to create
         :param num_ports: Number of ports the vSwitch should have [default: 512]
         """
-        logging.info("Creating vSwitch %s with %d ports on host %s", name, num_ports, self.name)
+        self._log.info("Creating vSwitch %s with %d ports on host %s", name, num_ports, self.name)
         vswitch_spec = vim.host.VirtualSwitch.Specification()
         vswitch_spec.numPorts = int(num_ports)
         try:
             self.host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
         except vim.fault.AlreadyExists:
-            logging.error("vSwitch %s already exists on host %s", name, self.name)
+            self._log.error("vSwitch %s already exists on host %s", name, self.name)
 
     def create_portgroup(self, name, vswitch_name, vlan=0, promiscuous=False):
         """
@@ -48,9 +50,9 @@ class Host:
         :param vlan: VLAN ID of the port group [default: 0]
         :param promiscuous: Put portgroup in promiscuous mode [default: False]
         """
-        logging.info("Creating PortGroup %s on vSwitch %s on host %s", name, vswitch_name,
-                     self.name)
-        logging.debug("VLAN ID: %d \t Promiscuous: %s", vlan, promiscuous)
+        self._log.info("Creating PortGroup %s on vSwitch %s on host %s", name, vswitch_name,
+                       self.name)
+        self._log.debug("VLAN ID: %d \t Promiscuous: %s", vlan, promiscuous)
 
         spec = vim.host.PortGroup.Specification()
         spec.name = name
@@ -66,9 +68,9 @@ class Host:
         try:
             self.host.configManager.networkSystem.AddPortGroup(spec)
         except vim.fault.AlreadyExists:
-            logging.error("PortGroup %s already exists on host %s", name, self.name)
+            self._log.error("PortGroup %s already exists on host %s", name, self.name)
         except vim.fault.NotFound:
-            logging.error("vSwitch %s does not exist on host %s", vswitch_name, self.name)
+            self._log.error("vSwitch %s does not exist on host %s", vswitch_name, self.name)
 
     def delete_network(self, name, network_type):
         """
@@ -76,18 +78,18 @@ class Host:
         :param name: Name of the vSwitch to delete
         :param network_type: Type of the network to remove ("vswitch" | "portgroup")
         """
-        logging.info("Deleting %s '%s' from host '%s'", network_type, name, self.name)
+        self._log.info("Deleting %s '%s' from host '%s'", network_type, name, self.name)
         try:
             if network_type.lower() == "vswitch":
                 self.host.configManager.networkSystem.RemoveVirtualSwitch(name)
             elif network_type.lower() == "portgroup":
                 self.host.configManager.networkSystem.RemovePortGroup(name)
         except vim.fault.NotFound:
-            logging.error("Tried to remove %s '%s' that does not exist from host '%s'",
-                          network_type, name, self.name)
+            self._log.error("Tried to remove %s '%s' that does not exist from host '%s'",
+                            network_type, name, self.name)
         except vim.fault.ResourceInUse:
-            logging.error("%s '%s' can't be removed because there are vNICs associated with it",
-                          network_type, name)
+            self._log.error("%s '%s' can't be removed because there are vNICs associated with it",
+                            network_type, name)
 
     def get_info(self):
         """
@@ -151,7 +153,7 @@ class Host:
         elif net_type == "pnic ":
             objects = self.host.configManager.networkSystem.networkInfo.pnic
         else:
-            logging.error("Invalid type %s for get_net_objs", object_type)
+            self._log.error("Invalid type %s for get_net_objs", object_type)
             return None
         return list(objects)
 
@@ -168,11 +170,10 @@ class Host:
         return not self.__eq__(other)
 
 
+# TODO: implement
 class Cluster:
     """ Represents a cluster of ESXi hosts in a VMware vSphere environment. """
     __version__ = "0.1.0"
 
     def __init__(self):
-        pass
-
-
+        self._log = logging.getLogger('Cluster')

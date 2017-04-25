@@ -29,7 +29,7 @@ class VM:
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
         """
-        NOTE: VM.create() must be called post-init
+        NOTE: If vm is not passed, VM.create() MUST be called post-init
         :param name: Name of the VM
         :param folder: Name of the folder VM is located
         :param resource_pool: Resource pool to use for the VM

@@ -175,27 +175,6 @@ def create_snapshot(vm, name, description='default', memory=False):
 
 
 @utils.check(vim.VirtualMachine, "vm")
-def revert_to_snapshot(vm, snapshot_name):
-    """
-    Reverts VM to the named snapshot
-    :param vm: vim.VirtualMachine object
-    :param snapshot_name: Name of the snapshot to revert to
-    """
-    logging.debug("Reverting '%s' to the snapshot '%s'", vm.name, snapshot_name)
-    vutils.wait_for_task(get_snapshot(vm, snapshot_name).RevertToSnapshot_Task())
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def revert_to_current_snapshot(vm):
-    """
-    Reverts the VM to the most recent snapshot
-    :param vm: vim.VirtualMachine object
-    """
-    logging.debug("Reverting '%s' to the current snapshot", vm.name)
-    vutils.wait_for_task(vm.RevertToCurrentSnapshot_Task())
-
-
-@utils.check(vim.VirtualMachine, "vm")
 def get_snapshot(vm, snapshot_name):
     """
     Retrieves the named snapshot from the VM
@@ -366,13 +345,3 @@ def is_template(vm):
     :return: If the VM is a template
     """
     return bool(vm.summary.config.template)
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def is_windows(vm):
-    """
-    Checks if a VM's guest OS is Windows
-    :param vm: vim.VirtualMachine
-    :return: Bool
-    """
-    return bool(str(vm.config.guestId).lower().startswith("win"))

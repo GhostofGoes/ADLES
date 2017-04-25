@@ -100,8 +100,6 @@ def create_vswitch(name, host, num_ports=512):
     except vim.fault.AlreadyExists:
         logging.error("vSwitch %s already exists on host %s", name, host.name)
 
-# TODO: edit vswitch
-
 
 def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     """
@@ -132,8 +130,6 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
         logging.error("PortGroup %s already exists on host %s", name, host.name)
     except vim.fault.NotFound:
         logging.error("vSwitch %s does not exist on host %s", vswitch_name, host.name)
-
-# TODO: edit portgroup
 
 
 def delete_network(name, host, network_type):
