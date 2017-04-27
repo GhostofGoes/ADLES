@@ -13,14 +13,20 @@
 # limitations under the License.
 
 import logging
+from time import sleep, time
 
 from pyVmomi import vim
 
+SLEEP_INTERVAL = 0.05
+LONG_SLEEP = 1.0
 
-def wait_for_task(task):
+
+def wait_for_task(task, timeout=60.0, pause_timeout=True):
     """
-    Waits for a single vCenter task to finish and return it's result
+    Waits for a single vCenter task to finish and returns its result
     :param task: vim.Task object of the task to wait for
+    :param timeout: Number of seconds to wait before terminating task [default: 60.0]
+    :param pause_timeout: Pause timeout counter while task is queued on server [default: True]
     :return: Task result information (task.info.result)
     """
     if not task:  # Check if there's actually a task
@@ -28,14 +34,28 @@ def wait_for_task(task):
         return None
     name = str(task.info.descriptionId)
     obj = str(task.info.entityName)
+    wait_time = 0.0
+    end_time = time() + float(timeout)  # Set end time
     try:
-        while True:  # TODO: set a timeout, perhaps based on type of task
-            if task.info.state == 'success':
-                return task.info.result
-            elif task.info.state == 'error':
+        while True:
+            if task.info.state == 'success':  # It succeeded!
+                return task.info.result  # Return the task result if it was successful
+            elif task.info.state == 'error':  # It failed...
                 logging.error("Error during task %s on object '%s': %s",
                               name, obj, str(task.info.error.msg))
                 return None
+            elif time() > end_time:  # Check if it has exceeded the timeout
+                logging.error("Task %s timed out after %s seconds", name, str(wait_time))
+                task.CancelTask()  # Cancel the task since we've timed out
+                return None
+            elif task.info.state == 'queued':
+                sleep(LONG_SLEEP)  # Sleep longer if it's queued up on system
+                if pause_timeout is True:  # Don't count queue time against the timeout
+                    end_time += LONG_SLEEP
+                wait_time += LONG_SLEEP
+            else:
+                sleep(SLEEP_INTERVAL)  # Wait a bit so we don't waste resources checking state
+                wait_time += SLEEP_INTERVAL
     except vim.fault.NoPermission as e:
         logging.error("Permission denied for task %s on %s: need privilege %s",
                       name, obj, e.privilegeId)
