@@ -90,6 +90,13 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
         return None
 
 
+# Possible alternate method(s) of doing tasks (TODO: profile performance):
+#   https://github.com/vmware/pyvmomi-tools/blob/master/pyvmomi_tools/extensions/task.py
+# This line allows calling "<task>.wait(<params>)" instead of "wait_for_task(task, params)"
+# This works because the implicit first argument to a class method call in Python is the instance
+vim.Task.wait = wait_for_task  # Inject into vim.Task class
+
+
 # From: list_dc_datastore_info in pyvmomi-community-samples
 def get_datastore_info(ds_obj):
     """
