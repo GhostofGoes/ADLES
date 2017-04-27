@@ -35,29 +35,47 @@ from docopt import docopt
 from pyVmomi import vim
 
 from adles.vsphere.vsphere_class import Vsphere
-from adles.vsphere import vm_utils
 from adles.utils import script_setup
-from adles.vsphere.vm import VM
-from adles.vsphere.hosts import Host
-
+from adles.vsphere import vm_utils
 
 args = docopt(__doc__, version=Vsphere.__version__, help=True)
 server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
 
+test = server.find_by_inv_path("vm/cgoes_testing/script_testing/monkeys/test-vm")
+if test is not None:
+    vm_utils.get_vm_info(test)
+else:
+    print("GOT EM")
+
+vm = server.get_vm("dummy")
+vm.get_info()
+
+test2 = server.get_folder("vm/cgoes_testing/script_testing/monkeys")
+if test2 is not None:
+    print(test2)
+else:
+    print("DRAT")
+
 folder = server.get_folder("monkeys")
-vm = server.get_vm("test-vm")
-service = VM(vm=vm)
+folder.create("HAHAHAHhaHAHhaHA (hi)")
+print(folder.enumerate())
+
+# from adles.vsphere.vm import VM
+# from adles.vsphere.hosts import Host
+# folder = server.get_folder("monkeys")
+# vm = server.get_vm("test-vm")
+# service = VM(vm=vm)
 # service = VM(name="test-vm", folder=folder, resource_pool=server.get_pool(),
 #              datastore=server.get_datastore(), host=server.get_host())
 # template = server.get_vm("dummy")
 # service.create(template=template)
-service.change_state("on")
-print(service.screenshot())
-service.change_state("off")
+# service.change_state("on")
+# print(service.screenshot())
+# service.change_state("off")
 # service.set_note("testing 1... 2... 3...")
 # print(str(service))
 # print(hash(service))
-print(service.get_info(True, True, True, True))
+# print(service.get_info(True, True, True, True))
 # service.upgrade(12)
 # service.convert_template()
 # service.destroy()

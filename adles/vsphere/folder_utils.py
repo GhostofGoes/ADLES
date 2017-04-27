@@ -47,6 +47,9 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
     return item
 
 
+vim.Folder.get = get_in_folder
+
+
 @check(vim.Folder, "folder")
 def find_in_folder(folder, name, recursive=False, vimtype=None):
     """
@@ -69,6 +72,9 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
         if found is not None:
             return found
     return None
+
+
+vim.Folder.find_in = find_in_folder
 
 
 @check(vim.Folder, "folder")
@@ -116,6 +122,9 @@ def traverse_path(folder, path, lookup_root=None, generate=False):
         return current
 
 
+vim.Folder.traverse_path = traverse_path
+
+
 @check(vim.Folder, "folder")
 def enumerate_folder(folder, recursive=True, power_status=False):
     """
@@ -147,6 +156,9 @@ def enumerate_folder(folder, recursive=True, power_status=False):
         else:
             children.append("UNKNOWN ITEM: %s" % str(item))
     return '+ ' + folder.name, children  # Return tuple of parent and children
+
+
+vim.Folder.enumerate = enumerate_folder  # Inject method
 
 
 # Similar to: https://docs.python.org/3/library/pprint.html
@@ -200,6 +212,9 @@ def create_folder(folder, folder_name):
     return None
 
 
+vim.Folder.create = create_folder
+
+
 @check(vim.Folder, "folder")
 def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
             destroy_folders=False, destroy_self=False):
@@ -233,6 +248,9 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
         wait_for_task(folder.UnregisterAndDestroy_Task())
 
 
+vim.Folder.cleanup = cleanup
+
+
 @check(vim.Folder, "folder")
 def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
     """
@@ -258,3 +276,6 @@ def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
                 vms.extend(v)
                 folders.extend(f)
     return vms, folders
+
+
+vim.Folder.retrieve_items = retrieve_items

@@ -434,13 +434,19 @@ class Vsphere:
         return self.content.searchIndex.FindByDnsName(datacenter=self.datacenter,
                                                       dnsName=hostname, vmSearch=vm_search)
 
-    def find_by_inv_path(self, path):
+    def find_by_inv_path(self, path, datacenter=None):
         """
         Finds a vim.ManagedEntity (VM, host, resource pool, folder, etc) in a inventory
-        :param path: Path to the entity
+        :param path: Path to the entity 
+        (INCLUDING the hidden Vsphere folder for the type: vm | network | datastore | host)!
+        Example: "vm/some-things/more-things/vm-name"
+        :param datacenter: Name of datacenter to search in [default: instance's datacenter]
         :return: vim.ManagedEntity
         """
-        return self.content.searchIndex.FindByInventoryPath(inventoryPath=str(path))
+        if datacenter is None:
+            datacenter = self.datacenter.name
+        full_path = datacenter + "/" + str(path)
+        return self.content.searchIndex.FindByInventoryPath(inventoryPath=full_path)
 
     def __repr__(self):
         return "vSphere(%s, %s, %s:%s)" % (self.datacenter.name, self.datastore.name,

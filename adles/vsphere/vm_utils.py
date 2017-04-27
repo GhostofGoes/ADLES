@@ -306,6 +306,9 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False, vnics=False):
     return info_string
 
 
+vim.VirtualMachine.get_info = get_vm_info
+
+
 @utils.check(vim.VirtualMachine, "vm")
 def get_nics(vm):
     """
