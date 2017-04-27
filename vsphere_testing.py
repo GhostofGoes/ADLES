@@ -37,6 +37,7 @@ from pyVmomi import vim
 from adles.vsphere.vsphere_class import Vsphere
 from adles.utils import script_setup
 from adles.vsphere import vm_utils
+from adles.vsphere import folder_utils
 
 args = docopt(__doc__, version=Vsphere.__version__, help=True)
 server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
