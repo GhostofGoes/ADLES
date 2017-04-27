@@ -25,6 +25,10 @@ class Host:
     __version__ = "0.3.0"
 
     def __init__(self, host):
+        """
+        :param host: The host to use
+        :type host: vim.HostSystem
+        """
         self._log = logging.getLogger('Host')
         self.host = host
         self.name = str(host.name)
@@ -33,7 +37,7 @@ class Host:
     def reboot(self, force=False):
         """
         Reboots the host
-        :param force: Force a reboot even if the host is not in maintenance mode
+        :param bool force: Force a reboot even if the host is not in maintenance mode
         """
         self._log.warning("Rebooting host %s", self.name)
         wait_for_task(self.host.RebootHost_Task(force=bool(force)))
@@ -41,7 +45,7 @@ class Host:
     def shutdown(self, force=False):
         """
         Shuts down the host
-        :param force: Force a reboot even if the host is not in maintenance mode
+        :param bool force: Force a reboot even if the host is not in maintenance mode
         """
         self._log.warning("Shutting down host %s", self.name)
         wait_for_task(self.host.ShutdownHost_Task(force=bool(force)))
@@ -49,8 +53,9 @@ class Host:
     def enter_maintenance_mode(self, timeout=0, spec=None):
         """
         Enter maintenance mode
-        :param timeout: Seconds to wait [default: 0]
-        :param spec: Actions to be taken upon entering maintenance mode (HostMaintenanceSpec)
+        :param int timeout: Seconds to wait [default: 0]
+        :param spec: Actions to be taken upon entering maintenance mode
+        :type spec: vim.HostMaintenanceSpec
         """
         self._log.warning("%s is entering maintainence mode", self.name)
         wait_for_task(self.host.EnterMaintenanceMode_Task(timeout=int(timeout),
@@ -59,7 +64,7 @@ class Host:
     def exit_maintenance_mode(self, timeout=0):
         """
         Exit maintenance mode
-        :param timeout: Seconds to wait [default: 0]
+        :param int timeout: Seconds to wait [default: 0]
         """
         self._log.info("%s is exiting maintainence mode", self.name)
         wait_for_task(self.host.ExitMaintenanceMode_Task(timeout=int(timeout)))
@@ -67,8 +72,8 @@ class Host:
     def create_vswitch(self, name, num_ports=512):
         """
         Creates a vSwitch
-        :param name: Name of the vSwitch to create
-        :param num_ports: Number of ports the vSwitch should have [default: 512]
+        :param str name: Name of the vSwitch to create
+        :param int num_ports: Number of ports the vSwitch should have [default: 512]
         """
         self._log.info("Creating vSwitch %s with %d ports on host %s", name, num_ports, self.name)
         vswitch_spec = vim.host.VirtualSwitch.Specification()
@@ -81,10 +86,10 @@ class Host:
     def create_portgroup(self, name, vswitch_name, vlan=0, promiscuous=False):
         """
         Creates a portgroup
-        :param name: Name of portgroup to create
-        :param vswitch_name: Name of vSwitch on which to create the port group
-        :param vlan: VLAN ID of the port group [default: 0]
-        :param promiscuous: Put portgroup in promiscuous mode [default: False]
+        :param str name: Name of portgroup to create
+        :param str vswitch_name: Name of vSwitch on which to create the port group
+        :param int vlan: VLAN ID of the port group [default: 0]
+        :param bool promiscuous: Put portgroup in promiscuous mode [default: False]
         """
         self._log.info("Creating PortGroup %s on vSwitch %s on host %s", name, vswitch_name,
                        self.name)
@@ -111,8 +116,8 @@ class Host:
     def delete_network(self, name, network_type):
         """
         Deletes the named network from the host
-        :param name: Name of the vSwitch to delete
-        :param network_type: Type of the network to remove ("vswitch" | "portgroup")
+        :param str name: Name of the vSwitch to delete
+        :param str network_type: Type of the network to remove ("vswitch" | "portgroup")
         """
         self._log.info("Deleting %s '%s' from host '%s'", network_type, name, self.name)
         try:
@@ -130,16 +135,21 @@ class Host:
     def get_info(self):
         """
         Get information about the host
-        :return: Formatted String with host information
+        :return: Formatted host information
+        :rtype: str
         """
         return str(self.config)  # TODO: host information much like get_info()
 
     def get_net_item(self, object_type, name):
         """
         Retrieves a network object of the specified type and name from a host
-        :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
-        :param name: Name of network object [default: first object found]
+        :param str object_type: Type of object to get: (portgroup | vswitch | 
+                                proxyswitch | vnic | pnic)
+        :param str name: Name of network object [default: first object found]
         :return: The network object
+        :rtype: vim.Network or vim.VirtualSwitch or vim.VirtualEthernetCard or None
+        
+        .. todo:: determine what possible return types there are
         """
         if name:
             return self.get_net_obj(object_type, name)
@@ -149,10 +159,14 @@ class Host:
     def get_net_obj(self, object_type, name, refresh=False):
         """
         Retrieves a network object of the specified type and name from a host
-        :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
+        :param str object_type: Type of object to get: (portgroup | vswitch | 
+                                proxyswitch | vnic | pnic)
         :param name: Name of network object
-        :param refresh: Refresh the host's network system information [default: False]
+        :param bool refresh: Refresh the host's network system information [default: False]
         :return: The network object
+        :rtype: vim.Network or vim.VirtualSwitch or vim.VirtualEthernetCard or None
+        
+        .. todo:: determine what possible return types there are
         """
         objs = self.get_net_objs(object_type=object_type, refresh=refresh)
         obj_name = name.lower()
@@ -171,9 +185,11 @@ class Host:
     def get_net_objs(self, object_type, refresh=False):
         """
         Retrieves all network objects of the specified type from the host
-        :param object_type: Type of object to get: (portgroup | vswitch | proxyswitch | vnic | pnic)
-        :param refresh: Refresh the host's network system information [default: False]
+        :param str object_type: Type of object to get: (portgroup | vswitch | 
+                                proxyswitch | vnic | pnic)
+        :param bool refresh: Refresh the host's network system information [default: False]
         :return: list of the network objects
+        :rtype: list(vimtype) or None
         """
         if refresh:
             self.host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up recent changes

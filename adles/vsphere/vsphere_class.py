@@ -30,17 +30,19 @@ class Vsphere:
                  port=443, use_ssl=False):
         """
         Connects to a vCenter server and initializes a class instance.
-        :param username: Username of account to login with [default: prompt user]
-        :param password: Password of account to login with [default: prompt user]
-        :param hostname: DNS hostname or IP address of vCenter instance [default: prompt user]
-        :param datastore: Name of datastore to use [default: first datastore found on server]
-        :param datacenter: Name of datacenter to use [default: First datacenter found on server]
-        :param port: Port used to connect to vCenter instance [default: 443]
-        :param use_ssl: If SSL should be used to connect [default: False]
+        :param str username: Username of account to login with [default: prompt user]
+        :param str password: Password of account to login with [default: prompt user]
+        :param str hostname: DNS hostname or IP address of vCenter instance [default: prompt user]
+        :param str datastore: Name of datastore to use [default: first datastore found on server]
+        :param str datacenter: Name of datacenter to use [default: First datacenter found on server]
+        :param int port: Port used to connect to vCenter instance [default: 443]
+        :param bool use_ssl: If SSL should be used to connect [default: False]
+        :raises LookupError: if a datacenter or datastore cannot be found
         """
         self._log = logging.getLogger('Vsphere')
         self._log.debug("Initializing Vsphere %s\nDatacenter: %s\nDatastore: %s\nSSL: %s",
                         Vsphere.__version__, datacenter, datastore, str(use_ssl))
+
         if username is None:
             username = str(input("Enter username for vSphere: "))
         if password is None:
@@ -64,38 +66,33 @@ class Vsphere:
 
         from atexit import register
         register(Disconnect, self._server)  # Ensures connection to server is closed on program exit
-
         self._log.info("Connected to vSphere host %s:%d", hostname, port)
         self._log.debug("Current server time: %s", str(self._server.CurrentTime()))
 
         self.username = username
         self.hostname = hostname
         self.port = port
-
         self.content = self._server.RetrieveContent()
         self.auth = self.content.authorizationManager
         self.user_dir = self.content.userDirectory
 
         self.datacenter = self.get_item(vim.Datacenter, name=datacenter)
         if not self.datacenter:
-            self._log.error("Could not find a datacenter to initialize with!")
-            exit(1)
-
+            raise LookupError("Could not find a datacenter to initialize with!")
         self.datastore = self.get_datastore(datastore)
         if not self.datastore:
-            self._log.error("Could not find a datastore to initialize with!")
-            exit(1)
-
+            raise LookupError("Could not find a datastore to initialize with!")
         self._log.debug("Finished initializing vSphere")
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
     def create_folder(self, folder_name, create_in=None):
         """
         Creates a VM folder in the specified folder
-        :param folder_name: Name of folder to create
-        :param create_in: Name of folder or vim.Folder object to create folder in
+        :param str folder_name: Name of folder to create
+        :param str create_in: Name of folder or vim.Folder object to create folder in
         [default: root folder of datacenter]
-        :return: The created vim.Folder object
+        :return: The created folder
+        :rtype: vim.Folder
         """
         if create_in:
             if type(create_in) is str:  # create_in is a string, so we look it up on the server
@@ -110,9 +107,10 @@ class Vsphere:
     def gen_clone_spec(self, datastore_name=None, pool_name=None):
         """
         Generates a clone specification used to clone a VM
-        :param datastore_name: Name of datastore to put clone on [default: class-defined datastore]
-        :param pool_name: Name of resource pool to use for the clone [default: first pool found]
-        :return: vim.vm.CloneSpec object
+        :param str datastore_name: Name of datastore to put clone on [default: class's datastore]
+        :param str pool_name: Name of resource pool to use for the clone [default: first pool found]
+        :return: the generated clone specification
+        :rtype: vim.vm.CloneSpec
         """
         if datastore_name:
             datastore = self.get_datastore(datastore_name)
@@ -129,7 +127,7 @@ class Vsphere:
     def set_motd(self, message):
         """
         Sets vCenter server Message of the Day (MOTD)
-        :param message: Message to set
+        :param str message: Message to set
         """
         self._log.info("Setting vCenter MOTD to %s", message)
         self.content.sessionManager.UpdateServiceMessage(message=str(message))
@@ -137,12 +135,13 @@ class Vsphere:
     def map_items(self, vimtypes, func, name=None, container=None, recursive=True):
         """
         Apply a function to item(s)
-        :param vimtypes: List of vimtype objects to look for
+        :param list vimtypes: List of vimtype objects to look for
         :param func: Function to apply
-        :param name: Name of item to apply to [default: None]
+        :param str name: Name of item to apply to [default: None]
         :param container: Container to search in [default: content.rootFolder]
-        :param recursive: Recursively descend or only look in the current level [default: True]
+        :param bool recursive: Recursively descend or only look in the current level [default: True]
         :return: List of values returned from the function call(s)
+        :rtype: list
         """
         contain = (self.content.rootFolder if not container else container)
         con_view = self.content.viewManager.CreateContainerView(contain, vimtypes, recursive)
@@ -159,8 +158,10 @@ class Vsphere:
     def set_entity_permissions(self, entity, permission):
         """
         Defines or updates rule(s) for the given user or group on the entity
-        :param entity: vim.ManagedEntity, The entity on which to set permissions
-        :param permission: vim.AuthorizationManager.Permission
+        :param entity: The entity on which to set permissions
+        :type entity: vim.ManagedEntity
+        :param permission: The permission to set
+        :type permission: vim.AuthorizationManager.Permission
         """
         try:
             self.auth.SetEntityPermissions(entity=entity, permission=permission)
@@ -185,9 +186,11 @@ class Vsphere:
     def get_entity_permissions(self, entity, inherited=True):
         """
         Gets permissions defined on or effective on a managed entity
-        :param entity: vim.ManagedEntity
-        :param inherited: Include propagating permissions defined by parent entities [default: True]
-        :return: vim.AuthorizationManager.Permission
+        :param entity: The entity to get permissions for
+        :type entity: vim.ManagedEntity
+        :param bool inherited: Include propagating permissions defined by parent entities [default: True]
+        :return: The permissions for the entity
+        :rtype: vim.AuthorizationManager.Permission
         """
         try:
             return self.auth.RetrieveEntityPermissions(entity=entity, inherited=inherited)
@@ -198,8 +201,9 @@ class Vsphere:
     def get_role_permissions(self, role_id):
         """
         Gets all permissions that use a particular role
-        :param role_id: ID of the role
-        :return: vim.AuthorizationManager.Permission
+        :param int role_id: ID of the role
+        :return: The role permissions
+        :rtype: vim.AuthorizationManager.Permission
         """
         try:
             return self.auth.RetrieveRolePermissions(roleId=int(role_id))
@@ -211,17 +215,18 @@ class Vsphere:
                   belong_to_group=None, have_user=None,
                   find_users=True, find_groups=False):
         """
-        Returns a list of the users and groups defined for the server.
+        Returns a list of the users and groups defined for the server
         NOTE: You must hold the Authorization.ModifyPermissions privilege to invoke this method!
-        :param search: Case insensitive substring used to filter results [default: all users]
-        :param domain: Domain to be searched [default: local machine]
-        :param exact: Search should match user/group name exactly [default: False]
-        :param belong_to_group: Only find users/groups that directly belong
+        :param str search: Case insensitive substring used to filter results [default: all users]
+        :param str domain: Domain to be searched [default: local machine]
+        :param bool exact: Search should match user/group name exactly [default: False]
+        :param str belong_to_group: Only find users/groups that directly belong
         to this group [default: None]
-        :param have_user: Only find groups that directly contain this user [default: None]
-        :param find_users: If users should be included in the results [default: True]
-        :param find_groups: If groups should be included in the results [default: False]
-        :return: List of vim.UserSearchResult
+        :param str have_user: Only find groups that directly contain this user [default: None]
+        :param bool find_users: If users should be included in the results [default: True]
+        :param bool find_groups: If groups should be included in the results [default: False]
+        :return: The users and groups defined for the server
+        :rtype: list(vim.UserSearchResult)
         """
         # See for reference: pyvmomi/docs/vim/UserDirectory.rst
         kwargs = {"searchStr": search, "exactMatch": exact,
@@ -246,7 +251,8 @@ class Vsphere:
     def get_info(self):
         """
         Retrieves and formats basic information about the vSphere instance
-        :return: string with formatted server information
+        :return: formatted server information
+        :rtype: str
         """
         about = self.content.about
         info_string = "\n"
@@ -264,8 +270,9 @@ class Vsphere:
     def get_folder(self, folder_name=None):
         """
         Finds and returns the named Folder
-        :param folder_name: Name of the folder [default: Datacenter vmFolder]
-        :return: vim.Folder object
+        :param str folder_name: Name of the folder [default: Datacenter vmFolder]
+        :return: The folder found
+        :rtype: vim.Folder
         """
         if folder_name:  # Try to find the named folder in the datacenter
             return self.get_obj(self.datacenter, [vim.Folder], folder_name)
@@ -277,17 +284,19 @@ class Vsphere:
     def get_vm(self, vm_name):
         """
         Finds and returns the named VM
-        :param vm_name: Name of the VM
-        :return: vim.VirtualMachine object
+        :param str vm_name: Name of the VM
+        :return: The VM found
+        :rtype: vim.VirtualMachine
         """
         return self.get_item(vim.VirtualMachine, vm_name)
 
     def get_network(self, network_name, distributed=False):
         """
         Finds and returns the named Network
-        :param network_name: Name of the Network
-        :param distributed: If the Network is a Distributed PortGroup [default: False]
-        :return: vim.Network or vim.dvs.DistributedVirtualPortgroup object
+        :param str network_name: Name of the Network
+        :param bool distributed: If the Network is a Distributed PortGroup [default: False]
+        :return: The network found
+        :rtype: vim.Network or vim.dvs.DistributedVirtualPortgroup
         """
         if not distributed:
             return find_in_folder(folder=self.datacenter.networkFolder, name=network_name,
@@ -298,57 +307,64 @@ class Vsphere:
     def get_host(self, host_name=None):
         """
         Finds and returns the named Host System
-        :param host_name: Name of the host [default: first host found in datacenter]
-        :return: vim.HostSystem object
+        :param str host_name: Name of the host [default: first host found in datacenter]
+        :return: The host found
+        :rtype: vim.HostSystem
         """
         return self.get_item(vim.HostSystem, host_name)
 
     def get_cluster(self, cluster_name=None):
         """
         Finds and returns the named Cluster
-        :param cluster_name: Name of the cluster [default: first cluster found in datacenter]
-        :return: vim.ClusterComputeResource object
+        :param str cluster_name: Name of the cluster [default: first cluster found in datacenter]
+        :return: The cluster found
+        :rtype: vim.ClusterComputeResource
         """
         return self.get_item(cluster_name, vim.ClusterComputeResource)
 
     def get_clusters(self):
         """
         Get all the clusters associated with the vCenter server
-        :return: List of vim.ClusterComputeResource objects
+        :return: All clusters associated wiith the vCenter server
+        :rtype: list(vim.ClusterComputeResource)
         """
         return self.get_objs(self.content.rootFolder, [vim.ClusterComputeResource])
 
     def get_datastore(self, datastore_name=None):
         """
         Finds and returns the named Datastore
-        :param datastore_name: Name of the datastore [default: first datastore found in datacenter]
-        :return: vim.Datastore object
+        :param str datastore_name: Name of the datastore [default: first datastore found in datacenter]
+        :return: The datastore found
+        :rtype: vim.Datastore
         """
         return get_in_folder(self.datacenter.datastoreFolder, datastore_name)
 
     def get_pool(self, pool_name=None):
         """
         Finds and returns the named Resource Pool
-        :param pool_name: Name of the resource pool [default: first pool found in datacenter]
-        :return: vim.ResourcePool object
+        :param str pool_name: Name of the resource pool [default: first pool found in datacenter]
+        :return: The resource pool found
+        :rtype: vim.ResourcePool
         """
         return self.get_item(vim.ResourcePool, pool_name)
 
     def get_all_vms(self):
         """
         Finds and returns all VMs registered in the Datacenter
-        :return: List of vim.VirtualMachine objects
+        :return: All VMs in the Datacenter defined for the class
+        :rtype: list(vim.VirtualMachine)
         """
         return self.get_objs(self.datacenter.vmFolder, [vim.VirtualMachine])
 
     def get_obj(self, container, vimtypes, name, recursive=True):
         """
         Finds and returns named vSphere object of specified type
-        :param vimtypes: List of vimtype objects to look for
-        :param name: Name of the object
         :param container: Container to search in
-        :param recursive: Recursively descend or only look in the current level [default: True]
-        :return: The vimtype object found with the specified name, or None if no object was found
+        :param list vimtypes: vimtype objects to look for
+        :param str name: Name of the object
+        :param bool recursive: Recursively descend or only look in the current level [default: True]
+        :return: Object found with the specified name
+        :rtype: vimtype or None
         """
         con_view = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
         obj = None
@@ -363,10 +379,11 @@ class Vsphere:
     def get_objs(self, container, vimtypes, recursive=True):
         """
         Get all the vSphere objects associated with a given type
-        :param vimtypes: Object to search for
         :param container: Container to search in
-        :param recursive: Recursively descend or only look in the current level [default: True]
-        :return: List of all vimtype objects found, or None if none were found
+        :param list vimtypes: Objects to search for
+        :param bool recursive: Recursively descend or only look in the current level [default: True]
+        :return: All vimtype objects found
+        :rtype: list(vimtype) or None
         """
         objs = []
         con_view = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
@@ -379,10 +396,11 @@ class Vsphere:
         """
         Get a item of specified name and type. Intended to be simple version of get_obj()
         :param vimtype: Type of item
-        :param name: Name of item [default: None]
+        :param str name: Name of item [default: None]
         :param container: Container to search in [default: vCenter server content root folder]
-        :param recursive: Recursively descend or only look in the current level [default: True]
+        :param bool recursive: Recursively descend or only look in the current level [default: True]
         :return: The item found
+        :rtype: vimtype or None
         """
         contain = (self.content.rootFolder if not container else container)
         if not name:
@@ -393,19 +411,20 @@ class Vsphere:
     def find_by_uuid(self, uuid, instance_uuid=True):
         """
         Find a VM in the datacenter with the given Instance or BIOS UUID
-        :param uuid: UUID to search for (Instance or BIOS for VMs)
+        :param str uuid: UUID to search for (Instance or BIOS for VMs)
         :param instance_uuid: Search for VM Instance UUIDs, otherwise BIOS UUIDs [default: True]
-        :return: vim.ManagedEntity
+        :return: The VM found
+        :rtype: vim.VirtualMachine
         """
-        return self.content.searchIndex.FindByUuid(datacenter=self.datacenter,
-                                                   uuid=str(uuid), vmSearch=True,
-                                                   instanceUuid=instance_uuid)
+        return self.content.searchIndex.FindByUuid(datacenter=self.datacenter, uuid=str(uuid),
+                                                   vmSearch=True, instanceUuid=instance_uuid)
 
     def find_by_ds_path(self, path):
         """
         Finds a VM by it's location on a Datastore
-        :param path: Path to the VM's .vmx file on the Datastore
-        :return: vim.VirtualMachine
+        :param str path: Path to the VM's .vmx file on the Datastore
+        :return: The VM found
+        :rtype: vim.VirtualMachine
         """
         try:
             return self.content.searchIndex.FindByDatastorePath(datacenter=self.datacenter,
@@ -417,9 +436,10 @@ class Vsphere:
     def find_by_ip(self, ip, vm_search=True):
         """
         Find a VM or Host using a IP address
-        :param ip: IP address string as returned by VMware Tools ipAddress
+        :param str ip: IP address string as returned by VMware Tools ipAddress
         :param vm_search: Search for VMs if True, Hosts if False [default: True]
-        :return: vim.ManagedEntity
+        :return: The VM or host found
+        :rtype: vim.VirtualMachine or vim.HostSystem
         """
         return self.content.searchIndex.FindByIp(datacenter=self.datacenter,
                                                  ip=str(ip), vmSearch=vm_search)
@@ -427,9 +447,10 @@ class Vsphere:
     def find_by_hostname(self, hostname, vm_search=True):
         """
         Find a VM or Host using a fully-qualified domain name
-        :param hostname: Fully-qualified domain name
+        :param str hostname: Fully-qualified domain name
         :param vm_search: Search for VMs if True, Hosts if False [default: True]
-        :return: vim.ManagedEntity
+        :return: The VM or host found
+        :rtype: vim.VirtualMachine or vim.HostSystem
         """
         return self.content.searchIndex.FindByDnsName(datacenter=self.datacenter,
                                                       dnsName=hostname, vmSearch=vm_search)
@@ -437,11 +458,12 @@ class Vsphere:
     def find_by_inv_path(self, path, datacenter=None):
         """
         Finds a vim.ManagedEntity (VM, host, resource pool, folder, etc) in a inventory
-        :param path: Path to the entity 
+        :param str path: Path to the entity 
         (INCLUDING the hidden Vsphere folder for the type: vm | network | datastore | host)!
         Example: "vm/some-things/more-things/vm-name"
-        :param datacenter: Name of datacenter to search in [default: instance's datacenter]
-        :return: vim.ManagedEntity
+        :param str datacenter: Name of datacenter to search in [default: instance's datacenter]
+        :return: The entity found
+        :rtype: vim.ManagedEntity
         """
         if datacenter is None:
             datacenter = self.datacenter.name

@@ -28,8 +28,9 @@ def parse_file(filename):
     >>> parse_file("test.yaml")
     { "test": "value" }
 
-    :param filename: Name of YAML file to parse
-    :return: dictionary of parsed file contents
+    :param str filename: Name of YAML file to parse
+    :return: Parsed file contents
+    :rtype: dict or None
     """
     from yaml import load, YAMLError
     try:  # Attempt to use C-based YAML parser if it's available
@@ -56,11 +57,12 @@ def parse_file(filename):
 def _checker(value_list, source, data, flag):
     """
     Checks if values in the list are in data (Syntax warnings or errors)
-    :param value_list: List of values to check
-    :param source: Name of source that's being checked
-    :param data: Data being checked
-    :param flag: What to do if value not found ("warnings" | "errors")
+    :param list value_list: List of values to check
+    :param str source: Name of source that's being checked
+    :param dict data: Data being checked
+    :param str flag: What to do if value not found ("warnings" | "errors")
     :return: Number of hits (warnings/errors)
+    :rtype: int
     """
     # TODO: add type checking, perhaps use a tuple of (value, type)
     num_hits = 0
@@ -81,8 +83,9 @@ def _checker(value_list, source, data, flag):
 def _verify_exercise_metadata_syntax(metadata):
     """
     Verifies that the syntax for exercise metadata matches the specification
-    :param metadata: Dict of metadata
-    :return: (Number of errors, Number of warnings)
+    :param dict metadata: metadata
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     warnings = ["description", "version", "folder-name"]
     errors = ["name", "prefix", "infra-file"]
@@ -105,8 +108,9 @@ def _verify_exercise_metadata_syntax(metadata):
 def _verify_groups_syntax(groups):
     """
     Verifies that the syntax for groups matches the specification
-    :param groups: Dict of groups
-    :return: (Number of errors, Number of warnings)
+    :param dict groups: groups
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -149,8 +153,9 @@ def _verify_groups_syntax(groups):
 def _check_group_file(filename):
     """
     Verifies user info file for a group
-    :param filename: Name of user info JSON file
-    :return: (Number of errors, Number of warnings)
+    :param str filename: Name of user info JSON file
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -164,8 +169,9 @@ def _check_group_file(filename):
 def _verify_services_syntax(services):
     """
     Verifies that the syntax for services matches the specification
-    :param services: Dict of services
-    :return: (Number of errors, Number of warnings)
+    :param dict services: services
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -199,8 +205,9 @@ def _verify_services_syntax(services):
 def _verify_resources_syntax(resources):
     """
     Verifies that the syntax for resources matches the specification
-    :param resources: Dict of resources
-    :return: (Number of errors, Number of warnings)
+    :param dict resources: resources
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     warnings = []
     errors = ["lab", "resource"]
@@ -212,8 +219,9 @@ def _verify_resources_syntax(resources):
 def _verify_networks_syntax(networks):
     """
     Verifies that the syntax for networks matches the specification
-    :param networks: Dict of networks
-    :return: (Number of errors, Number of warnings)
+    :param dict networks: networks
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -233,9 +241,10 @@ def _verify_networks_syntax(networks):
 def _verify_network(name, network):
     """
     Verifies syntax of a specific network
-    :param name: Name of network
-    :param network: Dict of the network
-    :return: (Number of errors, Number of warnings)
+    :param str name: Name of network
+    :param dict network: the network
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -283,8 +292,9 @@ def _verify_network(name, network):
 def _verify_folders_syntax(folders):
     """
     Verifies that the syntax for folders matches the specification
-    :param folders: Dict of folders
-    :return: (Number of errors, Number of warnings)
+    :param dict folders: folders
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -342,9 +352,10 @@ def _verify_folders_syntax(folders):
 def _verify_scoring_syntax(service_name, scoring):
     """
     Verifies syntax for the scoring definition of a service.
-    :param service_name: Name of the service for which the scoring specification applies
-    :param scoring: Dict of scoring parameters
-    :return: (Number of errors, Number of warnings)
+    :param str service_name: Name of the service for which the scoring specification applies
+    :param dict scoring: scoring parameters
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -370,8 +381,9 @@ def _verify_scoring_syntax(service_name, scoring):
 def verify_infra_syntax(infra):
     """
     Verifies the syntax of an infrastructure specification.
-    :param infra: Dict of infrastructure
-    :return: (Number of errors, Number of warnings)
+    :param dict infra: infrastructure
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -411,8 +423,9 @@ def verify_infra_syntax(infra):
 def verify_exercise_syntax(spec):
     """
     Verifies the syntax of an environment specification.
-    :param spec: Dictionary of environment specification
-    :return: (Number of errors, Number of warnings)
+    :param dict spec: Dictionary of environment specification
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -446,8 +459,9 @@ def verify_exercise_syntax(spec):
 def verify_package_syntax(package):
     """
     Verifies the syntax of an package specification.
-    :param package: Dictionary representation of the package specification
-    :return: (Number of errors, Number of warnings)
+    :param dict package: Dictionary representation of the package specification
+    :return: Number of errors, Number of warnings
+    :rtype: tuple(int, int)
     """
     num_warnings = 0
     num_errors = 0
@@ -478,9 +492,10 @@ def verify_package_syntax(package):
 def check_syntax(specfile_path, spec_type="exercise"):
     """
     Checks the syntax of a specification file
-    :param specfile_path: Path to the specification file
-    :param spec_type: Type of specification file (exercise | package | infra)
+    :param str specfile_path: Path to the specification file
+    :param str spec_type: Type of specification file (exercise | package | infra)
     :return: The specification
+    :rtype: dict
     """
     from os.path import exists, basename
 

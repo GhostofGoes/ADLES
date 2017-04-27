@@ -47,8 +47,8 @@ class VsphereInterface:
         """
         NOTE: it is assumed that the infrastructure and spec are both valid,
         and thus checks on key existence and types are not performed for REQUIRED elements.
-        :param infra: Dict of infrastructure information
-        :param spec: Dict of a parsed specification
+        :param dict infra: Infrastructure information
+        :param dict spec: The parsed specification
         """
         self._log = logging.getLogger('VsphereInterface')
         self._log.debug("Initializing VsphereInterface %s", VsphereInterface.__version__)
@@ -133,7 +133,8 @@ class VsphereInterface:
     def _init_groups(self):
         """
         Instantiate and initialize Groups
-        :return: Dict of Groups
+        :return: Initialized Groups
+        :rtype: dict(:class:`Group`)
         """
         from adles.group import Group, get_ad_groups
         groups = {}
@@ -381,7 +382,7 @@ class VsphereInterface:
             if vm.get_nic_by_id(i).backing.network == network:
                 continue  # Skip NICs that are already configured
             else:
-                vm.edit_nic(nic_id=i, port_group=network, summary=net_name)
+                vm.edit_nic(nic_id=i, network=network, summary=net_name)
 
     def deploy_environment(self):
         """ Exercise Environment deployment phase """
@@ -706,7 +707,10 @@ class VsphereInterface:
             return True
 
     def cleanup_masters(self, network_cleanup=False):
-        """ Cleans up any master instances"""
+        """
+        Cleans up any master instances
+        :param bool network_cleanup: 
+        """
 
         # TODO: look at getorphanedvms in pyvmomi-community-samples for how to do this
         # Get the folder to cleanup in
@@ -723,7 +727,10 @@ class VsphereInterface:
             pass
 
     def cleanup_environment(self, network_cleanup=False):
-        """ Cleans up a deployed environment """
+        """
+        Cleans up a deployed environment
+        :param bool network_cleanup: 
+        """
 
         # Get the root environment folder to cleanup in
         enviro_folder = self.root_folder

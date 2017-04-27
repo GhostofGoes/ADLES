@@ -25,8 +25,8 @@ class Interface:
 
     def __init__(self, spec, infra):
         """ 
-        :param spec: Full exercise specification
-        :param infra: Full infrastructure configuration
+        :param dict spec: Full exercise specification
+        :param dict infra: Full infrastructure configuration
         """
         self._log = logging.getLogger('PlatformInterface')
         self.interfaces = []  # List of instantiated platform interfaces
@@ -65,7 +65,7 @@ class Interface:
     def cleanup_masters(self, network_cleanup=False):
         """
         Cleans up master instances
-        :param network_cleanup: If networks should be cleaned up [default: False]
+        :param bool network_cleanup: If networks should be cleaned up [default: False]
         """
         self._log.info("Cleaning up Master instances for %s", self.metadata["name"])
         # TODO: subprocess each interface call
@@ -76,7 +76,7 @@ class Interface:
     def cleanup_environment(self, network_cleanup=False):
         """
         Cleans up a deployed environment
-        :param network_cleanup: If networks should be cleaned up [default: False]
+        :param bool network_cleanup: If networks should be cleaned up [default: False]
         """
         self._log.info("Cleaning up environment for %s", self.metadata["name"])
         # TODO: subprocess each interface call

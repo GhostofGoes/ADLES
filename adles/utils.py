@@ -23,8 +23,10 @@ def check(arg_type, kwarg_name):
     """
     Function decorator that validates types of parameters
     :param arg_type: Type to validate
-    :param kwarg_name: Name of keyword argument to validate
+    :type arg_type: vimtype
+    :param str kwarg_name: Name of keyword argument to validate
     :return: The decorated function
+    :rtype: func
     """
     def decorator(func):
         def wrapper(*args, **kwargs):
@@ -45,6 +47,7 @@ def time_execution(func):
     Function decorator to time the execution of a function and log to debug
     :param func: The function to time execution of
     :return: The decorated function
+    :rtype: func
     """
     from timeit import default_timer
 
@@ -69,8 +72,9 @@ def sizeof_fmt(num):
     >>> sizeof_fmt(2048)
     2KB
 
-    :param num: Robot-readable file size in bytes
+    :param float num: Robot-readable file size in bytes
     :return: Human-readable file size
+    :rtype: str
     """
     for item in ['bytes', 'KB', 'MB', 'GB']:
         if num < 1024.0:
@@ -92,7 +96,7 @@ _spinner = _create_char_spinner()
 def spinner(label=""):
     """
     When called repeatedly from inside a loop this prints a CLI spinner
-    :param label: The message to display while spinning [default: ""]
+    :param str label: The message to display while spinning [default: ""]
     """
     stdout.write("\r\t%s %s" % (label, next(_spinner)))
     stdout.flush()
@@ -107,9 +111,10 @@ def pad(value, length=2):
     >>> pad(9, 3)
     009
 
-    :param value: integer value to pad
-    :param length: Length to pad to [default: 2]
+    :param int value: integer value to pad
+    :param int length: Length to pad to [default: 2]
     :return: string of padded value
+    :rtype: str
     """
     return "{0:0>{width}}".format(value, width=length)
 
@@ -134,9 +139,10 @@ def read_json(filename):
 
 def split_path(path):
     """
-    
-    :param path: 
-    :return: (Path, basename)
+    Splits a filepath
+    :param str path: 
+    :return: Path, basename
+    :rtype: tuple(str, str)
     """
     folder_path, name = os.path.split(path.lower())  # Separate basename and convert to lowercase
     folder_path = folder_path.split('/')  # Transform path into list
@@ -148,8 +154,9 @@ def split_path(path):
 def make_vsphere(filename=None):
     """
     Creates a vSphere object using either a JSON file or by prompting the user
-    :param filename: Name of JSON file with information needed [default: None]
+    :param str filename: Name of JSON file with information needed [default: None]
     :return: vSphere object
+    :rtype: :class:`Vsphere`
     """
     from adles.vsphere.vsphere_class import Vsphere
 
@@ -171,10 +178,11 @@ def make_vsphere(filename=None):
 def user_input(prompt, obj_name, func):
     """
     Continually prompts a user for input until the specified object is found
-    :param prompt: Prompt to bother user with
-    :param obj_name: Name of the type of the object that we seek
+    :param str prompt: Prompt to bother user with
+    :param str obj_name: Name of the type of the object that we seek
     :param func: The function that shalt be called to discover the object
     :return: The discovered object and it's human name
+    :rtype: tuple(vimtype, str)
     """
     while True:
         try:
@@ -196,9 +204,10 @@ def user_input(prompt, obj_name, func):
 def prompt_y_n_question(question, default="no"):
     """
     Prompts user to answer a question
-    :param question: Question to ask
-    :param default: No
+    :param str question: Question to ask
+    :param str default: No
     :return: True/False
+    :rtype: bool
     """
     valid = {"yes": True, "y": True, "ye": True,
              "no": False, "n": False}
@@ -231,9 +240,10 @@ def prompt_y_n_question(question, default="no"):
 def default_prompt(prompt, default=None):
     """
     Prompt the user for input. If they press enter, return the default.
-    :param prompt: Prompt to display to user (do not include default value)
-    :param default: Default return value
-    :return: Value returned
+    :param str prompt: Prompt to display to user (do not include default value)
+    :param str default: Default return value
+    :return: Value entered or default
+    :rtype: str or None
     """
     try:
         value = str(input(prompt + " [default: %s]: " % str(default)))
@@ -253,6 +263,7 @@ def script_warning_prompt():
     """
     Generates a warning prompt
     :return: The warning prompt
+    :rtype: str
     """
     from adles import __url__, __email__
     return str(
@@ -269,10 +280,12 @@ def script_warning_prompt():
 def script_setup(logging_filename, args, script=None):
     """
     Does setup tasks that are common to all automation scripts
-    :param logging_filename: Name of file to save logs to
-    :param args: docopt arguments dict
+    :param str logging_filename: Name of file to save logs to
+    :param dict args: docopt arguments dict
     :param script: Tuple with name and version of the script [default: None]
+    :type: tuple(str, str)
     :return: vSphere object
+    :rtype: :class:`Vsphere`
     """
 
     # Setup logging
@@ -299,9 +312,11 @@ def resolve_path(server, thing, prompt=""):
     """
     This is a hacked together script util to get folders or VMs
     :param server: Vsphere instance
-    :param thing: String name of thing to get (folder | vm)
-    :param prompt: Message to display [default: ""]
+    :type server: :class:`Vsphere`
+    :param str thing: String name of thing to get (folder | vm)
+    :param str prompt: Message to display [default: ""]
     :return: (thing, thing name)
+    :rtype: tuple(vimtype, str)
     """
     from adles.vsphere.folder_utils import traverse_path
     if thing.lower() == "vm":
@@ -321,10 +336,11 @@ def setup_logging(filename, colors=True, console_verbose=False,
                   server=('localhost', 514)):
     """
     Configures the logging interface used by everything for output
-    :param filename: Name of file that logs should be saved to
-    :param colors: Color the terminal output [default: True]
-    :param console_verbose: Print DEBUG logs to terminal [default: False]
+    :param str filename: Name of file that logs should be saved to
+    :param bool colors: Color the terminal output [default: True]
+    :param bool console_verbose: Print DEBUG logs to terminal [default: False]
     :param server: SysLog server to forward logs to [default: (localhost, 514)]
+    :type server: tuple(str, int)
     """
 
     # Prepend spaces to separate logs from previous runs

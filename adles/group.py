@@ -20,9 +20,9 @@ class Group:
 
     def __init__(self, name, group, instance=None):
         """
-        :param name: Name of the group
-        :param group: Dict specification of the group
-        :param instance: Instance number of a template group [default: None]
+        :param str name: Name of the group
+        :param dict group: Dict specification of the group
+        :param int instance: Instance number of a template group [default: None]
         """
         self._log = logging.getLogger('Group')
         self._log.debug("Initializing Group '%s'", name)
@@ -75,8 +75,9 @@ class Group:
 def get_ad_groups(groups):
     """
     Extracts Active Directory-type groups from a dict of groups
-    :param groups: Dict of groups and lists of groups
+    :param dict groups: Dict of groups and lists of groups
     :return: List of AD groups extracted
+    :rtype: list(:class:`Group`)
     """
     ad_groups = []
     for _, g in groups.items():  # Ignore the group name, nab the group

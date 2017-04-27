@@ -24,10 +24,12 @@ LONG_SLEEP = 1.0
 def wait_for_task(task, timeout=60.0, pause_timeout=True):
     """
     Waits for a single vCenter task to finish and returns its result
-    :param task: vim.Task object of the task to wait for
-    :param timeout: Number of seconds to wait before terminating task [default: 60.0]
-    :param pause_timeout: Pause timeout counter while task is queued on server [default: True]
+    :param task: The task to wait for
+    :type task: vim.Task
+    :param float timeout: Number of seconds to wait before terminating task [default: 60.0]
+    :param bool pause_timeout: Pause timeout counter while task is queued on server [default: True]
     :return: Task result information (task.info.result)
+    :rtype: str or None
     """
     if not task:  # Check if there's actually a task
         logging.error("No task was specified to wait for")
@@ -101,8 +103,10 @@ vim.Task.wait = wait_for_task  # Inject into vim.Task class
 def get_datastore_info(ds_obj):
     """
     Gets a human-readable summary of a Datastore
-    :param ds_obj: vim.Datastore
-    :return: String with datastore information
+    :param ds_obj: The datastore to get information on
+    :type ds_obj: vim.Datastore
+    :return: The datastore information
+    :rtype: str
     """
     if not ds_obj:
         logging.error("No Datastore was given to get_datastore_info")
@@ -134,8 +138,9 @@ def get_datastore_info(ds_obj):
 def is_folder(obj):
     """
     Checks if object is a vim.Folder
-    :param obj: object to check
-    :return: Bool
+    :param obj: The object to check
+    :return: If the object is a folder
+    :rtype: bool
     """
     return hasattr(obj, "childEntity")
 
@@ -143,8 +148,9 @@ def is_folder(obj):
 def is_vm(obj):
     """
     Checks if object is a vim.VirtualMachine
-    :param obj: object to check
-    :return: Bool
+    :param obj: The object to check
+    :return: If the object is a VM
+    :rtype: bool
     """
     return hasattr(obj, "summary")
 
@@ -152,7 +158,8 @@ def is_vm(obj):
 def is_vnic(device):
     """
     Checks if the device is a VirtualEthernetCard
-    :param device: device to check
-    :return: Bool
+    :param device: The device to check
+    :return: If the device is a vNIC
+    :rtype: bool
     """
     return isinstance(device, vim.vm.device.VirtualEthernetCard)
