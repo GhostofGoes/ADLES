@@ -16,11 +16,10 @@ import logging
 
 from pyVmomi import vim
 
-from adles.utils import check, split_path
+from adles.utils import split_path
 from adles.vsphere.vsphere_utils import is_folder, is_vm, wait_for_task
 
 
-@check(vim.Folder, "folder")
 def get_in_folder(folder, name, recursive=False, vimtype=None):
     """
     Retrieves an item from a datacenter folder
@@ -47,12 +46,9 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
         else:
             logging.error("There are no items in folder %s", folder.name)
     return item
-
-
 vim.Folder.get = get_in_folder
 
 
-@check(vim.Folder, "folder")
 def find_in_folder(folder, name, recursive=False, vimtype=None):
     """
     Finds and returns an specific object in a folder
@@ -76,12 +72,9 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
         if found is not None:
             return found
     return None
-
-
 vim.Folder.find_in = find_in_folder
 
 
-@check(vim.Folder, "folder")
 def traverse_path(folder, path, lookup_root=None, generate=False):
     """
     Traverses a folder path to find a object with a specific name
@@ -127,12 +120,9 @@ def traverse_path(folder, path, lookup_root=None, generate=False):
         return find_in_folder(current, name)
     else:  # No basename, so just return whatever was at the end of the path
         return current
-
-
 vim.Folder.traverse_path = traverse_path
 
 
-@check(vim.Folder, "folder")
 def enumerate_folder(folder, recursive=True, power_status=False):
     """
     Enumerates a folder structure and returns the result as a python object with the same structure
@@ -165,8 +155,6 @@ def enumerate_folder(folder, recursive=True, power_status=False):
         else:
             children.append("UNKNOWN ITEM: %s" % str(item))
     return '+ ' + folder.name, children  # Return tuple of parent and children
-
-
 vim.Folder.enumerate = enumerate_folder  # Inject method
 
 
@@ -198,7 +186,6 @@ def format_structure(structure, indent=4, _depth=0):
     return fmat
 
 
-@check(vim.Folder, "folder")
 def create_folder(folder, folder_name):
     """
     Creates a VM folder in the specified folder
@@ -223,12 +210,9 @@ def create_folder(folder, folder_name):
             logging.error("Could not create folder '%s' in '%s': Invalid folder name '%s'",
                           folder_name, folder.name, invalid.name)
     return None
-
-
 vim.Folder.create = create_folder
 
 
-@check(vim.Folder, "folder")
 def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
             destroy_folders=False, destroy_self=False):
     """
@@ -260,12 +244,9 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
     if destroy_self:
         logging.debug("Destroying folder: '%s'", folder.name)
         wait_for_task(folder.UnregisterAndDestroy_Task())
-
-
 vim.Folder.cleanup = cleanup
 
 
-@check(vim.Folder, "folder")
 def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
     """
     Retrieves VMs and folders from a folder structure
@@ -292,6 +273,4 @@ def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
                 vms.extend(v)
                 folders.extend(f)
     return vms, folders
-
-
 vim.Folder.retrieve_items = retrieve_items

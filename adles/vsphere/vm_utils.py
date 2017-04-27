@@ -19,7 +19,6 @@ from pyVmomi import vim, vmodl
 import adles.utils as utils
 
 
-@utils.check(vim.VirtualMachine, "vm")
 @utils.time_execution
 def clone_vm(vm, folder, name, clone_spec):
     """
@@ -44,7 +43,6 @@ def clone_vm(vm, folder, name, clone_spec):
 vim.VirtualMachine.clone = clone_vm
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def destroy_vm(vm):
     """
     Destroys a Virtual Machine
@@ -84,7 +82,6 @@ def edit_vm(vm, config):
         logging.error("Cannot edit VM '%s': invalid Datastore '%s'", vm.name, e.datastore)
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def change_vm_state(vm, state, attempt_guest=True):
     """
     :param vm: vim.VirtualMachine object to change state of
@@ -162,7 +159,6 @@ def change_guest_state(vm, guest_state):
         logging.error("Cannot change guest state of '%s': Tools are not running", vm.name)
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def create_snapshot(vm, name, description='default', memory=False):
     """
     Create a snapshot of the VM
@@ -176,7 +172,6 @@ def create_snapshot(vm, name, description='default', memory=False):
 vim.VirtualMachine.create_snapshot = create_snapshot
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def get_snapshot(vm, snapshot_name):
     """
     Retrieves the named snapshot from the VM
@@ -188,6 +183,7 @@ def get_snapshot(vm, snapshot_name):
         if snap.name == snapshot_name:
             return snap.snapshot
     return None
+vim.VirtualMachine.get_snapshot = get_snapshot
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -247,7 +243,6 @@ def snapshot_disk_usage(vm):
 
 
 # From: getallvms in pyvmomi-community-samples
-@utils.check(vim.VirtualMachine, "vm")
 def get_vm_info(vm, detailed=False, uuids=False, snapshot=False, vnics=False):
     """
     Get human-readable information for a VM
@@ -309,7 +304,6 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False, vnics=False):
 vim.VirtualMachine.get_info = get_vm_info
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def get_nics(vm):
     """
     Returns a list of all Virtual Network Interface Cards (vNICs) on a VM
@@ -321,7 +315,6 @@ def get_nics(vm):
 vim.VirtualMachine.get_nics = get_nics
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def has_tools(vm):
     """
     Checks if VMware Tools is installed and working
@@ -333,7 +326,6 @@ def has_tools(vm):
 vim.VirtualMachine.has_tools = has_tools
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def powered_on(vm):
     """
     Determines if a VM is powered on
@@ -344,7 +336,6 @@ def powered_on(vm):
 vim.VirtualMachine.powered_on = powered_on
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def is_template(vm):
     """
     Checks if VM is a template

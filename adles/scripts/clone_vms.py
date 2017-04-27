@@ -35,10 +35,9 @@ import logging
 from docopt import docopt
 
 from adles.utils import ask_question, pad, default_prompt, script_setup, resolve_path
-from adles.vsphere.vm_utils import clone_vm
-from adles.vsphere.folder_utils import format_structure, retrieve_items
+from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.5.3"
+__version__ = "0.5.4"
 
 
 def main():
@@ -56,7 +55,7 @@ def main():
     # Multi-VM source
     else:
         folder_from, from_name = resolve_path(server, "folder", "you want to clone all VMs in")
-        v, _ = retrieve_items(folder_from)  # Get VMs in the folder, ignore any folders
+        v, _ = folder_from.retrieve_items()  # Get VMs in the folder, ignore any folders
         vms.extend(v)
         logging.info("%d VMs found in source folder %s\n%s",
                      len(v), from_name, format_structure(v))
@@ -85,10 +84,10 @@ def main():
             if instance_folder_base:  # Create instance folders for a nested clone
                 f = server.create_folder(instance_folder_base + pad(instance), create_in=create_in)
                 vm_name = name
-                clone_vm(vm=vm, folder=f, name=vm_name, clone_spec=spec)
             else:
+                f = create_in
                 vm_name = name + pad(instance)    # Append instance number
-                clone_vm(vm=vm, folder=create_in, name=vm_name, clone_spec=spec)
+            vm.clone(folder=f, name=vm_name, clone_spec=spec)
 
 
 if __name__ == '__main__':

@@ -35,11 +35,10 @@ import logging
 from docopt import docopt
 
 from adles.utils import ask_question, script_setup, resolve_path
-from adles.vsphere.vm_utils import change_vm_state
 from adles.vsphere.vsphere_utils import is_vm
 from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.3.7"
+__version__ = "0.3.8"
 
 
 def main():
@@ -61,12 +60,12 @@ def main():
                 folder.enumerate(recursive=True, power_status=True)))
         if ask_question("Continue? "):
             for vm in vms:
-                change_vm_state(vm, operation, attempt_guest)
+                vm.change_state(operation, attempt_guest)
 
     else:
         vm, vm_name = resolve_path(server, "VM")
         logging.info("Changing power state of '%s' to '%s'", vm_name, operation)
-        change_vm_state(vm, operation, attempt_guest)
+        vm.change_state(operation, attempt_guest)
 
 
 if __name__ == '__main__':

@@ -35,9 +35,9 @@ import logging
 from docopt import docopt
 
 from adles.utils import ask_question, default_prompt, script_setup, resolve_path
-from adles.vsphere.folder_utils import format_structure, cleanup, retrieve_items
+from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.5.9"
+__version__ = "0.5.10"
 
 
 def main():
@@ -80,7 +80,7 @@ def main():
                      str(folder_prefix), recursive, destroy_folders, destroy_self)
 
         # Show how many items matched the options
-        v, f = retrieve_items(folder, vm_prefix, folder_prefix, recursive=True)
+        v, f = folder.retrieve_items(vm_prefix, folder_prefix, recursive=True)
         num_vms = len(v)
         if destroy_folders:
             num_folders = len(f)
@@ -93,8 +93,8 @@ def main():
         # Confirm and destroy
         if ask_question("Continue with destruction? "):
             logging.info("Destroying folder '%s'...", folder_name)
-            cleanup(folder, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=recursive,
-                    destroy_folders=destroy_folders, destroy_self=destroy_self)
+            folder.cleanup(vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=recursive,
+                           destroy_folders=destroy_folders, destroy_self=destroy_self)
         else:
             logging.info("Destruction cancelled")
     else:
