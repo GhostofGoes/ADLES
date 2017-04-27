@@ -17,7 +17,6 @@ import logging
 from pyVmomi import vim, vmodl
 
 import adles.utils as utils
-import adles.vsphere.vsphere_utils as vutils
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -35,13 +34,14 @@ def clone_vm(vm, folder, name, clone_spec):
     else:
         logging.debug("Cloning VM '%s' to folder '%s' as '%s'", vm.name, folder.name, name)
         try:
-            vutils.wait_for_task(vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec))
+            vm.CloneVM_Task(folder=folder, name=name, spec=clone_spec).wait()
         except vim.fault.InvalidState:
             logging.error("Could not make clone '%s': invalid state for VM '%s'", name, vm.name)
         except vim.fault.CustomizationFault:
             logging.error("Could not make clone '%s': invalid customization", name)
         except vim.fault.VmConfigFault:
             logging.error("Could not make clone '%s': invalid configuration", name)
+vim.VirtualMachine.clone = clone_vm
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -54,7 +54,8 @@ def destroy_vm(vm):
     if powered_on(vm):
         logging.warning("VM '%s' is still on, powering off before destroying...", vm.name)
         change_vm_state(vm, "off", attempt_guest=False)
-    vutils.wait_for_task(vm.Destroy_Task())
+    vm.Destroy_Task().wait()
+vim.VirtualMachine.destroy = destroy_vm
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -66,7 +67,7 @@ def edit_vm(vm, config):
     """
     logging.debug("Reconfiguring VM '%s'", vm.name)
     try:
-        vutils.wait_for_task(vm.ReconfigVM_Task(config))
+        vm.ReconfigVM_Task(config).wait()
     except vim.fault.TaskInProgress as e:
         logging.error("Cannot edit VM '%s': it is busy with task '%s'", vm.name, e.task)
     except vim.fault.VmConfigFault:
@@ -108,6 +109,7 @@ def change_vm_state(vm, state, attempt_guest=True):
                       vm.name, e.task)
     except vim.fault.InvalidState:
         logging.error("Cannot change power state of '%s': it is in an invalid state ", vm.name)
+vim.VirtualMachine.change_state = change_vm_state
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -130,7 +132,7 @@ def change_power_state(vm, power_state):
         logging.error("Invalid power_state %s for VM %s", power_state, vm.name)
         return
     logging.debug("Changing power state of VM %s to: '%s'", vm.name, power_state)
-    vutils.wait_for_task(task)
+    task.wait()
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -155,7 +157,7 @@ def change_guest_state(vm, guest_state):
         return
     logging.debug("Changing guest power state of VM %s to: '%s'", vm.name, guest_state)
     try:
-        vutils.wait_for_task(task)
+        task.wait()
     except vim.fault.ToolsUnavailable:
         logging.error("Cannot change guest state of '%s': Tools are not running", vm.name)
 
@@ -170,8 +172,8 @@ def create_snapshot(vm, name, description='default', memory=False):
     :param description: Text description of the snapshot
     """
     logging.debug("Creating snapshot '%s' of '%s'", name, vm.name)
-    vutils.wait_for_task(vm.CreateSnapshot_Task(name=name, description=description,
-                                                memory=bool(memory), quiesce=True))
+    vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True).wait()
+vim.VirtualMachine.create_snapshot = create_snapshot
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -304,8 +306,6 @@ def get_vm_info(vm, detailed=False, uuids=False, snapshot=False, vnics=False):
         info_string += "Max Mem usage : %s\n" % summary.runtime.maxMemoryUsage
         info_string += "Last suspended: %s\n" % summary.runtime.suspendTime
     return info_string
-
-
 vim.VirtualMachine.get_info = get_vm_info
 
 
@@ -316,7 +316,9 @@ def get_nics(vm):
     :param vm: vim.VirtualMachine
     :return: list of vim.vm.device.VirtualEthernetCard
     """
-    return [dev for dev in vm.config.hardware.device if vutils.is_vnic(dev)]
+    from adles.vsphere.vsphere_utils import is_vnic
+    return [dev for dev in vm.config.hardware.device if is_vnic(dev)]
+vim.VirtualMachine.get_nics = get_nics
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -328,6 +330,7 @@ def has_tools(vm):
     """
     tools = vm.summary.guest.toolsStatus
     return True if tools == "toolsOK" or tools == "toolsOld" else False
+vim.VirtualMachine.has_tools = has_tools
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -338,6 +341,7 @@ def powered_on(vm):
     :return: If VM is powered on
     """
     return vm.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn
+vim.VirtualMachine.powered_on = powered_on
 
 
 @utils.check(vim.VirtualMachine, "vm")
@@ -348,3 +352,4 @@ def is_template(vm):
     :return: If the VM is a template
     """
     return bool(vm.summary.config.template)
+vim.VirtualMachine.is_template = is_template

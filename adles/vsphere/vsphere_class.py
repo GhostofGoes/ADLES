@@ -17,13 +17,13 @@ import logging
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim, vmodl
 
-from adles.vsphere.folder_utils import create_folder, get_in_folder, find_in_folder
+from adles.vsphere.folder_utils import create_folder, find_in_folder
 
 
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.10"
+    __version__ = "0.9.11"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -188,7 +188,7 @@ class Vsphere:
         Gets permissions defined on or effective on a managed entity
         :param entity: The entity to get permissions for
         :type entity: vim.ManagedEntity
-        :param bool inherited: Include propagating permissions defined by parent entities [default: True]
+        :param bool inherited: Include propagating permissions defined in parent [default: True]
         :return: The permissions for the entity
         :rtype: vim.AuthorizationManager.Permission
         """
@@ -325,7 +325,7 @@ class Vsphere:
     def get_clusters(self):
         """
         Get all the clusters associated with the vCenter server
-        :return: All clusters associated wiith the vCenter server
+        :return: All clusters associated with the vCenter server
         :rtype: list(vim.ClusterComputeResource)
         """
         return self.get_objs(self.content.rootFolder, [vim.ClusterComputeResource])
@@ -333,11 +333,11 @@ class Vsphere:
     def get_datastore(self, datastore_name=None):
         """
         Finds and returns the named Datastore
-        :param str datastore_name: Name of the datastore [default: first datastore found in datacenter]
+        :param str datastore_name: Name of the datastore [default: first datastore in datacenter]
         :return: The datastore found
         :rtype: vim.Datastore
         """
-        return get_in_folder(self.datacenter.datastoreFolder, datastore_name)
+        return self.datacenter.datastoreFolder.get(datastore_name)
 
     def get_pool(self, pool_name=None):
         """

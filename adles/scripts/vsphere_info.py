@@ -21,7 +21,7 @@ Usage:
 Options:
     -h, --help          Prints this page
     --version           Prints current version
-    -n, -no-color       Do not color terminal output
+    -n, --no-color       Do not color terminal output
     -v, --verbose       Emit debugging logs to terminal
     -f, --file FILE     Name of JSON file with server connection information
 
@@ -34,11 +34,10 @@ import logging
 
 from docopt import docopt
 
-from adles.vsphere import vm_utils, vsphere_utils
-from adles.utils import script_setup, resolve_path, prompt_y_n_question
-from adles.vsphere.folder_utils import enumerate_folder, format_structure
+from adles.utils import script_setup, resolve_path, ask_question
+from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 
 
 def main():
@@ -50,27 +49,27 @@ def main():
 
     # Single Virtual Machine
     if thing_type == "vm":
-        vm, vm_name = resolve_path(server, "vm", "you want to get information on")
-        logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True, snapshot=True, vnics=True))
+        vm, _ = resolve_path(server, "vm", "you want to get information on")
+        logging.info(vm.get_info(detailed=True, uuids=True, snapshot=True, vnics=True))
 
     # Datastore
     elif thing_type == "datastore":
         ds = server.get_datastore(str(input("Enter name of the Datastore [leave blank "
                                             "for first datastore found]: ")))
-        logging.info(vsphere_utils.get_datastore_info(ds))
+        logging.info(ds.get_info())
 
     # vCenter server
     elif thing_type == "vsphere":
-        logging.info("%s", str(server))
+        logging.info(str(server))
 
     # Folder
     elif thing_type == "folder":
         folder, folder_name = resolve_path(server, "folder")
         if "VirtualMachine" in folder.childType \
-                and prompt_y_n_question("Want to see power state of VMs in the folder?"):
-            contents = enumerate_folder(folder, recursive=True, power_status=True)
+                and ask_question("Want to see power state of VMs in the folder?"):
+            contents = folder.enumerate(recursive=True, power_status=True)
         else:
-            contents = enumerate_folder(folder, recursive=True, power_status=False)
+            contents = folder.enumerate(recursive=True, power_status=False)
         logging.info("Information for Folder %s\nTypes of items folder can contain: %s\n%s",
                      folder_name, str(folder.childType), format_structure(contents))
 

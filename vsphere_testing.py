@@ -44,14 +44,11 @@ server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version_
 
 test = server.find_by_inv_path("vm/cgoes_testing/script_testing/monkeys/test-vm")
 if test is not None:
-    vm_utils.get_vm_info(test)
+    print(test.get_info())
 else:
     print("GOT EM")
 
-vm = server.get_vm("dummy")
-vm.get_info()
-
-test2 = server.get_folder("vm/cgoes_testing/script_testing/monkeys")
+test2 = server.find_by_inv_path("vm/cgoes_testing/script_testing/monkeys")
 if test2 is not None:
     print(test2)
 else:

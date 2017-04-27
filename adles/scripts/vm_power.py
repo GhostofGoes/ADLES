@@ -34,12 +34,12 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import prompt_y_n_question, script_setup, resolve_path
+from adles.utils import ask_question, script_setup, resolve_path
 from adles.vsphere.vm_utils import change_vm_state
 from adles.vsphere.vsphere_utils import is_vm
-from adles.vsphere.folder_utils import enumerate_folder, format_structure
+from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.3.6"
+__version__ = "0.3.7"
 
 
 def main():
@@ -48,18 +48,18 @@ def main():
 
     operation = str(input("Enter the power operation you wish to perform"
                           " [on | off | reset | suspend]: "))
-    attempt_guest = prompt_y_n_question("Attempt to use guest OS operations, if available? ")
+    attempt_guest = ask_question("Attempt to use guest OS operations, if available? ")
 
     # TODO: prefixes
     # TODO: nesting
-    if prompt_y_n_question("Multiple VMs? ", default="yes"):
+    if ask_question("Multiple VMs? ", default="yes"):
         folder, folder_name = resolve_path(server, "folder", "with VMs")
         vms = [x for x in folder.childEntity if is_vm(x)]
         logging.info("Found %d VMs in folder '%s'", len(vms), folder_name)
-        if prompt_y_n_question("Show the status of the VMs in the folder? "):
+        if ask_question("Show the status of the VMs in the folder? "):
             logging.info("Folder structure: \n%s", format_structure(
-                enumerate_folder(folder, recursive=True, power_status=True)))
-        if prompt_y_n_question("Continue? "):
+                folder.enumerate(recursive=True, power_status=True)))
+        if ask_question("Continue? "):
             for vm in vms:
                 change_vm_state(vm, operation, attempt_guest)
 

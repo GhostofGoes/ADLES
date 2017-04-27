@@ -34,7 +34,7 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import prompt_y_n_question, pad, default_prompt, script_setup, resolve_path
+from adles.utils import ask_question, pad, default_prompt, script_setup, resolve_path
 from adles.vsphere.vm_utils import clone_vm
 from adles.vsphere.folder_utils import format_structure, retrieve_items
 
@@ -49,7 +49,7 @@ def main():
     vm_names = []
 
     # Single-vm source
-    if prompt_y_n_question("Do you want to clone from a single VM?"):
+    if ask_question("Do you want to clone from a single VM?"):
         v, v_name = resolve_path(server, "VM", "or template you wish to clone")
         vms.append(v)
         vm_names.append(str(input("Base name for instances to be created: ")))
@@ -60,7 +60,7 @@ def main():
         vms.extend(v)
         logging.info("%d VMs found in source folder %s\n%s",
                      len(v), from_name, format_structure(v))
-        if not prompt_y_n_question("Keep the same names? "):
+        if not ask_question("Keep the same names? "):
             names = []
             for i in range(len(v)):
                 names.append(str(input("Enter base name for VM %d: " % i)))
@@ -70,7 +70,7 @@ def main():
 
     create_in, create_in_name = resolve_path(server, "folder", "in which to create VMs")
     instance_folder_base = None
-    if prompt_y_n_question("Do you want to create a folder for each instance? "):
+    if ask_question("Do you want to create a folder for each instance? "):
         instance_folder_base = str(input("Enter instance folder base name: "))
 
     num_instances = int(input("Number of instances to be created: "))

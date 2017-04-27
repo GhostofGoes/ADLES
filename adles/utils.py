@@ -201,7 +201,7 @@ def user_input(prompt, obj_name, func):
 
 
 # Based on: http://code.activestate.com/recipes/577058/
-def prompt_y_n_question(question, default="no"):
+def ask_question(question, default="no"):
     """
     Prompts user to answer a question
     :param str question: Question to ask
@@ -318,7 +318,6 @@ def resolve_path(server, thing, prompt=""):
     :return: (thing, thing name)
     :rtype: tuple(vimtype, str)
     """
-    from adles.vsphere.folder_utils import traverse_path
     if thing.lower() == "vm":
         get = server.get_vm
     elif thing.lower() == "folder":
@@ -328,8 +327,7 @@ def resolve_path(server, thing, prompt=""):
         raise ValueError
 
     return user_input("Name of or path to %s %s: " % (thing, prompt), thing,
-                      lambda x: traverse_path(server.get_folder(), x, lookup_root=server)
-                      if '/' in x else get(x))
+                      lambda x: server.find_by_inv_path("vm/" + x) if '/' in x else get(x))
 
 
 def setup_logging(filename, colors=True, console_verbose=False,

@@ -34,30 +34,28 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import prompt_y_n_question, default_prompt, script_setup, resolve_path
-import adles.vsphere.vm_utils as vm_utils
-from adles.vsphere.folder_utils import enumerate_folder, \
-    format_structure, cleanup, retrieve_items
+from adles.utils import ask_question, default_prompt, script_setup, resolve_path
+from adles.vsphere.folder_utils import format_structure, cleanup, retrieve_items
 
-__version__ = "0.5.8"
+__version__ = "0.5.9"
 
 
 def main():
     args = docopt(__doc__, version=__version__, help=True)
     server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
-    if prompt_y_n_question("Multiple VMs? ", default="yes"):
+    if ask_question("Multiple VMs? ", default="yes"):
         folder, folder_name = resolve_path(server, "folder",
                                            "that has the VMs/folders you want to destroy")
 
         # Display folder structure
-        if prompt_y_n_question("Display the folder structure? "):
+        if ask_question("Display the folder structure? "):
             logging.info("Folder structure: \n%s", format_structure(
-                enumerate_folder(folder, recursive=True, power_status=True)))
+                folder.enumerate(recursive=True, power_status=True)))
 
         # Prompt user to configure destruction options
         print("Answer the following questions to configure the cleanup")
-        if prompt_y_n_question("Destroy everything in and including the folder? "):
+        if ask_question("Destroy everything in and including the folder? "):
             vm_prefix = ''
             folder_prefix = ''
             recursive = True
@@ -66,12 +64,12 @@ def main():
         else:
             vm_prefix = default_prompt("Prefix of VMs you wish to destroy"
                                        " (CASE SENSITIVE!)", default='')
-            recursive = prompt_y_n_question("Recursively descend into folders? ")
-            destroy_folders = prompt_y_n_question("Destroy folders in addition to VMs? ")
+            recursive = ask_question("Recursively descend into folders? ")
+            destroy_folders = ask_question("Destroy folders in addition to VMs? ")
             if destroy_folders:
                 folder_prefix = default_prompt("Prefix of folders you wish to destroy"
                                                " (CASE SENSITIVE!)", default='')
-                destroy_self = prompt_y_n_question("Destroy the folder itself? ")
+                destroy_self = ask_question("Destroy the folder itself? ")
             else:
                 folder_prefix = ''
                 destroy_self = False
@@ -93,7 +91,7 @@ def main():
         logging.info("%d VMs and %d folders match the options", num_vms, num_folders)
 
         # Confirm and destroy
-        if prompt_y_n_question("Continue with destruction? "):
+        if ask_question("Continue with destruction? "):
             logging.info("Destroying folder '%s'...", folder_name)
             cleanup(folder, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=recursive,
                     destroy_folders=destroy_folders, destroy_self=destroy_self)
@@ -102,17 +100,16 @@ def main():
     else:
         vm, vm_name = resolve_path(server, "vm", "to destroy")
 
-        if prompt_y_n_question("Display VM info? "):
-            logging.info(vm_utils.get_vm_info(vm, detailed=True, uuids=True,
-                                              snapshot=True, vnics=True))
+        if ask_question("Display VM info? "):
+            logging.info(vm.get_info(detailed=True, uuids=True, snapshot=True, vnics=True))
 
-        if vm_utils.is_template(vm):  # Warn if template
-            if not prompt_y_n_question("VM '%s' is a Template. Continue? " % vm_name):
+        if vm.is_template():  # Warn if template
+            if not ask_question("VM '%s' is a Template. Continue? " % vm_name):
                 exit(0)
 
-        if prompt_y_n_question("Continue with destruction? "):
+        if ask_question("Continue with destruction? "):
             logging.info("Destroying VM '%s'", vm_name)
-            vm_utils.destroy_vm(vm)
+            vm.destroy()
         else:
             logging.info("Destruction cancelled")
 

@@ -133,6 +133,7 @@ def get_datastore_info(ds_obj):
     info_string += "Hosts                 : %d\n" % len(ds_obj.host)
     info_string += "Virtual Machines      : %d" % len(ds_obj.vm)
     return info_string
+vim.Datastore.get_info = get_datastore_info
 
 
 def is_folder(obj):
