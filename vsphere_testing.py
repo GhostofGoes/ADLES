@@ -29,37 +29,26 @@ Options:
 
 """
 
-import logging
-
 from docopt import docopt
-from pyVmomi import vim
 
 from adles.vsphere.vsphere_class import Vsphere
 from adles.utils import script_setup
-from adles.vsphere import vm_utils
-from adles.vsphere import folder_utils
 
 args = docopt(__doc__, version=Vsphere.__version__, help=True)
 server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
 
-test = server.find_by_inv_path("vm/cgoes_testing/script_testing/monkeys/test-vm")
-if test is not None:
-    print(test.get_info())
-else:
-    print("GOT EM")
 
-test2 = server.find_by_inv_path("vm/cgoes_testing/script_testing/monkeys")
-if test2 is not None:
-    print(test2)
-else:
-    print("DRAT")
+# test = server.find_by_inv_path("vm/cgoes_testing/script_testing/monkeys/test-vm")
+# print(test.get_info())
+#
+# test2 = server.find_by_inv_path("vm/cgoes_testing/script_testing/monkeys")
+# print(test2)
 
-folder = server.get_folder("monkeys")
-folder.create("HAHAHAHhaHAHhaHA (hi)")
-print(folder.enumerate())
+# folder = server.get_folder("monkeys")
+# folder.create("HAHAHAHhaHAHhaHA (hi)")
+# print(folder.enumerate())
 
 # from adles.vsphere.vm import VM
-# from adles.vsphere.hosts import Host
 # folder = server.get_folder("monkeys")
 # vm = server.get_vm("test-vm")
 # service = VM(vm=vm)
@@ -78,13 +67,10 @@ print(folder.enumerate())
 # service.convert_template()
 # service.destroy()
 
+# from adles.vsphere.hosts import Host
 # host = Host(server.get_host())
 # print(str(host))
 # print(hash(host))
-
-# from adles.vsphere.network_utils import create_vswitch
-# host = server.get_host()
-# create_vswitch("competition_vswitch", host)
 
 # bios_uuid = "42053029-1098-6ef1-da79-5e2c4103f600"
 # instance_uuid = "50056cfe-aaa0-c28d-a702-d72e68e50f3a"
@@ -92,41 +78,17 @@ print(folder.enumerate())
 # vm = server.find_by_ds_path(path="[Datastore] (MASTER) apache/(MASTER) apache.vmx")
 # logging.info("%s", vm_utils.get_info(vm, uuids=True))
 
-# pool = server.get_item(vim.ResourcePool)
-# vm_spec = vm_utils.gen_vm_spec(name="test_vm", datastore_name="Datastore",
-#                                annotation="testing 1...")
-# vm_utils.create_vm(folder, vm_spec, pool)
-# attach_iso(vm, "ISO-Images/vyos-1.1.7-amd64.iso", server.get_datastore("Datastore"))
-
-# vm = server.get_vm("real-vm")
-# logging.info(vm_utils.get_info(vm, detailed=True, uuids=True, snapshot=True, vnics=True))
-
-# vms = server.get_all_vms()
-# for vm in vms:
-#     logging.info(vm_utils.get_info(vm))
-
 # net = server.get_network("ARP-LAN")
 # logging.info(str(net))
 
-# host = server.get_host()
-# logging.info(host)
-
 # logging.info(str(server))
 # logging.info(repr(server))
-
-# from adles.vsphere.folder_utils import traverse_path
-# folder = server.get_folder("script_testing")
-# vm = traverse_path(folder, "/Templates/Routers/VyOS 1.1.7 (64-bit)")
-# logging.info(get_info(vm))
 
 # datastore = server.get_datastore("Datastore")
 # logging.info(get_datastore_info(datastore))
 
 # portgroup = server.get_item(vim.Network, "test_network")
 # logging.info("Portgroup: %s", str(portgroup))
-# vm_utils.add_nic(vm, portgroup, "test_summary")
-# vm_utils.edit_nic(vm, 2, summary="lol")
-# vm_utils.remove_nic(vm, 1)
-
-# create_portgroup("test_portgroup", server.get_host(), "test_vswitch")
-# delete_portgroup("test_portgroup", server.get_host())
+# vm.add_nic(portgroup, "test_summary")
+# vm.edit_nic(2, summary="lol")
+# vm.remove_nic(2)

@@ -63,6 +63,7 @@ class VM:
             self.datastore = datastore  # vim.Datastore object to store VM on
             self.host = host  # vim.HostSystem (TODO: may be Host class soon)
 
+    @utils.time_execution
     def create(self, template=None, cpus=1, cores=1, memory=512, max_consoles=None,
                version=None, firmware='efi', datastore_path=None):
         """

@@ -19,28 +19,6 @@ from sys import stdout, exit
 import os
 
 
-def check(arg_type, kwarg_name):
-    """
-    Function decorator that validates types of parameters
-    :param arg_type: Type to validate
-    :type arg_type: vimtype
-    :param str kwarg_name: Name of keyword argument to validate
-    :return: The decorated function
-    :rtype: func
-    """
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            if args and isinstance(args[0], arg_type):  # We assume it is the first argument
-                return func(*args, **kwargs)
-            elif kwargs and isinstance(kwargs.get(kwarg_name, None), arg_type):
-                return func(*args, **kwargs)
-            else:
-                logging.error("Function '%s' failed check for type '%s'\nArgs: %s\nkwargs: %s",
-                              func.__name__, arg_type.__name__, str(args), str(kwargs))
-        return wrapper
-    return decorator
-
-
 # Credit to: http://stackoverflow.com/a/15707426/2214380
 def time_execution(func):
     """
@@ -81,25 +59,6 @@ def sizeof_fmt(num):
             return "%3.1f%s" % (num, item)
         num /= 1024.0
     return "%3.1f%s" % (num, 'TB')
-
-
-# From: virtual_machine_power_cycle_and_question in pyvmomi-community-samples
-def _create_char_spinner():
-    """ Creates a generator yielding a char based spinner """
-    while True:
-        for c in '|/-\\':
-            yield c
-
-_spinner = _create_char_spinner()
-
-
-def spinner(label=""):
-    """
-    When called repeatedly from inside a loop this prints a CLI spinner
-    :param str label: The message to display while spinning [default: ""]
-    """
-    stdout.write("\r\t%s %s" % (label, next(_spinner)))
-    stdout.flush()
 
 
 def pad(value, length=2):
