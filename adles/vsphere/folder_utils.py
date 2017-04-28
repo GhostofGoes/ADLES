@@ -20,6 +20,71 @@ from adles.utils import split_path
 from adles.vsphere.vsphere_utils import is_folder, is_vm
 
 
+def create_folder(folder, folder_name):
+    """
+    Creates a VM folder in the specified folder
+    :param folder: Folder to create the folder in
+    :type folder: vim.Folder
+    :param str folder_name: Name of folder to create
+    :return: The created folder
+    :rtype: vim.Folder or None
+    """
+    exists = find_in_folder(folder, folder_name)  # Check if the folder already exists
+    if exists:
+        logging.warning("Folder '%s' already exists in folder '%s'", folder_name, folder.name)
+        return exists  # Return the folder that already existed
+    else:
+        logging.debug("Creating folder '%s' in folder '%s'", folder_name, folder.name)
+        try:
+            return folder.CreateFolder(folder_name)  # Create the folder and return it
+        except vim.fault.DuplicateName as dupe:
+            logging.error("Could not create folder '%s' in '%s': folder already exists as '%s'",
+                          folder_name, folder.name, dupe.name)
+        except vim.fault.InvalidName as invalid:
+            logging.error("Could not create folder '%s' in '%s': Invalid folder name '%s'",
+                          folder_name, folder.name, invalid.name)
+    return None
+
+
+vim.Folder.create = create_folder
+
+
+def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
+            destroy_folders=False, destroy_self=False):
+    """
+    Cleans up a folder by selectively destroying any VMs and folders it contains.
+    :param folder: Folder to cleanup
+    :type folder: vim.Folder
+    :param str vm_prefix: Only destroy VMs with names starting with the prefix [default: '']
+    :param str folder_prefix: Only destroy or search in folders with names starting with the prefix
+    [default: '']
+    :param bool recursive: Recursively descend into any sub-folders [default: False]
+    :param bool destroy_folders: Destroy folders in addition to VMs [default: False]
+    :param bool destroy_self: Destroy the folder specified [default: False]
+    """
+    logging.debug("Cleaning folder '%s'", folder.name)
+    import adles.vsphere.vm_utils as vm_utils  # Prevents module-level import issues
+
+    for item in folder.childEntity:
+        if is_vm(item) and str(item.name).startswith(vm_prefix):  # Handle VMs
+            # TODO: this is janky and breaks separation, should pass a function to call as arg
+            vm_utils.destroy_vm(vm=item)  # Delete the VM from the Datastore
+        elif is_folder(item) and str(item.name).startswith(folder_prefix):  # Handle folders
+            if destroy_folders:  # Destroys folder and ALL of it's sub-objects
+                cleanup(item, destroy_folders=True, destroy_self=True)
+            elif recursive:  # Simply recurses to find more items
+                cleanup(item, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=True)
+
+    # Note: UnregisterAndDestroy does NOT delete VM files off the datastore
+    # Only use if folder is already empty!
+    if destroy_self:
+        logging.debug("Destroying folder: '%s'", folder.name)
+        folder.UnregisterAndDestroy_Task().wait()
+
+
+vim.Folder.cleanup = cleanup
+
+
 def get_in_folder(folder, name, recursive=False, vimtype=None):
     """
     Retrieves an item from a datacenter folder
@@ -184,67 +249,6 @@ def format_structure(structure, indent=4, _depth=0):
         logging.error("Unexpected type in folder structure for item '%s': %s",
                       str(structure), type(structure))
     return fmat
-
-
-def create_folder(folder, folder_name):
-    """
-    Creates a VM folder in the specified folder
-    :param folder: Folder to create the folder in
-    :type folder: vim.Folder
-    :param str folder_name: Name of folder to create
-    :return: The created folder
-    :rtype: vim.Folder or None
-    """
-    exists = find_in_folder(folder, folder_name)  # Check if the folder already exists
-    if exists:
-        logging.warning("Folder '%s' already exists in folder '%s'", folder_name, folder.name)
-        return exists  # Return the folder that already existed
-    else:
-        logging.debug("Creating folder '%s' in folder '%s'", folder_name, folder.name)
-        try:
-            return folder.CreateFolder(folder_name)  # Create the folder and return it
-        except vim.fault.DuplicateName as dupe:
-            logging.error("Could not create folder '%s' in '%s': folder already exists as '%s'",
-                          folder_name, folder.name, dupe.name)
-        except vim.fault.InvalidName as invalid:
-            logging.error("Could not create folder '%s' in '%s': Invalid folder name '%s'",
-                          folder_name, folder.name, invalid.name)
-    return None
-vim.Folder.create = create_folder
-
-
-def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
-            destroy_folders=False, destroy_self=False):
-    """
-    Cleans up a folder by selectively destroying any VMs and folders it contains.
-    :param folder: Folder to cleanup
-    :type folder: vim.Folder
-    :param str vm_prefix: Only destroy VMs with names starting with the prefix [default: '']
-    :param str folder_prefix: Only destroy or search in folders with names starting with the prefix
-    [default: '']
-    :param bool recursive: Recursively descend into any sub-folders [default: False]
-    :param bool destroy_folders: Destroy folders in addition to VMs [default: False]
-    :param bool destroy_self: Destroy the folder specified [default: False]
-    """
-    logging.debug("Cleaning folder '%s'", folder.name)
-    import adles.vsphere.vm_utils as vm_utils  # Prevents module-level import issues
-
-    for item in folder.childEntity:
-        if is_vm(item) and str(item.name).startswith(vm_prefix):  # Handle VMs
-            # TODO: this is janky and breaks separation, should pass a function to call as arg
-            vm_utils.destroy_vm(vm=item)  # Delete the VM from the Datastore
-        elif is_folder(item) and str(item.name).startswith(folder_prefix):   # Handle folders
-            if destroy_folders:  # Destroys folder and ALL of it's sub-objects
-                cleanup(item, destroy_folders=True, destroy_self=True)
-            elif recursive:  # Simply recurses to find more items
-                cleanup(item, vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=True)
-
-    # Note: UnregisterAndDestroy does NOT delete VM files off the datastore
-    # Only use if folder is already empty!
-    if destroy_self:
-        logging.debug("Destroying folder: '%s'", folder.name)
-        folder.UnregisterAndDestroy_Task().wait()
-vim.Folder.cleanup = cleanup
 
 
 def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):

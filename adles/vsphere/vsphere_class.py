@@ -17,13 +17,11 @@ import logging
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim, vmodl
 
-from adles.vsphere.folder_utils import create_folder, find_in_folder
-
 
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.11"
+    __version__ = "0.9.12"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -102,7 +100,8 @@ class Vsphere:
                 parent = create_in  # create_in is a vim.Folder object, so we just assign it
         else:
             parent = self.content.rootFolder  # Default to using the server root folder
-        return create_folder(folder=parent, folder_name=folder_name)
+        return parent.create(folder_name)
+        # return create_folder(folder=parent, folder_name=folder_name)
 
     def gen_clone_spec(self, datastore_name=None, pool_name=None):
         """
@@ -299,8 +298,10 @@ class Vsphere:
         :rtype: vim.Network or vim.dvs.DistributedVirtualPortgroup
         """
         if not distributed:
-            return find_in_folder(folder=self.datacenter.networkFolder, name=network_name,
-                                  recursive=True, vimtype=vim.Network)
+            return self.get_obj(container=self.datacenter.networkFolder, vimtypes=[vim.Network],
+                                name=str(network_name), recursive=True)
+            # return find_in_folder(folder=self.datacenter.networkFolder, name=network_name,
+            #                       recursive=True, vimtype=vim.Network)
         else:
             return self.get_item(vim.dvs.DistributedVirtualPortgroup,  network_name)
 
@@ -362,7 +363,7 @@ class Vsphere:
         :param container: Container to search in
         :param list vimtypes: vimtype objects to look for
         :param str name: Name of the object
-        :param bool recursive: Recursively descend or only look in the current level [default: True]
+        :param bool recursive: Recursively search for the item [default: True]
         :return: Object found with the specified name
         :rtype: vimtype or None
         """
@@ -381,7 +382,7 @@ class Vsphere:
         Get all the vSphere objects associated with a given type
         :param container: Container to search in
         :param list vimtypes: Objects to search for
-        :param bool recursive: Recursively descend or only look in the current level [default: True]
+        :param bool recursive: Recursively search for the item [default: True]
         :return: All vimtype objects found
         :rtype: list(vimtype) or None
         """
@@ -396,9 +397,10 @@ class Vsphere:
         """
         Get a item of specified name and type. Intended to be simple version of get_obj()
         :param vimtype: Type of item
+        :type vimtype: vimtype
         :param str name: Name of item [default: None]
         :param container: Container to search in [default: vCenter server content root folder]
-        :param bool recursive: Recursively descend or only look in the current level [default: True]
+        :param bool recursive: Recursively search for the item [default: True]
         :return: The item found
         :rtype: vimtype or None
         """
