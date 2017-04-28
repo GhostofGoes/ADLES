@@ -16,8 +16,6 @@ import logging
 
 from pyVmomi import vim
 
-from adles.vsphere.vsphere_utils import wait_for_task
-
 
 # TODO: edit vswitch, edit portgroup
 class Host:
@@ -40,7 +38,7 @@ class Host:
         :param bool force: Force a reboot even if the host is not in maintenance mode
         """
         self._log.warning("Rebooting host %s", self.name)
-        wait_for_task(self.host.RebootHost_Task(force=bool(force)))
+        self.host.RebootHost_Task(force=bool(force)).wait()
 
     def shutdown(self, force=False):
         """
@@ -48,7 +46,7 @@ class Host:
         :param bool force: Force a reboot even if the host is not in maintenance mode
         """
         self._log.warning("Shutting down host %s", self.name)
-        wait_for_task(self.host.ShutdownHost_Task(force=bool(force)))
+        self.host.ShutdownHost_Task(force=bool(force)).wait()
 
     def enter_maintenance_mode(self, timeout=0, spec=None):
         """
@@ -58,8 +56,7 @@ class Host:
         :type spec: vim.HostMaintenanceSpec
         """
         self._log.warning("%s is entering maintainence mode", self.name)
-        wait_for_task(self.host.EnterMaintenanceMode_Task(timeout=int(timeout),
-                                                          maintenanceSpec=spec))
+        self.host.EnterMaintenanceMode_Task(timeout=int(timeout), maintenanceSpec=spec).wait()
 
     def exit_maintenance_mode(self, timeout=0):
         """
@@ -67,7 +64,7 @@ class Host:
         :param int timeout: Seconds to wait [default: 0]
         """
         self._log.info("%s is exiting maintainence mode", self.name)
-        wait_for_task(self.host.ExitMaintenanceMode_Task(timeout=int(timeout)))
+        self.host.ExitMaintenanceMode_Task(timeout=int(timeout)).wait()
 
     def create_vswitch(self, name, num_ports=512):
         """

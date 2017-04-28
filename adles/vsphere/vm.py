@@ -18,7 +18,7 @@ import os
 from pyVmomi import vim
 
 import adles.utils as utils
-from adles.vsphere.vsphere_utils import wait_for_task, is_vnic
+from adles.vsphere.vsphere_utils import is_vnic
 from adles.vsphere.folder_utils import find_in_folder
 
 
@@ -59,10 +59,10 @@ class VM:
             self._vm = None
             self.vm_folder = None  # Note: this is the path to the VM's files on the Datastore
             self.name = name
-            self.folder = folder  # vim.Folder, but may be Folder class eventually
-            self.resource_pool = resource_pool  # vim.Pool or something object
-            self.datastore = datastore  # vim.Datastore object
-            self.host = host  # vim.HostSystem, but may be Host class soon
+            self.folder = folder  # vim.Folder that will contain the VM
+            self.resource_pool = resource_pool  # vim.ResourcePool to use for the VM
+            self.datastore = datastore  # vim.Datastore object to store VM on
+            self.host = host  # vim.HostSystem (TODO: may be Host class soon)
 
     def create(self, template=None, cpus=1, cores=1, memory=512, max_consoles=None,
                version=None, firmware='efi', datastore_path=None):
@@ -83,7 +83,7 @@ class VM:
             clonespec = vim.vm.CloneSpec()
             clonespec.location = vim.vm.RelocateSpec(pool=self.resource_pool,
                                                      datastore=self.datastore)
-            wait_for_task(template.CloneVM_Task(folder=self.folder, name=self.name, spec=clonespec))
+            template.CloneVM_Task(folder=self.folder, name=self.name, spec=clonespec).wait(120)
         else:  # Generate the specification for and create the new VM
             self._log.debug("Creating VM '%s' from scratch", self.name)
             spec = vim.vm.ConfigSpec()
@@ -103,7 +103,7 @@ class VM:
             vm_path += self.name + '/' + self.name + '.vmx'
             spec.files = vim.vm.FileInfo(vmPathName=vm_path)
             self._log.debug("Creating VM '%s' in folder '%s'", self.name, self.folder.name)
-            wait_for_task(self.folder.CreateVM_Task(spec, self.resource_pool, self.host))
+            self.folder.CreateVM_Task(spec, self.resource_pool, self.host).wait()
 
         self._vm = find_in_folder(self.folder, self.name, vimtype=vim.VirtualMachine)
         if not self._vm:
@@ -121,7 +121,7 @@ class VM:
         self._log.debug("Destroying VM %s", self.name)
         if self.powered_on():
             self.change_state("off")
-        wait_for_task(self._vm.Destroy_Task())
+        self._vm.Destroy_Task().wait()
 
     def change_state(self, state, attempt_guest=True):
         """
@@ -148,7 +148,7 @@ class VM:
                 return
             self._log.debug("Changing guest power state of VM %s to: '%s'", self.name, state)
             try:
-                wait_for_task(task)
+                task.wait()
             except vim.fault.ToolsUnavailable:
                 self._log.error("Can't change guest state of '%s': Tools aren't running", self.name)
         else:
@@ -164,7 +164,7 @@ class VM:
                 self._log.error("Invalid state arg %s for VM %s", state, self.name)
                 return
             self._log.debug("Changing power state of VM %s to: '%s'", self.name, state)
-            wait_for_task(task)
+            task.wait()
 
     def edit_resources(self, cpus=None, cores=None, memory=None, max_consoles=None):
         """
@@ -191,17 +191,17 @@ class VM:
         :param str name: New name for the VM
         """
         self._log.debug("Renaming VM %s to %s", self.name, name)
-        wait_for_task(self._vm.Rename_Task(newName=str(name)))
+        self._vm.Rename_Task(newName=str(name)).wait()
         self.name = str(name)
 
     def upgrade(self, version):
         """
         Upgrades the hardware version of the VM
-        :param int version: Version of hardware to upgrade VM to [default: latest VM's host supports]
+        :param int version: Version of hardware to upgrade VM to [default: latest host supports]
         """
         full_version = "vmx-" + str(version)
         try:
-            wait_for_task(self._vm.UpgradeVM_Task(full_version))
+            self._vm.UpgradeVM_Task(full_version).wait()
         except vim.fault.AlreadyUpgraded:
             self._log.warning("Hardware version is already up-to-date for %s", self.name)
 
@@ -250,8 +250,8 @@ class VM:
         :param str description: Text description of the snapshot
         """
         self._log.info("Creating snapshot '%s' of VM '%s'", name, self.name)
-        wait_for_task(self._vm.CreateSnapshot_Task(name=name, description=description,
-                                                   memory=bool(memory), quiesce=True))
+        self._vm.CreateSnapshot_Task(name=name, description=description,
+                                     memory=bool(memory), quiesce=True).wait()
 
     def revert_to_snapshot(self, snapshot):
         """
@@ -259,12 +259,12 @@ class VM:
         :param str snapshot: Name of the snapshot to revert to
         """
         self._log.info("Reverting '%s' to the snapshot '%s'", self.name, snapshot)
-        wait_for_task(self.get_snapshot(snapshot).RevertToSnapshot_Task())
+        self.get_snapshot(snapshot).RevertToSnapshot_Task().wait()
 
     def revert_to_current_snapshot(self):
         """ Reverts the VM to the most recent snapshot. """
         self._log.info("Reverting '%s' to the current snapshot", self.name)
-        wait_for_task(self._vm.RevertToCurrentSnapshot_Task())
+        self._vm.RevertToCurrentSnapshot_Task().wait()
 
     def remove_snapshot(self, snapshot, remove_children=True, consolidate_disks=True):
         """
@@ -275,8 +275,7 @@ class VM:
         other disks if possible [default: True]
         """
         self._log.info("Removing snapshot '%s' from '%s'", snapshot, self.name)
-        wait_for_task(self.get_snapshot(snapshot).RemoveSnapshot_Task(remove_children,
-                                                                      consolidate_disks))
+        self.get_snapshot(snapshot).RemoveSnapshot_Task(remove_children, consolidate_disks).wait()
 
     def remove_all_snapshots(self, consolidate_disks=True):
         """
@@ -285,7 +284,7 @@ class VM:
         other disks if possible [default: True]
         """
         self._log.info("Removing ALL snapshots for %s", self.name)
-        wait_for_task(self._vm.RemoveAllSnapshots_Task(consolidate_disks))
+        self._vm.RemoveAllSnapshots_Task(consolidate_disks).wait()
 
     # Originally based on: add_nic_to_vm in pyvmomi-community-samples
     def add_nic(self, network, summary="default-summary", model="e1000"):
@@ -453,7 +452,7 @@ class VM:
 
     def mount_tools(self):
         """ Mounts the installer for VMware Tools """
-        wait_for_task(self._vm.MountToolsInstaller())
+        self._vm.MountToolsInstaller().wait()
 
     def get_vim_vm(self):
         """
@@ -550,7 +549,7 @@ class VM:
     def get_info(self, detailed=False, uuids=False, snapshot=False, vnics=False):
         """
         Get human-readable information for a VM
-        :param bool detailed: Add more detailed information, such as maximum memory used [default: False]
+        :param bool detailed: Add detailed information, such as maximum memory used [default: False]
         :param bool uuids: Whether to get UUID information [default: False]
         :param bool snapshot: Shows the current snapshot, if any [default: False]
         :param bool vnics: Add information about the virtual network interfaces on the VM
@@ -619,7 +618,7 @@ class VM:
         :return: Path to datastore location of the screenshot
         :rtype: str
         """
-        return wait_for_task(self._vm.CreateScreenshot_Task())
+        return self._vm.CreateScreenshot_Task().wait()
 
     def has_tools(self):
         """
@@ -661,7 +660,7 @@ class VM:
         :param config: The configuration specification to apply
         :type config: vim.vm.ConfigSpec
         """
-        wait_for_task(self._vm.ReconfigVM_Task(config))
+        self._vm.ReconfigVM_Task(config).wait()
 
     def __str__(self):
         return str(self.name)

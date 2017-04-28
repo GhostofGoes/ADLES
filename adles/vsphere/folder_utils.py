@@ -17,7 +17,7 @@ import logging
 from pyVmomi import vim
 
 from adles.utils import split_path
-from adles.vsphere.vsphere_utils import is_folder, is_vm, wait_for_task
+from adles.vsphere.vsphere_utils import is_folder, is_vm
 
 
 def get_in_folder(folder, name, recursive=False, vimtype=None):
@@ -243,7 +243,7 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
     # Only use if folder is already empty!
     if destroy_self:
         logging.debug("Destroying folder: '%s'", folder.name)
-        wait_for_task(folder.UnregisterAndDestroy_Task())
+        folder.UnregisterAndDestroy_Task().wait()
 vim.Folder.cleanup = cleanup
 
 
@@ -274,3 +274,32 @@ def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
                 folders.extend(f)
     return vms, folders
 vim.Folder.retrieve_items = retrieve_items
+
+
+def move_into(folder, entity_list):
+    """
+    Moves a list of managed entities into the named folder.
+    :param folder: Folder to move entities into
+    :type folder: vim.Folder
+    :param entity_list: Entities to move into the folder
+    :type entity_list: list(vim.ManagedEntity)
+    """
+    logging.debug("Moving a list of %d entities into folder %s", len(entity_list), folder.name)
+    folder.MoveIntoFolder_Task(entity_list).wait()
+
+
+vim.Folder.move_into = move_into
+
+
+def rename(folder, name):
+    """
+    Renames a folder
+    :param folder: Folder to rename
+    :type folder: vim.Folder
+    :param str name: New name for the folder
+    """
+    logging.debug("Renaming %s to %s", folder.name, name)
+    folder.Rename_Task(newName=str(name)).wait()
+
+
+vim.Folder.rename = rename

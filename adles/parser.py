@@ -23,11 +23,7 @@ import adles.utils as utils
 # PyYAML Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
 def parse_file(filename):
     """
-    Parses the YAML file and returns a nested dictionary containing it's contents.
-
-    >>> parse_file("test.yaml")
-    { "test": "value" }
-
+    Parses the YAML file and returns a nested dictionary containing it's contents
     :param str filename: Name of YAML file to parse
     :return: Parsed file contents
     :rtype: dict or None

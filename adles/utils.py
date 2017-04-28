@@ -140,9 +140,13 @@ def read_json(filename):
 def split_path(path):
     """
     Splits a filepath
+
+    >>> split_path('/path/To/A/f1le')
+    (['path', 'To', 'A'], 'file')
+
     :param str path: 
     :return: Path, basename
-    :rtype: tuple(str, str)
+    :rtype: tuple(list(str), str)
     """
     folder_path, name = os.path.split(path.lower())  # Separate basename and convert to lowercase
     folder_path = folder_path.split('/')  # Transform path into list
@@ -204,6 +208,10 @@ def user_input(prompt, obj_name, func):
 def ask_question(question, default="no"):
     """
     Prompts user to answer a question
+
+    >>> ask_question("Do you like the color yellow?")
+    Do you like the color yellow? [y/N] 
+
     :param str question: Question to ask
     :param str default: No
     :return: True/False
@@ -310,7 +318,7 @@ def script_setup(logging_filename, args, script=None):
 
 def resolve_path(server, thing, prompt=""):
     """
-    This is a hacked together script util to get folders or VMs
+    This is a hacked together script utility to get folders or VMs
     :param server: Vsphere instance
     :type server: :class:`Vsphere`
     :param str thing: String name of thing to get (folder | vm)

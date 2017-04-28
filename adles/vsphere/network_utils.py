@@ -140,7 +140,6 @@ def delete_network(name, host, network_type):
     :param network_type: Type of the network to remove ("vswitch" | "portgroup")
     """
     logging.info("Deleting %s '%s' from host '%s'", network_type, name, host.name)
-
     try:
         if network_type.lower() == "vswitch":
             host.configManager.networkSystem.RemoveVirtualSwitch(name)

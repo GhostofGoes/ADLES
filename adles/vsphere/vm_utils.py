@@ -109,7 +109,6 @@ def change_vm_state(vm, state, attempt_guest=True):
 vim.VirtualMachine.change_state = change_vm_state
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def change_power_state(vm, power_state):
     """
     Changes a VM power state to the state specified
@@ -132,7 +131,6 @@ def change_power_state(vm, power_state):
     task.wait()
 
 
-@utils.check(vim.VirtualMachine, "vm")
 def change_guest_state(vm, guest_state):
     """
     Changes a VMs guest power state. VMware Tools must be installed on the VM for this to work.
@@ -159,71 +157,6 @@ def change_guest_state(vm, guest_state):
         logging.error("Cannot change guest state of '%s': Tools are not running", vm.name)
 
 
-def create_snapshot(vm, name, description='default', memory=False):
-    """
-    Create a snapshot of the VM
-    :param vm: vim.VirtualMachine object
-    :param name: Title of the snapshot
-    :param memory: Memory dump of the VM is included in the snapshot
-    :param description: Text description of the snapshot
-    """
-    logging.debug("Creating snapshot '%s' of '%s'", name, vm.name)
-    vm.CreateSnapshot_Task(name=name, description=description, memory=memory, quiesce=True).wait()
-vim.VirtualMachine.create_snapshot = create_snapshot
-
-
-def get_snapshot(vm, snapshot_name):
-    """
-    Retrieves the named snapshot from the VM
-    :param vm: vim.VirtualMachine object
-    :param snapshot_name: Name of the snapshot to get
-    :return: vim.Snapshot object
-    """
-    for snap in get_all_snapshots(vm):
-        if snap.name == snapshot_name:
-            return snap.snapshot
-    return None
-vim.VirtualMachine.get_snapshot = get_snapshot
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def get_current_snapshot(vm):
-    """
-    Retrieves the current snapshot from the VM
-    :param vm: vim.VirtualMachine object
-    :return: Current vim.Snapshot object for the VM, or None if there are no snapshots
-    """
-    return vm.snapshot.currentSnapshot
-
-
-@utils.check(vim.VirtualMachine, "vm")
-def get_all_snapshots(vm):
-    """
-    Retrieves a list of all snapshots of the VM
-    :param vm: vim.VirtualMachine object
-    :return: Nested List of vim.Snapshot objects
-    """
-    return _get_snapshots_recursive(vm.snapshot.rootSnapshotList)
-
-
-# From: https://github.com/imsweb/ezmomi
-def _get_snapshots_recursive(snap_tree):
-    """
-    Recursively finds all snapshots in the tree
-    :param snap_tree: Tree of snapshots
-    :return: Nested List of vim.Snapshot objects
-    """
-    local_snap = []
-    for snap in snap_tree:
-        local_snap.append(snap)
-    for snap in snap_tree:
-        recurse_snap = _get_snapshots_recursive(snap.childSnapshotList)
-        if recurse_snap:
-            local_snap.extend(recurse_snap)
-    return local_snap
-
-
-@utils.check(vim.VirtualMachine, "vm")
 def snapshot_disk_usage(vm):
     """
     Determines the total disk usage of a VM's snapshots
