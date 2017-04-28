@@ -243,7 +243,7 @@ def get_nics(vm):
     :param vm: vim.VirtualMachine
     :return: list of vim.vm.device.VirtualEthernetCard
     """
-    from adles.vsphere.vsphere_utils import is_vnic
+    from adles.vsphere.vm import is_vnic
     return [dev for dev in vm.config.hardware.device if is_vnic(dev)]
 vim.VirtualMachine.get_nics = get_nics
 

@@ -326,6 +326,7 @@ def resolve_path(server, thing, prompt=""):
     :return: (thing, thing name)
     :rtype: tuple(vimtype, str)
     """
+    from adles.vsphere.vm import VM
     if thing.lower() == "vm":
         get = server.get_vm
     elif thing.lower() == "folder":
@@ -334,12 +335,15 @@ def resolve_path(server, thing, prompt=""):
         logging.error("Invalid thing passed to resolve_path: %s", thing)
         raise ValueError
 
-    return user_input("Name of or path to %s %s: " % (thing, prompt), thing,
-                      lambda x: server.find_by_inv_path("vm/" + x) if '/' in x else get(x))
+    res = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
+                     lambda x: server.find_by_inv_path("vm/" + x) if '/' in x else get(x))
+    if thing.lower() == "vm":
+        return VM(vm=res)
+    else:
+        return res
 
 
-def setup_logging(filename, colors=True, console_verbose=False,
-                  server=('localhost', 514)):
+def setup_logging(filename, colors=True, console_verbose=False, server=('localhost', 514)):
     """
     Configures the logging interface used by everything for output
     :param str filename: Name of file that logs should be saved to
@@ -405,3 +409,23 @@ def setup_logging(filename, colors=True, console_verbose=False,
     logging.debug("Directory        %s", str(getcwd()))
     logging.debug("Adles version    %s", str(adles_version))
     logging.debug("Vsphere version  %s", str(Vsphere.__version__))
+
+
+def is_folder(obj):
+    """
+    Checks if object is a vim.Folder
+    :param obj: The object to check
+    :return: If the object is a folder
+    :rtype: bool
+    """
+    return hasattr(obj, "childEntity")
+
+
+def is_vm(obj):
+    """
+    Checks if object is a vim.VirtualMachine
+    :param obj: The object to check
+    :return: If the object is a VM
+    :rtype: bool
+    """
+    return hasattr(obj, "summary")

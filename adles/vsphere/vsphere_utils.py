@@ -134,33 +134,3 @@ def get_datastore_info(ds_obj):
     info_string += "Virtual Machines      : %d" % len(ds_obj.vm)
     return info_string
 vim.Datastore.get_info = get_datastore_info
-
-
-def is_folder(obj):
-    """
-    Checks if object is a vim.Folder
-    :param obj: The object to check
-    :return: If the object is a folder
-    :rtype: bool
-    """
-    return hasattr(obj, "childEntity")
-
-
-def is_vm(obj):
-    """
-    Checks if object is a vim.VirtualMachine
-    :param obj: The object to check
-    :return: If the object is a VM
-    :rtype: bool
-    """
-    return hasattr(obj, "summary")
-
-
-def is_vnic(device):
-    """
-    Checks if the device is a VirtualEthernetCard
-    :param device: The device to check
-    :return: If the device is a vNIC
-    :rtype: bool
-    """
-    return isinstance(device, vim.vm.device.VirtualEthernetCard)

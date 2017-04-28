@@ -37,7 +37,7 @@ from docopt import docopt
 from adles.utils import ask_question, default_prompt, script_setup, resolve_path
 from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.5.10"
+__version__ = "0.5.11"
 
 
 def main():
@@ -98,17 +98,19 @@ def main():
         else:
             logging.info("Destruction cancelled")
     else:
-        vm, vm_name = resolve_path(server, "vm", "to destroy")
+        from adles.vsphere.vm import VM
+        vm = VM(vm=resolve_path(server, "vm", "to destroy"))
+        # vm, vm_name = resolve_path(server, "vm", "to destroy")
 
         if ask_question("Display VM info? "):
             logging.info(vm.get_info(detailed=True, uuids=True, snapshot=True, vnics=True))
 
         if vm.is_template():  # Warn if template
-            if not ask_question("VM '%s' is a Template. Continue? " % vm_name):
+            if not ask_question("VM '%s' is a Template. Continue? " % vm.name):
                 exit(0)
 
         if ask_question("Continue with destruction? "):
-            logging.info("Destroying VM '%s'", vm_name)
+            logging.info("Destroying VM '%s'", vm.name)
             vm.destroy()
         else:
             logging.info("Destruction cancelled")

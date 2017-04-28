@@ -16,8 +16,7 @@ import logging
 
 from pyVmomi import vim
 
-from adles.utils import split_path
-from adles.vsphere.vsphere_utils import is_folder, is_vm
+from adles.utils import split_path, is_folder, is_vm
 
 
 def create_folder(folder, folder_name):
@@ -63,12 +62,14 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
     :param bool destroy_self: Destroy the folder specified [default: False]
     """
     logging.debug("Cleaning folder '%s'", folder.name)
-    import adles.vsphere.vm_utils as vm_utils  # Prevents module-level import issues
+    # import adles.vsphere.vm_utils as vm_utils  # Prevents module-level import issues
+    from adles.vsphere.vm import VM
 
     for item in folder.childEntity:
         if is_vm(item) and str(item.name).startswith(vm_prefix):  # Handle VMs
             # TODO: this is janky and breaks separation, should pass a function to call as arg
-            vm_utils.destroy_vm(vm=item)  # Delete the VM from the Datastore
+            # vm_utils.destroy_vm(vm=item)  # Delete the VM from the Datastore
+            VM(vm=item).destroy()  # Delete the VM from the Datastore
         elif is_folder(item) and str(item.name).startswith(folder_prefix):  # Handle folders
             if destroy_folders:  # Destroys folder and ALL of it's sub-objects
                 cleanup(item, destroy_folders=True, destroy_self=True)
@@ -290,8 +291,6 @@ def move_into(folder, entity_list):
     """
     logging.debug("Moving a list of %d entities into folder %s", len(entity_list), folder.name)
     folder.MoveIntoFolder_Task(entity_list).wait()
-
-
 vim.Folder.move_into = move_into
 
 
@@ -304,6 +303,4 @@ def rename(folder, name):
     """
     logging.debug("Renaming %s to %s", folder.name, name)
     folder.Rename_Task(newName=str(name)).wait()
-
-
 vim.Folder.rename = rename

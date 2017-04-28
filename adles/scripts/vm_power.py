@@ -34,11 +34,11 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import ask_question, script_setup, resolve_path
-from adles.vsphere.vsphere_utils import is_vm
+from adles.utils import ask_question, script_setup, resolve_path, is_vm
 from adles.vsphere.folder_utils import format_structure
+from adles.vsphere.vm import VM
 
-__version__ = "0.3.8"
+__version__ = "0.3.9"
 
 
 def main():
@@ -53,7 +53,7 @@ def main():
     # TODO: nesting
     if ask_question("Multiple VMs? ", default="yes"):
         folder, folder_name = resolve_path(server, "folder", "with VMs")
-        vms = [x for x in folder.childEntity if is_vm(x)]
+        vms = [VM(vm=x) for x in folder.childEntity if is_vm(x)]
         logging.info("Found %d VMs in folder '%s'", len(vms), folder_name)
         if ask_question("Show the status of the VMs in the folder? "):
             logging.info("Folder structure: \n%s", format_structure(

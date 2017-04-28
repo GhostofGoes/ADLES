@@ -17,8 +17,7 @@ from sys import exit
 import os.path
 
 import adles.vsphere.folder_utils as futils
-from adles.vsphere.vsphere_utils import is_vm, is_folder
-from adles.utils import pad, read_json
+from adles.utils import pad, read_json, is_folder, is_vm
 from adles.vsphere import Vsphere
 from adles.vsphere.network_utils import create_portgroup
 from adles.vsphere.vm import VM

@@ -76,7 +76,6 @@ package "Platform Interfaces" {
 
         class Vsphere {
             + create_folder()
-            + gen_clone_spec()
             + set_motd()
             + map_items()
             .. Permissions ..
@@ -93,8 +92,10 @@ package "Platform Interfaces" {
             + get_cluster()
             + get_datastore()
             + get_pool()
+            + get_all_vms()
             + get_obj()
             + get_objs()
+            + get_item()
             .. Finders ..
             + find_by_uuid()
             + find_by_ds_path()
@@ -142,13 +143,14 @@ package "Platform Interfaces" {
             + attach_iso()
             + mount_tools()
             .. Getters ..
-            + get_vim_vm()
             + get_nics()
             + get_nic_by_name()
             + get_nic_by_id()
             + get_nic_by_network()
             + get_snapshot()
             + get_all_snapshots()
+            + get_vim_vm()
+            + get_datastore_folder()
             .. Query status/info ..
             + get_info()
             + screenshot()

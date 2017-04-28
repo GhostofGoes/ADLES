@@ -17,11 +17,13 @@ import logging
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim, vmodl
 
+from adles.vsphere.vm import VM
+
 
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.9.12"
+    __version__ = "0.10.0"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -103,25 +105,25 @@ class Vsphere:
         return parent.create(folder_name)
         # return create_folder(folder=parent, folder_name=folder_name)
 
-    def gen_clone_spec(self, datastore_name=None, pool_name=None):
-        """
-        Generates a clone specification used to clone a VM
-        :param str datastore_name: Name of datastore to put clone on [default: class's datastore]
-        :param str pool_name: Name of resource pool to use for the clone [default: first pool found]
-        :return: the generated clone specification
-        :rtype: vim.vm.CloneSpec
-        """
-        if datastore_name:
-            datastore = self.get_datastore(datastore_name)
-        else:
-            datastore = self.datastore
-        relospec = vim.vm.RelocateSpec()
-        relospec.pool = self.get_pool(pool_name)
-        relospec.datastore = datastore
-
-        clonespec = vim.vm.CloneSpec()
-        clonespec.location = relospec
-        return clonespec
+    # def gen_clone_spec(self, datastore_name=None, pool_name=None):
+    #     """
+    #     Generates a clone specification used to clone a VM
+    #     :param str datastore_name: Name of datastore to put clone on [default: class's datastore]
+    #   :param str pool_name: Name of resource pool to use for the clone [default: first pool found]
+    #     :return: the generated clone specification
+    #     :rtype: vim.vm.CloneSpec
+    #     """
+    #     if datastore_name:
+    #         datastore = self.get_datastore(datastore_name)
+    #     else:
+    #         datastore = self.datastore
+    #     relospec = vim.vm.RelocateSpec()
+    #     relospec.pool = self.get_pool(pool_name)
+    #     relospec.datastore = datastore
+    #
+    #     clonespec = vim.vm.CloneSpec()
+    #     clonespec.location = relospec
+    #     return clonespec
 
     def set_motd(self, message):
         """
@@ -285,9 +287,11 @@ class Vsphere:
         Finds and returns the named VM
         :param str vm_name: Name of the VM
         :return: The VM found
-        :rtype: vim.VirtualMachine
+        :rtype: :class:`VM`
         """
-        return self.get_item(vim.VirtualMachine, vm_name)
+        # :rtype: vim.VirtualMachine
+        return VM(vm=self.get_item(vim.VirtualMachine, vm_name))
+        # return self.get_item(vim.VirtualMachine, vm_name)
 
     def get_network(self, network_name, distributed=False):
         """
@@ -353,9 +357,11 @@ class Vsphere:
         """
         Finds and returns all VMs registered in the Datacenter
         :return: All VMs in the Datacenter defined for the class
-        :rtype: list(vim.VirtualMachine)
+        :rtype: list(:class:`VM`)
         """
-        return self.get_objs(self.datacenter.vmFolder, [vim.VirtualMachine])
+        # :rtype: list(vim.VirtualMachine)
+        return [VM(vm=x) for x in self.get_objs(self.datacenter.vmFolder, [vim.VirtualMachine])]
+        # return self.get_objs(self.datacenter.vmFolder, [vim.VirtualMachine])
 
     def get_obj(self, container, vimtypes, name, recursive=True):
         """
@@ -426,7 +432,7 @@ class Vsphere:
         Finds a VM by it's location on a Datastore
         :param str path: Path to the VM's .vmx file on the Datastore
         :return: The VM found
-        :rtype: vim.VirtualMachine
+        :rtype: vim.VirtualMachine or None
         """
         try:
             return self.content.searchIndex.FindByDatastorePath(datacenter=self.datacenter,

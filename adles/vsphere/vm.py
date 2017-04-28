@@ -18,7 +18,6 @@ import os
 from pyVmomi import vim
 
 import adles.utils as utils
-from adles.vsphere.vsphere_utils import is_vnic
 from adles.vsphere.folder_utils import find_in_folder
 
 
@@ -48,16 +47,16 @@ class VM:
         self._log = logging.getLogger('VM')
         if vm is not None:
             self._vm = vm
-            self.vm_folder = os.path.split(self._vm.summary.config.vmPathName)[0]
             self.name = vm.name
             self.folder = vm.parent
             self.resource_pool = vm.resourcePool
             self.datastore = vm.datastore[0]
             self.host = vm.summary.runtime.host
             self.network = vm.network
+            self.runtime = vm.runtime
+            self.summary = vm.summary
         else:
             self._vm = None
-            self.vm_folder = None  # Note: this is the path to the VM's files on the Datastore
             self.name = name
             self.folder = folder  # vim.Folder that will contain the VM
             self.resource_pool = resource_pool  # vim.ResourcePool to use for the VM
@@ -112,8 +111,9 @@ class VM:
         else:
             self._log.debug("Created VM %s", self.name)
             # TODO: if cloned, reconfigure to match anything given as parameters, e.g memory
-        self.vm_folder = os.path.split(self._vm.summary.config.vmPathName)[0]
         self.network = self._vm.network
+        self.runtime = self._vm.runtime
+        self.summary = self._vm.summary
         return True
 
     def destroy(self):
@@ -454,6 +454,14 @@ class VM:
         """ Mounts the installer for VMware Tools """
         self._vm.MountToolsInstaller().wait()
 
+    def get_datastore_folder(self):
+        """
+        Gets the name of the VM's folder on the datastore
+        :return: The name of the datastore folder with the VM's files
+        :rtype: str
+        """
+        return os.path.split(self._vm.summary.config.vmPathName)[0]
+
     def get_vim_vm(self):
         """
         Get the vim.VirtualMachine instance of the VM
@@ -674,3 +682,13 @@ class VM:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+
+def is_vnic(device):
+    """
+    Checks if the device is a VirtualEthernetCard
+    :param device: The device to check
+    :return: If the device is a vNIC
+    :rtype: bool
+    """
+    return isinstance(device, vim.vm.device.VirtualEthernetCard)
