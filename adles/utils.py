@@ -359,14 +359,13 @@ def setup_logging(filename, colors=True, console_verbose=False, server=('localho
     # Record system information to aid in auditing and debugging
     from getpass import getuser
     from os import getcwd
-    from platform import python_version, uname
+    from platform import python_version, system, release, node
     from datetime import date
     from adles import __version__ as adles_version
-    uname = uname()
     logging.debug("Initialized logging, saving logs to %s", filename)
     logging.debug("Date             %s", str(date.today()))
-    logging.debug("OS               %s", str(uname.system + " " + uname.release))
-    logging.debug("Hostname         %s", str(uname.node))
+    logging.debug("OS               %s", str(system() + " " + release()))
+    logging.debug("Hostname         %s", str(node()))
     logging.debug("Username         %s", str(getuser()))
     logging.debug("Directory        %s", str(getcwd()))
     logging.debug("Python version   %s", str(python_version()))
