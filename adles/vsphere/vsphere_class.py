@@ -23,7 +23,7 @@ from adles.vsphere.vm import VM
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
 
-    __version__ = "0.10.0"
+    __version__ = "1.0.0"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -103,27 +103,6 @@ class Vsphere:
         else:
             parent = self.content.rootFolder  # Default to using the server root folder
         return parent.create(folder_name)
-        # return create_folder(folder=parent, folder_name=folder_name)
-
-    # def gen_clone_spec(self, datastore_name=None, pool_name=None):
-    #     """
-    #     Generates a clone specification used to clone a VM
-    #     :param str datastore_name: Name of datastore to put clone on [default: class's datastore]
-    #   :param str pool_name: Name of resource pool to use for the clone [default: first pool found]
-    #     :return: the generated clone specification
-    #     :rtype: vim.vm.CloneSpec
-    #     """
-    #     if datastore_name:
-    #         datastore = self.get_datastore(datastore_name)
-    #     else:
-    #         datastore = self.datastore
-    #     relospec = vim.vm.RelocateSpec()
-    #     relospec.pool = self.get_pool(pool_name)
-    #     relospec.datastore = datastore
-    #
-    #     clonespec = vim.vm.CloneSpec()
-    #     clonespec.location = relospec
-    #     return clonespec
 
     def set_motd(self, message):
         """
@@ -238,7 +217,6 @@ class Vsphere:
             kwargs["belongsToGroup"] = belong_to_group
         if have_user is not None:
             kwargs["belongsToUser"] = have_user
-
         try:
             return self.user_dir.RetrieveUserGroups(**kwargs)
         except vim.fault.NotFound:
@@ -287,25 +265,21 @@ class Vsphere:
         Finds and returns the named VM
         :param str vm_name: Name of the VM
         :return: The VM found
-        :rtype: :class:`VM`
+        :rtype: vim.VirtualMachine
         """
-        # :rtype: vim.VirtualMachine
-        return VM(vm=self.get_item(vim.VirtualMachine, vm_name))
-        # return self.get_item(vim.VirtualMachine, vm_name)
+        return self.get_item(vim.VirtualMachine, vm_name)
 
     def get_network(self, network_name, distributed=False):
         """
         Finds and returns the named Network
-        :param str network_name: Name of the Network
+        :param str network_name: Name or path of the Network
         :param bool distributed: If the Network is a Distributed PortGroup [default: False]
         :return: The network found
-        :rtype: vim.Network or vim.dvs.DistributedVirtualPortgroup
+        :rtype: vim.Network or vim.dvs.DistributedVirtualPortgroup or None
         """
         if not distributed:
             return self.get_obj(container=self.datacenter.networkFolder, vimtypes=[vim.Network],
                                 name=str(network_name), recursive=True)
-            # return find_in_folder(folder=self.datacenter.networkFolder, name=network_name,
-            #                       recursive=True, vimtype=vim.Network)
         else:
             return self.get_item(vim.dvs.DistributedVirtualPortgroup,  network_name)
 
@@ -357,11 +331,9 @@ class Vsphere:
         """
         Finds and returns all VMs registered in the Datacenter
         :return: All VMs in the Datacenter defined for the class
-        :rtype: list(:class:`VM`)
+        :rtype: ist(vim.VirtualMachine)
         """
-        # :rtype: list(vim.VirtualMachine)
-        return [VM(vm=x) for x in self.get_objs(self.datacenter.vmFolder, [vim.VirtualMachine])]
-        # return self.get_objs(self.datacenter.vmFolder, [vim.VirtualMachine])
+        return self.get_objs(self.datacenter.vmFolder, [vim.VirtualMachine])
 
     def get_obj(self, container, vimtypes, name, recursive=True):
         """

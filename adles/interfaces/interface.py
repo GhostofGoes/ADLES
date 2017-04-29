@@ -17,11 +17,13 @@ import logging
 from adles.utils import time_execution
 
 
-# TODO: subclass this for platform-specific interfaces
 class Interface:
     """ Generic interface used to uniformly interact with platform-specific interfaces. """
+    __version__ = "1.1.0"
 
-    __version__ = "1.0.1"  # This should match version of infrastructure-specification.yaml
+    # Names/prefixes
+    master_prefix = "(MASTER) "
+    master_root_name = "MASTER-FOLDERS"
 
     def __init__(self, spec, infra):
         """ 
@@ -29,13 +31,19 @@ class Interface:
         :param dict infra: Full infrastructure configuration
         """
         self._log = logging.getLogger('PlatformInterface')
+        self._log.debug("Initializing Interface %s", Interface.__version__)
+
         self.interfaces = []  # List of instantiated platform interfaces
         self.metadata = spec["metadata"]  # Save the exercise specification metadata
         self.infra = infra  # Save the infrastructure configuration
+        self.thresholds = {}
+        self.networks = {}
+        self.groups = {}
 
         # Select the Interface to use based on the specified infrastructure platform
         for platform, config in infra.items():
             if platform == "vmware-vsphere":
+                # TODO: support multiple vSphere instances (e.g for remote labs)
                 from .vsphere_interface import VsphereInterface
                 self.interfaces.append(VsphereInterface(config, spec))
             elif platform == "docker":
@@ -83,8 +91,103 @@ class Interface:
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
 
+    def _instances_handler(self, spec, obj_name, obj_type):
+        """
+        Determines number of instances and optional prefix using specification
+        :param dict spec: Dict of folder
+        :param str obj_name: Name of the thing being handled
+        :param str obj_type: Type of the thing being handled (folder | service)
+        :return: Number of instances, Prefix
+        :rtype: tuple(int, str)
+        """
+        num = 1
+        prefix = ""
+        if "instances" in spec:
+            if type(spec["instances"]) == int:
+                num = int(spec["instances"])
+            else:
+                if "prefix" in spec["instances"]:
+                    prefix = str(spec["instances"]["prefix"])
+                if "number" in spec["instances"]:
+                    num = int(spec["instances"]["number"])
+                elif "size-of" in spec["instances"]:
+                    # size_of = spec["instances"]["size-of"])
+                    # num = int(self._get_group(size_of).size
+                    # if num < 1:
+                    num = 1  # TODO: WORKAROUND FOR AD-GROUPS
+                else:
+                    self._log.error("Unknown instances specification: %s", str(spec["instances"]))
+                    num = 0
+
+        # Check if the number of instances exceeds the configured thresholds for the interface
+        thr = self.thresholds[obj_type]
+        if num > thr["error"]:
+            self._log.error("%d instances of %s '%s' is beyond the configured %s threshold of %d",
+                            num, obj_type, obj_name, self.__name__, thr["error"])
+            raise Exception("Threshold exceeded")
+        elif num > thr["warn"]:
+            self._log.warning("%d instances of %s '%s' is beyond the configured %s threshold of %d",
+                              num, obj_type, obj_name, self.__name__, thr["warn"])
+        return num, prefix
+
+    def _path(self, path, name):
+        """
+        Generates next step of the path for deployment of Masters
+        :param str path: Current path
+        :param str name: Name to add to the path
+        :return: The updated path
+        :rtype: str
+        """
+        return str(path + '/' + self.master_prefix + name)
+
+    @staticmethod
+    def _is_enabled(spec):
+        """
+        Determines if a spec is enabled
+        :param dict spec: 
+        :return: If the spec is enabled
+        :rtype: bool
+        """
+        if "enabled" in spec:
+            return bool(spec["enabled"])
+        else:
+            return True
+
+    def _determine_net_type(self, network_label):
+        """
+        Determines the type of a network
+        :param str network_label: Name of network to determine type of
+        :return: Type of the network ("generic-networks" | "unique-networks")
+        :rtype: str
+        """
+        for net_name, net_value in self.networks.items():
+            vals = set(k for k in net_value)
+            if network_label in vals:
+                return net_name
+        self._log.error("Could not find type for network '%s'", network_label)
+        return ""
+
+    def _get_group(self, group_name):
+        """
+        Provides a uniform way to get information about normal groups and template groups
+        :param str group_name: Name of the group
+        :return: Group object
+        :rtype: :class:`Group`
+        """
+        from adles.group import Group
+        if group_name in self.groups:
+            g = self.groups[group_name]
+            if isinstance(g, Group):    # Normal groups
+                return g
+            elif isinstance(g, list):   # Template groups
+                return g[0]
+            else:
+                self._log.error("Unknown type for group '%s': %s", str(group_name), str(type(g)))
+        else:
+            self._log.error("Could not get group '%s' from groups", group_name)
+
     def __repr__(self):
-        return "Interface(%s,%s" % (str(self.interfaces), str(self.infra))
+        return "Interface(%s, %s)" % (str(self.interfaces), str(self.infra))
 
     def __str__(self):
         return str([x for x in self.infra.keys()])

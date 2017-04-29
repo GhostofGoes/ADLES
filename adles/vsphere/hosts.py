@@ -88,21 +88,15 @@ class Host:
         :param int vlan: VLAN ID of the port group [default: 0]
         :param bool promiscuous: Put portgroup in promiscuous mode [default: False]
         """
-        self._log.info("Creating PortGroup %s on vSwitch %s on host %s", name, vswitch_name,
-                       self.name)
-        self._log.debug("VLAN ID: %d \t Promiscuous: %s", vlan, promiscuous)
-
-        spec = vim.host.PortGroup.Specification()
-        spec.name = name
-        spec.vlanId = int(vlan)
-        spec.vswitchName = vswitch_name
+        self._log.debug("Creating PortGroup %s on vSwitch %s on host %s; VLAN: %d; Promiscuous: %s",
+                        name, vswitch_name, self.name, vlan, promiscuous)
         policy = vim.host.NetworkPolicy()
         policy.security = vim.host.NetworkPolicy.SecurityPolicy()
         policy.security.allowPromiscuous = bool(promiscuous)
         policy.security.macChanges = False
         policy.security.forgedTransmits = False
-        spec.policy = policy
-
+        spec = vim.host.PortGroup.Specification(name=name, vlanId=int(vlan),
+                                                vswitchName=vswitch_name, policy=policy)
         try:
             self.host.configManager.networkSystem.AddPortGroup(spec)
         except vim.fault.AlreadyExists:

@@ -21,6 +21,7 @@ import adles.utils as utils
 from adles.vsphere.folder_utils import find_in_folder
 
 
+# Docs: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
 class VM:
     """ Represents a VMware vSphere Virtual Machine instance.
      
@@ -130,7 +131,7 @@ class VM:
         :param str state: State to change to (on | off | reset | suspend)
         :param bool attempt_guest: Whether to attempt to use guest operations to change power state
         """
-        state = state.lower()
+        state = state.lower()  # Convert to lowercase for comparisons
         if self.is_template():
             self._log.error("VM '%s' is a Template, so state cannot be changed to '%s'",
                             self.name, state)
@@ -573,7 +574,7 @@ class VM:
         :return: The human-readable snapshot tree info
         :rtype: str
         """
-        pass  # TODO
+        pass  # TODO: implement
 
     # From: snapshot_operations.py in pyvmomi_community_samples
     def _get_current_snap_obj(self, snapshots, snapobj):

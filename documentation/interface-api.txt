@@ -76,6 +76,27 @@ package "Platform Interfaces" {
     }
     Interface --* Group
 
+    package "Docker" {
+
+        class DockerInterface {
+            + create_masters()
+            + cleanup_masters()
+            + deploy_environment()
+            + cleanup_environment()
+            __ public __
+            + client
+            + spec
+            + infra
+            + groups
+            __ private __
+            - _log
+        }
+
+        object docker {
+            + DockerClient()
+        }
+    }
+
     package "VMware vSphere" {
 
         class VsphereInterface {
@@ -83,11 +104,13 @@ package "Platform Interfaces" {
             + cleanup_masters()
             + deploy_environment()
             + cleanup_environment()
+            __ public __
             + server
             + spec
             + infra
             + groups
             + hosts
+            __ private __
             - _log
         }
 
@@ -120,7 +143,6 @@ package "Platform Interfaces" {
             + find_by_hostname()
             + find_by_inv_path()
             __ public __
-            + server
             + datacenter
             + datastore
             + content
@@ -210,6 +232,7 @@ package "Platform Interfaces" {
         }
 
         Interface --* VsphereInterface
+        Interface --* DockerInterface
 
         VsphereInterface -- Vsphere
         VsphereInterface --* VM
@@ -217,6 +240,8 @@ package "Platform Interfaces" {
         Vsphere - pyVmomi
         Vsphere - VM
         Vsphere - Host
+
+        DockerInterface - docker
     }
 }
 

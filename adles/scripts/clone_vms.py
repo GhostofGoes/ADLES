@@ -37,7 +37,7 @@ from docopt import docopt
 from adles.utils import ask_question, pad, default_prompt, script_setup, resolve_path, is_vm
 from adles.vsphere.vm import VM
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 
 def main():
@@ -49,14 +49,13 @@ def main():
 
     # Single-vm source
     if ask_question("Do you want to clone from a single VM?"):
-        v, v_name = resolve_path(server, "VM", "or template you wish to clone")
+        v = resolve_path(server, "VM", "or template you wish to clone")[0]
         vms.append(v)
         vm_names.append(str(input("Base name for instances to be created: ")))
     # Multi-VM source
     else:
         folder_from, from_name = resolve_path(server, "folder", "you want to clone all VMs in")
         v = [VM(vm=x) for x in folder_from.childEntity if is_vm(x)]  # Get VMs in the folder
-        # v, _ = folder_from.retrieve_items()  # Get VMs in the folder, ignore any folders
         vms.extend(v)
         logging.info("%d VMs found in source folder %s", len(v), from_name)
         if not ask_question("Keep the same names? "):
@@ -84,7 +83,6 @@ def main():
     logging.info("Creating %d instances under folder %s", num_instances, create_in_name)
     for instance in range(num_instances):
         for vm, name in zip(vms, vm_names):
-            # spec = server.gen_clone_spec(pool_name=pool_name)  # Generate clone specification
             if instance_folder_base:  # Create instance folders for a nested clone
                 f = server.create_folder(instance_folder_base + pad(instance), create_in=create_in)
                 vm_name = name
@@ -92,8 +90,7 @@ def main():
                 f = create_in
                 vm_name = name + pad(instance)    # Append instance number
             new_vm = VM(name=vm_name, folder=f, resource_pool=pool, datastore=datastore)
-            new_vm.create(template=vm)  # TODO: allow user to modify specs of instances cloned!
-            # vm.clone(folder=f, name=vm_name, clone_spec=spec)
+            new_vm.create(template=vm.get_vim_vm())  # TODO: allow user to modify specs of instances
 
 
 if __name__ == '__main__':

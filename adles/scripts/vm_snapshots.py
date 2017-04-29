@@ -38,7 +38,7 @@ from adles.utils import script_setup, ask_question, resolve_path, is_vm
 from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.vm import VM
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
 # noinspection PyUnboundLocalVariable
@@ -47,7 +47,7 @@ def main():
     server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
     op = str(input("Enter Snapshot operation [create | revert | revert-current "
-                   "| remove | remove-all | get | get-current | get-all]"))
+                   "| remove | remove-all | get | get-current | get-all | disk-usage]: "))
     if op == "create" or op == "revert" or op == "remove" or op == "get":
         name = str(input("Name of snapshot to %s: " % op))
         if op == "create":
@@ -56,8 +56,6 @@ def main():
             quiesce = ask_question("Quiesce disks? (Requires VMware Tools to be on the VM)")
         elif op == "remove":
             children = ask_question("Remove any children of the snapshot?", default="yes")
-    if "get" in op:
-        show_usage = ask_question("Show disk usage of all snapshots on VM?")
 
     if ask_question("Multiple VMs? ", default="yes"):
         f, f_name = resolve_path(server, "folder", "with VMs")
@@ -69,7 +67,6 @@ def main():
         if not ask_question("Continue? ", default="yes"):
             logging.info("User cancelled operation, exiting...")
             exit(0)
-
     else:
         vms = [resolve_path(server, "vm", "to perform snapshot operations on")[0]]
 
@@ -87,14 +84,15 @@ def main():
         elif op == "remove-all":
             vm.remove_all_snapshots()
         elif op == "get":
-            logging.info(vm.get_snapshot_info(name))
+            logging.info(vm.get_snapshot_info(name))    # TODO: implement
         elif op == "get-current":
-            logging.info(vm.get_snapshot_info())
+            logging.info(vm.get_snapshot_info())        # TODO: implement
         elif op == "get-all":
-            logging.info(vm.get_all_snapshots_info())  # TODO: implement
-
-        if "get" in op and show_usage:
+            logging.info(vm.get_all_snapshots_info())   # TODO: implement
+        elif op == "disk-usage":
             logging.info(vm.snapshot_disk_usage())
+        else:
+            logging.error("Unknown operation: %s", op)
 
 
 if __name__ == '__main__':

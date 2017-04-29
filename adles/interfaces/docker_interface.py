@@ -21,28 +21,29 @@ except ImportError:
     exit(0)
 
 import adles.utils as utils
+from adles.interfaces import Interface
 
 
-class DockerInterface:
+class DockerInterface(Interface):
     """ Generic interface for the Docker platform """
 
-    __version__ = "0.1.2"
+    __version__ = "0.2.0"
 
+    # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
         """
-        
-        :param infra: Dict of infrastructure information
-        :param spec: Dict of a parsed specification
+        :param dict infra: Dict of infrastructure information
+        :param dict spec: Dict of a parsed specification
         """
         self._log = logging.getLogger('DockerInterface')
         self._log.debug("Initializing DockerInterface %s", DockerInterface.__version__)
 
+        self.infra = infra
         self.spec = spec
         self.metadata = spec["metadata"]
         self.services = spec["services"]
         self.networks = spec["networks"]
         self.folders = spec["folders"]
-        self.infra = infra
 
         # TODO: this is initial testing of client
         # If needed, a wrapper class that simplifies the creation of containers will be made
@@ -54,11 +55,10 @@ class DockerInterface:
         # Verify the connection to the client
         self.client.ping()
 
-        # TODO: add interface-specific loggers so we know what interface is outputting
         self._log.debug("System info      : %s", str(self.client.info()))
         self._log.debug("System version   : %s", str(self.client.version()))
 
-        # Authenticate to registry, if configured
+        # Authenticate to registry, if configured (TODO)
         if "registry" in self.infra:
             reg = self.infra["registry"]
             reg_logins = utils.read_json(reg["login-file"])
@@ -74,8 +74,20 @@ class DockerInterface:
     def deploy_environment(self):
         pass
 
-    def cleanup_masters(self, network_cleanup):
+    def cleanup_masters(self, network_cleanup=False):
         pass
 
-    def cleanup_environment(self, network_cleanup):
+    def cleanup_environment(self, network_cleanup=False):
         pass
+
+    def __repr__(self):
+        return str("DockerInterface(%s, %s)" % (str(self.infra), str(self.spec)))
+
+    def __str__(self):
+        return str(self.client.info() + "\nVersion:\t" + self.client.version())
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.client == other.client

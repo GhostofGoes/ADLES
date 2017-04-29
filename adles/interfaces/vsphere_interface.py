@@ -17,37 +17,24 @@ from sys import exit
 import os.path
 
 import adles.vsphere.folder_utils as futils
-from adles.utils import pad, read_json, is_folder, is_vm
+from adles.utils import pad, read_json, is_folder, is_vm, get_vlan
 from adles.vsphere import Vsphere
 from adles.vsphere.network_utils import create_portgroup
 from adles.vsphere.vm import VM
+from adles.interfaces import Interface
 
 
-class VsphereInterface:
+class VsphereInterface(Interface):
     """ Generic interface for the VMware vSphere platform """
-    __version__ = "0.9.1"
+    __version__ = "1.0.0"
 
-    # Names/prefixes
-    master_prefix = "(MASTER) "
-    master_root_name = "MASTER-FOLDERS"
-
-    # Values at which to warn or error when exceeded
-    # TODO: make these per-instance and configurable in spec?
-    thresholds = {
-        "folder": {
-            "warn": 25,
-            "error": 50},
-        "service": {
-            "warn": 50,
-            "error": 70}
-    }
-
+    # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
         """
         NOTE: it is assumed that the infrastructure and spec are both valid,
         and thus checks on key existence and types are not performed for REQUIRED elements.
         :param dict infra: Infrastructure information
-        :param dict spec: The parsed specification
+        :param dict spec: The parsed exercise specification
         """
         self._log = logging.getLogger('VsphereInterface')
         self._log.debug("Initializing VsphereInterface %s", VsphereInterface.__version__)
@@ -62,6 +49,18 @@ class VsphereInterface:
         self.template_folder = None
         self.net_table = {}  # Used to do lookups of Generic networks during deployment
         self.masters = {}  # Cache containing Master instances (TODO: potential naming conflicts)
+
+        if "thresholds" in infra:
+            self.thresholds = infra["thresholds"]
+        else:
+            self.thresholds = {
+                "folder": {
+                    "warn": 25,
+                    "error": 50},
+                "service": {
+                    "warn": 50,
+                    "error": 70}
+            }
 
         # Read infrastructure login information
         if "login-file" in infra:
@@ -199,8 +198,9 @@ class VsphereInterface:
     def _master_parent_folder_gen(self, folder, parent):
         """
         Generates parent-type Master folders
-        :param folder: Dict with the folder tree structure as in spec
-        :param parent: Parent vim.Folder
+        :param dict folder: Dict with the folder tree structure as in spec
+        :param parent: Parent folder
+        :type parent: vim.Folder
         """
         skip_keys = ["instances", "description", "enabled"]
         if not self._is_enabled(folder):  # Check if disabled
@@ -242,9 +242,10 @@ class VsphereInterface:
     def _master_base_folder_gen(self, folder_name, folder_dict, parent):
         """
         Generates base-type Master folders
-        :param folder_name: Name of the base folder
-        :param folder_dict: Dict with the base folder tree as in spec
-        :param parent: Parent vim.Folder
+        :param str folder_name: Name of the base folder
+        :param dict folder_dict: Dict with the base folder tree as in spec
+        :param parent: Parent folder
+        :type parent: vim.Folder
         """
         # Set the group to apply permissions for (TODO: apply permissions)
         if "master-group" in folder_dict:
@@ -270,10 +271,12 @@ class VsphereInterface:
     def _create_service(self, folder, service_name, networks):
         """
         Retrieves and clones a service into a master folder
-        :param folder: vim.Folder to clone into
-        :param service_name: Name of the service to clone
-        :param networks: Networks to configure the service with
+        :param folder: Folder to create service in
+        :type folder: vim.Folder
+        :param str service_name: Name of the service to clone
+        :param list networks: Networks to configure the service with
         :return: The service VM instance
+        :rtype: :class:`VM`
         """
         if not self._is_vsphere(service_name):
             self._log.debug("Skipping non-vsphere service '%s'", service_name)
@@ -290,7 +293,7 @@ class VsphereInterface:
                 self._log.error("Could not find template '%s' for service '%s'",
                                 config["template"], service_name)
                 return None
-            self._log.debug("Cloning service '%s'", service_name)
+            self._log.info("Creating service '%s'", service_name)
             vm = VM(name=vm_name, folder=folder, resource_pool=self.server.get_pool(),
                     datastore=self.server.datastore, host=self.host)
             if not vm.create(template=template):
@@ -320,8 +323,8 @@ class VsphereInterface:
     def _create_master_networks(self, net_type, default_create):
         """
         Creates a network as part of the Master creation phase
-        :param net_type: Top-level type of the network (unique | generic | base)
-        :param default_create: Whether to create networks if they don't already exist
+        :param str net_type: Top-level type of the network (unique | generic | base)
+        :param bool default_create: Whether to create networks if they don't already exist
         """
         self.host.configManager.networkSystem.RefreshNetworkSystem()  # Pick up any recent changes
         self._log.info("Creating %s", net_type)
@@ -329,24 +332,25 @@ class VsphereInterface:
         for name, config in self.networks[net_type].items():
             exists = self.server.get_network(name)
             if exists:
-                self._log.debug("PortGroup '%s' already exists on host '%s'", name, self.host.name)
+                self._log.info("PortGroup '%s' already exists on host '%s'", name, self.host.name)
             else:  # NOTE: if monitoring, we want promiscuous=True
                 self._log.warning("PortGroup '%s' does not exist on host '%s'",
                                   name, self.host.name)
                 if default_create:
-                    self._log.debug("Creating portgroup '%s' on host '%s'", name, self.host.name)
+                    self._log.info("Creating portgroup '%s' on host '%s'", name, self.host.name)
                     create_portgroup(name=name, host=self.host, promiscuous=False,
-                                     vlan=int(config.get("vlan", next(self._get_vlan()))),
+                                     vlan=int(config.get("vlan", next(get_vlan()))),
                                      vswitch_name=config.get("vswitch", self.vswitch_name))
 
     def _configure_nics(self, vm, networks, instance=None):
         """
-        Configures Network Interfaces for a service instance
-        :param vm: vim.VirtualMachine
-        :param networks: List of networks to configure
-        :param instance: Current instance of a folder for Deployment purposes
+        Configures Virtual Network Interfaces Cards (vNICs) for a service instance
+        :param vm: Virtual Machine to configure vNICs on
+        :type vm: vim.VirtualMachine
+        :param list networks: List of networks to configure
+        :param int instance: Current instance of a folder for Deployment purposes [default: None]
         """
-        self._log.debug("Editing NICs for VM '%s'", vm.name)
+        self._log.info("Editing NICs for VM '%s'", vm.name)
         num_nics = len(list(vm.network))
         num_nets = len(networks)
         nets = networks  # Copy the passed variable so we can edit it later
@@ -409,9 +413,10 @@ class VsphereInterface:
 
     def _convert_and_verify(self, folder):
         """
-        Converts masters to templates before deployment.
+        Converts Masters to Templates before deployment.
         This also ensures they are powered off before being cloned.
-        :param folder: vim.Folder
+        :param folder: Folder containing Master instances to convert and verify
+        :type folder: vim.Folder
         """
         self._log.debug("Converting Masters in folder '%s' to templates", folder.name)
         for item in folder.childEntity:
@@ -444,9 +449,10 @@ class VsphereInterface:
     def _deploy_parent_folder_gen(self, spec, parent, path):
         """
         Generates parent-type folder trees
-        :param spec: Dict with folder specification
-        :param parent: Parent vim.Folder
-        :param path: Folders path at the current level
+        :param dict spec: Dict with folder specification
+        :param parent: Parent folder
+        :type parent: vim.Folder
+        :param str path: Folders path at the current level
         """
         skip_keys = ["instances", "description", "master-group", "enabled"]
         if not self._is_enabled(spec):  # Check if disabled
@@ -488,10 +494,11 @@ class VsphereInterface:
     def _deploy_base_folder_gen(self, folder_name, folder_items, parent, path):
         """
         Generates folder tree for deployment stage
-        :param folder_name: Name of the folder
-        :param folder_items: Dict of items in the folder
-        :param parent: Parent vim.Folder
-        :param path: Folders path at the current level
+        :param str folder_name: Name of the folder
+        :param dict folder_items: Dict of items in the folder
+        :param parent: Parent folder
+        :type parent: vim.Folder
+        :param str path: Folders path at the current level
         """
         # Set the group to apply permissions for (TODO: apply permissions)
         group = self._get_group(folder_items["group"])
@@ -521,10 +528,11 @@ class VsphereInterface:
     def _deploy_gen_services(self, services, parent, path, instance):
         """
         Generates the services in a folder
-        :param services: The "services" dict in a folder
-        :param parent: Parent vim.Folder
-        :param path: Folders path at the current level
-        :param instance: What instance of a base folder this is
+        :param dict services: The "services" dict in a folder
+        :param parent: Parent folder
+        :type parent: vim.Folder
+        :param str path: Folders path at the current level
+        :param int instance: What instance of a base folder this is
         """
         # Iterate through the services
         for service_name, value in services.items():
@@ -553,81 +561,12 @@ class VsphereInterface:
                 else:
                     self._configure_nics(vm, value["networks"], instance=instance)
 
-    @staticmethod
-    def _path(path, name):
-        """
-        Generates next step of the path for deployment of Masters
-        :param path: Current path
-        :param name: Name to add to the path
-        :return: The updated path
-        """
-        return str(path + '/' + VsphereInterface.master_prefix + name)
-
-    def _instances_handler(self, spec, obj_name, obj_type):
-        """
-        Determines number of instances and optional prefix using specification
-        :param spec: Dict of folder
-        :param obj_name: Name of the thing being handled
-        :param obj_type: Type of the thing being handled (folder | service)
-        :return: (Number of instances, Prefix)
-        """
-        # TODO: move this into base Interface class
-        num = 1
-        prefix = ""
-        if "instances" in spec:
-            if type(spec["instances"]) == int:
-                num = int(spec["instances"])
-            else:
-                if "prefix" in spec["instances"]:
-                    prefix = str(spec["instances"]["prefix"])
-
-                if "number" in spec["instances"]:
-                    num = int(spec["instances"]["number"])
-                elif "size-of" in spec["instances"]:
-                    # size_of = spec["instances"]["size-of"]
-                    # num = int(self._get_group(size_of).size)
-                    # if num < 1:
-                    num = 1  # TODO: WORKAROUND FOR AD-GROUPS
-                else:
-                    self._log.error("Unknown instances specification: %s", str(spec["instances"]))
-                    num = 0
-
-        # Check if the number of instances exceeds the configured thresholds for the interface
-        if num > self.thresholds[obj_type]["error"]:
-            self._log.error("%d instances of %s '%s' is beyond the configured %s threshold of %d",
-                            num, obj_type, obj_name, self.__name__,
-                            self.thresholds[obj_type]["error"])
-            raise Exception("Threshold exception")
-        elif num > self.thresholds[obj_type]["warn"]:
-            self._log.warning("%d instances of %s '%s' is beyond the configured %s threshold of %d",
-                              num, obj_type, obj_name, self.__name__,
-                              self.thresholds[obj_type]["warn"])
-
-        return num, prefix
-
-    def _get_group(self, group_name):
-        """
-        Provides a uniform way to get information about normal groups and template groups
-        :param group_name: Name of the group
-        :return: Group object
-        """
-        from adles.group import Group
-        if group_name in self.groups:
-            g = self.groups[group_name]
-            if isinstance(g, Group):    # Normal groups
-                return g
-            elif isinstance(g, list):   # Template groups
-                return g[0]
-            else:
-                self._log.error("Unknown type for group '%s': %s", str(group_name), str(type(g)))
-        else:
-            self._log.error("Could not get group '%s' from VsphereInterface groups", group_name)
-
     def _is_vsphere(self, service_name):
         """
         Checks if a service instance is defined as a vSphere service
-        :param service_name: Name of the service to lookup in list of defined services
-        :return: bool indicating if a service is a vSphere-type service
+        :param str service_name: Name of the service to lookup in list of defined services
+        :return: If a service is a vSphere-type service
+        :rtype: bool
         """
         # TODO: make "template" and other platform identifiers global keywords
         if service_name not in self.services:
@@ -636,35 +575,14 @@ class VsphereInterface:
             return True
         return False
 
-    def _determine_net_type(self, network_label):
-        """
-        Determines the type of a network
-        :param network_label: Name of the network
-        :return: Type of the network ("generic-networks" | "unique-networks")
-        """
-        for net_name, net_value in self.networks.items():
-            vals = set(k for k in net_value)
-            if network_label in vals:
-                return net_name
-        self._log.error("Could not find type for network '%s'", network_label)
-        return ""
-
-    @staticmethod
-    def _get_vlan():
-        """
-        Generates unique VLAN tags
-        :return: int VLAN tag 
-        """
-        for i in range(2000, 4096):
-            yield i
-
     def _get_net(self, name, instance=-1):
         """
         Resolves network names. This is mainly to handle generic-type networks.
         If a generic network does not exist, it is created and added to the interface lookup table.
-        :param name: Name of the network
-        :param instance: Instance number (Only applies to generic-type networks)
+        :param str name: Name of the network
+        :param int instance: Instance number (Only applies to generic-type networks)
         :return: Resolved network name
+        :rtype: str
         """
         # TODO: could use this to do network lookups on the server as well
         net_type = self._determine_net_type(name)
@@ -686,31 +604,18 @@ class VsphereInterface:
                                     self.host.name)
                     vsw = self.networks["generic-networks"][name].get("vswitch", self.vswitch_name)
                     create_portgroup(name=net_name, host=self.host, promiscuous=False,
-                                     vlan=next(self._get_vlan()), vswitch_name=vsw)
+                                     vlan=next(get_vlan()), vswitch_name=vsw)
                 self.net_table[net_name] = True  # Register the existence of the generic
             return net_name
         else:
             self._log.error("Invalid network type %s for network %s", net_type, name)
             raise TypeError
 
-    @staticmethod
-    def _is_enabled(spec):
-        """
-        Determines if a spec is enabled
-        :param spec: 
-        :return: 
-        """
-        if "enabled" in spec:
-            return bool(spec["enabled"])
-        else:
-            return True
-
     def cleanup_masters(self, network_cleanup=False):
         """
         Cleans up any master instances
         :param bool network_cleanup: 
         """
-
         # TODO: look at getorphanedvms in pyvmomi-community-samples for how to do this
         # Get the folder to cleanup in
         master_folder = futils.find_in_folder(self.root_folder, self.master_root_name)
@@ -730,7 +635,6 @@ class VsphereInterface:
         Cleans up a deployed environment
         :param bool network_cleanup: 
         """
-
         # Get the root environment folder to cleanup in
         enviro_folder = self.root_folder
 

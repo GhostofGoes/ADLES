@@ -16,6 +16,11 @@ import logging
 from os.path import exists
 
 from netaddr import IPNetwork, AddrFormatError
+from yaml import load, YAMLError
+try:  # Attempt to use C-based YAML parser if it's available
+    from yaml import CLoader as Loader
+except ImportError:  # Fallback to using pure Python YAML parser
+    from yaml import Loader
 
 import adles.utils as utils
 
@@ -28,21 +33,13 @@ def parse_file(filename):
     :return: Parsed file contents
     :rtype: dict or None
     """
-    from yaml import load, YAMLError
-    try:  # Attempt to use C-based YAML parser if it's available
-        # noinspection PyUnresolvedReferences
-        from yaml import CLoader as Loader
-        logging.debug("Using C-based YAML parser")
-    except ImportError:  # Fallback to using pure python YAML parser
-        from yaml import Loader
-
     with open(filename) as f:
         try:
             doc = load(f, Loader=Loader)  # Parses the YAML file into a dict
         except YAMLError as exc:
             logging.error("Could not parse file %s", filename)
             if hasattr(exc, 'problem_mark'):
-                mark = exc.problem_mark
+                mark = exc.problem_mark  # Tell user exactly where the syntax error is
                 logging.error("Error position: (%s:%s)", mark.line + 1, mark.column + 1)
             else:
                 logging.error("Error: %s", exc)
@@ -396,6 +393,9 @@ def verify_infra_syntax(infra):
             if "host-list" in config and type(config["host-list"]) is not list:
                 logging.error("Invalid type for vSphere host-list: %s", type(config["host-list"]))
                 num_errors += 1
+            if "thresholds" in config:
+                num_errors += _checker(["folder", "service"], "infrastructure",
+                                       config["thresholds"], "errors")
         elif platform == "docker":  # Docker configurations
             warnings = ["url"]
             errors = []
@@ -441,7 +441,7 @@ def verify_exercise_syntax(spec):
                 logging.error("Required definition %s was not found", key)
                 num_errors += 1
             elif key in optional:
-                logging.debug('Optional definition "%s" was not found', key)
+                logging.info('Optional definition "%s" was not found', key)
             else:
                 logging.warning("Unknown definition found: %s", key)
                 num_warnings += 1

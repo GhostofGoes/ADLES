@@ -83,6 +83,7 @@ def read_json(filename):
     Reads input from a JSON file and returns the contents
     :param filename: Path to JSON file to read
     :return: Contents of the JSON file
+    :rtype: dict or None
     """
     from json import load
     try:
@@ -297,7 +298,7 @@ def resolve_path(server, thing, prompt=""):
     res = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
                      lambda x: server.find_by_inv_path("vm/" + x) if '/' in x else get(x))
     if thing.lower() == "vm":
-        return VM(vm=res)
+        return VM(vm=res[0]), res[1]
     else:
         return res
 
@@ -317,8 +318,8 @@ def setup_logging(filename, colors=True, console_verbose=False, server=('localho
         logfile.write(2 * '\n')
 
     # Format log output so it's human readable yet verbose
-    base_format = "%(asctime)s %(levelname)-8s %(name)-10s %(message)s"
-    time_format = "%Y-%m-%d %H:%M:%S"
+    base_format = "%(asctime)s %(levelname)-8s %(name)-16s %(message)s"
+    time_format = "%H:%M:%S"  # %Y-%m-%d
     formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
 
     # Configures the base logger to append to a file
@@ -358,16 +359,28 @@ def setup_logging(filename, colors=True, console_verbose=False, server=('localho
     # Record system information to aid in auditing and debugging
     from getpass import getuser
     from os import getcwd
-    from platform import python_version, platform
+    from platform import python_version, uname
+    from datetime import date
     from adles import __version__ as adles_version
-    from adles.vsphere.vsphere_class import Vsphere
+    uname = uname()
     logging.debug("Initialized logging, saving logs to %s", filename)
-    logging.debug("Python           %s", str(python_version()))
-    logging.debug("Platform         %s", str(platform()))
+    logging.debug("Date             %s", str(date.today()))
+    logging.debug("OS               %s", str(uname.system + " " + uname.release))
+    logging.debug("Hostname         %s", str(uname.node))
     logging.debug("Username         %s", str(getuser()))
     logging.debug("Directory        %s", str(getcwd()))
+    logging.debug("Python version   %s", str(python_version()))
     logging.debug("Adles version    %s", str(adles_version))
-    logging.debug("Vsphere version  %s", str(Vsphere.__version__))
+
+
+def get_vlan():
+    """
+    Generates globally unique VLAN tags
+    :return: VLAN tag
+    :rtype: int
+    """
+    for i in range(2000, 4096):
+        yield i
 
 
 def is_folder(obj):

@@ -37,7 +37,7 @@ from docopt import docopt
 from adles.utils import script_setup, resolve_path, ask_question
 from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.6.2"
+__version__ = "0.6.3"
 
 
 def main():
@@ -49,7 +49,7 @@ def main():
 
     # Single Virtual Machine
     if thing_type == "vm":
-        vm, _ = resolve_path(server, "vm", "you want to get information on")
+        vm = resolve_path(server, "vm", "you want to get information on")[0]
         logging.info(vm.get_info(detailed=True, uuids=True, snapshot=True, vnics=True))
 
     # Datastore
