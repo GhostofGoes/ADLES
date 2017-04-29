@@ -14,7 +14,11 @@
 
 import logging
 
-import docker  # TODO: add to requirements.txt once implemented
+try:
+    import docker
+except ImportError:
+    logging.error("Could not import docker module. Install it using 'pip install docker'")
+    exit(0)
 
 import adles.utils as utils
 
