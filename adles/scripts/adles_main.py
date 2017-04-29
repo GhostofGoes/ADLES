@@ -97,7 +97,7 @@ def main():
                 spec["metadata"]["infra-file"] = infra_file
 
         try:
-            interface = Interface(spec, parse_file(spec["metadata"]["infra-file"]))
+            interface = Interface(infra=parse_file(spec["metadata"]["infra-file"]), spec=spec)
             if args["--masters"]:
                 interface.create_masters()
                 logging.info("Finished creation of Masters for environment %s",

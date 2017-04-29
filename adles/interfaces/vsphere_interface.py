@@ -26,7 +26,7 @@ from adles.interfaces import Interface
 
 class VsphereInterface(Interface):
     """ Generic interface for the VMware vSphere platform """
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
@@ -644,18 +644,9 @@ class VsphereInterface(Interface):
         if network_cleanup:
             pass
 
-    def __repr__(self):
-        return str("VsphereInterface(%s,%s)" % (str(self.infra), str(self.spec)))
-
     def __str__(self):
         return str(self.server) + str(self.groups) + str(self.hosts)
 
-    def __hash__(self):
-        return hash(str(self))
-
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.server == other.server and \
+        return super(VsphereInterface, self).__eq__(other) and self.server == other.server and \
                self.groups == other.groups and self.hosts == other.hosts
-
-    def __ne__(self, other):
-        return not self.__eq__(other)

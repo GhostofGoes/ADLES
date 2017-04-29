@@ -24,10 +24,11 @@ import adles.utils as utils
 from adles.interfaces import Interface
 
 
+# TODO: test and implement
 class DockerInterface(Interface):
     """ Generic interface for the Docker platform """
 
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
 
     # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
@@ -45,7 +46,6 @@ class DockerInterface(Interface):
         self.networks = spec["networks"]
         self.folders = spec["folders"]
 
-        # TODO: this is initial testing of client
         # If needed, a wrapper class that simplifies the creation of containers will be made
         # Reference: https://docker-py.readthedocs.io/en/stable/client.html#client-reference
         # Initialize the Docker client
@@ -58,7 +58,7 @@ class DockerInterface(Interface):
         self._log.debug("System info      : %s", str(self.client.info()))
         self._log.debug("System version   : %s", str(self.client.version()))
 
-        # Authenticate to registry, if configured (TODO)
+        # Authenticate to registry, if configured
         if "registry" in self.infra:
             reg = self.infra["registry"]
             reg_logins = utils.read_json(reg["login-file"])
@@ -80,14 +80,8 @@ class DockerInterface(Interface):
     def cleanup_environment(self, network_cleanup=False):
         pass
 
-    def __repr__(self):
-        return str("DockerInterface(%s, %s)" % (str(self.infra), str(self.spec)))
-
     def __str__(self):
         return str(self.client.info() + "\nVersion:\t" + self.client.version())
 
-    def __hash__(self):
-        return hash(str(self))
-
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.client == other.client
+        return super(DockerInterface, self).__eq__(other) and self.client == other.client

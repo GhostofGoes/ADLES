@@ -19,26 +19,27 @@ from adles.utils import time_execution
 
 class Interface:
     """ Generic interface used to uniformly interact with platform-specific interfaces. """
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
     master_root_name = "MASTER-FOLDERS"
 
-    def __init__(self, spec, infra):
+    def __init__(self, infra, spec):
         """ 
-        :param dict spec: Full exercise specification
         :param dict infra: Full infrastructure configuration
+        :param dict spec: Full exercise specification
         """
         self._log = logging.getLogger('PlatformInterface')
         self._log.debug("Initializing Interface %s", Interface.__version__)
 
-        self.interfaces = []  # List of instantiated platform interfaces
-        self.metadata = spec["metadata"]  # Save the exercise specification metadata
-        self.infra = infra  # Save the infrastructure configuration
-        self.thresholds = {}
-        self.networks = {}
-        self.groups = {}
+        self.infra = infra      # Save the infrastructure configuration
+        self.spec = spec        # Save the exercise specification
+        self.metadata = spec["metadata"]    # Save the exercise spec metadata
+        self.networks = spec["networks"]    # Networks for platforms
+        self.interfaces = []    # List of instantiated platform interfaces
+        self.thresholds = {}    # Thresholds for platforms
+        self.groups = {}        # Groups for platforms
 
         # Select the Interface to use based on the specified infrastructure platform
         for platform, config in infra.items():
@@ -187,16 +188,17 @@ class Interface:
             self._log.error("Could not get group '%s' from groups", group_name)
 
     def __repr__(self):
-        return "Interface(%s, %s)" % (str(self.interfaces), str(self.infra))
+        return "%s(%s, %s)" % (str(self.__class__), str(self.spec), str(self.infra))
 
     def __str__(self):
         return str([x for x in self.infra.keys()])
 
     def __hash__(self):
-        return hash(self.interfaces)
+        return hash(str(self))
 
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.interfaces == other.interfaces
+        return isinstance(other, self.__class__) and self.infra == other.infra and \
+               self.spec == other.spec
 
     def __ne__(self, other):
         return not self.__eq__(other)
