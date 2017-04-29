@@ -37,7 +37,8 @@ setup(
             'clone-vms = adles.scripts.clone_vms:main',
             'cleanup-vms = adles.scripts.cleanup_vms:main',
             'vm-power = adles.scripts.vm_power:main',
-            'vsphere-info = adles.scripts.vsphere_info:main'
+            'vsphere-info = adles.scripts.vsphere_info:main',
+            'vm-snapshots = adles.scripts.vm_snapshots:main'
         ]
     },
     author=__author__,

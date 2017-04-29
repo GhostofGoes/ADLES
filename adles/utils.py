@@ -226,7 +226,7 @@ def default_prompt(prompt, default=None):
         return value
 
 
-def script_warning_prompt():
+def _script_warning_prompt():
     """
     Generates a warning prompt
     :return: The warning prompt
@@ -264,7 +264,7 @@ def script_setup(logging_filename, args, script=None):
     if script:
         logging.debug("Script name      %s", os.path.basename(script[0]))
         logging.debug("Script version   %s", script[1])
-        print(script_warning_prompt())  # Print warning for script users
+        print(_script_warning_prompt())  # Print warning for script users
 
     # Create the vsphere object and return it
     try:

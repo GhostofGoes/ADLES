@@ -27,7 +27,7 @@ class VM:
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object is 
                     not used to initialize the instance.
     """
-    __version__ = "0.4.0"
+    __version__ = "0.5.0"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -243,16 +243,17 @@ class VM:
                 size += disk.size
         return utils.sizeof_fmt(size)
 
-    def create_snapshot(self, name, description='', memory=False):
+    def create_snapshot(self, name, description='', memory=False, quiesce=True):
         """
         Creates a snapshot of the VM
         :param str name: Title of the snapshot
         :param bool memory: Memory dump of the VM is included in the snapshot
         :param str description: Text description of the snapshot
+        :param bool quiesce: Quiesce the VMs disks before snapshotting (Requires VMware Tools)
         """
         self._log.info("Creating snapshot '%s' of VM '%s'", name, self.name)
         self._vm.CreateSnapshot_Task(name=name, description=description,
-                                     memory=bool(memory), quiesce=True).wait()
+                                     memory=bool(memory), quiesce=quiesce).wait()
 
     def revert_to_snapshot(self, snapshot):
         """
@@ -554,6 +555,34 @@ class VM:
             if recurse_snap:
                 local_snap.extend(recurse_snap)
         return local_snap
+
+    def get_snapshot_info(self, name=None):
+        """
+        Human-readable info on a snapshot
+        :param st name: Name of the snapshot to get [default: current snapshot]
+        :return: Info on the snapshot found
+        :rtype: str
+        """
+        snap = self.get_snapshot(name)
+        return "\nName: %s; Description: %s; CreateTime: %s; State: %s" % \
+               (snap.name, snap.description, snap.createTime, snap.state)
+
+    def get_all_snapshots_info(self):
+        """
+        Enumerates the full snapshot tree of the VM and makes it human-readable
+        :return: The human-readable snapshot tree info
+        :rtype: str
+        """
+        pass  # TODO
+
+    # From: snapshot_operations.py in pyvmomi_community_samples
+    def _get_current_snap_obj(self, snapshots, snapobj):
+        snap_obj = []
+        for snapshot in snapshots:
+            if snapshot.snapshot == snapobj:
+                snap_obj.append(snapshot)
+            snap_obj += self._get_current_snap_obj(snapshot.childSnapshotList, snapobj)
+        return snap_obj
 
     def get_info(self, detailed=False, uuids=False, snapshot=False, vnics=False):
         """

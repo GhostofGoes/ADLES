@@ -21,6 +21,7 @@ SLEEP_INTERVAL = 0.05
 LONG_SLEEP = 1.0
 
 
+# TODO: could possibly use instead: from pyVim import WaitForTask
 def wait_for_task(task, timeout=60.0, pause_timeout=True):
     """
     Waits for a single vCenter task to finish and returns its result
@@ -105,7 +106,7 @@ def get_datastore_info(ds_obj):
     Gets a human-readable summary of a Datastore
     :param ds_obj: The datastore to get information on
     :type ds_obj: vim.Datastore
-    :return: The datastore information
+    :return: The datastore's information
     :rtype: str
     """
     if not ds_obj:

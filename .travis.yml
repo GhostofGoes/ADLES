@@ -20,17 +20,20 @@ script:
   - adles -v -c examples/firewall-tutorial.yaml
   - adles -v -c infra.yaml -t infra
   - adles -v -c examples/experiment.yaml -t exercise
-  - clone-vms -h
-  - cleanup-vms --help
-  - vm-power -h
-  - vsphere-info -h
-  - clone-vms --version
-  - cleanup-vms --version
-  - vm-power --version
-  - vsphere-info --version
   - adles --list-examples
   - adles --print-example competition
   - adles --print-spec exercise
+  - clone-vms -h
+  - clone-vms --version
+  - cleanup-vms --help
+  - cleanup-vms --version
+  - vm-power -h
+  - vm-power --version
+  - vsphere-info -h
+  - vsphere-info --version
+  - vm-snapshots -h
+  - vm-snapshots --version
+
 notifications:
   email:
     on_success: never

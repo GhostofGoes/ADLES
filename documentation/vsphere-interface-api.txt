@@ -8,18 +8,31 @@ package "Core Application" {
 
     object parser {
         + check_syntax()
+        + verify_exercise_syntax()
+        + verify_package_syntax()
+        + verify_infra_syntax()
         + parse_file()
-        + verify_syntax()
     }
 
     object utils {
         + setup_logging()
-        + time_execution()
         + make_vsphere()
         + script_setup()
+        + user_input()
+        + ask_question()
+        + resolve_path()
+        + default_prompt()
+        + sizeof_fmt()
+        + pad()
+        + split_path()
+        + time_execution()
+        + read_json()
+        + is_folder()
+        + is_vm()
     }
 
-    main -> parser
+    main - parser
+    main - utils
 }
 
 package "Scripts" {
@@ -36,6 +49,10 @@ package "Scripts" {
     }
 
     object vsphere_info {
+        + main()
+    }
+
+    object vm_snapshots {
         + main()
     }
 }
@@ -57,7 +74,7 @@ package "Platform Interfaces" {
         + group_type
         + get_ad_groups()
     }
-    Interface -- Group
+    Interface --* Group
 
     package "VMware vSphere" {
 
@@ -143,16 +160,18 @@ package "Platform Interfaces" {
             + attach_iso()
             + mount_tools()
             .. Getters ..
+            + get_info()
+            + get_vim_vm()
             + get_nics()
             + get_nic_by_name()
             + get_nic_by_id()
             + get_nic_by_network()
             + get_snapshot()
             + get_all_snapshots()
-            + get_vim_vm()
+            + get_snapshot_info()
+            + get_all_snapshots_info()
             + get_datastore_folder()
             .. Query status/info ..
-            + get_info()
             + screenshot()
             + has_tools()
             + powered_on()
@@ -190,29 +209,39 @@ package "Platform Interfaces" {
             + vmodl
         }
 
-        Interface -- VsphereInterface
+        Interface --* VsphereInterface
 
         VsphereInterface -- Vsphere
         VsphereInterface --* VM
         VsphereInterface --* Host
         Vsphere - pyVmomi
+        Vsphere - VM
+        Vsphere - Host
     }
 }
 
-main -> Interface
+main -* Interface
 main -- utils
 
 clone_vms - utils
-clone_vms --* Vsphere
+clone_vms -* Vsphere
+clone_vms --* VM
 
 cleanup_vms - utils
-cleanup_vms --* Vsphere
+cleanup_vms -* Vsphere
+cleanup_vms --* VM
 
 vm_power - utils
-vm_power --* Vsphere
+vm_power -* Vsphere
+vm_power --* VM
 
 vsphere_info - utils
-vsphere_info --* Vsphere
+vsphere_info -* Vsphere
+vsphere_info --* VM
+
+vm_snapshots - utils
+vm_snapshots -* Vsphere
+vm_snapshots --* VM
 
 
 @enduml

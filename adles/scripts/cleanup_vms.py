@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Cleanup and Destroy VMs and VM Folders in a vSphere environment.
+"""Cleanup and Destroy Virtual Machines (VMs) and VM Folders in a vSphere environment.
 
 Usage:
     cleanup-vms [options]
@@ -98,9 +98,7 @@ def main():
         else:
             logging.info("Destruction cancelled")
     else:
-        from adles.vsphere.vm import VM
-        vm = VM(vm=resolve_path(server, "vm", "to destroy"))
-        # vm, vm_name = resolve_path(server, "vm", "to destroy")
+        vm = resolve_path(server, "vm", "to destroy")[0]
 
         if ask_question("Display VM info? "):
             logging.info(vm.get_info(detailed=True, uuids=True, snapshot=True, vnics=True))
