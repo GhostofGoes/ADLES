@@ -68,25 +68,25 @@ from adles import __version__
 
 
 def main():
-    args = docopt(__doc__, version=__version__, help=True)
-    colors = (False if args["--no-color"] else True)
+    args = docopt(__doc__, version=__version__, help=True)  # Get commandline arguments
+    colors = (False if args["--no-color"] else True)  # Configure console coloration
     setup_logging(filename='adles.log', colors=colors, console_verbose=args["--verbose"])
 
-    if args["--spec"]:
-        if args["--package"]:
+    if args["--spec"]:  # If there's a specification
+        if args["--package"]:  # Package specification
             # TODO: implement basic extraction of environment spec from package spec
             logging.error("Package specifications are not implemented yet")
             exit(1)
 
-        spec = check_syntax(args["--spec"])
+        spec = check_syntax(args["--spec"])  # Validate syntax before proceeding
         if spec is None:
             logging.error("Syntax check failed")
             exit(1)
-        if "name" not in spec["metadata"]:
+        if "name" not in spec["metadata"]:  # Default name is the filename of the specification
             from os.path import basename, splitext
             spec["metadata"]["name"] = splitext(basename(args["--spec"]))[0]
 
-        if args["--infra"]:
+        if args["--infra"]:  # Override the infra file defined in exercise/package specification
             from os.path import exists
             infra_file = args["--infra"]
             if not exists(infra_file):
@@ -96,7 +96,7 @@ def main():
                 logging.debug("Overriding infrastructure config file with '%s'", infra_file)
                 spec["metadata"]["infra-file"] = infra_file
 
-        try:
+        try:  # Instantiate the interface and call the functions for the specified phase
             interface = Interface(infra=parse_file(spec["metadata"]["infra-file"]), spec=spec)
             if args["--masters"]:
                 interface.create_masters()
@@ -112,14 +112,14 @@ def main():
                 logging.info("Finished cleanup of %s", spec["metadata"]["name"])
             else:
                 logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
-        except vim.fault.NoPermission as e:
+        except vim.fault.NoPermission as e:  # Log permission errors
             logging.error("Permission error: \n%s", str(e))
             exit(1)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # Handle user exits gracefully
             logging.error("User terminated session prematurely")
             exit(1)
 
-    elif args["--validate"]:
+    elif args["--validate"]:  # Just validate syntax, no building of environment
         if args["--type"]:
             spec_type = args["--type"]
         else:
@@ -128,12 +128,12 @@ def main():
             logging.error("Syntax check failed")
 
     # TODO: run example as input (should do this by supporting stdin)
-    elif args["--list-examples"] or args["--print-example"]:
+    elif args["--list-examples"] or args["--print-example"]:  # Show examples on commandline
         from pkg_resources import Requirement, resource_filename
         from os import listdir, path
         example_dir = resource_filename(Requirement.parse("ADLES"), "examples")
         examples = [x[:-5] for x in listdir(example_dir) if ".yaml" in x]  # Filter non-yaml
-        if args["--list-examples"]:
+        if args["--list-examples"]:  # List all examples and their metadata
             print("Example scenarios that can be printed using --print-example <name>")
             print("Name".ljust(25) + "Version".ljust(10) + "Description")  # Print header
             for example in examples:
@@ -144,19 +144,19 @@ def main():
                 print(name + ver + desc)
         else:
             example = args["--print-example"]
-            if example in examples:
+            if example in examples:  # Print out the complete content of a named example
                 with open(path.join(example_dir, example + ".yaml")) as f:
                     print(f.read())
             else:
                 logging.error("Invalid example: %s", example)
 
-    elif args["--print-spec"]:
+    elif args["--print-spec"]:  # Show specifications on commandline
         from pkg_resources import Requirement, resource_filename
         from os.path import join
         spec = args["--print-spec"]
         specs = ["exercise", "package", "infrastructure"]
 
-        if spec in specs:
+        if spec in specs:  # Find spec in package installation directory and print it
             filename = resource_filename(Requirement.parse("ADLES"),
                                          join("specifications", spec + "-specification.yaml"))
             with open(filename) as f:
@@ -164,7 +164,7 @@ def main():
         else:
             logging.error("Invalid specification: %s", spec)
 
-    else:
+    else:  # Handle invalid arguments
         logging.error("Invalid arguments. Argument dump:\n%s", str(args))
 
 

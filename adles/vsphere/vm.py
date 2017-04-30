@@ -28,7 +28,7 @@ class VM:
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object is 
                     not used to initialize the instance.
     """
-    __version__ = "0.5.0"
+    __version__ = "0.5.1"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -78,6 +78,8 @@ class VM:
         :param int version: Hardware version of the VM [default: highest host supports]
         :param str firmware: Firmware to emulate for the VM (efi | bios) [default: efi]
         :param str datastore_path: Path to existing VM files on datastore [default: None]
+        :return: If the creation was successful
+        :rtype: bool
         """
         if template is not None:  # Use a template to create the VM
             self._log.debug("Creating VM '%s' by cloning %s", self.name, template.name)
@@ -247,10 +249,10 @@ class VM:
     def create_snapshot(self, name, description='', memory=False, quiesce=True):
         """
         Creates a snapshot of the VM
-        :param str name: Title of the snapshot
-        :param bool memory: Memory dump of the VM is included in the snapshot
-        :param str description: Text description of the snapshot
-        :param bool quiesce: Quiesce the VMs disks before snapshotting (Requires VMware Tools)
+        :param str name: Name of the snapshot
+        :param str description: Text description of the snapshot [default: '']
+        :param bool memory: Memory dump of the VM is included in the snapshot [default: False]
+        :param bool quiesce: Quiesce VM disks (Requires VMware Tools) [default: True]
         """
         self._log.info("Creating snapshot '%s' of VM '%s'", name, self.name)
         self._vm.CreateSnapshot_Task(name=name, description=description,
@@ -265,7 +267,7 @@ class VM:
         self.get_snapshot(snapshot).RevertToSnapshot_Task().wait()
 
     def revert_to_current_snapshot(self):
-        """ Reverts the VM to the most recent snapshot. """
+        """ Reverts the VM to the most recent snapshot """
         self._log.info("Reverting '%s' to the current snapshot", self.name)
         self._vm.RevertToCurrentSnapshot_Task().wait()
 
@@ -455,6 +457,7 @@ class VM:
 
     def mount_tools(self):
         """ Mounts the installer for VMware Tools """
+        self._log.debug("Mounting tools installer on %s", self.name)
         self._vm.MountToolsInstaller().wait()
 
     def get_datastore_folder(self):
@@ -574,16 +577,8 @@ class VM:
         :return: The human-readable snapshot tree info
         :rtype: str
         """
+        # Check for ideas: snapshot_operations.py in pyvmomi_community_samples
         pass  # TODO: implement
-
-    # From: snapshot_operations.py in pyvmomi_community_samples
-    def _get_current_snap_obj(self, snapshots, snapobj):
-        snap_obj = []
-        for snapshot in snapshots:
-            if snapshot.snapshot == snapobj:
-                snap_obj.append(snapshot)
-            snap_obj += self._get_current_snap_obj(snapshot.childSnapshotList, snapobj)
-        return snap_obj
 
     def get_info(self, detailed=False, uuids=False, snapshot=False, vnics=False):
         """
@@ -657,6 +652,7 @@ class VM:
         :return: Path to datastore location of the screenshot
         :rtype: str
         """
+        self._log.debug("Taking screenshot of %s", self.name)
         return self._vm.CreateScreenshot_Task().wait()
 
     def has_tools(self):

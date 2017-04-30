@@ -461,17 +461,16 @@ def verify_package_syntax(package):
         content_errors = ["environment"]
         num_warnings += _checker(content_warnings, "contents", package["contents"], "warnings")
         num_errors += _checker(content_errors, "contents", package["contents"], "errors")
-
     return num_errors, num_warnings
 
 
 def check_syntax(specfile_path, spec_type="exercise"):
     """
     Checks the syntax of a specification file
-    :param str specfile_path: Path to the specification file
+    :param str specfile_path: Path to the YAML specification file
     :param str spec_type: Type of specification file (exercise | package | infra)
     :return: The specification
-    :rtype: dict
+    :rtype: dict or None
     """
     from os.path import exists, basename
 

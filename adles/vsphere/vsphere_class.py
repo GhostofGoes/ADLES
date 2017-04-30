@@ -17,13 +17,10 @@ import logging
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim, vmodl
 
-from adles.vsphere.vm import VM
-
 
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
-
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -40,8 +37,8 @@ class Vsphere:
         :raises LookupError: if a datacenter or datastore cannot be found
         """
         self._log = logging.getLogger('Vsphere')
-        self._log.debug("Initializing Vsphere %s\nDatacenter: %s\nDatastore: %s\nSSL: %s",
-                        Vsphere.__version__, datacenter, datastore, str(use_ssl))
+        self._log.debug("Initializing Vsphere %s\nDatacenter: %s\tDatastore: %s\tSSL: %s",
+                        Vsphere.__version__, datacenter, datastore, use_ssl)
 
         if username is None:
             username = str(input("Enter username for vSphere: "))
@@ -78,10 +75,10 @@ class Vsphere:
 
         self.datacenter = self.get_item(vim.Datacenter, name=datacenter)
         if not self.datacenter:
-            raise LookupError("Could not find a datacenter to initialize with!")
+            raise LookupError("Could not find a Datacenter to initialize with!")
         self.datastore = self.get_datastore(datastore)
         if not self.datastore:
-            raise LookupError("Could not find a datastore to initialize with!")
+            raise LookupError("Could not find a Datastore to initialize with!")
         self._log.debug("Finished initializing vSphere")
 
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
@@ -114,7 +111,7 @@ class Vsphere:
 
     def map_items(self, vimtypes, func, name=None, container=None, recursive=True):
         """
-        Apply a function to item(s)
+        Apply a function to item(s) in a container
         :param list vimtypes: List of vimtype objects to look for
         :param func: Function to apply
         :param str name: Name of item to apply to [default: None]
@@ -170,7 +167,7 @@ class Vsphere:
         :type entity: vim.ManagedEntity
         :param bool inherited: Include propagating permissions defined in parent [default: True]
         :return: The permissions for the entity
-        :rtype: vim.AuthorizationManager.Permission
+        :rtype: vim.AuthorizationManager.Permission or None
         """
         try:
             return self.auth.RetrieveEntityPermissions(entity=entity, inherited=inherited)
@@ -183,7 +180,7 @@ class Vsphere:
         Gets all permissions that use a particular role
         :param int role_id: ID of the role
         :return: The role permissions
-        :rtype: vim.AuthorizationManager.Permission
+        :rtype: vim.AuthorizationManager.Permission or None
         """
         try:
             return self.auth.RetrieveRolePermissions(roleId=int(role_id))
@@ -206,7 +203,7 @@ class Vsphere:
         :param bool find_users: If users should be included in the results [default: True]
         :param bool find_groups: If groups should be included in the results [default: False]
         :return: The users and groups defined for the server
-        :rtype: list(vim.UserSearchResult)
+        :rtype: list(vim.UserSearchResult) or None
         """
         # See for reference: pyvmomi/docs/vim/UserDirectory.rst
         kwargs = {"searchStr": search, "exactMatch": exact,
@@ -265,7 +262,7 @@ class Vsphere:
         Finds and returns the named VM
         :param str vm_name: Name of the VM
         :return: The VM found
-        :rtype: vim.VirtualMachine
+        :rtype: vim.VirtualMachine or None
         """
         return self.get_item(vim.VirtualMachine, vm_name)
 
@@ -288,7 +285,7 @@ class Vsphere:
         Finds and returns the named Host System
         :param str host_name: Name of the host [default: first host found in datacenter]
         :return: The host found
-        :rtype: vim.HostSystem
+        :rtype: vim.HostSystem or None
         """
         return self.get_item(vim.HostSystem, host_name)
 
@@ -297,7 +294,7 @@ class Vsphere:
         Finds and returns the named Cluster
         :param str cluster_name: Name of the cluster [default: first cluster found in datacenter]
         :return: The cluster found
-        :rtype: vim.ClusterComputeResource
+        :rtype: vim.ClusterComputeResource or None
         """
         return self.get_item(cluster_name, vim.ClusterComputeResource)
 
@@ -314,7 +311,7 @@ class Vsphere:
         Finds and returns the named Datastore
         :param str datastore_name: Name of the datastore [default: first datastore in datacenter]
         :return: The datastore found
-        :rtype: vim.Datastore
+        :rtype: vim.Datastore or None
         """
         return self.datacenter.datastoreFolder.get(datastore_name)
 
@@ -323,7 +320,7 @@ class Vsphere:
         Finds and returns the named Resource Pool
         :param str pool_name: Name of the resource pool [default: first pool found in datacenter]
         :return: The resource pool found
-        :rtype: vim.ResourcePool
+        :rtype: vim.ResourcePool or None
         """
         return self.get_item(vim.ResourcePool, pool_name)
 
@@ -331,7 +328,7 @@ class Vsphere:
         """
         Finds and returns all VMs registered in the Datacenter
         :return: All VMs in the Datacenter defined for the class
-        :rtype: ist(vim.VirtualMachine)
+        :rtype: list(vim.VirtualMachine)
         """
         return self.get_objs(self.datacenter.vmFolder, [vim.VirtualMachine])
 
@@ -394,7 +391,7 @@ class Vsphere:
         :param str uuid: UUID to search for (Instance or BIOS for VMs)
         :param instance_uuid: Search for VM Instance UUIDs, otherwise BIOS UUIDs [default: True]
         :return: The VM found
-        :rtype: vim.VirtualMachine
+        :rtype: vim.VirtualMachine or None
         """
         return self.content.searchIndex.FindByUuid(datacenter=self.datacenter, uuid=str(uuid),
                                                    vmSearch=True, instanceUuid=instance_uuid)
@@ -419,7 +416,7 @@ class Vsphere:
         :param str ip: IP address string as returned by VMware Tools ipAddress
         :param vm_search: Search for VMs if True, Hosts if False [default: True]
         :return: The VM or host found
-        :rtype: vim.VirtualMachine or vim.HostSystem
+        :rtype: vim.VirtualMachine or vim.HostSystem or None
         """
         return self.content.searchIndex.FindByIp(datacenter=self.datacenter,
                                                  ip=str(ip), vmSearch=vm_search)
@@ -430,7 +427,7 @@ class Vsphere:
         :param str hostname: Fully-qualified domain name
         :param vm_search: Search for VMs if True, Hosts if False [default: True]
         :return: The VM or host found
-        :rtype: vim.VirtualMachine or vim.HostSystem
+        :rtype: vim.VirtualMachine or vim.HostSystem or None
         """
         return self.content.searchIndex.FindByDnsName(datacenter=self.datacenter,
                                                       dnsName=hostname, vmSearch=vm_search)
@@ -443,7 +440,7 @@ class Vsphere:
         Example: "vm/some-things/more-things/vm-name"
         :param str datacenter: Name of datacenter to search in [default: instance's datacenter]
         :return: The entity found
-        :rtype: vim.ManagedEntity
+        :rtype: vim.ManagedEntity or None
         """
         if datacenter is None:
             datacenter = self.datacenter.name

@@ -26,7 +26,7 @@ from adles.interfaces import Interface
 
 class VsphereInterface(Interface):
     """ Generic interface for the VMware vSphere platform """
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
     # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
@@ -315,9 +315,9 @@ class VsphereInterface(Interface):
         # NOTE: management interfaces matter here!
         self._configure_nics(vm, networks=networks)  # Configure VM NICs
 
-        # Post-creation snapshot (TODO: more descriptive description using metadata)
-        vm.create_snapshot("Start of Mastering", "Beginning of Mastering phase ")
-
+        # Post-creation snapshot
+        vm.create_snapshot("Start of Mastering",
+                           "Beginning of Mastering phase for exercise %s", self.metadata["name"])
         return vm
 
     def _create_master_networks(self, net_type, default_create):
