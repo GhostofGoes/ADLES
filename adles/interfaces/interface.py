@@ -54,11 +54,11 @@ class Interface:
                 self._log.error("Invalid platform: %s", str(platform))
                 raise ValueError
 
+    # TODO: subprocess each interface call
     @time_execution
     def create_masters(self):
         """ Master creation phase """
         self._log.info("Creating Master instances for %s", self.metadata["name"])
-        # TODO: subprocess each interface call
         for i in self.interfaces:
             i.create_masters()
 
@@ -66,7 +66,6 @@ class Interface:
     def deploy_environment(self):
         """ Environment deployment phase """
         self._log.info("Deploying environment for %s", self.metadata["name"])
-        # TODO: subprocess each interface call
         for i in self.interfaces:
             i.deploy_environment()
 
@@ -77,7 +76,6 @@ class Interface:
         :param bool network_cleanup: If networks should be cleaned up [default: False]
         """
         self._log.info("Cleaning up Master instances for %s", self.metadata["name"])
-        # TODO: subprocess each interface call
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
 
@@ -88,7 +86,6 @@ class Interface:
         :param bool network_cleanup: If networks should be cleaned up [default: False]
         """
         self._log.info("Cleaning up environment for %s", self.metadata["name"])
-        # TODO: subprocess each interface call
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
 

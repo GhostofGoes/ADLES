@@ -614,7 +614,7 @@ class VsphereInterface(Interface):
     def cleanup_masters(self, network_cleanup=False):
         """
         Cleans up any master instances
-        :param bool network_cleanup: 
+        :param bool network_cleanup: If networks should be cleaned up [default: False]
         """
         # TODO: look at getorphanedvms in pyvmomi-community-samples for how to do this
         # Get the folder to cleanup in
@@ -633,7 +633,7 @@ class VsphereInterface(Interface):
     def cleanup_environment(self, network_cleanup=False):
         """
         Cleans up a deployed environment
-        :param bool network_cleanup: 
+        :param bool network_cleanup: If networks should be cleaned up [default: False]
         """
         # Get the root environment folder to cleanup in
         enviro_folder = self.root_folder
