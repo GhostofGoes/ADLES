@@ -4,14 +4,15 @@ engines:
     enabled: true
     config:
       languages:
-      - ruby
-      - javascript
-      - python
-      - php
+        python:
+          mass_threshold: 40
+          python_version: 3
   fixme:
-    enabled: true
+    enabled: false
   radon:
     enabled: true
+    config:
+      threshold: "C"
   pep8:
     enabled: false
   markdownlint:
@@ -20,13 +21,7 @@ engines:
     enabled: true
 ratings:
   paths:
-  - "**.inc"
-  - "**.js"
-  - "**.jsx"
-  - "**.module"
-  - "**.php"
   - "**.py"
-  - "**.rb"
   - "**.md"
   - "**.sh"
 exclude_paths: []
