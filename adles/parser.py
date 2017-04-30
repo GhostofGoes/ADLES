@@ -82,7 +82,6 @@ def _verify_exercise_metadata_syntax(metadata):
     """
     warnings = ["description", "version", "folder-name"]
     errors = ["name", "prefix", "infra-file"]
-
     num_warnings = _checker(warnings, "metadata", metadata, "warnings")
     num_errors = _checker(errors, "metadata", metadata, "errors")
 
@@ -174,12 +173,8 @@ def _verify_services_syntax(services):
             logging.error("Network interfaces must be a list for service %s", key)
             num_errors += 1
         if "provisioner" in value:
-            if "name" not in value["provisioner"]:
-                logging.error("Must specify name of provisioner for service %s", key)
-                num_errors += 1
-            if "file" not in value["provisioner"]:
-                logging.error("Must specify provisioning file for service %s", key)
-                num_errors += 1
+            num_errors += _checker(["name", "file"], "provisioner for service %s" % key,
+                                   value["provisioner"], "errors")
         if "note" in value and not isinstance(value["note"], str):
             logging.error("Note must be a string for service %s", key)
             num_errors += 1
@@ -218,8 +213,8 @@ def _verify_networks_syntax(networks):
     """
     num_warnings = 0
     num_errors = 0
-
     net_types = ["unique-networks", "generic-networks"]
+
     if not any(net in networks for net in net_types):
         logging.error("Network specification exists but is empty!")
         num_errors += 1
@@ -350,24 +345,10 @@ def _verify_scoring_syntax(service_name, scoring):
     :return: Number of errors, Number of warnings
     :rtype: tuple(int, int)
     """
-    num_warnings = 0
-    num_errors = 0
-
-    if "ports" not in scoring:
-        logging.warning("No scoring ports specified for service %s", service_name)
-        num_warnings += 1
-    elif not isinstance(scoring["ports"], list):
-        logging.error("Scoring ports must be a list for service %s", service_name)
-        num_errors += 1
-    if "protocols" not in scoring:
-        logging.warning("No protocols specified for service %s", service_name)
-        num_warnings += 1
-    elif not isinstance(scoring["protocols"], list):
-        logging.error("Protocols must be a list for service %s", service_name)
-        num_errors += 1
-    if "criteria" not in scoring:
-        logging.error("No criteria file specified for service %s", service_name)
-        num_errors += 1
+    warnings = ["ports", "protocols"]
+    errors = ["criteria"]
+    num_warnings = _checker(warnings, "service %s" % service_name, scoring, "warnings")
+    num_errors = _checker(errors, "service %s" % service_name, scoring, "errors")
     return num_errors, num_warnings
 
 
@@ -431,7 +412,6 @@ def verify_exercise_syntax(spec):
              "resources": _verify_resources_syntax,
              "networks": _verify_networks_syntax,
              "folders": _verify_folders_syntax}
-
     required = ["metadata", "groups", "services", "networks", "folders"]
     optional = ["resources"]
 

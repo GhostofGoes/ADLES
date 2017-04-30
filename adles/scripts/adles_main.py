@@ -100,15 +100,16 @@ def main():
             interface = Interface(infra=parse_file(spec["metadata"]["infra-file"]), spec=spec)
             if args["--masters"]:
                 interface.create_masters()
-                logging.info("Finished creation of Masters for environment %s",
-                             spec["metadata"]["name"])
+                logging.info("Finished Master creation for %s", spec["metadata"]["name"])
             elif args["--deploy"]:
                 interface.deploy_environment()
-                logging.info("Finished deployment of environment %s", spec["metadata"]["name"])
+                logging.info("Finished deployment of %s", spec["metadata"]["name"])
             elif args["--cleanup-masters"]:
                 interface.cleanup_masters(args["--nets"])
+                logging.info("Finished master cleanup of %s", spec["metadata"]["name"])
             elif args["--cleanup-enviro"]:
                 interface.cleanup_environment(args["--nets"])
+                logging.info("Finished cleanup of %s", spec["metadata"]["name"])
             else:
                 logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
         except vim.fault.NoPermission as e:
@@ -123,7 +124,6 @@ def main():
             spec_type = args["--type"]
         else:
             spec_type = "exercise"
-
         if check_syntax(args["--validate"], spec_type) is None:
             logging.error("Syntax check failed")
 
@@ -166,6 +166,7 @@ def main():
 
     else:
         logging.error("Invalid arguments. Argument dump:\n%s", str(args))
+
 
 if __name__ == '__main__':
     main()
