@@ -179,11 +179,13 @@ package "Platform Interfaces" {
             + edit_nic()
             + remove_nic()
             + remove_device()
+            + remove_hdd()
             + attach_iso()
             + mount_tools()
             .. Getters ..
             + get_info()
             + get_vim_vm()
+            + get_hdd_by_name()
             + get_nics()
             + get_nic_by_name()
             + get_nic_by_id()

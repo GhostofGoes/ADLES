@@ -379,8 +379,10 @@ class VM:
         """
         Deletes a vNIC based on it's number
         :param int nic_number: Number of the vNIC to delete
+        :return: If removal succeeded
+        :rtype: bool
         """
-        nic_label = 'Network adapter ' + str(nic_number)
+        nic_label = "Network adapter " + str(nic_number)
         self._log.debug("Removing Virtual %s from '%s'", nic_label, self.name)
         virtual_nic_device = self.get_nic_by_name(nic_label)
         if virtual_nic_device is not None:
@@ -388,28 +390,49 @@ class VM:
             virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
             virtual_nic_spec.device = virtual_nic_device
             self._edit(vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply change to VM
+            return True
         else:
             self._log.error("Virtual %s could not be found for '%s'", nic_label, self.name)
+            return False
 
-    def remove_device(self, device):
+    def remove_device(self, device_spec):
         """
         Removes a device from the VM
-        :param device: The specification of the device to remove
-        :type device: vim.vm.device.VirtualDeviceSpec
+        :param device_spec: The specification of the device to remove
+        :type device_spec: vim.vm.device.VirtualDeviceSpec
         """
-        self._log.debug("Removing device '%s' from '%s'", device.name, self.name)
-        device.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
-        self._edit(vim.vm.ConfigSpec(deviceChange=[device]))
+        self._log.debug("Removing device '%s' from '%s'", device_spec.name, self.name)
+        device_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
+        self._edit(vim.vm.ConfigSpec(deviceChange=[device_spec]))
 
-    def attach_iso(self, iso_name, datastore=None, boot=True):
+    # From: delete_disk_from_vm.py in pyvmomi_community_samples
+    def remove_hdd(self, disk_number):
+        """
+        Removes a numbered Virtual Hard Disk from the VM
+        :param int disk_number: Number of the HDD to remove
+        :return: If the HDD was successfully removed
+        :rtype: bool
+        """
+        hdd_label = "Hard disk " + str(disk_number)
+        self._log.debug("Removing Virtual HDD %s from %s", hdd_label, self.name)
+        dev = self.get_hdd_by_name(hdd_label)
+        if not dev:
+            self._log.error("Could not find Virtual %s to remove", hdd_label)
+            return False
+        else:
+            spec = vim.vm.device.VirtualDeviceSpec(device=dev)
+            self.remove_device(device_spec=spec)
+            return True
+
+    def attach_iso(self, iso_path, datastore=None, boot=True):
         """
         Attaches an ISO image to a VM
-        :param str  iso_name: Name of the ISO image to attach
+        :param str iso_path: Path in the Datastore of the ISO image to attach
         :param datastore: Datastore where the ISO resides [default: VM's datastore]
         :type datastore: vim.Datastore
         :param bool boot: Set VM to boot from the attached ISO [default: True]
         """
-        self._log.debug("Adding ISO '%s' to '%s'", iso_name, self.name)
+        self._log.debug("Adding ISO '%s' to '%s'", iso_path, self.name)
         if datastore is None:
             datastore = self.datastore
 
@@ -424,11 +447,11 @@ class VM:
             drive_spec.device.controllerKey = controller.key
         else:
             self._log.error("Could not find a free IDE controller on '%s' to attach ISO '%s'",
-                            self.name, iso_name)
+                            self.name, iso_path)
             return
 
         drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
-        drive_spec.device.backing.fileName = "[%s] %s" % (datastore.name, iso_name)  # Attach ISO
+        drive_spec.device.backing.fileName = "[%s] %s" % (datastore.name, iso_path)  # Attach ISO
         drive_spec.device.backing.datastore = datastore  # Set datastore ISO is in
 
         drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
@@ -438,7 +461,7 @@ class VM:
         drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
         vm_spec = vim.vm.ConfigSpec(deviceChange=[drive_spec])
         if boot:  # Set the VM to boot from the ISO upon power on
-            self._log.debug("Setting '%s' to boot from ISO '%s'", self.name, iso_name)
+            self._log.debug("Setting '%s' to boot from ISO '%s'", self.name, iso_path)
             order = [vim.vm.BootOptions.BootableCdromDevice()]
             order.extend(list(self._vm.config.bootOptions.bootOrder))
             vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)
@@ -467,6 +490,19 @@ class VM:
         :rtype: str
         """
         return os.path.split(self._vm.summary.config.vmPathName)[0]
+
+    def get_hdd_by_name(self, name):
+        """
+        Gets a Virtual HDD from the VM
+        :param name: Name of the virtual HDD
+        :return: The HDD device
+        :rtype: vim.vm.device.VirtualDisk or None
+        """
+        for dev in self._vm.config.hardware.device:
+            if isinstance(dev, vim.vm.device.VirtualDisk) and \
+                            dev.deviceInfo.label.lower() == name.lower():
+                return dev
+        return None
 
     def get_vim_vm(self):
         """
