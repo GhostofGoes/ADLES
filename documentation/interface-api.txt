@@ -167,6 +167,7 @@ package "Platform Interfaces" {
             + convert_template()
             + convert_vm()
             + set_note()
+            + execute_program()
             .. Snapshots ..
             + snapshot_disk_usage()
             + create_snapshot()

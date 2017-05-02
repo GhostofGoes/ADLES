@@ -229,6 +229,50 @@ class VM:
         """
         self._edit(vim.vm.ConfigSpec(annotation=str(note)))
 
+    # From: execute_program_in_vm.py in pyvmomi_community_samples
+    def execute_program(self, process_manager, program_path,
+                        username=None, password=None, program_args=""):
+        """
+        Executes a commandline program in the VM. 
+        This requires VMware Tools to be installed on the VM.
+        :param process_manager: vSphere process manager object
+        :type process_manager: vim.vm.guest.ProcessManager
+        :param str program_path: Path to the program inside the VM
+        :param str username: User on VM to execute program using [default: current ADLES user]
+        :param str password: Plaintext password for the User [default: prompt user]
+        :param str program_args: Commandline arguments for the program [default: ""]
+        :return: Program Process ID (PID) if it was executed successfully, -1 if not
+        :rtype: int
+        """
+        # TODO: do listprocesses and terminate process in guest, make helper func for guest authentication
+        # https://github.com/vmware/pyvmomi/blob/575ab56eb56f32f53c98f40b9b496c6219c161da/docs/vim/vm/guest/ProcessManager.rst
+        from os.path import basename
+        prog_name = basename(program_path)
+        if not self.has_tools():
+            self._log.error("Cannot execute program %s in VM %s: VMware Tools is not running",
+                            prog_name, self.name)
+            return -1
+        if username is None:
+            from getpass import getuser
+            username = getuser()
+        if password is None:
+            from getpass import getpass
+            password = getpass("Enter password of user %s to execute program %s on VM %s"
+                               % (username, prog_name, self.name))
+        creds = vim.vm.guest.NamePasswordAuthentication(username=username, password=password)
+        try:
+            ps = vim.vm.guest.ProcessManager.ProgramSpec(programPath=program_path,
+                                                         arguments=program_args)
+            pid = process_manager.StartProgramInGuest(self._vm, creds, ps)
+            self._log.debug("Successfully started program %s in VM %s, PID is %s",
+                            prog_name, self.name, pid)
+            return pid
+        except IOError as e:
+            self._log.error("Could not execute program %s in VM %s: %s",
+                            prog_name, self.name, str(e))
+        finally:
+            return -1
+
     def snapshot_disk_usage(self):
         """
         Determines the total disk usage of a VM's snapshots
