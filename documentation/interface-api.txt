@@ -212,6 +212,8 @@ package "Platform Interfaces" {
             __ private __
             - _vm
             - _log
+            - _edit()
+            - _customize()
         }
         
         class Host {

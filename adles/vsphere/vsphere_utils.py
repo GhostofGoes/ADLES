@@ -89,8 +89,7 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
         logging.error("Cannot complete task %s: %s does not exist", name, obj)
     except vim.fault.ResourceInUse:
         logging.error("Cannot complete task %s: resource %s is in use", name, obj)
-    finally:
-        return None
+    return None
 
 
 # Possible alternate method(s) of doing tasks (TODO: profile performance):

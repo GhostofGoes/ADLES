@@ -28,7 +28,7 @@ class VM:
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object is 
                     not used to initialize the instance.
     """
-    __version__ = "0.5.3"
+    __version__ = "0.6.0"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -86,13 +86,18 @@ class VM:
             clonespec = vim.vm.CloneSpec()
             clonespec.location = vim.vm.RelocateSpec(pool=self.resource_pool,
                                                      datastore=self.datastore)
-            template.CloneVM_Task(folder=self.folder, name=self.name, spec=clonespec).wait(120)
+            if not template.CloneVM_Task(folder=self.folder, name=self.name,
+                                         spec=clonespec).wait(120):
+                self._log.error("Error cloning VM %s", self.name)
+                return False
+            # TODO: if cloned, reconfigure to match anything given as parameters, e.g memory
         else:  # Generate the specification for and create the new VM
             self._log.debug("Creating VM '%s' from scratch", self.name)
             spec = vim.vm.ConfigSpec()
             spec.name = self.name
             spec.numCPUs = int(cpus)
             spec.numCoresPerSocket = int(cores)
+            spec.cpuHotAddEnabled = True
             spec.memoryMB = int(memory)
             spec.memoryHotAddEnabled = True
             spec.firmware = str(firmware).lower()
@@ -106,15 +111,16 @@ class VM:
             vm_path += self.name + '/' + self.name + '.vmx'
             spec.files = vim.vm.FileInfo(vmPathName=vm_path)
             self._log.debug("Creating VM '%s' in folder '%s'", self.name, self.folder.name)
-            self.folder.CreateVM_Task(spec, self.resource_pool, self.host).wait()
+            if not self.folder.CreateVM_Task(spec, self.resource_pool, self.host).wait():
+                self._log.error("Error creating VM %s", self.name)
+                return False
 
         self._vm = find_in_folder(self.folder, self.name, vimtype=vim.VirtualMachine)
         if not self._vm:
-            self._log.error("Failed to create VM %s", self.name)
+            self._log.error("Failed to make VM %s", self.name)
             return False
         else:
             self._log.debug("Created VM %s", self.name)
-            # TODO: if cloned, reconfigure to match anything given as parameters, e.g memory
         self.network = self._vm.network
         self.runtime = self._vm.runtime
         self.summary = self._vm.summary
@@ -195,8 +201,10 @@ class VM:
         :param str name: New name for the VM
         """
         self._log.debug("Renaming VM %s to %s", self.name, name)
-        self._vm.Rename_Task(newName=str(name)).wait()
-        self.name = str(name)
+        if not self._vm.Rename_Task(newName=str(name)).wait():
+            self._log.error("Failed to rename VM %s to %s", self.name, name)
+        else:
+            self.name = str(name)
 
     def upgrade(self, version):
         """
@@ -244,8 +252,7 @@ class VM:
         :return: Program Process ID (PID) if it was executed successfully, -1 if not
         :rtype: int
         """
-        # TODO: do listprocesses and terminate process in guest, make helper func for guest authentication
-        # https://github.com/vmware/pyvmomi/blob/575ab56eb56f32f53c98f40b9b496c6219c161da/docs/vim/vm/guest/ProcessManager.rst
+        # TODO: listprocesses/terminate process in guest, make helper func for guest authentication
         from os.path import basename
         prog_name = basename(program_path)
         if not self.has_tools():
@@ -298,8 +305,9 @@ class VM:
         :param bool quiesce: Quiesce VM disks (Requires VMware Tools) [default: True]
         """
         self._log.info("Creating snapshot '%s' of VM '%s'", name, self.name)
-        self._vm.CreateSnapshot_Task(name=name, description=description,
-                                     memory=bool(memory), quiesce=quiesce).wait()
+        if not self._vm.CreateSnapshot_Task(name=name, description=description,
+                                     memory=bool(memory), quiesce=quiesce).wait():
+            self._log.error("Failed to take snapshot of VM %s", self.name)
 
     def revert_to_snapshot(self, snapshot):
         """
@@ -774,7 +782,19 @@ class VM:
         :param config: The configuration specification to apply
         :type config: vim.vm.ConfigSpec
         """
-        self._vm.ReconfigVM_Task(config).wait()
+        if not self._vm.ReconfigVM_Task(config).wait():
+            self._log.error("Failed to edit VM %s", self.name)
+
+    def _customize(self, customization):
+        """
+        Customizes the VM using the given customization specification
+        :param customization: The customization specification to apply
+        :type customization: vim.vm.customization.Specification
+        """
+        if not self._vm.CheckCustomizationSpec(spec=customization).wait():
+            self._log.error("Customization check failed for VM %s", self.name)
+        elif not self._vm.CustomizeVM_Task(spec=customization).wait():
+            self._log.error("Failed to customize VM %s", self.name)
 
     def __str__(self):
         return str(self.name)

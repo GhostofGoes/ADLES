@@ -26,7 +26,7 @@ from adles.interfaces import Interface
 
 class VsphereInterface(Interface):
     """ Generic interface for the VMware vSphere platform """
-    __version__ = "1.0.2"
+    __version__ = "1.0.3"
 
     # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
@@ -360,23 +360,19 @@ class VsphereInterface(Interface):
         if num_nics > num_nets:     # Remove excess interfaces
             diff = int(num_nics - num_nets)
             self._log.debug("VM '%s' has %d extra NICs, removing...", vm.name, diff)
-            for i, nic in zip(range(1, diff + 1), reversed(range(num_nics))):
+            for _, nic in enumerate(reversed(range(num_nics)), start=1):
                 vm.remove_nic(nic)
-
         elif num_nics < num_nets:   # Create missing interfaces
             diff = int(num_nets - num_nics)
             self._log.debug("VM '%s' is deficient %d NICs, adding...", vm.name, diff)
-            for i in range(diff):   # Add NICs to VM and pop them from the list of networks
+            for _ in range(diff):   # Add NICs to VM and pop them from the list of networks
                 nic_model = ("vmxnet3" if vm.has_tools() else "e1000")  # Select NIC hardware
                 net_name = nets.pop()
                 vm.add_nic(network=self.server.get_network(net_name),
                            model=nic_model, summary=net_name)
-            num_nets = len(networks)
 
-        # Edit the interfaces
-        # NOTE: any NICs that were added earlier shouldn't be affected by this
-        # TODO: traverse folder to get network? (need to switch to DVswitches I think)
-        for net_name, i in zip(networks, range(1, num_nets + 1)):
+        # Edit the interfaces (NOTE: any NICs added earlier shouldn't be affected by this)
+        for i, net_name in enumerate(networks, start=1):
             # Setting the summary to network name allows viewing of name without requiring
             # read permissions to the network itself
             if instance is not None:  # Resolve generic networks for deployment phase
