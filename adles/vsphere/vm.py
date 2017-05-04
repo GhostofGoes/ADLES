@@ -28,7 +28,7 @@ class VM:
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object is 
                     not used to initialize the instance.
     """
-    __version__ = "0.5.1"
+    __version__ = "0.5.3"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -270,7 +270,6 @@ class VM:
         except IOError as e:
             self._log.error("Could not execute program %s in VM %s: %s",
                             prog_name, self.name, str(e))
-        finally:
             return -1
 
     def snapshot_disk_usage(self):

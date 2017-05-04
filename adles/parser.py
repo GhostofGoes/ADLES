@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import logging
-from os.path import exists
+from os.path import exists, basename
+import sys
 
 from netaddr import IPNetwork, AddrFormatError
 from yaml import load, YAMLError
@@ -26,25 +27,29 @@ import adles.utils as utils
 
 
 # PyYAML Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
-def parse_file(filename):
+def parse_yaml(filename):
     """
     Parses the YAML file and returns a nested dictionary containing it's contents
     :param str filename: Name of YAML file to parse
     :return: Parsed file contents
     :rtype: dict or None
     """
-    with open(filename) as f:
-        try:
-            doc = load(f, Loader=Loader)  # Parses the YAML file into a dict
-        except YAMLError as exc:
-            logging.error("Could not parse file %s", filename)
-            if hasattr(exc, 'problem_mark'):
-                mark = exc.problem_mark  # Tell user exactly where the syntax error is
-                logging.error("Error position: (%s:%s)", mark.line + 1, mark.column + 1)
-            else:
-                logging.error("Error: %s", exc)
-            return None
-    return doc
+    try:
+        # Enables use of stdin if '-' is specified
+        with sys.stdin if filename == '-' else open(filename) as f:
+            try:
+                return load(f, Loader=Loader)  # Parses the YAML file into a dict
+            except YAMLError as exc:
+                logging.critical("Could not parse YAML file %s", filename)
+                if hasattr(exc, 'problem_mark'):
+                    mark = exc.problem_mark  # Tell user exactly where the syntax error is
+                    logging.error("Error position: (%s:%s)", mark.line + 1, mark.column + 1)
+                else:
+                    logging.error("Error: %s", exc)
+                    return None
+    except FileNotFoundError:
+        logging.critical("Could not find YAML file for parsing: %s", filename)
+        return None
 
 
 def _checker(value_list, source, data, flag):
@@ -91,7 +96,7 @@ def _verify_exercise_metadata_syntax(metadata):
             logging.error("Could not open infra-file '%s'", infra_file)
             num_errors += 1
         else:
-            e, w = verify_infra_syntax(parse_file(infra_file))
+            e, w = verify_infra_syntax(parse_yaml(infra_file))
             num_errors += e
             num_warnings += w
     return num_errors, num_warnings
@@ -383,14 +388,11 @@ def verify_infra_syntax(infra):
             if "registry" in config:
                 num_errors += _checker(["url", "login-file"], "infrastructure",
                                        config["registry"], "errors")
-        elif platform == "amazon-aws":
-            pass
-        elif platform == "digital-ocean":
-            pass
-        elif platform == "hyper-v":
-            pass
+        elif platform in ["amazon-aws", "digital-ocean", "hyper-v"]:
+            logging.info("Platform %s is not yet implemented", platform)
         else:
             logging.error("Unknown infrastructure platform: %s", str(platform))
+            num_warnings += 1
             continue  # Skip the syntax verification of unknown platforms
         num_warnings += _checker(warnings, "infrastructure", config, "warnings")
         num_errors += _checker(errors, "infrastructure", config, "errors")
@@ -472,22 +474,19 @@ def check_syntax(specfile_path, spec_type="exercise"):
     :return: The specification
     :rtype: dict or None
     """
-    from os.path import exists, basename
-
-    if not exists(specfile_path):
-        logging.error("Could not find specification file in path %s", str(specfile_path))
-        return None
-    spec = parse_file(specfile_path)
+    spec = parse_yaml(specfile_path)
     if spec is None:
-        logging.error("Failed to ingest specification file %s", basename(specfile_path))
+        logging.critical("Failed to ingest specification file %s", basename(specfile_path))
         return None
-    logging.info("Successfully ingested specification file %s", basename(specfile_path))
-    logging.info("Checking syntax...")
+    logging.info("Successfully ingested specification file '%s'", basename(specfile_path))
     if spec_type == "exercise":
+        logging.info("Checking exercise syntax...")
         errors, warnings = verify_exercise_syntax(spec)
     elif spec_type == "package":
+        logging.info("Checking package syntax...")
         errors, warnings = verify_package_syntax(spec)
     elif spec_type == "infra":
+        logging.info("Checking infrastructure syntax...")
         errors, warnings = verify_infra_syntax(spec)
     else:
         logging.error("Unknown specification type in for check_syntax: %s", str(spec_type))
@@ -497,7 +496,7 @@ def check_syntax(specfile_path, spec_type="exercise"):
         logging.info("Syntax check successful!")
         return spec
     elif errors == 0:
-        logging.info("Syntax check successful, but there were %d warnings", warnings)
+        logging.warning("Syntax check successful, but there were %d warnings", warnings)
         return spec
     else:
         logging.error("Syntax check failed! Errors: %d\tWarnings: %d", errors, warnings)

@@ -93,7 +93,7 @@ def read_json(filename):
         logging.error("Syntax Error in JSON file '%s': %s", filename, str(e))
         return None
     except Exception as e:
-        logging.error("Could not open JSON file '%s': %s", filename, str(e))
+        logging.critical("Could not open JSON file '%s': %s", filename, str(e))
         return None
 
 
@@ -209,7 +209,7 @@ def default_prompt(prompt, default=None):
     """
     Prompt the user for input. If they press enter, return the default.
     :param str prompt: Prompt to display to user (do not include default value)
-    :param str default: Default return value
+    :param str default: Default return value [default: None]
     :return: Value entered or default
     :rtype: str or None
     """
@@ -219,12 +219,11 @@ def default_prompt(prompt, default=None):
         print()  # Output a blank line for readability
         logging.info("Exiting...")
         exit(0)
-
-    # noinspection PyUnboundLocalVariable
-    if value == '':
-        return default
     else:
-        return value
+        if value == '':
+            return default
+        else:
+            return value
 
 
 def _script_warning_prompt():
@@ -318,7 +317,7 @@ def setup_logging(filename, colors=True, console_verbose=False, server=('localho
         logfile.write(2 * '\n')
 
     # Format log output so it's human readable yet verbose
-    base_format = "%(asctime)s %(levelname)-8s %(name)-16s %(message)s"
+    base_format = "%(asctime)s %(levelname)-8s %(name)-7s %(message)s"
     time_format = "%H:%M:%S"  # %Y-%m-%d
     formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
 

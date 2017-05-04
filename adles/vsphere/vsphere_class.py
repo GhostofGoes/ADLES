@@ -20,7 +20,7 @@ from pyVmomi import vim, vmodl
 
 class Vsphere:
     """ Maintains connection, logging, and constants for a vSphere instance """
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -58,7 +58,7 @@ class Vsphere:
             self._log.error("Invalid vSphere login credentials for user %s", username)
             exit(1)
         except Exception as e:
-            self._log.error("An exception occurred while trying to connect to vSphere: %s", str(e))
+            self._log.exception("Error connecting to vSphere: %s", str(e))
             exit(1)
 
         from atexit import register
@@ -157,8 +157,8 @@ class Vsphere:
             self._log.error("Invalid argument to set permission '%s' on entity '%s': %s",
                             entity.name, str(permission), str(e))
         except Exception as e:
-            self._log.error("Unknown error while setting permissions for entity '%s': %s",
-                            entity.name, str(e))
+            self._log.exception("Unknown error while setting permissions for entity '%s': %s",
+                                entity.name, str(e))
 
     def get_entity_permissions(self, entity, inherited=True):
         """
@@ -217,8 +217,8 @@ class Vsphere:
         try:
             return self.user_dir.RetrieveUserGroups(**kwargs)
         except vim.fault.NotFound:
-            self._log.debug("Could not find domain, group or user in call to get_users"
-                            "\nkwargs: %s", str(kwargs))
+            self._log.warning("Could not find domain, group or user in call to get_users"
+                              "\nkwargs: %s", str(kwargs))
             return None
         except vmodl.fault.NotSupported:
             self._log.error("System doesn't support domains or by-membership queries for get_users")
@@ -253,8 +253,8 @@ class Vsphere:
         if folder_name:  # Try to find the named folder in the datacenter
             return self.get_obj(self.datacenter, [vim.Folder], folder_name)
         else:  # Default to the VM folder in the datacenter
-            self._log.debug("Could not find folder '%s' in Datacenter '%s', defaulting to vmFolder",
-                            folder_name, self.datacenter.name)
+            self._log.warning("Could not find folder '%s' in Datacenter '%s', "
+                              "defaulting to vmFolder", folder_name, self.datacenter.name)
             return self.datacenter.vmFolder  # Reference: pyvmomi/docs/vim/Datacenter.rst
 
     def get_vm(self, vm_name):

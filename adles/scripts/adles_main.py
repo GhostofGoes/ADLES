@@ -19,10 +19,10 @@
 Uses formal YAML specifications to create virtual environments for educational purposes.
 
 Usage:
-    adles [options]
-    adles [options] -c SPEC [-t TYPE]
-    adles [options] (-m | -d) [-p] -s SPEC
-    adles [options] (--cleanup-masters | --cleanup-enviro) [--nets] -s SPEC
+    adles [options] [-]
+    adles [options] [-t TYPE] -c SPEC [-]
+    adles [options] (-m | -d) [-p] -s SPEC [-]
+    adles [options] (--cleanup-masters | --cleanup-enviro) [--nets] -s SPEC [-]
 
 Options:
     -n, --no-color              Do not color terminal output
@@ -49,6 +49,7 @@ Examples:
     adles --verbose --masters --spec examples/experiment.yaml
     adles -vds examples/competition.yaml
     adles --cleanup-masters --nets -s examples/competition.yaml
+    cat spec.yaml | adles -v -c -
 
 License:    Apache 2.0
 Author:     Christopher Goes <goes8945@vandals.uidaho.edu>
@@ -62,7 +63,7 @@ from docopt import docopt
 from pyVmomi import vim
 
 from adles.interfaces import Interface
-from adles.parser import check_syntax, parse_file
+from adles.parser import check_syntax, parse_yaml
 from adles.utils import setup_logging
 from adles import __version__
 
@@ -80,7 +81,6 @@ def main():
 
         spec = check_syntax(args["--spec"])  # Validate syntax before proceeding
         if spec is None:
-            logging.error("Syntax check failed")
             exit(1)
         if "name" not in spec["metadata"]:  # Default name is the filename of the specification
             from os.path import basename, splitext
@@ -93,11 +93,11 @@ def main():
                 logging.error("Specified infrastructure config file '%s' could not be found,"
                               " falling back to exercise configuration", infra_file)
             else:
-                logging.debug("Overriding infrastructure config file with '%s'", infra_file)
+                logging.info("Overriding infrastructure config file with '%s'", infra_file)
                 spec["metadata"]["infra-file"] = infra_file
 
         try:  # Instantiate the interface and call the functions for the specified phase
-            interface = Interface(infra=parse_file(spec["metadata"]["infra-file"]), spec=spec)
+            interface = Interface(infra=parse_yaml(spec["metadata"]["infra-file"]), spec=spec)
             if args["--masters"]:
                 interface.create_masters()
                 logging.info("Finished Master creation for %s", spec["metadata"]["name"])
@@ -111,12 +111,13 @@ def main():
                 interface.cleanup_environment(args["--nets"])
                 logging.info("Finished cleanup of %s", spec["metadata"]["name"])
             else:
-                logging.error("Invalid flags for --spec. Argument dump:\n%s", str(args))
+                logging.critical("Invalid flags for --spec. Argument dump:\n%s", str(args))
         except vim.fault.NoPermission as e:  # Log permission errors
             logging.error("Permission error: \n%s", str(e))
             exit(1)
         except KeyboardInterrupt:  # Handle user exits gracefully
-            logging.error("User terminated session prematurely")
+            print()
+            logging.warning("User terminated session prematurely")
             exit(1)
 
     elif args["--validate"]:  # Just validate syntax, no building of environment
@@ -137,7 +138,7 @@ def main():
             print("Example scenarios that can be printed using --print-example <name>")
             print("Name".ljust(25) + "Version".ljust(10) + "Description")  # Print header
             for example in examples:
-                metadata = parse_file(path.join(example_dir, example + ".yaml"))["metadata"]
+                metadata = parse_yaml(path.join(example_dir, example + ".yaml"))["metadata"]
                 name = str(example).ljust(25)
                 ver = str(metadata["version"]).ljust(10)
                 desc = str(metadata["description"])
