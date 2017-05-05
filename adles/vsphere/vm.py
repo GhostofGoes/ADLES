@@ -28,7 +28,7 @@ class VM:
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object is 
                     not used to initialize the instance.
     """
-    __version__ = "0.6.0"
+    __version__ = "0.7.0"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -62,10 +62,10 @@ class VM:
             self.folder = folder  # vim.Folder that will contain the VM
             self.resource_pool = resource_pool  # vim.ResourcePool to use for the VM
             self.datastore = datastore  # vim.Datastore object to store VM on
-            self.host = host  # vim.HostSystem (TODO: may be Host class soon)
+            self.host = host  # vim.HostSystem
 
     @utils.time_execution
-    def create(self, template=None, cpus=1, cores=1, memory=512, max_consoles=None,
+    def create(self, template=None, cpus=None, cores=None, memory=None, max_consoles=None,
                version=None, firmware='efi', datastore_path=None):
         """
         Creates a Virtual Machine
@@ -90,19 +90,18 @@ class VM:
                                          spec=clonespec).wait(120):
                 self._log.error("Error cloning VM %s", self.name)
                 return False
-            # TODO: if cloned, reconfigure to match anything given as parameters, e.g memory
         else:  # Generate the specification for and create the new VM
             self._log.debug("Creating VM '%s' from scratch", self.name)
             spec = vim.vm.ConfigSpec()
             spec.name = self.name
-            spec.numCPUs = int(cpus)
-            spec.numCoresPerSocket = int(cores)
+            spec.numCPUs = int(cpus) if cpus is not None else 1
+            spec.numCoresPerSocket = int(cores) if cores is not None else 1
             spec.cpuHotAddEnabled = True
-            spec.memoryMB = int(memory)
+            spec.memoryMB = int(memory) if memory is not None else 512
             spec.memoryHotAddEnabled = True
             spec.firmware = str(firmware).lower()
             if version is not None:
-                spec.version = str(version)
+                spec.version = "vmx-" + str(version)
             if max_consoles is not None:
                 spec.maxMksConnections = int(max_consoles)
             vm_path = '[' + self.datastore.name + '] '
@@ -119,11 +118,13 @@ class VM:
         if not self._vm:
             self._log.error("Failed to make VM %s", self.name)
             return False
-        else:
-            self._log.debug("Created VM %s", self.name)
         self.network = self._vm.network
         self.runtime = self._vm.runtime
         self.summary = self._vm.summary
+        if template is not None:  # Edit resources for a clone if specified
+            self.edit_resources(cpus=cpus, cores=cores, memory=memory, max_consoles=max_consoles)
+
+        self._log.debug("Created VM %s", self.name)
         return True
 
     def destroy(self):
@@ -211,9 +212,8 @@ class VM:
         Upgrades the hardware version of the VM
         :param int version: Version of hardware to upgrade VM to [default: latest host supports]
         """
-        full_version = "vmx-" + str(version)
         try:
-            self._vm.UpgradeVM_Task(full_version).wait()
+            self._vm.UpgradeVM_Task("vmx-" + str(version)).wait()
         except vim.fault.AlreadyUpgraded:
             self._log.warning("Hardware version is already up-to-date for %s", self.name)
 
@@ -306,7 +306,7 @@ class VM:
         """
         self._log.info("Creating snapshot '%s' of VM '%s'", name, self.name)
         if not self._vm.CreateSnapshot_Task(name=name, description=description,
-                                     memory=bool(memory), quiesce=quiesce).wait():
+                                            memory=bool(memory), quiesce=quiesce).wait():
             self._log.error("Failed to take snapshot of VM %s", self.name)
 
     def revert_to_snapshot(self, snapshot):
@@ -767,7 +767,6 @@ class VM:
         """
         return bool(self._vm.summary.config.template)
 
-    # http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.vm.GuestOsDescriptor.GuestOsIdentifier.html
     def is_windows(self):
         """
         Checks if a VM's guest OS is Windows

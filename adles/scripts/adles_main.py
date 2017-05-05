@@ -49,7 +49,7 @@ Examples:
     adles --verbose --masters --spec examples/experiment.yaml
     adles -vds examples/competition.yaml
     adles --cleanup-masters --nets -s examples/competition.yaml
-    cat spec.yaml | adles -v -c -
+    adles --print-example competition | adles -v -c -
 
 License:    Apache 2.0
 Author:     Christopher Goes <goes8945@vandals.uidaho.edu>
@@ -128,7 +128,6 @@ def main():
         if check_syntax(args["--validate"], spec_type) is None:
             logging.error("Syntax check failed")
 
-    # TODO: run example as input (should do this by supporting stdin)
     elif args["--list-examples"] or args["--print-example"]:  # Show examples on commandline
         from pkg_resources import Requirement, resource_filename
         from os import listdir, path
