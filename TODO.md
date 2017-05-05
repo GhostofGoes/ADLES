@@ -24,7 +24,16 @@ That way they can run independantly and improve usage of network resources.
 ### VsphereInterface
 * Apply group permissions
 * Apply master-group permissions
-* Take "template" and other platform identifiers global keywords per-interface
+* _create_service(): Validate the configuration of an existing service template to a reasonable degree
+* Implement configuration of "network-interface" for services in the "services" top-level section
+* _get_net(): could use this to do network lookups on the server as well
+* cleanup_masters(): finish implementing, look at getorphanedvms in pyvmomi-community-samples for how to do this
+* cleanup_environment(): implement, ensure master-folder is skipped
+* Use Network folders to aid in network cleanup for both phases
+* init(): Better vSwitch default
+* Finish implementing hosts (since there's self.host and self.hosts currently)
+* Deal with potential naming conflicts in self.masters cache of Master instances
+* Make "template" and other platform identifiers global keywords per-interface
 
 ## Vsphere
 * Evaluate using WaitForTask from pyVim in pyvmomi instead of wait_for_task() in vsphere_utils
@@ -47,6 +56,12 @@ That way they can run independantly and improve usage of network resources.
 ## Scripts
 
 # Additions
+
+## Specs
+* Add network folder(s) to vsphere infrastructrure specification
+
+## Examples
+
 
 # Features
 

@@ -45,9 +45,6 @@ def create_folder(folder, folder_name):
     return None
 
 
-vim.Folder.create = create_folder  # Injection of method into pyVmomi object
-
-
 def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
             destroy_folders=False, destroy_self=False):
     """
@@ -80,9 +77,6 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
         folder.UnregisterAndDestroy_Task().wait()
 
 
-vim.Folder.cleanup = cleanup  # Injection of method into pyVmomi object
-
-
 def get_in_folder(folder, name, recursive=False, vimtype=None):
     """
     Retrieves an item from a datacenter folder
@@ -111,9 +105,6 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
     return item
 
 
-vim.Folder.get = get_in_folder  # Injection of method into pyVmomi object
-
-
 def find_in_folder(folder, name, recursive=False, vimtype=None):
     """
     Finds and returns an specific object in a folder
@@ -137,9 +128,6 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
         if found is not None:
             return found
     return None
-
-
-vim.Folder.find_in = find_in_folder  # Injection of method into pyVmomi object
 
 
 def traverse_path(folder, path, lookup_root=None, generate=False):
@@ -189,9 +177,6 @@ def traverse_path(folder, path, lookup_root=None, generate=False):
         return current
 
 
-vim.Folder.traverse_path = traverse_path  # Injection of method into pyVmomi object
-
-
 def enumerate_folder(folder, recursive=True, power_status=False):
     """
     Enumerates a folder structure and returns the result as a python object with the same structure
@@ -224,9 +209,6 @@ def enumerate_folder(folder, recursive=True, power_status=False):
         else:
             children.append("UNKNOWN ITEM: %s" % str(item))
     return '+ ' + folder.name, children  # Return tuple of parent and children
-
-
-vim.Folder.enumerate = enumerate_folder  # Injection of method into pyVmomi object
 
 
 # Similar to: https://docs.python.org/3/library/pprint.html
@@ -285,9 +267,6 @@ def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
     return vms, folders
 
 
-vim.Folder.retrieve_items = retrieve_items  # Injection of method into pyVmomi object
-
-
 def move_into(folder, entity_list):
     """
     Moves a list of managed entities into the named folder.
@@ -298,9 +277,6 @@ def move_into(folder, entity_list):
     """
     logging.debug("Moving a list of %d entities into folder %s", len(entity_list), folder.name)
     folder.MoveIntoFolder_Task(entity_list).wait()
-
-
-vim.Folder.move_into = move_into  # Injection of method into pyVmomi object
 
 
 def rename(folder, name):
@@ -314,4 +290,15 @@ def rename(folder, name):
     folder.Rename_Task(newName=str(name)).wait()
 
 
-vim.Folder.rename = rename  # Injection of method into pyVmomi object
+# Injection of methods into vim.Folder pyVmomi class
+# These enable "<folder>.create('name')" instead of "folder_utils.create_folder(<folder>, 'name')"
+# This works because the implicit first argument to a class method call in Python is the instance
+vim.Folder.create = create_folder
+vim.Folder.cleanup = cleanup
+vim.Folder.get = get_in_folder
+vim.Folder.find_in = find_in_folder
+vim.Folder.traverse_path = traverse_path
+vim.Folder.enumerate = enumerate_folder
+vim.Folder.retrieve_items = retrieve_items
+vim.Folder.move_into = move_into
+vim.Folder.rename = rename
