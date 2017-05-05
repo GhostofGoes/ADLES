@@ -21,7 +21,6 @@ SLEEP_INTERVAL = 0.05
 LONG_SLEEP = 1.0
 
 
-# TODO: could possibly use instead: from pyVim import WaitForTask
 def wait_for_task(task, timeout=60.0, pause_timeout=True):
     """
     Waits for a single vCenter task to finish and returns its result
@@ -90,10 +89,6 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
     except vim.fault.ResourceInUse:
         logging.error("Cannot complete task %s: resource %s is in use", name, obj)
     return None
-
-
-# Possible alternate method(s) of doing tasks (TODO: profile performance):
-#   https://github.com/vmware/pyvmomi-tools/blob/master/pyvmomi_tools/extensions/task.py
 # This line allows calling "<task>.wait(<params>)" instead of "wait_for_task(task, params)"
 # This works because the implicit first argument to a class method call in Python is the instance
 vim.Task.wait = wait_for_task  # Inject into vim.Task class

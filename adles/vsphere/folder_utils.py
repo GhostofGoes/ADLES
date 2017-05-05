@@ -45,7 +45,7 @@ def create_folder(folder, folder_name):
     return None
 
 
-vim.Folder.create = create_folder
+vim.Folder.create = create_folder  # Injection of method into pyVmomi object
 
 
 def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
@@ -62,13 +62,10 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
     :param bool destroy_self: Destroy the folder specified [default: False]
     """
     logging.debug("Cleaning folder '%s'", folder.name)
-    # import adles.vsphere.vm_utils as vm_utils  # Prevents module-level import issues
     from adles.vsphere.vm import VM
 
     for item in folder.childEntity:
         if is_vm(item) and str(item.name).startswith(vm_prefix):  # Handle VMs
-            # TODO: this is janky and breaks separation, should pass a function to call as arg
-            # vm_utils.destroy_vm(vm=item)  # Delete the VM from the Datastore
             VM(vm=item).destroy()  # Delete the VM from the Datastore
         elif is_folder(item) and str(item.name).startswith(folder_prefix):  # Handle folders
             if destroy_folders:  # Destroys folder and ALL of it's sub-objects
@@ -83,7 +80,7 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
         folder.UnregisterAndDestroy_Task().wait()
 
 
-vim.Folder.cleanup = cleanup
+vim.Folder.cleanup = cleanup  # Injection of method into pyVmomi object
 
 
 def get_in_folder(folder, name, recursive=False, vimtype=None):
@@ -112,7 +109,9 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
         else:
             logging.error("There are no items in folder %s", folder.name)
     return item
-vim.Folder.get = get_in_folder
+
+
+vim.Folder.get = get_in_folder  # Injection of method into pyVmomi object
 
 
 def find_in_folder(folder, name, recursive=False, vimtype=None):
@@ -138,7 +137,9 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
         if found is not None:
             return found
     return None
-vim.Folder.find_in = find_in_folder
+
+
+vim.Folder.find_in = find_in_folder  # Injection of method into pyVmomi object
 
 
 def traverse_path(folder, path, lookup_root=None, generate=False):
@@ -186,7 +187,9 @@ def traverse_path(folder, path, lookup_root=None, generate=False):
         return find_in_folder(current, name)
     else:  # No basename, so just return whatever was at the end of the path
         return current
-vim.Folder.traverse_path = traverse_path
+
+
+vim.Folder.traverse_path = traverse_path  # Injection of method into pyVmomi object
 
 
 def enumerate_folder(folder, recursive=True, power_status=False):
@@ -221,7 +224,9 @@ def enumerate_folder(folder, recursive=True, power_status=False):
         else:
             children.append("UNKNOWN ITEM: %s" % str(item))
     return '+ ' + folder.name, children  # Return tuple of parent and children
-vim.Folder.enumerate = enumerate_folder  # Inject method
+
+
+vim.Folder.enumerate = enumerate_folder  # Injection of method into pyVmomi object
 
 
 # Similar to: https://docs.python.org/3/library/pprint.html
@@ -278,7 +283,9 @@ def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
                 vms.extend(v)
                 folders.extend(f)
     return vms, folders
-vim.Folder.retrieve_items = retrieve_items
+
+
+vim.Folder.retrieve_items = retrieve_items  # Injection of method into pyVmomi object
 
 
 def move_into(folder, entity_list):
@@ -291,7 +298,9 @@ def move_into(folder, entity_list):
     """
     logging.debug("Moving a list of %d entities into folder %s", len(entity_list), folder.name)
     folder.MoveIntoFolder_Task(entity_list).wait()
-vim.Folder.move_into = move_into
+
+
+vim.Folder.move_into = move_into  # Injection of method into pyVmomi object
 
 
 def rename(folder, name):
@@ -303,4 +312,6 @@ def rename(folder, name):
     """
     logging.debug("Renaming %s to %s", folder.name, name)
     folder.Rename_Task(newName=str(name)).wait()
-vim.Folder.rename = rename
+
+
+vim.Folder.rename = rename  # Injection of method into pyVmomi object

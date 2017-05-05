@@ -44,7 +44,6 @@ class Interface:
         # Select the Interface to use based on the specified infrastructure platform
         for platform, config in infra.items():
             if platform == "vmware-vsphere":
-                # TODO: support multiple vSphere instances (e.g for remote labs)
                 from .vsphere_interface import VsphereInterface
                 self.interfaces.append(VsphereInterface(config, spec))
             elif platform == "docker":
@@ -54,7 +53,6 @@ class Interface:
                 self._log.error("Invalid platform: %s", str(platform))
                 raise ValueError
 
-    # TODO: subprocess each interface call
     @time_execution
     def create_masters(self):
         """ Master creation phase """
@@ -112,7 +110,7 @@ class Interface:
                     # size_of = spec["instances"]["size-of"])
                     # num = int(self._get_group(size_of).size
                     # if num < 1:
-                    num = 1  # TODO: WORKAROUND FOR AD-GROUPS
+                    num = 1  # WORKAROUND FOR AD-GROUPS
                 else:
                     self._log.error("Unknown instances specification: %s", str(spec["instances"]))
                     num = 0

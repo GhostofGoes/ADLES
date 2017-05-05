@@ -220,10 +220,7 @@ def default_prompt(prompt, default=None):
         logging.info("Exiting...")
         exit(0)
     else:
-        if value == '':
-            return default
-        else:
-            return value
+        return default if value == '' else value
 
 
 def _script_warning_prompt():
@@ -335,8 +332,6 @@ def setup_logging(filename, colors=True, console_verbose=False, server=('localho
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
     logging.debug("Configured logging to SysLog server %s:%s", server[0], str(server[1]))
-
-    # TODO: configure logging to Splunk (https://github.com/zach-taylor/splunk_handler)
 
     # Configure console output
     console = logging.StreamHandler(stream=stdout)

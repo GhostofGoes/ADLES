@@ -26,7 +26,7 @@ from adles.interfaces import Interface
 
 class VsphereInterface(Interface):
     """ Generic interface for the VMware vSphere platform """
-    __version__ = "1.0.3"
+    __version__ = "1.0.4"
 
     # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
@@ -64,7 +64,7 @@ class VsphereInterface(Interface):
 
         # Read infrastructure login information
         if "login-file" in infra:
-            logins = read_json(infra["login-file"])  # TODO: is this secure?
+            logins = read_json(infra["login-file"])
         else:
             self._log.warning("No login-file specified, defaulting to user prompts...")
             logins = {}
@@ -77,7 +77,7 @@ class VsphereInterface(Interface):
                               datastore=infra.get("datastore"),
                               datacenter=infra.get("datacenter"))
 
-        # Acquire ESXi hosts (TODO: make these their own classes /w network, etc methods)
+        # Acquire ESXi hosts
         if "hosts" in infra:
             hosts = infra["hosts"]
             self.host = self.server.get_host(hosts[0])  # TODO: temporary hack
@@ -147,7 +147,7 @@ class VsphereInterface(Interface):
         # Initialize Active Directory-type Group user names
         ad_groups = get_ad_groups(groups)
         for g in ad_groups:
-            # res = self.server.get_users(belong_to_group=g.ad_group, find_users=True) (TODO)
+            # res = self.server.get_users(belong_to_group=g.ad_group, find_users=True)
             res = None
             if res is not None:
                 for r in res:
@@ -161,7 +161,6 @@ class VsphereInterface(Interface):
 
         if hasattr(self.server.user_dir, "domainList"):
             self._log.debug("Domains on server: %s", str(self.server.user_dir.domainList))
-
         return groups
 
     def create_masters(self):
@@ -207,17 +206,14 @@ class VsphereInterface(Interface):
             self._log.warning("Skipping disabled parent-type folder %s", parent.name)
             return
 
-        group = None
-        master_group = None
-
         # We have to check every item, as they could be either keywords or sub-folders
         for sub_name, sub_value in folder.items():
             if sub_name in skip_keys:  # Skip configurations that are not relevant
                 continue
             elif sub_name == "group":
-                group = self._get_group(sub_value)
+                pass  # group = self._get_group(sub_value)
             elif sub_name == "master-group":
-                master_group = self._get_group(sub_value)
+                pass  # master_group = self._get_group(sub_value)
             else:
                 folder_name = self.master_prefix + sub_name
                 new_folder = self.server.create_folder(folder_name, create_in=parent)
@@ -235,10 +231,6 @@ class VsphereInterface(Interface):
                     else:
                         self._log.warning("Skipping disabled parent-type folder %s", sub_name)
 
-        # TODO: apply master group permissions
-        if master_group is None:
-            master_group = group
-
     def _master_base_folder_gen(self, folder_name, folder_dict, parent):
         """
         Generates base-type Master folders
@@ -247,11 +239,11 @@ class VsphereInterface(Interface):
         :param parent: Parent folder
         :type parent: vim.Folder
         """
-        # Set the group to apply permissions for (TODO: apply permissions)
-        if "master-group" in folder_dict:
-            master_group = self._get_group(folder_dict["master-group"])
-        else:
-            master_group = self._get_group(folder_dict["group"])
+        # Set the group to apply permissions for
+        # if "master-group" in folder_dict:
+        #     master_group = self._get_group(folder_dict["master-group"])
+        # else:
+        #     master_group = self._get_group(folder_dict["group"])
 
         # Create Master instances
         for sname, sconfig in folder_dict["services"].items():
@@ -459,7 +451,7 @@ class VsphereInterface(Interface):
             if sub_name in skip_keys:  # Skip configurations that are not relevant
                 continue
             elif sub_name == "group":  # Configure group
-                group = self._get_group(sub_value)  # TODO: apply group permissions
+                pass  # group = self._get_group(sub_value)
             else:  # Create instances of the parent folder
                 self._log.debug("Deploying parent-type folder '%s'", sub_name)
                 num_instances, prefix = self._instances_handler(spec, sub_name, "folder")
@@ -496,8 +488,8 @@ class VsphereInterface(Interface):
         :type parent: vim.Folder
         :param str path: Folders path at the current level
         """
-        # Set the group to apply permissions for (TODO: apply permissions)
-        group = self._get_group(folder_items["group"])
+        # Set the group to apply permissions for
+        # group = self._get_group(folder_items["group"])
 
         # Get number of instances and check if it exceeds configured limits
         num_instances, prefix = self._instances_handler(folder_items, folder_name, "folder")
@@ -564,7 +556,6 @@ class VsphereInterface(Interface):
         :return: If a service is a vSphere-type service
         :rtype: bool
         """
-        # TODO: make "template" and other platform identifiers global keywords
         if service_name not in self.services:
             self._log.error("Could not find service %s in list of services", service_name)
         elif "template" in self.services[service_name]:

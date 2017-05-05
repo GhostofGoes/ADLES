@@ -252,7 +252,6 @@ class VM:
         :return: Program Process ID (PID) if it was executed successfully, -1 if not
         :rtype: int
         """
-        # TODO: listprocesses/terminate process in guest, make helper func for guest authentication
         from os.path import basename
         prog_name = basename(program_path)
         if not self.has_tools():
@@ -397,7 +396,6 @@ class VM:
         nic_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
         nic_spec.device.connectable.connected = True
         nic_spec.device.connectable.status = 'untried'
-        # TODO: configure guest IP address if statically assigned
         self._edit(vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply change to VM
 
     def edit_nic(self, nic_id, network=None, summary=None):
@@ -665,7 +663,7 @@ class VM:
         :rtype: str
         """
         # Check for ideas: snapshot_operations.py in pyvmomi_community_samples
-        pass  # TODO: implement
+        pass  # TBD
 
     def get_info(self, detailed=False, uuids=False, snapshot=False, vnics=False):
         """

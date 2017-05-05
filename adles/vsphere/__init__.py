@@ -6,7 +6,7 @@ from adles.vsphere import network_utils
 
 from .vsphere_class import Vsphere
 from .vm import VM
-from .hosts import Host
+from .host import Host
 
 __all__ = ['network_utils', 'vsphere_utils', 'folder_utils',
-           'vsphere_class', 'vm', 'hosts', 'folder']
+           'vsphere_class', 'vm', 'host', 'folder']

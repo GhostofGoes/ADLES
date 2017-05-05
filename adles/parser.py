@@ -62,7 +62,6 @@ def _checker(value_list, source, data, flag):
     :return: Number of hits (warnings/errors)
     :rtype: int
     """
-    # TODO: add type checking, perhaps use a tuple of (value, type)
     num_hits = 0
     for value in value_list:
         if value not in data:
@@ -281,7 +280,6 @@ def _verify_network(name, network):
     return num_errors, num_warnings
 
 
-# TODO: check if networks, services, groups, resources are properly configured and matched
 def _verify_folders_syntax(folders):
     """
     Verifies that the syntax for folders matches the specification
@@ -308,7 +306,7 @@ def _verify_folders_syntax(folders):
                     logging.error("Number of instances for folder '%s' must be an Integer", key)
                     num_errors += 1
             elif "size-of" in value["instances"]:
-                pass  # TODO: verify group existence
+                pass
             else:
                 logging.error("Must specify number of instances for folder '%s'", key)
                 num_errors += 1

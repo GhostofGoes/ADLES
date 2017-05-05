@@ -17,7 +17,6 @@ import logging
 from pyVmomi import vim
 
 
-# TODO: edit vswitch, edit portgroup
 class Host:
     """ Represents an ESXi host in a VMware vSphere environment. """
     __version__ = "0.3.0"
@@ -129,7 +128,7 @@ class Host:
         :return: Formatted host information
         :rtype: str
         """
-        return str(self.config)  # TODO: host information much like get_info()
+        return str(self.config)
 
     def get_net_item(self, object_type, name):
         """
@@ -211,12 +210,3 @@ class Host:
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-
-# TODO: implement
-class Cluster:
-    """ Represents a cluster of ESXi hosts in a VMware vSphere environment. """
-    __version__ = "0.1.0"
-
-    def __init__(self):
-        self._log = logging.getLogger('Cluster')
