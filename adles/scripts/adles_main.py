@@ -37,7 +37,7 @@ Options:
     --cleanup-masters           Cleanup masters created by a specification
     --cleanup-enviro            Cleanup environment created by a specification
     --nets                      Cleanup networks created during either phase
-    --print-spec NAME           Prints the named: exercise, package, infrastructure
+    --print-spec NAME           Prints the named specification: exercise, package, infrastructure
     --list-examples             Prints the list of examples available
     --print-example NAME        Prints the named example
     -h, --help                  Shows this help
@@ -162,6 +162,7 @@ def main():
         specs = ["exercise", "package", "infrastructure"]
 
         if spec in specs:  # Find spec in package installation directory and print it
+            # This extracts the specifications from their package installation location
             filename = resource_filename(Requirement.parse("ADLES"),
                                          join("specifications", spec + "-specification.yaml"))
             with open(filename) as f:

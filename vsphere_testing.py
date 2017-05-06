@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""vsphere_testing. Entrypoint used to test the vSphere class. Has examples of API usage.
+"""vsphere_testing. Used to experiment and test the Vsphere class. Has examples of API usage.
 
 Usage:
     vsphere_testing.py [-v] [options]
