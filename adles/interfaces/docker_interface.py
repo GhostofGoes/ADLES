@@ -24,7 +24,6 @@ import adles.utils as utils
 from adles.interfaces import Interface
 
 
-# TODO: test and implement
 class DockerInterface(Interface):
     """ Generic interface for the Docker platform """
 

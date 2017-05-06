@@ -74,7 +74,7 @@ def main():
                 folder_prefix = ''
                 destroy_self = False
 
-        # Show user what options they selected (TODO: do these options as cmdline arg flags)
+        # Show user what options they selected
         logging.info("Options selected\nVM Prefix: %s\nFolder Prefix: %s\nRecursive: %s\n"
                      "Folder-destruction: %s\nSelf-destruction: %s", str(vm_prefix),
                      str(folder_prefix), recursive, destroy_folders, destroy_self)

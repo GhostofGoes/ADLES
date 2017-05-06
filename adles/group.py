@@ -71,6 +71,16 @@ class Group:
         self._log.debug("Finished initializing Group '%s' with %d users",
                         self.name, self.size)
 
+    def __str__(self):
+        return self.name
+
+    def __eq__(self, other):
+        return self.name == other.name and self.users == other.users and \
+               self.group_type == other.group_type
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 def get_ad_groups(groups):
     """

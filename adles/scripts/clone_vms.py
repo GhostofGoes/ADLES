@@ -90,7 +90,7 @@ def main():
                 f = create_in
                 vm_name = name + pad(instance)    # Append instance number
             new_vm = VM(name=vm_name, folder=f, resource_pool=pool, datastore=datastore)
-            new_vm.create(template=vm.get_vim_vm())  # TODO: allow user to modify specs of instances
+            new_vm.create(template=vm.get_vim_vm())
 
 
 if __name__ == '__main__':

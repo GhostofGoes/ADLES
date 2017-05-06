@@ -49,8 +49,6 @@ def main():
                           " [on | off | reset | suspend]: "))
     attempt_guest = ask_question("Attempt to use guest OS operations, if available? ")
 
-    # TODO: prefixes
-    # TODO: nesting
     if ask_question("Multiple VMs? ", default="yes"):
         folder, folder_name = resolve_path(server, "folder", "with VMs")
         vms = [VM(vm=x) for x in folder.childEntity if is_vm(x)]

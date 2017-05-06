@@ -58,6 +58,7 @@ Project:    https://github.com/GhostofGoes/ADLES
 """
 
 import logging
+from os.path import basename, exists, splitext, join
 
 from docopt import docopt
 from pyVmomi import vim
@@ -74,27 +75,32 @@ def main():
     setup_logging(filename='adles.log', colors=colors, console_verbose=args["--verbose"])
 
     if args["--spec"]:  # If there's a specification
+        override = None
         if args["--package"]:  # Package specification
-            # TODO: implement basic extraction of environment spec from package spec
-            logging.error("Package specifications are not implemented yet")
-            exit(1)
-
-        spec = check_syntax(args["--spec"])  # Validate syntax before proceeding
-        if spec is None:
+            package_spec = check_syntax(args["--spec"], spec_type="package")
+            if package_spec is None:  # Ensure it passed the check
+                exit(1)
+            spec_filename = package_spec["contents"]["environment"]  # Extract exercise spec file
+            if "infrastructure" in package_spec["contents"]:
+                override = package_spec["contents"]["infrastructure"]  # Extract infra file
+        else:
+            spec_filename = args["--spec"]
+        spec = check_syntax(spec_filename)  # Validate specification syntax before proceeding
+        if spec is None:  # Ensure it passed the check
             exit(1)
         if "name" not in spec["metadata"]:  # Default name is the filename of the specification
-            from os.path import basename, splitext
             spec["metadata"]["name"] = splitext(basename(args["--spec"]))[0]
 
         if args["--infra"]:  # Override the infra file defined in exercise/package specification
-            from os.path import exists
             infra_file = args["--infra"]
             if not exists(infra_file):
-                logging.error("Specified infrastructure config file '%s' could not be found,"
-                              " falling back to exercise configuration", infra_file)
+                logging.error("Could not find infra file '%s' to override with", infra_file)
             else:
-                logging.info("Overriding infrastructure config file with '%s'", infra_file)
-                spec["metadata"]["infra-file"] = infra_file
+                override = infra_file
+
+        if override is not None:  # Override infra file in exercise config
+            logging.info("Overriding infrastructure config file with '%s'", override)
+            spec["metadata"]["infra-file"] = override
 
         try:  # Instantiate the interface and call the functions for the specified phase
             interface = Interface(infra=parse_yaml(spec["metadata"]["infra-file"]), spec=spec)
@@ -130,14 +136,14 @@ def main():
 
     elif args["--list-examples"] or args["--print-example"]:  # Show examples on commandline
         from pkg_resources import Requirement, resource_filename
-        from os import listdir, path
+        from os import listdir
         example_dir = resource_filename(Requirement.parse("ADLES"), "examples")
         examples = [x[:-5] for x in listdir(example_dir) if ".yaml" in x]  # Filter non-yaml
         if args["--list-examples"]:  # List all examples and their metadata
             print("Example scenarios that can be printed using --print-example <name>")
             print("Name".ljust(25) + "Version".ljust(10) + "Description")  # Print header
             for example in examples:
-                metadata = parse_yaml(path.join(example_dir, example + ".yaml"))["metadata"]
+                metadata = parse_yaml(join(example_dir, example + ".yaml"))["metadata"]
                 name = str(example).ljust(25)
                 ver = str(metadata["version"]).ljust(10)
                 desc = str(metadata["description"])
@@ -145,14 +151,13 @@ def main():
         else:
             example = args["--print-example"]
             if example in examples:  # Print out the complete content of a named example
-                with open(path.join(example_dir, example + ".yaml")) as f:
+                with open(join(example_dir, example + ".yaml")) as f:
                     print(f.read())
             else:
                 logging.error("Invalid example: %s", example)
 
     elif args["--print-spec"]:  # Show specifications on commandline
         from pkg_resources import Requirement, resource_filename
-        from os.path import join
         spec = args["--print-spec"]
         specs = ["exercise", "package", "infrastructure"]
 

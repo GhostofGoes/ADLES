@@ -84,11 +84,11 @@ def main():
         elif op == "remove-all":
             vm.remove_all_snapshots()
         elif op == "get":
-            logging.info(vm.get_snapshot_info(name))    # TODO: implement
+            logging.info(vm.get_snapshot_info(name))
         elif op == "get-current":
-            logging.info(vm.get_snapshot_info())        # TODO: implement
+            logging.info(vm.get_snapshot_info())
         elif op == "get-all":
-            logging.info(vm.get_all_snapshots_info())   # TODO: implement
+            logging.info(vm.get_all_snapshots_info())
         elif op == "disk-usage":
             logging.info(vm.snapshot_disk_usage())
         else:
