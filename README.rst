@@ -21,6 +21,7 @@ Overview
 :alt: Overview of the system
    :align: center
 
+
     Automated Deployment of Lab Environments System (ADLES)
 
 | ADLES automates the deterministic creation of virtualized environments for use in
@@ -51,6 +52,7 @@ Usage
 :alt: Usage flowchart
    :align: center
 
+
     -  Read the exercise and infrastructure specifications and examples of them
     -  Write an infrastructure specification for your platform (Currently, VMware vSphere is the only platform supported)
     -  Write an exercise specification with the environment you want created
@@ -67,7 +69,10 @@ Usage
 System requirements
 ===================
 
-**Python**: 3.4+ (Recommended), 2.7.6+ (Will be deprecated in the future)
+**Python**:
+
+-  3.4+     (Recommended)
+-  2.7.6+   (Will be deprecated in the future)
 
 
 Python packages
