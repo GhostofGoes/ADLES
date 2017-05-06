@@ -18,11 +18,12 @@ Overview
 ========
 
 .. image:: documentation/system-overview-diagram.png
-:alt: Overview of the system
+   :scale: 50 %
    :align: center
+   :alt: Overview of the system
 
 
-    Automated Deployment of Lab Environments System (ADLES)
+Automated Deployment of Lab Environments System (ADLES)
 
 | ADLES automates the deterministic creation of virtualized environments for use in
   Cybersecurity and Information Technology (IT) education.
@@ -49,14 +50,15 @@ Usage
 =====
 
 .. image:: documentation/usage-flowchart.png
-:alt: Usage flowchart
+   :scale: 50 %
    :align: center
+   :alt: Usage flowchart
 
 
-    -  Read the exercise and infrastructure specifications and examples of them
-    -  Write an infrastructure specification for your platform (Currently, VMware vSphere is the only platform supported)
-    -  Write an exercise specification with the environment you want created
-    -  Check its syntax, run the mastering phase, make your changes, and then run the deployment phase.
+ -  Read the exercise and infrastructure specifications and examples of them
+ -  Write an infrastructure specification for your platform (Currently, VMware vSphere is the only platform supported)
+ -  Write an exercise specification with the environment you want created
+ -  Check its syntax, run the mastering phase, make your changes, and then run the deployment phase.
 
 .. code:: bash
 
