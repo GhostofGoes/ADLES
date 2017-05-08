@@ -13,9 +13,10 @@
 .. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
    :target: https://opensource.org/licenses/Apache-2.0
    :alt: License
-.. image:: https://readthedocs.org/projects/adles/badge/?version=latest
-   :target: http://adles.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/adles/badge/
+   :target: http://adles.readthedocs.io/en/latest/
    :alt: Documentation Status
+
 
 
 Overview
@@ -30,8 +31,12 @@ Automated Deployment of Lab Environments System (ADLES)
   time and effort, and alieviates the requirement of possessing advanced IT knowledge.
 
 
+Complete documentation can be found at ReadTheDocs: https://adles.readthedocs.io
+
+
 Getting started
 ===============
+
 
 .. code:: bash
 
@@ -44,15 +49,17 @@ Getting started
    adles --print-example competition
 
 
+
 Usage
 =====
 
-How to use:
+Creating an environment using ADLES:
 
--  Read the exercise and infrastructure specifications and examples of them.
--  Write an infrastructure specification for your platform. (Currently, VMware vSphere is the only platform supported)
--  Write an exercise specification with the environment you want created.
--  Check its syntax, run the mastering phase, make your changes, and then run the deployment phase.
+* Read the exercise and infrastructure specifications and examples of them.
+* Write an infrastructure specification for your platform. (Currently, VMware vSphere is the only platform supported)
+* Write an exercise specification with the environment you want created.
+* Check its syntax, run the mastering phase, make your changes, and then run the deployment phase.
+
 
 .. code:: bash
 
@@ -62,19 +69,20 @@ How to use:
    adles -d -s my-competition.yaml
 
 
+
 System requirements
 ===================
 
 **Python**:
 
--  3.4+     (Recommended)
--  2.7.6+   (Will be deprecated in the future)
+* 3.4+     (Recommended)
+* 2.7.6+   (Will be deprecated in the future)
 
 ADLES will run on any platform supported by Python. It has been tested on:
 
--  Windows 10 (Anniversary and Creators)
--  Ubuntu 14.04 and 16.04 (Including Bash on Ubuntu on Windows)
--  CentOS 7
+* Windows 10 (Anniversary and Creators)
+* Ubuntu 14.04 and 16.04 (Including Bash on Ubuntu on Windows)
+* CentOS 7
 
 
 Python packages
@@ -82,12 +90,12 @@ Python packages
 
 See ``requirements.txt`` for specific versions
 
--  pyvmomi
--  docopt
--  pyyaml
--  netaddr
--  colorlog
--  setuptools (If you are installing manually or developing)
+* pyvmomi
+* docopt
+* pyyaml
+* netaddr
+* colorlog
+* setuptools (If you are installing manually or developing)
 
 
 Platforms
@@ -95,13 +103,8 @@ Platforms
 
 **VMware vSphere**
 
--  vCenter Server: 6.0+
--  ESXi: 6.0+
-
-
-**Docker**
-|   Docker is currently in a pre-alpha development state. Eventually, the DockerInterface will
-    support Docker Machine, Docker Compose, and potentially Docker Swarm.
+* vCenter Server: 6.0+
+* ESXi: 6.0+
 
 
 Contributing
@@ -110,6 +113,9 @@ Contributing
 Contributions are most definitely welcome! See ``TODO.md`` for a list of what needs to be done.
 Before submitting a pull request, do ensure you follow the general style and conventions used.
 Just read the code for a bit to get a feel for how things are done, and stay consistent with that.
+
+If you have questions about the system, don't hesitate to contact me by email or Twitter.
+(Email is in init.py, Twitter handle is same as GitHub).
 
 
 Goals and TODO
@@ -124,13 +130,13 @@ and contribute to improving cyber education globally.
 
 Main things on the radar (see ``TODO.md`` for full list):
 
--  User and group implementation for Vsphere
--  Post-phase cleanups
--  Result collection
--  Provisioners
--  Automated testing for utils and ideally Vsphere
--  Working Docker platform implementation
--  Implement a cloud platform interface, with Amazon AWS or Microsoft Azure being the easiest picks
+* User and group implementation for Vsphere
+* Post-phase cleanups
+* Result collection
+* Provisioners
+* Automated testing for utils and ideally Vsphere
+* Working Docker platform implementation
+* Implement a cloud platform interface, with Amazon AWS or Microsoft Azure being the easiest picks
 
 
 License
