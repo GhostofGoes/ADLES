@@ -17,12 +17,6 @@
 Overview
 ========
 
-.. image:: documentation/system-overview-diagram.png
-   :scale: 40
-   :align: center
-   :alt: Overview of the system
-
-
 Automated Deployment of Lab Environments System (ADLES)
 
 | ADLES automates the deterministic creation of virtualized environments for use in
@@ -30,6 +24,12 @@ Automated Deployment of Lab Environments System (ADLES)
 | The system enables educators to easily build deterministic and
   portable environments for their courses, saving significant amounts of
   time and effort, and alieviates the requirement of possessing advanced IT knowledge.
+
+
+.. image:: documentation/system-overview-diagram.png
+   :width: 40pt
+   :align: center
+   :alt: Overview of the system
 
 
 Getting started
@@ -49,12 +49,6 @@ Getting started
 Usage
 =====
 
-.. image:: documentation/usage-flowchart.png
-   :scale: 40
-   :align: center
-   :alt: Usage flowchart
-
-
 How to use:
 
 -  Read the exercise and infrastructure specifications and examples of them.
@@ -68,6 +62,12 @@ How to use:
    adles -c my-competition.yaml
    adles -m -s my-competition.yaml
    adles -d -s my-competition.yaml
+
+
+.. image:: documentation/usage-flowchart.png
+   :width: 40pt
+   :align: center
+   :alt: Usage flowchart
 
 
 System requirements

@@ -1,6 +1,12 @@
 List of tasks and TODOs for ADLES.
 These range from minor tweaks, fixes, and improvements to major tasks and feature additions.
 
+If you need help getting spun up on the VMware vSphere Python library, pyvmomi, I highly suggest checking out 
+[pyvmomi-community-samples](https://github.com/vmware/pyvmomi-community-samples) and 
+[pyvmomi](https://github.com/vmware/pyvmomi). You'll find references to it throughout the code.
+
+Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fright-pane.html).
+
 # Documentation
 * Development guide: how to setup development environment, contribute, etc.
 * Generate Sphinx docs
@@ -29,11 +35,11 @@ e.g we want 30 students, each in their own VM, with no ability to see or mess wi
 
 ## Main Application
 * Unit tests for utils (doctest as well)
-* Unit tests for vSphere. These could run when there is access to a server, or using the `vcrpy` module.
+* Unit tests for vSphere. These could run when there is access to a server, or using the [`vcrpy`](https://pypi.python.org/pypi/vcrpy) module.
 * Integrate tests into travis, consolidate travis commandline tests into a script?
-* Add resiliency using `shelve` module and other methods, so long-running phases aren't killed by simple errors.
+* Add resiliency using [`shelve`](https://docs.python.org/3/library/shelve.html) module and other methods, so long-running phases aren't killed by simple errors.
 * Implement provisioners
-* Evaluate alternatives to current syntax validator, such as Swagger
+* Evaluate alternatives to current syntax validator. The best I've found is [Swagger](http://swagger.io/) and it's [Python binding, `connexion`](https://pypi.python.org/pypi/connexion).
 
 ### Parser
 * Make the parser a class to enable passing of state between methods
@@ -42,7 +48,7 @@ e.g we want 30 students, each in their own VM, with no ability to see or mess wi
 * Verify group existance
 
 ### Utils
-* setup_logging(): Add Splunk logging handler to (https://github.com/zach-taylor/splunk_handler)
+* setup_logging(): Add [Splunk logging handler](https://github.com/zach-taylor/splunk_handler).
 * Compression utility for implementing packages
 
 
