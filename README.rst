@@ -13,6 +13,10 @@
 .. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
    :target: https://opensource.org/licenses/Apache-2.0
    :alt: License
+.. image:: https://readthedocs.org/projects/adles/badge/?version=latest
+   :target: http://adles.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
 
 Overview
 ========
@@ -24,12 +28,6 @@ Automated Deployment of Lab Environments System (ADLES)
 | The system enables educators to easily build deterministic and
   portable environments for their courses, saving significant amounts of
   time and effort, and alieviates the requirement of possessing advanced IT knowledge.
-
-
-.. image:: documentation/system-overview-diagram.png
-   :width: 40pt
-   :align: center
-   :alt: Overview of the system
 
 
 Getting started
@@ -62,12 +60,6 @@ How to use:
    adles -c my-competition.yaml
    adles -m -s my-competition.yaml
    adles -d -s my-competition.yaml
-
-
-.. image:: documentation/usage-flowchart.png
-   :width: 40pt
-   :align: center
-   :alt: Usage flowchart
 
 
 System requirements

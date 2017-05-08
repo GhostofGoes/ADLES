@@ -233,11 +233,10 @@ def _script_warning_prompt():
     return str(
         '***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
         '\n ** Help and Documentation **'
-        '\n* "<script>.py --help": flags, arguments, and usage'
-        '\n* "cat <script>.py": read the source code and see how it works'
-        '\n* "cd ./documentation && ls -la": show available documentation'
-        '\n+ Open an issue on the project GitHub: %s'
-        '\n+ Email the script author: %s'
+        '\n+ "<script> --help": flags, arguments, and usage'
+        '\n+ Read the latest documentation  : https://adles.readthedocs.io'
+        '\n+ Open an issue on GitHub        : %s'
+        '\n+ Email the script author        : %s'
         '\n' % (__url__, __email__))
 
 
