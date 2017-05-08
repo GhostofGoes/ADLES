@@ -17,7 +17,7 @@ These range from minor tweaks, fixes, and improvements to major tasks and featur
 
 
 # Specs
-* Add network folder(s) to vsphere infrastructrure specification
+* Add network folder(s) to vsphere infrastructure specification
 
 ## Exercise
 * Add more network services to networks section, e.g DNS/DHCP configs, NTP

@@ -18,7 +18,7 @@ Overview
 ========
 
 .. image:: documentation/system-overview-diagram.png
-   :scale: 50 %
+   :scale: 40
    :align: center
    :alt: Overview of the system
 
@@ -50,15 +50,17 @@ Usage
 =====
 
 .. image:: documentation/usage-flowchart.png
-   :scale: 50 %
+   :scale: 40
    :align: center
    :alt: Usage flowchart
 
 
- -  Read the exercise and infrastructure specifications and examples of them
- -  Write an infrastructure specification for your platform (Currently, VMware vSphere is the only platform supported)
- -  Write an exercise specification with the environment you want created
- -  Check its syntax, run the mastering phase, make your changes, and then run the deployment phase.
+How to use:
+
+-  Read the exercise and infrastructure specifications and examples of them.
+-  Write an infrastructure specification for your platform. (Currently, VMware vSphere is the only platform supported)
+-  Write an exercise specification with the environment you want created.
+-  Check its syntax, run the mastering phase, make your changes, and then run the deployment phase.
 
 .. code:: bash
 
@@ -76,6 +78,12 @@ System requirements
 -  3.4+     (Recommended)
 -  2.7.6+   (Will be deprecated in the future)
 
+ADLES will run on any platform supported by Python. It has been tested on:
+
+-  Windows 10 (Anniversary and Creators)
+-  Ubuntu 14.04 and 16.04 (Including Bash on Ubuntu on Windows)
+-  CentOS 7
+
 
 Python packages
 ~~~~~~~~~~~~~~~
@@ -89,22 +97,19 @@ See ``requirements.txt`` for specific versions
 -  colorlog
 -  setuptools (If you are installing manually or developing)
 
+
 Platforms
----------
+~~~~~~~~~
 
-VMware vSphere
-~~~~~~~~~~~~~~
+**VMware vSphere**
 
--  **vSphere** >= 6.0
--  **ESXi** >= 6.0
+-  vCenter Server: 6.0+
+-  ESXi: 6.0+
 
-vSphere/ESXi 5.5 should work as well, but is untested.
 
-Docker
-~~~~~~
-
-Docker is currently in a pre-alpha development state. Eventually, the DockerInterface will
-support Docker Machine, Docker Compose, and potentially Docker Swarm.
+**Docker**
+|   Docker is currently in a pre-alpha development state. Eventually, the DockerInterface will
+    support Docker Machine, Docker Compose, and potentially Docker Swarm.
 
 
 Contributing
