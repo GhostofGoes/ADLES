@@ -17,21 +17,27 @@ from setuptools import setup, find_packages
 from adles import __version__, __email__, __author__, __url__, __license__
 
 
-with open('requirements.txt') as f:
+with open('requirements.txt') as f:  # Loads in required packages
     required = f.read().splitlines()
 
-with open('README.rst') as f:
+with open('README.rst') as f:  # Loads in the README for PyPI
     long_description = f.read()
 
 
 setup(
     name='ADLES',
     version=__version__,
+    author=__author__,
+    author_email=__email__,
+    description='Automated Deployment of Lab Environments System (ADLES)',
+    long_description=long_description,  # This is what you see on PyPI page
+    url=__url__,
+    download_url='https://pypi.python.org/pypi/ADLES',
+    license=__license__,
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,
     zip_safe=False,
-    install_requires=required,
-    entry_points={
+    entry_points={  # These enable commandline usage of ADLES and the scripts
         'console_scripts': [
             'adles = adles.scripts.adles_main:main',
             'clone-vms = adles.scripts.clone_vms:main',
@@ -41,15 +47,7 @@ setup(
             'vm-snapshots = adles.scripts.vm_snapshots:main'
         ]
     },
-    author=__author__,
-    author_email=__email__,
-    description='Automated Deployment of Lab Environments System (ADLES)',
-    long_description=long_description,
-    url=__url__,
-    download_url='https://pypi.python.org/pypi/ADLES',
-    license=__license__,
-    keywords="adles virtualization automation vmware vsphere yaml labs virtual vms python pyvmomi "
-             "cybersecurity education uidaho radicl environments deployment docker lol 1337 setup",
+    install_requires=required,
     setup_requires=[
         "pytest-runner==2.11.1"
     ],
@@ -57,10 +55,13 @@ setup(
         "pytest==3.0.7",
         "pytest-cov==2.4.0"
     ],
-    classifiers=[
+    test_suite='test',
+    platforms=['Windows', 'Linux', 'Solaris', 'Mac OS-X', 'Unix'],
+    keywords="adles virtualization automation vmware vsphere yaml labs virtual vms python pyvmomi "
+             "cybersecurity education uidaho radicl environments deployment docker lol 1337 setup",
+    classifiers=[  # Used by PyPI to classify the project and make searchable by others
         'Development Status :: 4 - Beta',
         'Environment :: Console',
-        'Operating System :: OS Independent',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
@@ -69,8 +70,11 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
+        'Operating System :: OS Independent',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
+        'Operating System :: Unix',
+        'Operating System :: MacOS'
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
@@ -80,13 +84,9 @@ setup(
         'Topic :: Education',
         'Topic :: Education :: Testing',
         'Topic :: Security',
-        'Topic :: Software Development',
+        'Topic :: System :: Distributed Computing',
         'Topic :: System :: Systems Administration',
         'Topic :: System :: Installation/Setup',
-        'Topic :: System :: Clustering',
-        'Topic :: Utilities',
-        'Topic :: Documentation :: Sphinx',
-        'Topic :: Other/Nonlisted Topic',
-        'Natural Language :: English'
+        'Topic :: Utilities'
     ]
 )
