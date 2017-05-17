@@ -92,7 +92,7 @@ class Vsphere:
         :rtype: vim.Folder
         """
         if create_in:
-            if type(create_in) is str:  # create_in is a string, so we look it up on the server
+            if isinstance(create_in, str):  # create_in is a string, so we look it up on the server
                 self._log.debug("Retrieving parent folder '%s' from server", create_in)
                 parent = self.get_folder(folder_name=create_in)
             else:
@@ -278,7 +278,7 @@ class Vsphere:
             return self.get_obj(container=self.datacenter.networkFolder, vimtypes=[vim.Network],
                                 name=str(network_name), recursive=True)
         else:
-            return self.get_item(vim.dvs.DistributedVirtualPortgroup,  network_name)
+            return self.get_item(vim.dvs.DistributedVirtualPortgroup, network_name)
 
     def get_host(self, host_name=None):
         """
@@ -344,9 +344,9 @@ class Vsphere:
         """
         con_view = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
         obj = None
-        for c in con_view.view:
-            if c.name.lower() == name.lower():
-                obj = c
+        for item in con_view.view:
+            if item.name.lower() == name.lower():
+                obj = item
                 break
         con_view.Destroy()
         return obj
@@ -363,8 +363,8 @@ class Vsphere:
         """
         objs = []
         con_view = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
-        for c in con_view.view:
-            objs.append(c)
+        for item in con_view.view:
+            objs.append(item)
         con_view.Destroy()
         return objs
 
@@ -435,7 +435,7 @@ class Vsphere:
     def find_by_inv_path(self, path, datacenter=None):
         """
         Finds a vim.ManagedEntity (VM, host, resource pool, folder, etc) in a inventory
-        :param str path: Path to the entity 
+        :param str path: Path to the entity
         (INCLUDING the hidden Vsphere folder for the type: vm | network | datastore | host)!
         Example: "vm/some-things/more-things/vm-name"
         :param str datacenter: Name of datacenter to search in [default: instance's datacenter]

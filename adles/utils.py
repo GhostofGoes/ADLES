@@ -15,7 +15,7 @@
 import logging
 import logging.handlers
 
-from sys import stdout, exit
+import sys
 import os
 
 
@@ -89,11 +89,13 @@ def read_json(filename):
     try:
         with open(filename) as json_file:
             return load(fp=json_file)
-    except ValueError as e:
-        logging.error("Syntax Error in JSON file '%s': %s", filename, str(e))
+    except ValueError as message:
+        logging.error("Syntax Error in JSON file '%s': %s",
+                      filename, str(message))
         return None
-    except Exception as e:
-        logging.critical("Could not open JSON file '%s': %s", filename, str(e))
+    except Exception as message:
+        logging.critical("Could not open JSON file '%s': %s",
+                         filename, str(message))
         return None
 
 
@@ -104,12 +106,16 @@ def split_path(path):
     >>> split_path('/path/To/A/f1le')
     (['path', 'To', 'A'], 'file')
 
-    :param str path: 
+    :param str path: Path to split
     :return: Path, basename
     :rtype: tuple(list(str), str)
     """
-    folder_path, name = os.path.split(path.lower())  # Separate basename and convert to lowercase
-    folder_path = folder_path.split('/')  # Transform path into list
+    # Separate basename and convert to lowercase
+    folder_path, name = os.path.split(path.lower())
+
+    # Transform path into list
+    folder_path = folder_path.split('/')
+
     if folder_path[0] == '':
         del folder_path[0]
     return folder_path, name
@@ -118,7 +124,7 @@ def split_path(path):
 def make_vsphere(filename=None):
     """
     Creates a vSphere object using either a JSON file or by prompting the user
-    :param str filename: Name of JSON file with information needed [default: None]
+    :param str filename: Name of JSON file with connection info [default: None]
     :return: vSphere object
     :rtype: :class:`Vsphere`
     """
@@ -154,7 +160,7 @@ def user_input(prompt, obj_name, func):
         except KeyboardInterrupt:
             print()
             logging.info("Exiting...")
-            exit(0)
+            sys.exit(0)
         item = func(item_name)
         if item:
             logging.info("Found %s: %s", obj_name, item.name)
@@ -170,7 +176,7 @@ def ask_question(question, default="no"):
     Prompts user to answer a question
 
     >>> ask_question("Do you like the color yellow?")
-    Do you like the color yellow? [y/N] 
+    Do you like the color yellow? [y/N]
 
     :param str question: Question to ask
     :param str default: No
@@ -195,7 +201,7 @@ def ask_question(question, default="no"):
         except KeyboardInterrupt:
             print()  # Output a blank line for readability
             logging.info("Exiting...")
-            exit(0)
+            sys.exit(0)
 
         if default is not None and choice == '':
             return valid[default]
@@ -218,7 +224,7 @@ def default_prompt(prompt, default=None):
     except KeyboardInterrupt:
         print()  # Output a blank line for readability
         logging.info("Exiting...")
-        exit(0)
+        sys.exit(0)
     else:
         return default if value == '' else value
 
@@ -268,7 +274,7 @@ def script_setup(logging_filename, args, script=None):
     except KeyboardInterrupt:
         print()  # Output a blank line for readability
         logging.info("Exiting...")
-        exit(0)
+        sys.exit(0)
 
 
 def resolve_path(server, thing, prompt=""):
@@ -291,14 +297,16 @@ def resolve_path(server, thing, prompt=""):
         raise ValueError
 
     res = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
-                     lambda x: server.find_by_inv_path("vm/" + x) if '/' in x else get(x))
+                     lambda x: server.find_by_inv_path("vm/" + x)
+                     if '/' in x else get(x))
     if thing.lower() == "vm":
         return VM(vm=res[0]), res[1]
     else:
         return res
 
 
-def setup_logging(filename, colors=True, console_verbose=False, server=('localhost', 514)):
+def setup_logging(filename, colors=True, console_verbose=False,
+                  server=('localhost', 514)):
     """
     Configures the logging interface used by everything for output
     :param str filename: Name of file that logs should be saved to
@@ -318,8 +326,8 @@ def setup_logging(filename, colors=True, console_verbose=False, server=('localho
     formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
 
     # Configures the base logger to append to a file
-    logging.basicConfig(level=logging.DEBUG, format=base_format, datefmt=time_format,
-                        filename=filename, filemode='a')
+    logging.basicConfig(level=logging.DEBUG, format=base_format,
+                        datefmt=time_format, filename=filename, filemode='a')
 
     # Get the global root logger
     logger = logging.root
@@ -330,10 +338,11 @@ def setup_logging(filename, colors=True, console_verbose=False, server=('localho
     syslog.setLevel(logging.DEBUG)
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
-    logging.debug("Configured logging to SysLog server %s:%s", server[0], str(server[1]))
+    logging.debug("Configured logging to SysLog server %s:%s",
+                  server[0], str(server[1]))
 
     # Configure console output
-    console = logging.StreamHandler(stream=stdout)
+    console = logging.StreamHandler(stream=sys.stdout)
     if colors:  # Colored console output
         try:
             # noinspection PyUnresolvedReferences
@@ -342,7 +351,8 @@ def setup_logging(filename, colors=True, console_verbose=False, server=('localho
                                          datefmt=time_format, reset=True)
             logging.debug("Configured COLORED console logging output")
         except ImportError:
-            logging.error("Colorlog is not installed. Using STANDARD console output...")
+            logging.error("Colorlog is not installed. "
+                          "Using STANDARD console output...")
     else:  # Bland console output
         logging.debug("Configured STANDARD console logging output")
     console.setFormatter(formatter)

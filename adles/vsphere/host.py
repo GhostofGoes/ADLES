@@ -133,12 +133,12 @@ class Host:
     def get_net_item(self, object_type, name):
         """
         Retrieves a network object of the specified type and name from a host
-        :param str object_type: Type of object to get: (portgroup | vswitch | 
+        :param str object_type: Type of object to get: (portgroup | vswitch |
                                 proxyswitch | vnic | pnic)
         :param str name: Name of network object [default: first object found]
         :return: The network object
         :rtype: vim.Network or vim.VirtualSwitch or vim.VirtualEthernetCard or None
-        
+
         .. todo:: determine what possible return types there are
         """
         if name:
@@ -149,13 +149,13 @@ class Host:
     def get_net_obj(self, object_type, name, refresh=False):
         """
         Retrieves a network object of the specified type and name from a host
-        :param str object_type: Type of object to get: (portgroup | vswitch | 
+        :param str object_type: Type of object to get: (portgroup | vswitch |
                                 proxyswitch | vnic | pnic)
         :param name: Name of network object
         :param bool refresh: Refresh the host's network system information [default: False]
         :return: The network object
         :rtype: vim.Network or vim.VirtualSwitch or vim.VirtualEthernetCard or None
-        
+
         .. todo:: determine what possible return types there are
         """
         objs = self.get_net_objs(object_type=object_type, refresh=refresh)
@@ -175,7 +175,7 @@ class Host:
     def get_net_objs(self, object_type, refresh=False):
         """
         Retrieves all network objects of the specified type from the host
-        :param str object_type: Type of object to get: (portgroup | vswitch | 
+        :param str object_type: Type of object to get: (portgroup | vswitch |
                                 proxyswitch | vnic | pnic)
         :param bool refresh: Refresh the host's network system information [default: False]
         :return: list of the network objects

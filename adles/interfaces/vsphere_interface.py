@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from sys import exit
+import sys
 import os.path
 
 from adles.vsphere.folder_utils import format_structure
@@ -93,7 +93,7 @@ class VsphereInterface(Interface):
             self.server_root = self.server.get_folder(infra["server-root"])
             if not self.server_root:
                 self._log.error("Could not find server-root folder '%s'", infra["server-root"])
-                exit(1)
+                sys.exit(1)
         else:
             self.server_root = self.server.datacenter.vmFolder  # Default to Datacenter VM folder
         self._log.info("Server root folder: %s", self.server_root.name)
@@ -113,7 +113,7 @@ class VsphereInterface(Interface):
             self.root_folder = self.server.create_folder(self.root_name, parent)
             if not self.root_folder:
                 self._log.error("Could not create root folder '%s'", self.root_name)
-                exit(1)
+                sys.exit(1)
         self._log.info("Environment root folder: %s", self.root_folder.name)
 
         # Set default vSwitch name
@@ -143,18 +143,18 @@ class VsphereInterface(Interface):
 
         # Initialize Active Directory-type Group user names
         ad_groups = get_ad_groups(groups)
-        for g in ad_groups:
+        for group in ad_groups:
             # res = self.server.get_users(belong_to_group=g.ad_group, find_users=True)
             res = None
             if res is not None:
-                for r in res:
-                    if r.group is True:  # Reference: pyvmomi/docs/vim/UserSearchResult.rst
-                        self._log.error("Result '%s' is not a user", str(r))
+                for result in res:
+                    if result.group is True:  # Reference: pyvmomi/docs/vim/UserSearchResult.rst
+                        self._log.error("Result '%s' is not a user", str(result))
                     else:
-                        g.users.append(r.principal)
-                g.size = (len(g.users) if len(g.users) > 1 else 1)  # Set the size, default to 1
+                        group.users.append(result.principal)
+                group.size = (len(group.users) if len(group.users) > 1 else 1)  # Set the size, default to 1
             else:
-                self._log.error("Could not initialize AD-group %s", str(g.ad_group))
+                self._log.error("Could not initialize AD-group %s", str(group.ad_group))
 
         if hasattr(self.server.user_dir, "domainList"):
             self._log.debug("Domains on server: %s", str(self.server.user_dir.domainList))
@@ -377,7 +377,7 @@ class VsphereInterface(Interface):
                             "Please ensure the  Master Creation phase has been run "
                             "and the folder exists before attempting Deployment",
                             self.master_root_name)
-            exit(1)
+            sys.exit(1)
         self._log.debug("Master folder name: %s\tPrefix: %s",
                         self.master_folder.name, self.master_prefix)
 

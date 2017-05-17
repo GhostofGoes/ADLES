@@ -27,7 +27,7 @@ class Group:
         self._log = logging.getLogger('Group')
         self._log.debug("Initializing Group '%s'", name)
 
-        if type(group) != dict:
+        if not isinstance(group, dict):
             self._log.error("Class Group must be initialized with a dict, not a %s. "
                             "\nThe offending object: %s", type(group).__name__, str(group))
             raise Exception()
@@ -90,16 +90,16 @@ def get_ad_groups(groups):
     :rtype: list(:class:`Group`)
     """
     ad_groups = []
-    for _, g in groups.items():  # Ignore the group name, nab the group
-        if type(g) == list:
-            for i in g:
-                if type(i) == Group:
+    for _, group in groups.items():  # Ignore the group name, nab the group
+        if isinstance(group, list):
+            for i in group:
+                if isinstance(i, Group):
                     if i.group_type == "ad":
                         ad_groups.append(i)
-        elif type(g) == Group:
-            if g.group_type == "ad":
-                ad_groups.append(g)
+        elif isinstance(group, Group):
+            if group.group_type == "ad":
+                ad_groups.append(group)
         else:
             logging.error("Invalid type '%s' for a group in get_ad_groups: %s",
-                          type(g).__name__, str(g))
+                          type(group).__name__, str(group))
     return ad_groups

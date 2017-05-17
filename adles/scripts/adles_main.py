@@ -151,8 +151,8 @@ def main():
         else:
             example = args["--print-example"]
             if example in examples:  # Print out the complete content of a named example
-                with open(join(example_dir, example + ".yaml")) as f:
-                    print(f.read())
+                with open(join(example_dir, example + ".yaml")) as file:
+                    print(file.read())
             else:
                 logging.error("Invalid example: %s", example)
 
@@ -165,8 +165,8 @@ def main():
             # This extracts the specifications from their package installation location
             filename = resource_filename(Requirement.parse("ADLES"),
                                          join("specifications", spec + "-specification.yaml"))
-            with open(filename) as f:
-                print(f.read())
+            with open(filename) as file:
+                print(file.read())
         else:
             logging.error("Invalid specification: %s", spec)
 

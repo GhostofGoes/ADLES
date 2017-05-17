@@ -26,7 +26,7 @@ class Interface:
     master_root_name = "MASTER-FOLDERS"
 
     def __init__(self, infra, spec):
-        """ 
+        """
         :param dict infra: Full infrastructure configuration
         :param dict spec: Full exercise specification
         """
@@ -99,7 +99,7 @@ class Interface:
         num = 1
         prefix = ""
         if "instances" in spec:
-            if type(spec["instances"]) == int:
+            if isinstance(spec["instances"], int):
                 num = int(spec["instances"])
             else:
                 if "prefix" in spec["instances"]:
@@ -140,7 +140,7 @@ class Interface:
     def _is_enabled(spec):
         """
         Determines if a spec is enabled
-        :param dict spec: 
+        :param dict spec: Specification to check
         :return: If the spec is enabled
         :rtype: bool
         """
@@ -172,13 +172,13 @@ class Interface:
         """
         from adles.group import Group
         if group_name in self.groups:
-            g = self.groups[group_name]
-            if isinstance(g, Group):    # Normal groups
-                return g
-            elif isinstance(g, list):   # Template groups
-                return g[0]
+            group = self.groups[group_name]
+            if isinstance(group, Group):    # Normal groups
+                return group
+            elif isinstance(group, list):   # Template groups
+                return group[0]
             else:
-                self._log.error("Unknown type for group '%s': %s", str(group_name), str(type(g)))
+                self._log.error("Unknown type for group '%s': %s", str(group_name), str(type(group)))
         else:
             self._log.error("Could not get group '%s' from groups", group_name)
 

@@ -95,9 +95,9 @@ def _verify_exercise_metadata_syntax(metadata):
             logging.error("Could not open infra-file '%s'", infra_file)
             num_errors += 1
         else:
-            e, w = verify_infra_syntax(parse_yaml(infra_file))
-            num_errors += e
-            num_warnings += w
+            err, warn = verify_infra_syntax(parse_yaml(infra_file))
+            num_errors += err
+            num_warnings += warn
     return num_errors, num_warnings
 
 
@@ -110,14 +110,14 @@ def _verify_groups_syntax(groups):
     """
     num_warnings = 0
     num_errors = 0
-    
+
     for key, value in groups.items():
         if "instances" in value:  # Template groups
-            if type(value["instances"]) != int:
+            if not isinstance(value["instances"], int):
                 logging.error("Instances must be an Integer for group %s", key)
                 num_errors += 1
             if "ad-group" in value:
-                if type(value["ad-group"]) != str:
+                if not isinstance(value["ad-group"], str):
                     logging.error("AD group must be a string")
                     num_errors += 1
             elif "filename" in value:
@@ -129,7 +129,7 @@ def _verify_groups_syntax(groups):
                 num_errors += 1
         else:  # Regular groups (not templates)
             if "ad-group" in value:
-                if type(value["ad-group"]) != str:
+                if not isinstance(value["ad-group"], str):
                     logging.error("AD group must be a string")
                     num_errors += 1
             elif "filename" in value:
@@ -137,7 +137,7 @@ def _verify_groups_syntax(groups):
                 num_errors += e
                 num_warnings += w
             elif "user-list" in value:
-                if type(value["user-list"]) is not list:
+                if not isinstance(value["user-list"], list):
                     logging.error("Username specification must be a list for group %s", key)
                     num_errors += 1
             else:
@@ -171,7 +171,7 @@ def _verify_services_syntax(services):
     """
     num_warnings = 0
     num_errors = 0
-    
+
     for key, value in services.items():
         if "network-interfaces" in value and not isinstance(value["network-interfaces"], list):
             logging.error("Network interfaces must be a list for service %s", key)
@@ -224,9 +224,9 @@ def _verify_networks_syntax(networks):
         num_errors += 1
     else:
         for name, network in networks.items():
-            e, w = _verify_network(name, network)
-            num_errors += e
-            num_warnings += w
+            err, warn = _verify_network(name, network)
+            num_errors += err
+            num_warnings += warn
     return num_errors, num_warnings
 
 
@@ -240,7 +240,7 @@ def _verify_network(name, network):
     """
     num_warnings = 0
     num_errors = 0
-    
+
     for key, value in network.items():
         # Subnet verification
         if "subnet" not in value:
@@ -274,7 +274,7 @@ def _verify_network(name, network):
             if name == "unique-networks":
                 logging.error("Increment cannot be used for network %s", key)
                 num_errors += 1
-            elif type(value["increment"]) != bool:
+            elif not isinstance(value["increment"], bool):
                 logging.error("Increment must be a boolean for network %s", key)
                 num_errors += 1
     return num_errors, num_warnings
@@ -294,15 +294,15 @@ def _verify_folders_syntax(folders):
     for key, value in folders.items():
         if key in keywords:
             continue
-        if type(value) is not dict:
+        if not isinstance(value, dict):
             logging.error("Invalid configuration %s", str(key))
             num_errors += 1
             continue
         if "instances" in value:  # Check instances syntax, regardless of parent or base
-            if type(value["instances"]) is int:
+            if not isinstance(value["instances"], int):
                 pass
             elif "number" in value["instances"]:
-                if type(value["instances"]["number"]) != int:
+                if not isinstance(value["instances"]["number"], int):
                     logging.error("Number of instances for folder '%s' must be an Integer", key)
                     num_errors += 1
             elif "size-of" in value["instances"]:
@@ -320,23 +320,23 @@ def _verify_folders_syntax(folders):
                 if "service" not in svalue:
                     logging.error("Service %s is unnamed in folder '%s'", skey, key)
                     num_errors += 1
-                if "networks" in svalue and type(svalue["networks"]) is not list:
+                if "networks" in svalue and not isinstance(svalue["networks"], list):
                     logging.error("Network specifications must be a list for service '%s' "
                                   "in folder '%s'", skey, key)
                     num_errors += 1
                 if "scoring" in svalue:
-                    e, w = _verify_scoring_syntax(skey, svalue["scoring"])
-                    num_errors += e
-                    num_warnings += w
+                    err, warn = _verify_scoring_syntax(skey, svalue["scoring"])
+                    num_errors += err
+                    num_warnings += warn
         else:  # It's a parent folder
             if not isinstance(value, dict):
                 logging.error("Could not verify syntax of folder '%s': '%s' is not a folder!",
                               str(key), str(value))
                 num_errors += 1
             else:
-                e, w = _verify_folders_syntax(value)
-                num_errors += e
-                num_warnings += w
+                err, warn = _verify_folders_syntax(value)
+                num_errors += err
+                num_warnings += warn
     return num_errors, num_warnings
 
 
@@ -374,7 +374,7 @@ def verify_infra_syntax(infra):
             if "login-file" in config and utils.read_json(config["login-file"]) is None:
                 logging.error("Invalid vSphere infrastructure login-file: %s", config["login-file"])
                 num_errors += 1
-            if "host-list" in config and type(config["host-list"]) is not list:
+            if "host-list" in config and not isinstance(config["host-list"], list):
                 logging.error("Invalid type for vSphere host-list: %s", type(config["host-list"]))
                 num_errors += 1
             if "thresholds" in config:
@@ -426,9 +426,9 @@ def verify_exercise_syntax(spec):
                 logging.warning("Unknown definition found: %s", key)
                 num_warnings += 1
         else:
-            e, w = func(spec[key])
-            num_errors += e
-            num_warnings += w
+            err, warn = func(spec[key])
+            num_errors += err
+            num_warnings += warn
     return num_errors, num_warnings
 
 

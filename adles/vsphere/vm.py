@@ -24,8 +24,8 @@ from adles.vsphere.folder_utils import find_in_folder
 # Docs: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
 class VM:
     """ Represents a VMware vSphere Virtual Machine instance.
-     
-    .. warning::    You must call :meth:`create` if a vim.VirtualMachine object is 
+
+    .. warning::    You must call :meth:`create` if a vim.VirtualMachine object is
                     not used to initialize the instance.
     """
     __version__ = "0.7.0"
@@ -241,7 +241,7 @@ class VM:
     def execute_program(self, process_manager, program_path,
                         username=None, password=None, program_args=""):
         """
-        Executes a commandline program in the VM. 
+        Executes a commandline program in the VM.
         This requires VMware Tools to be installed on the VM.
         :param process_manager: vSphere process manager object
         :type process_manager: vim.vm.guest.ProcessManager
@@ -267,9 +267,9 @@ class VM:
                                % (username, prog_name, self.name))
         creds = vim.vm.guest.NamePasswordAuthentication(username=username, password=password)
         try:
-            ps = vim.vm.guest.ProcessManager.ProgramSpec(programPath=program_path,
-                                                         arguments=program_args)
-            pid = process_manager.StartProgramInGuest(self._vm, creds, ps)
+            prog_spec = vim.vm.guest.ProcessManager.ProgramSpec(programPath=program_path,
+                                                                arguments=program_args)
+            pid = process_manager.StartProgramInGuest(self._vm, creds, prog_spec)
             self._log.debug("Successfully started program %s in VM %s, PID is %s",
                             prog_name, self.name, pid)
             return pid
@@ -290,7 +290,7 @@ class VM:
         for disk in disk_list:
             if disk.type == 'snapshotData':
                 size += disk.size
-            ss_disk = search('0000\d\d', disk.name)
+            ss_disk = search(r'0000\d\d', disk.name)
             if ss_disk:
                 size += disk.size
         return utils.sizeof_fmt(size)

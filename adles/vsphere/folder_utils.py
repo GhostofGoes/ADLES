@@ -225,13 +225,13 @@ def format_structure(structure, indent=4, _depth=0):
     fmat = ""
     newline = '\n' + str(_depth * str(indent * ' '))
 
-    if type(structure) == tuple:
+    if isinstance(structure, tuple):
         fmat += newline + str(structure[0])
         fmat += format_structure(structure[1], indent, _depth + 1)
-    elif type(structure) == list:
+    elif isinstance(structure, list):
         for item in structure:
             fmat += format_structure(item, indent, _depth)
-    elif type(structure) == str:
+    elif isinstance(structure, str):
         fmat += newline + structure
     else:
         logging.error("Unexpected type in folder structure for item '%s': %s",
