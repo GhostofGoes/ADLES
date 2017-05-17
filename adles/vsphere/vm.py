@@ -25,10 +25,10 @@ from adles.vsphere.folder_utils import find_in_folder
 class VM:
     """ Represents a VMware vSphere Virtual Machine instance.
 
-    .. warning::    You must call :meth:`create` if a vim.VirtualMachine object is
-                    not used to initialize the instance.
+    .. warning::    You must call :meth:`create` if a vim.VirtualMachine object
+                    is not used to initialize the instance.
     """
-    __version__ = "0.7.0"
+    __version__ = "0.7.1"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -60,13 +60,14 @@ class VM:
             self._vm = None
             self.name = name
             self.folder = folder  # vim.Folder that will contain the VM
-            self.resource_pool = resource_pool  # vim.ResourcePool to use for the VM
+            self.resource_pool = resource_pool  # vim.ResourcePool to use VM
             self.datastore = datastore  # vim.Datastore object to store VM on
             self.host = host  # vim.HostSystem
 
     @utils.time_execution
-    def create(self, template=None, cpus=None, cores=None, memory=None, max_consoles=None,
-               version=None, firmware='efi', datastore_path=None):
+    def create(self, template=None, cpus=None, cores=None, memory=None,
+               max_consoles=None, version=None, firmware='efi',
+               datastore_path=None):
         """
         Creates a Virtual Machine
         :param template: Template VM to clone
@@ -74,15 +75,20 @@ class VM:
         :param int cpus: Number of processors [default: 1]
         :param int cores: Number of processor cores [default: 1]
         :param int memory: Amount of RAM in MB [default: 512]
-        :param int max_consoles: Maximum number of active console connections [default: default]
-        :param int version: Hardware version of the VM [default: highest host supports]
-        :param str firmware: Firmware to emulate for the VM (efi | bios) [default: efi]
-        :param str datastore_path: Path to existing VM files on datastore [default: None]
+        :param int max_consoles: Maximum number of active console connections
+        [default: default]
+        :param int version: Hardware version of the VM
+        [default: highest host supports]
+        :param str firmware: Firmware to emulate for the VM (efi | bios)
+        [default: efi]
+        :param str datastore_path: Path to existing VM files on datastore
+        [default: None]
         :return: If the creation was successful
         :rtype: bool
         """
         if template is not None:  # Use a template to create the VM
-            self._log.debug("Creating VM '%s' by cloning %s", self.name, template.name)
+            self._log.debug("Creating VM '%s' by cloning %s",
+                            self.name, template.name)
             clonespec = vim.vm.CloneSpec()
             clonespec.location = vim.vm.RelocateSpec(pool=self.resource_pool,
                                                      datastore=self.datastore)
@@ -109,12 +115,15 @@ class VM:
                 vm_path += str(datastore_path)
             vm_path += self.name + '/' + self.name + '.vmx'
             spec.files = vim.vm.FileInfo(vmPathName=vm_path)
-            self._log.debug("Creating VM '%s' in folder '%s'", self.name, self.folder.name)
-            if not self.folder.CreateVM_Task(spec, self.resource_pool, self.host).wait():
+            self._log.debug("Creating VM '%s' in folder '%s'",
+                            self.name, self.folder.name)
+            if not self.folder.CreateVM_Task(spec, self.resource_pool,
+                                             self.host).wait():
                 self._log.error("Error creating VM %s", self.name)
                 return False
 
-        self._vm = find_in_folder(self.folder, self.name, vimtype=vim.VirtualMachine)
+        self._vm = find_in_folder(self.folder, self.name,
+                                  vimtype=vim.VirtualMachine)
         if not self._vm:
             self._log.error("Failed to make VM %s", self.name)
             return False
@@ -122,7 +131,8 @@ class VM:
         self.runtime = self._vm.runtime
         self.summary = self._vm.summary
         if template is not None:  # Edit resources for a clone if specified
-            self.edit_resources(cpus=cpus, cores=cores, memory=memory, max_consoles=max_consoles)
+            self.edit_resources(cpus=cpus, cores=cores, memory=memory,
+                                max_consoles=max_consoles)
 
         self._log.debug("Created VM %s", self.name)
         return True
@@ -136,18 +146,23 @@ class VM:
 
     def change_state(self, state, attempt_guest=True):
         """
-        Generic power state change function that uses guest operations if available
+        Generic power state change that uses guest OS operations if available
         :param str state: State to change to (on | off | reset | suspend)
-        :param bool attempt_guest: Whether to attempt to use guest operations to change power state
+        :param bool attempt_guest: Attempt to use guest operations
+        :return: If state change succeeded
+        :rtype: bool
         """
         state = state.lower()  # Convert to lowercase for comparisons
         if self.is_template():
-            self._log.error("VM '%s' is a Template, so state cannot be changed to '%s'",
+            self._log.error("VM '%s' is a Template, so state "
+                            "cannot be changed to '%s'",
                             self.name, state)
-        elif attempt_guest and self.has_tools() and state != "on":  # Can't power on using guest ops
+        # Can't power on using guest ops
+        elif attempt_guest and self.has_tools() and state != "on":
             if self._vm.summary.guest.toolsStatus == "toolsNotInstalled":
-                self._log.error("Cannot change a VM's guest power state without VMware Tools!")
-                return
+                self._log.error("Cannot change a VM's guest power state "
+                                "without VMware Tools!")
+                return False
             elif state == "shutdown" or state == "off":
                 task = self._vm.ShutdownGuest()
             elif state == "reboot" or state == "reset":
@@ -156,12 +171,14 @@ class VM:
                 task = self._vm.StandbyGuest()
             else:
                 self._log.error("Invalid guest_state argument: %s", state)
-                return
-            self._log.debug("Changing guest power state of VM %s to: '%s'", self.name, state)
+                return False
+            self._log.debug("Changing guest power state of VM %s to: '%s'",
+                            self.name, state)
             try:
                 task.wait()
             except vim.fault.ToolsUnavailable:
-                self._log.error("Can't change guest state of '%s': Tools aren't running", self.name)
+                self._log.error("Can't change guest state of '%s': "
+                                "Tools aren't running", self.name)
         else:
             if state == "on":
                 task = self._vm.PowerOnVM_Task()
@@ -173,9 +190,9 @@ class VM:
                 task = self._vm.SuspendVM_Task()
             else:
                 self._log.error("Invalid state arg %s for VM %s", state, self.name)
-                return
+                return False
             self._log.debug("Changing power state of VM %s to: '%s'", self.name, state)
-            task.wait()
+            return bool(task.wait())
 
     def edit_resources(self, cpus=None, cores=None, memory=None, max_consoles=None):
         """
@@ -210,12 +227,14 @@ class VM:
     def upgrade(self, version):
         """
         Upgrades the hardware version of the VM
-        :param int version: Version of hardware to upgrade VM to [default: latest host supports]
+        :param int version: Version of hardware to upgrade VM to
+        [default: latest host supports]
         """
         try:
             self._vm.UpgradeVM_Task("vmx-" + str(version)).wait()
         except vim.fault.AlreadyUpgraded:
-            self._log.warning("Hardware version is already up-to-date for %s", self.name)
+            self._log.warning("Hardware version is already up-to-date for %s",
+                              self.name)
 
     def convert_template(self):
         """ Converts a Virtual Machine to a Template """
@@ -246,16 +265,21 @@ class VM:
         :param process_manager: vSphere process manager object
         :type process_manager: vim.vm.guest.ProcessManager
         :param str program_path: Path to the program inside the VM
-        :param str username: User on VM to execute program using [default: current ADLES user]
-        :param str password: Plaintext password for the User [default: prompt user]
-        :param str program_args: Commandline arguments for the program [default: ""]
-        :return: Program Process ID (PID) if it was executed successfully, -1 if not
+        :param str username: User on VM to execute program using
+        [default: current ADLES user]
+        :param str password: Plaintext password for the User
+        [default: prompt user]
+        :param str program_args: Commandline arguments for the program
+        [default: ""]
+        :return: Program Process ID (PID) if it was executed successfully, 
+        -1 if not
         :rtype: int
         """
         from os.path import basename
         prog_name = basename(program_path)
         if not self.has_tools():
-            self._log.error("Cannot execute program %s in VM %s: VMware Tools is not running",
+            self._log.error("Cannot execute program %s in VM %s: "
+                            "VMware Tools is not running",
                             prog_name, self.name)
             return -1
         if username is None:
@@ -263,14 +287,16 @@ class VM:
             username = getuser()
         if password is None:
             from getpass import getpass
-            password = getpass("Enter password of user %s to execute program %s on VM %s"
+            password = getpass("Enter password of user %s to "
+                               "execute program %s on VM %s"
                                % (username, prog_name, self.name))
-        creds = vim.vm.guest.NamePasswordAuthentication(username=username, password=password)
+        creds = vim.vm.guest.NamePasswordAuthentication(username=username,
+                                                        password=password)
         try:
-            prog_spec = vim.vm.guest.ProcessManager.ProgramSpec(programPath=program_path,
-                                                                arguments=program_args)
+            prog_spec = vim.vm.guest.ProcessManager.ProgramSpec(
+                programPath=program_path, arguments=program_args)
             pid = process_manager.StartProgramInGuest(self._vm, creds, prog_spec)
-            self._log.debug("Successfully started program %s in VM %s, PID is %s",
+            self._log.debug("Successfully started program %s in VM %s. PID: %s",
                             prog_name, self.name, pid)
             return pid
         except IOError as e:
@@ -300,8 +326,10 @@ class VM:
         Creates a snapshot of the VM
         :param str name: Name of the snapshot
         :param str description: Text description of the snapshot [default: '']
-        :param bool memory: Memory dump of the VM is included in the snapshot [default: False]
-        :param bool quiesce: Quiesce VM disks (Requires VMware Tools) [default: True]
+        :param bool memory: Memory dump of the VM is included in the snapshot
+        [default: False]
+        :param bool quiesce: Quiesce VM disks (Requires VMware Tools)
+        [default: True]
         """
         self._log.info("Creating snapshot '%s' of VM '%s'", name, self.name)
         if not self._vm.CreateSnapshot_Task(name=name, description=description,
@@ -325,9 +353,10 @@ class VM:
         """
         Removes the named snapshot from the VM
         :param str snapshot: Name of the snapshot to remove
-        :param bool remove_children: Removal of the entire snapshot subtree [default: True]
-        :param bool consolidate_disks: Virtual disks of deleted snapshot will be merged with
-        other disks if possible [default: True]
+        :param bool remove_children: Removal of the entire snapshot subtree
+        [default: True]
+        :param bool consolidate_disks: Virtual disks of deleted snapshot 
+        will be merged with other disks if possible [default: True]
         """
         self._log.info("Removing snapshot '%s' from '%s'", snapshot, self.name)
         self.get_snapshot(snapshot).RemoveSnapshot_Task(remove_children, consolidate_disks).wait()
@@ -335,8 +364,8 @@ class VM:
     def remove_all_snapshots(self, consolidate_disks=True):
         """
         Removes all snapshots associated with the VM
-        :param bool consolidate_disks: Virtual disks of the deleted snapshot will be merged with
-        other disks if possible [default: True]
+        :param bool consolidate_disks: Virtual disks of the deleted snapshot 
+        will be merged with other disks if possible [default: True]
         """
         self._log.info("Removing ALL snapshots for %s", self.name)
         self._vm.RemoveAllSnapshots_Task(consolidate_disks).wait()
@@ -602,13 +631,14 @@ class VM:
         for dev in self._vm.config.hardware.device:
             if is_vnic(dev) and dev.backing.network == network:
                 return dev
-        self._log.debug("Could not find vNIC with network '%s' on '%s'", network.name, self.name)
+        self._log.debug("Could not find vNIC with network '%s' on '%s'",
+                        network.name, self.name)
         return None
 
     def get_snapshot(self, snapshot=None):
         """
         Retrieves the named snapshot from the VM
-        :param str snapshot: Name of the snapshot to get [default: current snapshot]
+        :param str snapshot: Name of the snapshot [default: current snapshot]
         :return: The snapshot found
         :rtype: vim.Snapshot or None
         """
@@ -665,13 +695,16 @@ class VM:
         # Check for ideas: snapshot_operations.py in pyvmomi_community_samples
         pass  # TBD
 
-    def get_info(self, detailed=False, uuids=False, snapshot=False, vnics=False):
+    def get_info(self, detailed=False, uuids=False,
+                 snapshot=False, vnics=False):
         """
         Get human-readable information for a VM
-        :param bool detailed: Add detailed information, such as maximum memory used [default: False]
+        :param bool detailed: Add detailed information, e.g maximum memory used
+        [default: False]
         :param bool uuids: Whether to get UUID information [default: False]
-        :param bool snapshot: Shows the current snapshot, if any [default: False]
-        :param bool vnics: Add information about the virtual network interfaces on the VM
+        :param bool snapshot: Shows the current snapshot, if any
+        [default: False]
+        :param bool vnics: Add information about vNICs on the VM
         :return: The VM's information
         :rtype: str
         """
@@ -755,7 +788,8 @@ class VM:
         :return: If VM is powered on
         :rtype: bool
         """
-        return self._vm.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn
+        return self._vm.runtime.powerState == \
+            vim.VirtualMachine.PowerState.poweredOn
 
     def is_template(self):
         """
@@ -778,20 +812,30 @@ class VM:
         Reconfigures VM using the given configuration specification
         :param config: The configuration specification to apply
         :type config: vim.vm.ConfigSpec
+        :return: If the edit was successful
         """
         if not self._vm.ReconfigVM_Task(config).wait():
             self._log.error("Failed to edit VM %s", self.name)
+            return False
+        else:
+            return True
 
     def _customize(self, customization):
         """
         Customizes the VM using the given customization specification
         :param customization: The customization specification to apply
         :type customization: vim.vm.customization.Specification
+        :return: If the customization was successful
+        :rtype: bool
         """
         if not self._vm.CheckCustomizationSpec(spec=customization).wait():
             self._log.error("Customization check failed for VM %s", self.name)
+            return False
         elif not self._vm.CustomizeVM_Task(spec=customization).wait():
             self._log.error("Failed to customize VM %s", self.name)
+            return False
+        else:
+            return True
 
     def __str__(self):
         return str(self.name)

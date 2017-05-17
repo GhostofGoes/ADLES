@@ -27,11 +27,6 @@ class Group:
         self._log = logging.getLogger('Group')
         self._log.debug("Initializing Group '%s'", name)
 
-        if not isinstance(group, dict):
-            self._log.error("Class Group must be initialized with a dict, not a %s. "
-                            "\nThe offending object: %s", type(group).__name__, str(group))
-            raise Exception()
-
         if instance:
             self.is_template = True
             self.instance = instance

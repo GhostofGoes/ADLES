@@ -27,17 +27,23 @@ class Vsphere:
                  port=443, use_ssl=False):
         """
         Connects to a vCenter server and initializes a class instance.
-        :param str username: Username of account to login with [default: prompt user]
-        :param str password: Password of account to login with [default: prompt user]
-        :param str hostname: DNS hostname or IP address of vCenter instance [default: prompt user]
-        :param str datastore: Name of datastore to use [default: first datastore found on server]
-        :param str datacenter: Name of datacenter to use [default: First datacenter found on server]
+        :param str username: Username of account to login with
+        [default: prompt user]
+        :param str password: Password of account to login with
+        [default: prompt user]
+        :param str hostname: DNS hostname or IP address of vCenter instance
+        [default: prompt user]
+        :param str datastore: Name of datastore to use
+        [default: first datastore found on server]
+        :param str datacenter: Name of datacenter to use
+        [default: First datacenter found on server]
         :param int port: Port used to connect to vCenter instance [default: 443]
         :param bool use_ssl: If SSL should be used to connect [default: False]
         :raises LookupError: if a datacenter or datastore cannot be found
         """
         self._log = logging.getLogger('Vsphere')
-        self._log.debug("Initializing Vsphere %s\nDatacenter: %s\tDatastore: %s\tSSL: %s",
+        self._log.debug("Initializing Vsphere %s\nDatacenter: %s"
+                        "\tDatastore: %s\tSSL: %s",
                         Vsphere.__version__, datacenter, datastore, use_ssl)
 
         if username is None:
@@ -48,23 +54,29 @@ class Vsphere:
         if hostname is None:
             hostname = str(input("Enter hostname for vSphere: "))
         try:
-            self._log.info("Connecting to vSphere: %s@%s:%d", username, hostname, port)
+            self._log.info("Connecting to vSphere: %s@%s:%d",
+                           username, hostname, port)
             if use_ssl:  # Connect to server using SSL certificate verification
-                self._server = SmartConnect(host=hostname, user=username, pwd=password, port=port)
+                self._server = SmartConnect(host=hostname, user=username,
+                                            pwd=password, port=port)
             else:
-                self._server = SmartConnectNoSSL(host=hostname, user=username, pwd=password,
-                                                 port=port)
+                self._server = SmartConnectNoSSL(host=hostname, user=username,
+                                                 pwd=password, port=port)
         except vim.fault.InvalidLogin:
-            self._log.error("Invalid vSphere login credentials for user %s", username)
+            self._log.error("Invalid vSphere login credentials for user %s",
+                            username)
             exit(1)
         except Exception as e:
             self._log.exception("Error connecting to vSphere: %s", str(e))
             exit(1)
 
+        # Ensure connection to server is closed on program exit
         from atexit import register
-        register(Disconnect, self._server)  # Ensures connection to server is closed on program exit
+        register(Disconnect, self._server)
+
         self._log.info("Connected to vSphere host %s:%d", hostname, port)
-        self._log.debug("Current server time: %s", str(self._server.CurrentTime()))
+        self._log.debug("Current server time: %s",
+                        str(self._server.CurrentTime()))
 
         self.username = username
         self.hostname = hostname
@@ -72,6 +84,7 @@ class Vsphere:
         self.content = self._server.RetrieveContent()
         self.auth = self.content.authorizationManager
         self.user_dir = self.content.userDirectory
+        self.search_index = self.content.searchIndex
 
         self.datacenter = self.get_item(vim.Datacenter, name=datacenter)
         if not self.datacenter:
@@ -86,19 +99,21 @@ class Vsphere:
         """
         Creates a VM folder in the specified folder
         :param str folder_name: Name of folder to create
-        :param str create_in: Name of folder or vim.Folder object to create folder in
+        :param create_in: Folder to create the new folder in
         [default: root folder of datacenter]
+        :type create_in: str or vim.Folder
         :return: The created folder
         :rtype: vim.Folder
         """
         if create_in:
-            if isinstance(create_in, str):  # create_in is a string, so we look it up on the server
-                self._log.debug("Retrieving parent folder '%s' from server", create_in)
+            if isinstance(create_in, str):  # Lookup creat_in on the server
+                self._log.debug("Retrieving parent folder '%s' from server",
+                                create_in)
                 parent = self.get_folder(folder_name=create_in)
             else:
-                parent = create_in  # create_in is a vim.Folder object, so we just assign it
+                parent = create_in  # Already vim.Folder, so we just assign it
         else:
-            parent = self.content.rootFolder  # Default to using the server root folder
+            parent = self.content.rootFolder  # Default to server root folder
         return parent.create(folder_name)
 
     def set_motd(self, message):
@@ -109,19 +124,22 @@ class Vsphere:
         self._log.info("Setting vCenter MOTD to %s", message)
         self.content.sessionManager.UpdateServiceMessage(message=str(message))
 
-    def map_items(self, vimtypes, func, name=None, container=None, recursive=True):
+    def map_items(self, vimtypes, func, name=None,
+                  container=None, recursive=True):
         """
         Apply a function to item(s) in a container
         :param list vimtypes: List of vimtype objects to look for
         :param func: Function to apply
         :param str name: Name of item to apply to [default: None]
         :param container: Container to search in [default: content.rootFolder]
-        :param bool recursive: Recursively descend or only look in the current level [default: True]
+        :param bool recursive: Whether to recursively descend [default: True]
         :return: List of values returned from the function call(s)
         :rtype: list
         """
         contain = (self.content.rootFolder if not container else container)
-        con_view = self.content.viewManager.CreateContainerView(contain, vimtypes, recursive)
+        con_view = self.content.viewManager.CreateContainerView(contain,
+                                                                vimtypes,
+                                                                recursive)
         returns = []
         for item in con_view.view:
             if name:
@@ -143,21 +161,27 @@ class Vsphere:
         try:
             self.auth.SetEntityPermissions(entity=entity, permission=permission)
         except vim.fault.UserNotFound as e:
-            self._log.error("Could not find user '%s' to set permission '%s' on entity '%s'",
+            self._log.error("Could not find user '%s' to set permission "
+                            "'%s' on entity '%s'",
                             e.principal, str(permission), entity.name)
         except vim.fault.NotFound:
-            self._log.error("Invalid role ID for permission '%s'", str(permission))
+            self._log.error("Invalid role ID for permission '%s'",
+                            str(permission))
         except vmodl.fault.ManagedObjectNotFound as e:
-            self._log.error("Entity '%s' does not exist to set permission on", str(e.obj))
+            self._log.error("Entity '%s' does not exist to set permission on",
+                            str(e.obj))
         except vim.fault.NoPermission as e:
-            self._log.error("Could not set permissions for entity '%s': the current session "
-                            "does not have privilege '%s' to set permissions for the entity '%s'",
+            self._log.error("Could not set permissions for entity '%s': "
+                            "the current session does not have privilege '%s' "
+                            "to set permissions for the entity '%s'",
                             entity.name, e.privilegeId, e.object)
         except vmodl.fault.InvalidArgument as e:
-            self._log.error("Invalid argument to set permission '%s' on entity '%s': %s",
+            self._log.error("Invalid argument to set permission '%s' "
+                            "on entity '%s': %s",
                             entity.name, str(permission), str(e))
         except Exception as e:
-            self._log.exception("Unknown error while setting permissions for entity '%s': %s",
+            self._log.exception("Unknown error while setting permissions "
+                                "for entity '%s': %s",
                                 entity.name, str(e))
 
     def get_entity_permissions(self, entity, inherited=True):
@@ -165,14 +189,17 @@ class Vsphere:
         Gets permissions defined on or effective on a managed entity
         :param entity: The entity to get permissions for
         :type entity: vim.ManagedEntity
-        :param bool inherited: Include propagating permissions defined in parent [default: True]
+        :param bool inherited: Include propagating permissions
+        defined in parent [default: True]
         :return: The permissions for the entity
         :rtype: vim.AuthorizationManager.Permission or None
         """
         try:
-            return self.auth.RetrieveEntityPermissions(entity=entity, inherited=inherited)
+            return self.auth.RetrieveEntityPermissions(entity=entity,
+                                                       inherited=inherited)
         except vmodl.fault.ManagedObjectNotFound as e:
-            self._log.error("Could not find entity '%s' to get permissions from", str(e.obj))
+            self._log.error("Couldn't find entity '%s' to get permissions from",
+                            str(e.obj))
             return None
 
     def get_role_permissions(self, role_id):
@@ -193,15 +220,19 @@ class Vsphere:
                   find_users=True, find_groups=False):
         """
         Returns a list of the users and groups defined for the server
-        NOTE: You must hold the Authorization.ModifyPermissions privilege to invoke this method!
-        :param str search: Case insensitive substring used to filter results [default: all users]
+        NOTE: You must hold the Authorization.ModifyPermissions 
+        privilege to invoke this method!
+        :param str search: Case insensitive substring used to filter results
+        [default: all users]
         :param str domain: Domain to be searched [default: local machine]
-        :param bool exact: Search should match user/group name exactly [default: False]
+        :param bool exact: Search should match user/group name exactly
+        [default: False]
         :param str belong_to_group: Only find users/groups that directly belong
         to this group [default: None]
-        :param str have_user: Only find groups that directly contain this user [default: None]
-        :param bool find_users: If users should be included in the results [default: True]
-        :param bool find_groups: If groups should be included in the results [default: False]
+        :param str have_user: Only find groups that directly contain this user
+        [default: None]
+        :param bool find_users: Include users in results [default: True]
+        :param bool find_groups: Include groups in results [default: False]
         :return: The users and groups defined for the server
         :rtype: list(vim.UserSearchResult) or None
         """
@@ -217,11 +248,13 @@ class Vsphere:
         try:
             return self.user_dir.RetrieveUserGroups(**kwargs)
         except vim.fault.NotFound:
-            self._log.warning("Could not find domain, group or user in call to get_users"
+            self._log.warning("Could not find domain, group or user "
+                              "in call to get_users"
                               "\nkwargs: %s", str(kwargs))
             return None
         except vmodl.fault.NotSupported:
-            self._log.error("System doesn't support domains or by-membership queries for get_users")
+            self._log.error("System doesn't support domains or "
+                            "by-membership queries for get_users")
             return None
 
     def get_info(self):
@@ -246,16 +279,18 @@ class Vsphere:
     def get_folder(self, folder_name=None):
         """
         Finds and returns the named Folder
-        :param str folder_name: Name of the folder [default: Datacenter vmFolder]
+        :param str folder_name: Name of folder [default: Datacenter vmFolder]
         :return: The folder found
         :rtype: vim.Folder
         """
         if folder_name:  # Try to find the named folder in the datacenter
             return self.get_obj(self.datacenter, [vim.Folder], folder_name)
         else:  # Default to the VM folder in the datacenter
+            # Reference: pyvmomi/docs/vim/Datacenter.rst
             self._log.warning("Could not find folder '%s' in Datacenter '%s', "
-                              "defaulting to vmFolder", folder_name, self.datacenter.name)
-            return self.datacenter.vmFolder  # Reference: pyvmomi/docs/vim/Datacenter.rst
+                              "defaulting to vmFolder",
+                              folder_name, self.datacenter.name)
+            return self.datacenter.vmFolder
 
     def get_vm(self, vm_name):
         """
@@ -270,20 +305,24 @@ class Vsphere:
         """
         Finds and returns the named Network
         :param str network_name: Name or path of the Network
-        :param bool distributed: If the Network is a Distributed PortGroup [default: False]
+        :param bool distributed: If the Network is a Distributed PortGroup
+        [default: False]
         :return: The network found
         :rtype: vim.Network or vim.dvs.DistributedVirtualPortgroup or None
         """
         if not distributed:
-            return self.get_obj(container=self.datacenter.networkFolder, vimtypes=[vim.Network],
+            return self.get_obj(container=self.datacenter.networkFolder,
+                                vimtypes=[vim.Network],
                                 name=str(network_name), recursive=True)
         else:
-            return self.get_item(vim.dvs.DistributedVirtualPortgroup, network_name)
+            return self.get_item(vim.dvs.DistributedVirtualPortgroup,
+                                 network_name)
 
     def get_host(self, host_name=None):
         """
         Finds and returns the named Host System
-        :param str host_name: Name of the host [default: first host found in datacenter]
+        :param str host_name: Name of the host
+        [default: first host found in datacenter]
         :return: The host found
         :rtype: vim.HostSystem or None
         """
@@ -292,7 +331,8 @@ class Vsphere:
     def get_cluster(self, cluster_name=None):
         """
         Finds and returns the named Cluster
-        :param str cluster_name: Name of the cluster [default: first cluster found in datacenter]
+        :param str cluster_name: Name of the cluster
+        [default: first cluster found in datacenter]
         :return: The cluster found
         :rtype: vim.ClusterComputeResource or None
         """
@@ -304,12 +344,14 @@ class Vsphere:
         :return: All clusters associated with the vCenter server
         :rtype: list(vim.ClusterComputeResource)
         """
-        return self.get_objs(self.content.rootFolder, [vim.ClusterComputeResource])
+        return self.get_objs(self.content.rootFolder,
+                             [vim.ClusterComputeResource])
 
     def get_datastore(self, datastore_name=None):
         """
         Finds and returns the named Datastore
-        :param str datastore_name: Name of the datastore [default: first datastore in datacenter]
+        :param str datastore_name: Name of the datastore
+        [default: first datastore in datacenter]
         :return: The datastore found
         :rtype: vim.Datastore or None
         """
@@ -318,7 +360,8 @@ class Vsphere:
     def get_pool(self, pool_name=None):
         """
         Finds and returns the named Resource Pool
-        :param str pool_name: Name of the resource pool [default: first pool found in datacenter]
+        :param str pool_name: Name of the resource pool
+        [default: first pool found in datacenter]
         :return: The resource pool found
         :rtype: vim.ResourcePool or None
         """
@@ -342,7 +385,9 @@ class Vsphere:
         :return: Object found with the specified name
         :rtype: vimtype or None
         """
-        con_view = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
+        con_view = self.content.viewManager.CreateContainerView(container,
+                                                                vimtypes,
+                                                                recursive)
         obj = None
         for item in con_view.view:
             if item.name.lower() == name.lower():
@@ -362,7 +407,9 @@ class Vsphere:
         :rtype: list(vimtype) or None
         """
         objs = []
-        con_view = self.content.viewManager.CreateContainerView(container, vimtypes, recursive)
+        con_view = self.content.viewManager.CreateContainerView(container,
+                                                                vimtypes,
+                                                                recursive)
         for item in con_view.view:
             objs.append(item)
         con_view.Destroy()
@@ -370,11 +417,13 @@ class Vsphere:
 
     def get_item(self, vimtype, name=None, container=None, recursive=True):
         """
-        Get a item of specified name and type. Intended to be simple version of get_obj()
+        Get a item of specified name and type.
+        Intended to be simple version of get_obj()
         :param vimtype: Type of item
         :type vimtype: vimtype
         :param str name: Name of item [default: None]
-        :param container: Container to search in [default: vCenter server content root folder]
+        :param container: Container to search in
+        [default: vCenter server content root folder]
         :param bool recursive: Recursively search for the item [default: True]
         :return: The item found
         :rtype: vimtype or None
@@ -389,12 +438,14 @@ class Vsphere:
         """
         Find a VM in the datacenter with the given Instance or BIOS UUID
         :param str uuid: UUID to search for (Instance or BIOS for VMs)
-        :param instance_uuid: Search for VM Instance UUIDs, otherwise BIOS UUIDs [default: True]
+        :param bool instance_uuid: If True, search by VM Instance UUID, 
+        otherwise search by BIOS UUID [default: True]
         :return: The VM found
         :rtype: vim.VirtualMachine or None
         """
-        return self.content.searchIndex.FindByUuid(datacenter=self.datacenter, uuid=str(uuid),
-                                                   vmSearch=True, instanceUuid=instance_uuid)
+        return self.search_index.FindByUuid(datacenter=self.datacenter,
+                                            uuid=str(uuid), vmSearch=True,
+                                            instanceUuid=instance_uuid)
 
     def find_by_ds_path(self, path):
         """
@@ -404,8 +455,8 @@ class Vsphere:
         :rtype: vim.VirtualMachine or None
         """
         try:
-            return self.content.searchIndex.FindByDatastorePath(datacenter=self.datacenter,
-                                                                path=str(path))
+            return self.search_index.FindByDatastorePath(
+                datacenter=self.datacenter, path=str(path))
         except vim.fault.InvalidDatastore:
             self._log.error("Invalid datastore in path: %s", str(path))
             return None
@@ -418,8 +469,8 @@ class Vsphere:
         :return: The VM or host found
         :rtype: vim.VirtualMachine or vim.HostSystem or None
         """
-        return self.content.searchIndex.FindByIp(datacenter=self.datacenter,
-                                                 ip=str(ip), vmSearch=vm_search)
+        return self.search_index.FindByIp(datacenter=self.datacenter,
+                                          ip=str(ip), vmSearch=vm_search)
 
     def find_by_hostname(self, hostname, vm_search=True):
         """
@@ -429,26 +480,29 @@ class Vsphere:
         :return: The VM or host found
         :rtype: vim.VirtualMachine or vim.HostSystem or None
         """
-        return self.content.searchIndex.FindByDnsName(datacenter=self.datacenter,
-                                                      dnsName=hostname, vmSearch=vm_search)
+        return self.search_index.FindByDnsName(datacenter=self.datacenter,
+                                               dnsName=hostname,
+                                               vmSearch=vm_search)
 
     def find_by_inv_path(self, path, datacenter=None):
         """
-        Finds a vim.ManagedEntity (VM, host, resource pool, folder, etc) in a inventory
-        :param str path: Path to the entity
-        (INCLUDING the hidden Vsphere folder for the type: vm | network | datastore | host)!
+        Finds a vim.ManagedEntity (VM, host, folder, etc) in a inventory
+        :param str path: Path to the entity. This must include the hidden 
+        Vsphere folder for the type: vm | network | datastore | host
         Example: "vm/some-things/more-things/vm-name"
-        :param str datacenter: Name of datacenter to search in [default: instance's datacenter]
+        :param str datacenter: Name of datacenter to search in
+        [default: instance's datacenter]
         :return: The entity found
         :rtype: vim.ManagedEntity or None
         """
         if datacenter is None:
             datacenter = self.datacenter.name
         full_path = datacenter + "/" + str(path)
-        return self.content.searchIndex.FindByInventoryPath(inventoryPath=full_path)
+        return self.search_index.FindByInventoryPath(inventoryPath=full_path)
 
     def __repr__(self):
-        return "vSphere(%s, %s, %s:%s)" % (self.datacenter.name, self.datastore.name,
+        return "vSphere(%s, %s, %s:%s)" % (self.datacenter.name,
+                                           self.datastore.name,
                                            self.hostname, self.port)
 
     def __str__(self):
@@ -458,8 +512,10 @@ class Vsphere:
         return hash((self.hostname, self.port, self.username))
 
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.hostname == other.hostname \
-               and self.port == other.port and self.username == other.username
+        return isinstance(other, self.__class__) \
+               and self.hostname == other.hostname \
+               and self.port == other.port \
+               and self.username == other.username
 
     def __ne__(self, other):
         return not self.__eq__(other)

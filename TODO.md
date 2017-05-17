@@ -20,6 +20,7 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 * Package specification example
 * Add stuff from thesis/paper
 * Triple/quadruple nested folder exercise example
+* Logo or icon image for the project
 
 
 # Specs
@@ -49,7 +50,7 @@ e.g we want 30 students, each in their own VM, with no ability to see or mess wi
 
 ### Utils
 * setup_logging(): Add [Splunk logging handler](https://github.com/zach-taylor/splunk_handler).
-* Compression utility for implementing packages
+* Compression utility for implementing packages (Use [`gzip`](https://docs.python.org/3.5/library/gzip.html) standard library module for this. Intro to it [here](https://pymotw.com/3/gzip/))
 
 
 ## Interface
@@ -74,7 +75,7 @@ That way they can run independantly and improve usage of network resources.
 * Deal with potential naming conflicts in self.masters cache of Master instances
 * Make "template" and other platform identifiers global keywords per-interface
 * Result collection methods
-* Implement guest extensions installation/verification
+* Implement guest extensions installation/verification (This will have to be done using Ansible, based on my research)
 * Include screenshots from VMs in results (argument)
 
 ### DockerInterface
