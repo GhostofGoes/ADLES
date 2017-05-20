@@ -47,7 +47,8 @@ def main():
 
     operation = str(input("Enter the power operation you wish to perform"
                           " [on | off | reset | suspend]: "))
-    attempt_guest = ask_question("Attempt to use guest OS operations, if available? ")
+    attempt_guest = ask_question("Attempt to use guest OS operations, "
+                                 "if available? ")
 
     if ask_question("Multiple VMs? ", default="yes"):
         folder, folder_name = resolve_path(server, "folder", "with VMs")

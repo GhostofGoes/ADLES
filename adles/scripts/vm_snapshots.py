@@ -47,15 +47,18 @@ def main():
     server = script_setup('cleanup_vms.log', args, (__file__, __version__))
 
     op = str(input("Enter Snapshot operation [create | revert | revert-current "
-                   "| remove | remove-all | get | get-current | get-all | disk-usage]: "))
+                   "| remove | remove-all | get | "
+                   "get-current | get-all | disk-usage]: "))
     if op == "create" or op == "revert" or op == "remove" or op == "get":
         name = str(input("Name of snapshot to %s: " % op))
         if op == "create":
             desc = str(input("Description of snapshot to create: "))
             memory = ask_question("Include memory?")
-            quiesce = ask_question("Quiesce disks? (Requires VMware Tools to be on the VM)")
+            quiesce = ask_question("Quiesce disks? (Requires VMware Tools "
+                                   "to be running on the VM)")
         elif op == "remove":
-            children = ask_question("Remove any children of the snapshot?", default="yes")
+            children = ask_question("Remove any children of the snapshot?",
+                                    default="yes")
 
     if ask_question("Multiple VMs? ", default="yes"):
         f, f_name = resolve_path(server, "folder", "with VMs")
@@ -68,13 +71,15 @@ def main():
             logging.info("User cancelled operation, exiting...")
             exit(0)
     else:
-        vms = [resolve_path(server, "vm", "to perform snapshot operations on")[0]]
+        vms = [resolve_path(server, "vm",
+                            "to perform snapshot operations on")[0]]
 
     # Perform the operations
     for vm in vms:
         logging.info("Performing operation '%s' on VM '%s'", op, vm.name)
         if op == "create":
-            vm.create_snapshot(name=name, description=desc, memory=memory, quiesce=quiesce)
+            vm.create_snapshot(name=name, description=desc,
+                               memory=memory, quiesce=quiesce)
         elif op == "revert":
             vm.revert_to_snapshot(snapshot=name)
         elif op == "revert-current":

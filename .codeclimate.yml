@@ -5,7 +5,7 @@ engines:
     config:
       languages:
         python:
-          mass_threshold: 40
+          mass_threshold: 50
           python_version: 3
   fixme:
     enabled: false
@@ -14,7 +14,7 @@ engines:
     config:
       threshold: "C"
   pep8:
-    enabled: false
+    enabled: true
   markdownlint:
     enabled: true
   shellcheck:

@@ -46,7 +46,8 @@ def main():
 
     if ask_question("Multiple VMs? ", default="yes"):
         folder, folder_name = resolve_path(server, "folder",
-                                           "that has the VMs/folders you want to destroy")
+                                           "that has the VMs/folders "
+                                           "you want to destroy")
 
         # Display folder structure
         if ask_question("Display the folder structure? "):
@@ -65,9 +66,11 @@ def main():
             vm_prefix = default_prompt("Prefix of VMs you wish to destroy"
                                        " (CASE SENSITIVE!)", default='')
             recursive = ask_question("Recursively descend into folders? ")
-            destroy_folders = ask_question("Destroy folders in addition to VMs? ")
+            destroy_folders = ask_question("Destroy folders "
+                                           "in addition to VMs? ")
             if destroy_folders:
-                folder_prefix = default_prompt("Prefix of folders you wish to destroy"
+                folder_prefix = default_prompt("Prefix of folders "
+                                               "you wish to destroy"
                                                " (CASE SENSITIVE!)", default='')
                 destroy_self = ask_question("Destroy the folder itself? ")
             else:
@@ -75,9 +78,11 @@ def main():
                 destroy_self = False
 
         # Show user what options they selected
-        logging.info("Options selected\nVM Prefix: %s\nFolder Prefix: %s\nRecursive: %s\n"
-                     "Folder-destruction: %s\nSelf-destruction: %s", str(vm_prefix),
-                     str(folder_prefix), recursive, destroy_folders, destroy_self)
+        logging.info("Options selected\nVM Prefix: %s\n"
+                     "Folder Prefix: %s\nRecursive: %s\n"
+                     "Folder-destruction: %s\nSelf-destruction: %s",
+                     str(vm_prefix), str(folder_prefix), recursive,
+                     destroy_folders, destroy_self)
 
         # Show how many items matched the options
         v, f = folder.retrieve_items(vm_prefix, folder_prefix, recursive=True)
@@ -88,20 +93,25 @@ def main():
                 num_folders += 1
         else:
             num_folders = 0
-        logging.info("%d VMs and %d folders match the options", num_vms, num_folders)
+        logging.info("%d VMs and %d folders match the options",
+                     num_vms, num_folders)
 
         # Confirm and destroy
         if ask_question("Continue with destruction? "):
             logging.info("Destroying folder '%s'...", folder_name)
-            folder.cleanup(vm_prefix=vm_prefix, folder_prefix=folder_prefix, recursive=recursive,
-                           destroy_folders=destroy_folders, destroy_self=destroy_self)
+            folder.cleanup(vm_prefix=vm_prefix,
+                           folder_prefix=folder_prefix,
+                           recursive=recursive,
+                           destroy_folders=destroy_folders,
+                           destroy_self=destroy_self)
         else:
             logging.info("Destruction cancelled")
     else:
         vm = resolve_path(server, "vm", "to destroy")[0]
 
         if ask_question("Display VM info? "):
-            logging.info(vm.get_info(detailed=True, uuids=True, snapshot=True, vnics=True))
+            logging.info(vm.get_info(detailed=True, uuids=True,
+                                     snapshot=True, vnics=True))
 
         if vm.is_template():  # Warn if template
             if not ask_question("VM '%s' is a Template. Continue? " % vm.name):

@@ -34,7 +34,8 @@ import logging
 
 from docopt import docopt
 
-from adles.utils import ask_question, pad, default_prompt, script_setup, resolve_path, is_vm
+from adles.utils import ask_question, pad, default_prompt, \
+    script_setup, resolve_path, is_vm
 from adles.vsphere.vm import VM
 
 __version__ = "0.6.1"
@@ -54,8 +55,10 @@ def main():
         vm_names.append(str(input("Base name for instances to be created: ")))
     # Multi-VM source
     else:
-        folder_from, from_name = resolve_path(server, "folder", "you want to clone all VMs in")
-        v = [VM(vm=x) for x in folder_from.childEntity if is_vm(x)]  # Get VMs in the folder
+        folder_from, from_name = resolve_path(server, "folder",
+                                              "you want to clone all VMs in")
+        # Get VMs in the folder
+        v = [VM(vm=x) for x in folder_from.childEntity if is_vm(x)]
         vms.extend(v)
         logging.info("%d VMs found in source folder %s", len(v), from_name)
         if not ask_question("Keep the same names? "):
@@ -66,30 +69,36 @@ def main():
             names = list(map(lambda x: x.name, v))  # Same names as sources
         vm_names.extend(names)
 
-    create_in, create_in_name = resolve_path(server, "folder", "in which to create VMs")
+    create_in, create_in_name = resolve_path(server, "folder",
+                                             "in which to create VMs")
     instance_folder_base = None
     if ask_question("Do you want to create a folder for each instance? "):
         instance_folder_base = str(input("Enter instance folder base name: "))
 
     num_instances = int(input("Number of instances to be created: "))
 
-    pool_name = server.get_pool().name  # Determine what will be default, so we can tell user
-    pool_name = default_prompt(prompt="Resource pool to assign VMs to", default=pool_name)
+    pool_name = server.get_pool().name  # Determine what will be the default
+    pool_name = default_prompt(prompt="Resource pool to assign VMs to",
+                               default=pool_name)
     pool = server.get_pool(pool_name)
 
     datastore_name = default_prompt(prompt="Datastore to put clones on")
     datastore = server.get_datastore(datastore_name)
 
-    logging.info("Creating %d instances under folder %s", num_instances, create_in_name)
+    logging.info("Creating %d instances under folder %s",
+                 num_instances, create_in_name)
     for instance in range(num_instances):
         for vm, name in zip(vms, vm_names):
-            if instance_folder_base:  # Create instance folders for a nested clone
-                f = server.create_folder(instance_folder_base + pad(instance), create_in=create_in)
+            if instance_folder_base:
+                # Create instance folders for a nested clone
+                f = server.create_folder(instance_folder_base + pad(instance),
+                                         create_in=create_in)
                 vm_name = name
             else:
                 f = create_in
                 vm_name = name + pad(instance)    # Append instance number
-            new_vm = VM(name=vm_name, folder=f, resource_pool=pool, datastore=datastore)
+            new_vm = VM(name=vm_name, folder=f,
+                        resource_pool=pool, datastore=datastore)
             new_vm.create(template=vm.get_vim_vm())
 
 

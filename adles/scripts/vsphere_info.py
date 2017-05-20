@@ -37,25 +37,28 @@ from docopt import docopt
 from adles.utils import script_setup, resolve_path, ask_question
 from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.6.3"
+__version__ = "0.6.4"
 
 
 def main():
     args = docopt(__doc__, version=__version__, help=True)
     server = script_setup('vsphere_info.log', args, (__file__, __version__))
 
-    thing_type = str(input("What type of thing do you want to get information on?"
+    thing_type = str(input("What type of thing do you want"
+                           "to get information on?"
                            " (vm | datastore | vsphere | folder) "))
 
     # Single Virtual Machine
     if thing_type == "vm":
         vm = resolve_path(server, "vm", "you want to get information on")[0]
-        logging.info(vm.get_info(detailed=True, uuids=True, snapshot=True, vnics=True))
+        logging.info(vm.get_info(detailed=True, uuids=True,
+                                 snapshot=True, vnics=True))
 
     # Datastore
     elif thing_type == "datastore":
-        ds = server.get_datastore(str(input("Enter name of the Datastore [leave blank "
-                                            "for first datastore found]: ")))
+        ds = server.get_datastore(str(input("Enter name of the Datastore"
+                                            "[leave blank for "
+                                            "first datastore found]: ")))
         logging.info(ds.get_info())
 
     # vCenter server
@@ -66,16 +69,19 @@ def main():
     elif thing_type == "folder":
         folder, folder_name = resolve_path(server, "folder")
         if "VirtualMachine" in folder.childType \
-                and ask_question("Want to see power state of VMs in the folder?"):
+                and ask_question("Want to see power state "
+                                 "of VMs in the folder?"):
             contents = folder.enumerate(recursive=True, power_status=True)
         else:
             contents = folder.enumerate(recursive=True, power_status=False)
-        logging.info("Information for Folder %s\nTypes of items folder can contain: %s\n%s",
-                     folder_name, str(folder.childType), format_structure(contents))
+        logging.info("Information for Folder %s\n"
+                     "Types of items folder can contain: %s\n%s",
+                     folder_name, str(folder.childType),
+                     format_structure(contents))
 
     # That's not a thing!
     else:
-        logging.info("Invalid thing: %s", thing_type)
+        logging.info("Invalid selection: %s", thing_type)
 
 
 if __name__ == '__main__':

@@ -9,6 +9,7 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 
 # Documentation
 * Development guide: how to setup development environment, contribute, etc.
+* ~~PEP8 compliance~~
 * ~~Generate Sphinx docs~~
 * ~~Mirror Sphinx docs to ReadTheDocs automatically~~
 * Put READMEs in sub-directories with code, e.g for Vsphere, Interfaces
