@@ -24,8 +24,8 @@ def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     :param name: Name of portgroup to create
     :param host: vim.HostSystem on which to create the port group
     :param vswitch_name: Name of vSwitch on which to create the port group
-    :param vlan: VLAN ID of the port group [default: 0]
-    :param promiscuous: Put portgroup in promiscuous mode [default: False]
+    :param vlan: VLAN ID of the port group
+    :param promiscuous: Put portgroup in promiscuous mode
     """
     logging.debug("Creating PortGroup %s on vSwitch %s on host %s; "
                   "VLAN: %d; Promiscuous: %s",

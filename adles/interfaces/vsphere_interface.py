@@ -388,7 +388,7 @@ class VsphereInterface(Interface):
         :type vm: vim.VirtualMachine
         :param list networks: List of networks to configure
         :param int instance: Current instance of a folder 
-        for Deployment purposes [default: None]
+        for Deployment purposes
         """
         self._log.info("Editing NICs for VM '%s'", vm.name)
         num_nics = len(list(vm.network))
@@ -727,7 +727,6 @@ class VsphereInterface(Interface):
         Cleans up any master instances.
 
         :param bool network_cleanup: If networks should be cleaned up 
-        [default: False]
         """
         # Get the folder to cleanup in
         master_folder = self.root_folder.find_in(self.master_root_name)
@@ -751,7 +750,6 @@ class VsphereInterface(Interface):
         Cleans up a deployed environment.
 
         :param bool network_cleanup: If networks should be cleaned up 
-        [default: False]
         """
         # Get the root environment folder to cleanup in
         enviro_folder = self.root_folder

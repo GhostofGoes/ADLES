@@ -2,6 +2,12 @@
 Utility Functions and the Parser
 ********************************
 
+Groups
+------
+
+.. automodule:: adles.group
+   :members:
+
 
 Parser
 ------

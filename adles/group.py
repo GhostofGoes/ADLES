@@ -22,7 +22,7 @@ class Group:
         """
         :param str name: Name of the group
         :param dict group: Dict specification of the group
-        :param int instance: Instance number of a template group [default: None]
+        :param int instance: Instance number of a template group
         """
         self._log = logging.getLogger('Group')
         self._log.debug("Initializing Group '%s'", name)
@@ -39,14 +39,16 @@ class Group:
             self.ad_group = group["ad-group"]
             users = []
             if instance:  # Template groups
-                self.ad_group += " " + str(instance)  # This is the " X" in the spec
+                # This is the " X" in the spec
+                self.ad_group += " " + str(instance)
 
         elif "filename" in group:
             from adles.utils import read_json
             group_type = "standard"
             if instance:    # Template group
                 users = [(user, pw)
-                         for user, pw in read_json(group["filename"])[str(instance)].items()]
+                         for user, pw in read_json(group["filename"])
+                         [str(instance)].items()]
             else:           # Standard group
                 users = [(user, pw)
                          for user, pw in read_json(group["filename"]).items()]
@@ -56,7 +58,8 @@ class Group:
             users = group["user-list"]
 
         else:
-            self._log.error("Invalid group dict for group '%s': %s", name, str(group))
+            self._log.error("Invalid group dict for group '%s': %s",
+                            name, str(group))
             raise Exception()
 
         self.group_type = group_type
@@ -79,7 +82,8 @@ class Group:
 
 def get_ad_groups(groups):
     """
-    Extracts Active Directory-type groups from a dict of groups
+    Extracts Active Directory-type groups from a dict of groups.
+
     :param dict groups: Dict of groups and lists of groups
     :return: List of AD groups extracted
     :rtype: list(:class:`Group`)

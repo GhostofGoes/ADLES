@@ -72,7 +72,7 @@ def pad(value, length=2):
     009
 
     :param int value: integer value to pad
-    :param int length: Length to pad to [default: 2]
+    :param int length: Length to pad to
     :return: string of padded value
     :rtype: str
     """
@@ -127,7 +127,7 @@ def make_vsphere(filename=None):
     """
     Creates a vSphere object using either a JSON file or by prompting the user.
 
-    :param str filename: Name of JSON file with connection info [default: None]
+    :param str filename: Name of JSON file with connection info
     :return: vSphere object
     :rtype: :class:`Vsphere`
     """
@@ -220,7 +220,7 @@ def default_prompt(prompt, default=None):
     Prompt the user for input. If they press enter, return the default.
 
     :param str prompt: Prompt to display to user (do not include default value)
-    :param str default: Default return value [default: None]
+    :param str default: Default return value
     :return: Value entered or default
     :rtype: str or None
     """
@@ -258,7 +258,7 @@ def script_setup(logging_filename, args, script=None):
 
     :param str logging_filename: Name of file to save logs to
     :param dict args: docopt arguments dict
-    :param script: Tuple with name and version of the script [default: None]
+    :param script: Tuple with name and version of the script
     :type: tuple(str, str)
     :return: vSphere object
     :rtype: :class:`Vsphere`
@@ -291,7 +291,7 @@ def resolve_path(server, thing, prompt=""):
     :param server: Vsphere instance
     :type server: :class:`Vsphere`
     :param str thing: String name of thing to get (folder | vm)
-    :param str prompt: Message to display [default: ""]
+    :param str prompt: Message to display
     :return: (thing, thing name)
     :rtype: tuple(vimtype, str)
     """
@@ -319,9 +319,9 @@ def setup_logging(filename, colors=True, console_verbose=False,
     Configures the logging interface used by everything for output.
 
     :param str filename: Name of file that logs should be saved to
-    :param bool colors: Color the terminal output [default: True]
-    :param bool console_verbose: Print DEBUG logs to terminal [default: False]
-    :param server: SysLog server to forward logs to [default: (localhost, 514)]
+    :param bool colors: Color the terminal output
+    :param bool console_verbose: Print DEBUG logs to terminal
+    :param server: SysLog server to forward logs to
     :type server: tuple(str, int)
     """
 

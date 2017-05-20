@@ -73,7 +73,6 @@ class Interface:
         Cleans up master instances.
 
         :param bool network_cleanup: If networks should be cleaned up 
-        [default: False]
         """
         self._log.info("Cleaning up Master instances for %s",
                        self.metadata["name"])
@@ -86,7 +85,6 @@ class Interface:
         Cleans up a deployed environment.
 
         :param bool network_cleanup: If networks should be cleaned up 
-        [default: False]
         """
         self._log.info("Cleaning up environment for %s", self.metadata["name"])
         for i in self.interfaces:

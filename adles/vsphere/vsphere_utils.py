@@ -28,9 +28,8 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
     :param task: The task to wait for
     :type task: vim.Task
     :param float timeout: Number of seconds to wait before terminating task 
-    [default: 60.0]
     :param bool pause_timeout: Pause timeout counter while task 
-    is queued on server [default: True]
+    is queued on server
     :return: Task result information (task.info.result)
     :rtype: str or None
     """

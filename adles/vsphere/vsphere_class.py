@@ -38,8 +38,8 @@ class Vsphere:
         [default: first datastore found on server]
         :param str datacenter: Name of datacenter to use
         [default: First datacenter found on server]
-        :param int port: Port used to connect to vCenter instance [default: 443]
-        :param bool use_ssl: If SSL should be used to connect [default: False]
+        :param int port: Port used to connect to vCenter instance
+        :param bool use_ssl: If SSL should be used to connect
         :raises LookupError: if a datacenter or datastore cannot be found
         """
         self._log = logging.getLogger('Vsphere')
@@ -134,9 +134,9 @@ class Vsphere:
 
         :param list vimtypes: List of vimtype objects to look for
         :param func: Function to apply
-        :param str name: Name of item to apply to [default: None]
+        :param str name: Name of item to apply to
         :param container: Container to search in [default: content.rootFolder]
-        :param bool recursive: Whether to recursively descend [default: True]
+        :param bool recursive: Whether to recursively descend
         :return: List of values returned from the function call(s)
         :rtype: list
         """
@@ -196,7 +196,7 @@ class Vsphere:
         :param entity: The entity to get permissions for
         :type entity: vim.ManagedEntity
         :param bool inherited: Include propagating permissions
-        defined in parent [default: True]
+        defined in parent
         :return: The permissions for the entity
         :rtype: vim.AuthorizationManager.Permission or None
         """
@@ -235,13 +235,11 @@ class Vsphere:
         [default: all users]
         :param str domain: Domain to be searched [default: local machine]
         :param bool exact: Search should match user/group name exactly
-        [default: False]
         :param str belong_to_group: Only find users/groups that directly belong
-        to this group [default: None]
+        to this group
         :param str have_user: Only find groups that directly contain this user
-        [default: None]
-        :param bool find_users: Include users in results [default: True]
-        :param bool find_groups: Include groups in results [default: False]
+        :param bool find_users: Include users in results
+        :param bool find_groups: Include groups in results
         :return: The users and groups defined for the server
         :rtype: list(vim.UserSearchResult) or None
         """
@@ -319,7 +317,6 @@ class Vsphere:
 
         :param str network_name: Name or path of the Network
         :param bool distributed: If the Network is a Distributed PortGroup
-        [default: False]
         :return: The network found
         :rtype: vim.Network or vim.dvs.DistributedVirtualPortgroup or None
         """
@@ -401,7 +398,7 @@ class Vsphere:
         :param container: Container to search in
         :param list vimtypes: vimtype objects to look for
         :param str name: Name of the object
-        :param bool recursive: Recursively search for the item [default: True]
+        :param bool recursive: Recursively search for the item
         :return: Object found with the specified name
         :rtype: vimtype or None
         """
@@ -423,7 +420,7 @@ class Vsphere:
 
         :param container: Container to search in
         :param list vimtypes: Objects to search for
-        :param bool recursive: Recursively search for the item [default: True]
+        :param bool recursive: Recursively search for the item
         :return: All vimtype objects found
         :rtype: list(vimtype) or None
         """
@@ -443,10 +440,10 @@ class Vsphere:
 
         :param vimtype: Type of item
         :type vimtype: vimtype
-        :param str name: Name of item [default: None]
+        :param str name: Name of item
         :param container: Container to search in
         [default: vCenter server content root folder]
-        :param bool recursive: Recursively search for the item [default: True]
+        :param bool recursive: Recursively search for the item
         :return: The item found
         :rtype: vimtype or None
         """
@@ -462,7 +459,7 @@ class Vsphere:
 
         :param str uuid: UUID to search for (Instance or BIOS for VMs)
         :param bool instance_uuid: If True, search by VM Instance UUID, 
-        otherwise search by BIOS UUID [default: True]
+        otherwise search by BIOS UUID
         :return: The VM found
         :rtype: vim.VirtualMachine or None
         """
@@ -490,7 +487,7 @@ class Vsphere:
         Find a VM or Host using a IP address.
 
         :param str ip: IP address string as returned by VMware Tools ipAddress
-        :param vm_search: Search for VMs if True, Hosts if False [default: True]
+        :param vm_search: Search for VMs if True, Hosts if False
         :return: The VM or host found
         :rtype: vim.VirtualMachine or vim.HostSystem or None
         """
@@ -502,7 +499,7 @@ class Vsphere:
         Find a VM or Host using a Fully-Qualified Domain Name (FQDN).
 
         :param str hostname: FQDN of the VM to find
-        :param vm_search: Search for VMs if True, Hosts if False [default: True]
+        :param vm_search: Search for VMs if True, Hosts if False
         :return: The VM or host found
         :rtype: vim.VirtualMachine or vim.HostSystem or None
         """

@@ -55,7 +55,7 @@ class Host:
         """
         Enter maintenance mode.
 
-        :param int timeout: Seconds to wait [default: 0]
+        :param int timeout: Seconds to wait
         :param spec: Actions to be taken upon entering maintenance mode
         :type spec: vim.HostMaintenanceSpec
         """
@@ -67,7 +67,7 @@ class Host:
         """
         Exit maintenance mode.
 
-        :param int timeout: Seconds to wait [default: 0]
+        :param int timeout: Seconds to wait
         """
         self._log.info("%s is exiting maintainence mode", self.name)
         self.host.ExitMaintenanceMode_Task(timeout=int(timeout)).wait()
@@ -78,7 +78,6 @@ class Host:
 
         :param str name: Name of the vSwitch to create
         :param int num_ports: Number of ports the vSwitch should have 
-        [default: 512]
         """
         self._log.info("Creating vSwitch %s with %d ports on host %s",
                        name, num_ports, self.name)
@@ -97,9 +96,8 @@ class Host:
 
         :param str name: Name of portgroup to create
         :param str vswitch_name: Name of vSwitch to create the port group on
-        :param int vlan: VLAN ID of the port group [default: 0]
+        :param int vlan: VLAN ID of the port group
         :param bool promiscuous: Put portgroup in promiscuous mode 
-        [default: False]
         """
         self._log.debug("Creating PortGroup %s on vSwitch %s on host %s;"
                         " VLAN: %d; Promiscuous: %s",
@@ -179,7 +177,6 @@ class Host:
         (portgroup | vswitch | proxyswitch | vnic | pnic)
         :param name: Name of network object
         :param bool refresh: Refresh the host's network system information 
-        [default: False]
         :return: The network object
         :rtype: vim.Network or vim.VirtualSwitch 
         or vim.VirtualEthernetCard or None
@@ -206,8 +203,7 @@ class Host:
 
         :param str object_type: Type of object to get: 
         (portgroup | vswitch | proxyswitch | vnic | pnic)
-        :param bool refresh: Refresh the host's network system information 
-        [default: False]
+        :param bool refresh: Refresh the host's network system information
         :return: list of the network objects
         :rtype: list(vimtype) or None
         """

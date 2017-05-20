@@ -60,14 +60,11 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
     :param folder: Folder to cleanup
     :type folder: vim.Folder
     :param str vm_prefix: Only destroy VMs with names starting with the prefix 
-    [default: '']
     :param str folder_prefix: Only destroy or search in folders with names 
-    starting with the prefix [default: '']
+    starting with the prefix
     :param bool recursive: Recursively descend into any sub-folders 
-    [default: False]
     :param bool destroy_folders: Destroy folders in addition to VMs 
-    [default: False]
-    :param bool destroy_self: Destroy the folder specified [default: False]
+    :param bool destroy_self: Destroy the folder specified
     """
     logging.debug("Cleaning folder '%s'", folder.name)
     from adles.vsphere.vm import VM
@@ -99,8 +96,8 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
     :param folder: Folder to search in
     :type folder: vim.Folder
     :param str name: Name of object to find
-    :param bool recursive: Recurse into sub-folders [default: False]
-    :param vimtype: Type of object to search for [default: None]
+    :param bool recursive: Recurse into sub-folders
+    :param vimtype: Type of object to search for
     :return: The object found
     :rtype: vimtype or None
     """
@@ -131,8 +128,8 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
     :param folder: Folder to search in
     :type folder: vim.Folder
     :param str name: Name of the object to find
-    :param bool recursive: Recurse into sub-folders [default: False]
-    :param vimtype: Type of object to search for [default: None]
+    :param bool recursive: Recurse into sub-folders
+    :param vimtype: Type of object to search for
     :return: The object found
     :rtype: vimtype or None
     """
@@ -220,7 +217,6 @@ def enumerate_folder(folder, recursive=True, power_status=False):
     :param folder: Folder to enumerate
     :type folder: vim.Folder
     :param bool recursive: Whether to recurse into any sub-folders 
-    [default: True]
     :param bool power_status: Display the power state of the VMs in the folder
     :return: The nested python object with the enumerated folder structure
     :rtype: list(list, str)
@@ -260,7 +256,6 @@ def format_structure(structure, indent=4, _depth=0):
     :param structure: structure to format
     :type structure: tuple(list(str), str)
     :param int indent: Number of spaces to indent each level of nesting 
-    [default: 4]
     :param int _depth: Current depth (USED INTERNALLY BY FUNCTION)
     :return: Formatted string of the folder structure
     :rtype: str
@@ -289,10 +284,12 @@ def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
     :param folder: Folder to begin search in 
     (Note: it is NOT returned in list of folders)
     :type folder: vim.Folder
-    :param str vm_prefix: VM prefix to search for [default: None]
-    :param str folder_prefix: Folder prefix to search for [default: None]
+    :param str vm_prefix: VM prefix to search for
+    :param str folder_prefix: Folder prefix to search for
     :param bool recursive: Recursively descend into sub-folders 
-    (Note: This will recurse regardless of folder prefix!) [default: False]
+    
+    .. warning:: This will recurse regardless of folder prefix!
+
     :return: The VMs and folders found in the folder
     :rtype: tuple(list(vim.VirtualMachine), list(vim.Folder))
     """

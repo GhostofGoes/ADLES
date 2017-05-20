@@ -74,17 +74,14 @@ class VM:
 
         :param template: Template VM to clone
         :type template: vim.VirtualMachine
-        :param int cpus: Number of processors [default: 1]
-        :param int cores: Number of processor cores [default: 1]
-        :param int memory: Amount of RAM in MB [default: 512]
+        :param int cpus: Number of processors
+        :param int cores: Number of processor cores
+        :param int memory: Amount of RAM in MB
         :param int max_consoles: Maximum number of active console connections
-        [default: default]
         :param int version: Hardware version of the VM
         [default: highest host supports]
         :param str firmware: Firmware to emulate for the VM (efi | bios)
-        [default: efi]
         :param str datastore_path: Path to existing VM files on datastore
-        [default: None]
         :return: If the creation was successful
         :rtype: bool
         """
@@ -282,7 +279,6 @@ class VM:
         :param str password: Plaintext password for the User
         [default: prompt user]
         :param str program_args: Commandline arguments for the program
-        [default: ""]
         :return: Program Process ID (PID) if it was executed successfully, 
         -1 if not
         :rtype: int
@@ -340,11 +336,9 @@ class VM:
         Creates a snapshot of the VM.
 
         :param str name: Name of the snapshot
-        :param str description: Text description of the snapshot [default: '']
+        :param str description: Text description of the snapshot
         :param bool memory: Memory dump of the VM is included in the snapshot
-        [default: False]
         :param bool quiesce: Quiesce VM disks (Requires VMware Tools)
-        [default: True]
         """
         self._log.info("Creating snapshot '%s' of VM '%s'", name, self.name)
         if not self._vm.CreateSnapshot_Task(name=name, description=description,
@@ -374,9 +368,8 @@ class VM:
 
         :param str snapshot: Name of the snapshot to remove
         :param bool remove_children: Removal of the entire snapshot subtree
-        [default: True]
         :param bool consolidate_disks: Virtual disks of deleted snapshot 
-        will be merged with other disks if possible [default: True]
+        will be merged with other disks if possible
         """
         self._log.info("Removing snapshot '%s' from '%s'", snapshot, self.name)
         self.get_snapshot(snapshot).RemoveSnapshot_Task(
@@ -387,7 +380,7 @@ class VM:
         Removes all snapshots associated with the VM.
 
         :param bool consolidate_disks: Virtual disks of the deleted snapshot 
-        will be merged with other disks if possible [default: True]
+        will be merged with other disks if possible
         """
         self._log.info("Removing ALL snapshots for %s", self.name)
         self._vm.RemoveAllSnapshots_Task(consolidate_disks).wait()
@@ -401,7 +394,7 @@ class VM:
         :type network: vim.Network
         :param str summary: Human-readable device info 
         [default: default-summary]
-        :param str model: Model of virtual network adapter. [default: e1000]
+        :param str model: Model of virtual network adapter.
         Options: (e1000 | e1000e | vmxnet | vmxnet2 
         | vmxnet3 | pcnet32 | sriov)
         e1000 will work on Windows Server 2003+, 
@@ -472,9 +465,9 @@ class VM:
         Edits a vNIC based on it's number.
 
         :param int nic_id: Number of network adapter on VM
-        :param network: Network to assign the vNIC to [default: None]
+        :param network: Network to assign the vNIC to
         :type network: vim.Network
-        :param str summary: Human-readable device description [default: None]
+        :param str summary: Human-readable device description
         """
         nic_label = 'Network adapter ' + str(nic_id)
         self._log.debug("Changing '%s' on VM '%s'", nic_label, self.name)
@@ -561,7 +554,7 @@ class VM:
         :param datastore: Datastore where the ISO resides 
         [default: VM's datastore]
         :type datastore: vim.Datastore
-        :param bool boot: Set VM to boot from the attached ISO [default: True]
+        :param bool boot: Set VM to boot from the attached ISO
         """
         self._log.debug("Adding ISO '%s' to '%s'", iso_path, self.name)
         if datastore is None:
@@ -619,7 +612,7 @@ class VM:
         return None
 
     def mount_tools(self):
-        """ Mounts the installer for VMware Tools """
+        """ Mount the installer for VMware Tools. """
         self._log.debug("Mounting tools installer on %s", self.name)
         self._vm.MountToolsInstaller().wait()
 
@@ -775,10 +768,8 @@ class VM:
         Get human-readable information for a VM.
 
         :param bool detailed: Add detailed information, e.g maximum memory used
-        [default: False]
-        :param bool uuids: Whether to get UUID information [default: False]
+        :param bool uuids: Whether to get UUID information
         :param bool snapshot: Shows the current snapshot, if any
-        [default: False]
         :param bool vnics: Add information about vNICs on the VM
         :return: The VM's information
         :rtype: str
