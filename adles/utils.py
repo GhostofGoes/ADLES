@@ -22,7 +22,8 @@ import os
 # Credit to: http://stackoverflow.com/a/15707426/2214380
 def time_execution(func):
     """
-    Function decorator to time the execution of a function and log to debug
+    Function decorator to time the execution of a function and log to debug.
+
     :param func: The function to time execution of
     :return: The decorated function
     :rtype: func
@@ -43,7 +44,7 @@ def time_execution(func):
 # http://stackoverflow.com/questions/1094841/
 def sizeof_fmt(num):
     """
-    Generates the human-readable version of a file size
+    Generates the human-readable version of a file size.
 
     >>> sizeof_fmt(512)
     512bytes
@@ -63,7 +64,7 @@ def sizeof_fmt(num):
 
 def pad(value, length=2):
     """
-    Adds leading and trailing zeros to value ("pads" the value)
+    Adds leading and trailing zeros to value ("pads" the value).
 
     >>> pad(5)
     05
@@ -80,8 +81,9 @@ def pad(value, length=2):
 
 def read_json(filename):
     """
-    Reads input from a JSON file and returns the contents
-    :param filename: Path to JSON file to read
+    Reads input from a JSON file and returns the contents.
+
+    :param str filename: Path to JSON file to read
     :return: Contents of the JSON file
     :rtype: dict or None
     """
@@ -101,7 +103,7 @@ def read_json(filename):
 
 def split_path(path):
     """
-    Splits a filepath
+    Splits a filepath.
 
     >>> split_path('/path/To/A/f1le')
     (['path', 'To', 'A'], 'file')
@@ -123,7 +125,8 @@ def split_path(path):
 
 def make_vsphere(filename=None):
     """
-    Creates a vSphere object using either a JSON file or by prompting the user
+    Creates a vSphere object using either a JSON file or by prompting the user.
+
     :param str filename: Name of JSON file with connection info [default: None]
     :return: vSphere object
     :rtype: :class:`Vsphere`
@@ -147,7 +150,8 @@ def make_vsphere(filename=None):
 
 def user_input(prompt, obj_name, func):
     """
-    Continually prompts a user for input until the specified object is found
+    Continually prompts a user for input until the specified object is found.
+
     :param str prompt: Prompt to bother user with
     :param str obj_name: Name of the type of the object that we seek
     :param func: The function that shalt be called to discover the object
@@ -173,7 +177,7 @@ def user_input(prompt, obj_name, func):
 # Based on: http://code.activestate.com/recipes/577058/
 def ask_question(question, default="no"):
     """
-    Prompts user to answer a question
+    Prompts user to answer a question.
 
     >>> ask_question("Do you like the color yellow?")
     Do you like the color yellow? [y/N]
@@ -214,6 +218,7 @@ def ask_question(question, default="no"):
 def default_prompt(prompt, default=None):
     """
     Prompt the user for input. If they press enter, return the default.
+
     :param str prompt: Prompt to display to user (do not include default value)
     :param str default: Default return value [default: None]
     :return: Value entered or default
@@ -231,7 +236,8 @@ def default_prompt(prompt, default=None):
 
 def _script_warning_prompt():
     """
-    Generates a warning prompt
+    Generates a warning prompt.
+
     :return: The warning prompt
     :rtype: str
     """
@@ -248,7 +254,8 @@ def _script_warning_prompt():
 
 def script_setup(logging_filename, args, script=None):
     """
-    Does setup tasks that are common to all automation scripts
+    Does setup tasks that are common to all automation scripts.
+
     :param str logging_filename: Name of file to save logs to
     :param dict args: docopt arguments dict
     :param script: Tuple with name and version of the script [default: None]
@@ -279,7 +286,8 @@ def script_setup(logging_filename, args, script=None):
 
 def resolve_path(server, thing, prompt=""):
     """
-    This is a hacked together script utility to get folders or VMs
+    This is a hacked together script utility to get folders or VMs.
+
     :param server: Vsphere instance
     :type server: :class:`Vsphere`
     :param str thing: String name of thing to get (folder | vm)
@@ -308,7 +316,8 @@ def resolve_path(server, thing, prompt=""):
 def setup_logging(filename, colors=True, console_verbose=False,
                   server=('localhost', 514)):
     """
-    Configures the logging interface used by everything for output
+    Configures the logging interface used by everything for output.
+
     :param str filename: Name of file that logs should be saved to
     :param bool colors: Color the terminal output [default: True]
     :param bool console_verbose: Print DEBUG logs to terminal [default: False]
@@ -377,7 +386,8 @@ def setup_logging(filename, colors=True, console_verbose=False,
 
 def get_vlan():
     """
-    Generates globally unique VLAN tags
+    Generates globally unique VLAN tags.
+
     :return: VLAN tag
     :rtype: int
     """
@@ -387,7 +397,8 @@ def get_vlan():
 
 def is_folder(obj):
     """
-    Checks if object is a vim.Folder
+    Checks if object is a vim.Folder.
+
     :param obj: The object to check
     :return: If the object is a folder
     :rtype: bool
@@ -397,7 +408,8 @@ def is_folder(obj):
 
 def is_vm(obj):
     """
-    Checks if object is a vim.VirtualMachine
+    Checks if object is a vim.VirtualMachine.
+
     :param obj: The object to check
     :return: If the object is a VM
     :rtype: bool

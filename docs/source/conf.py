@@ -20,11 +20,11 @@ sys.path.insert(0, os.path.abspath('../../adles'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc',
-              # 'sphinx.ext.doctest',
+              'sphinx.ext.doctest',
               'sphinx.ext.intersphinx',
               'sphinx.ext.todo',
               'sphinx.ext.coverage',
-              # 'sphinx.ext.ifconfig',
+              'sphinx.ext.ifconfig',
               'sphinx.ext.viewcode',
               'sphinx.ext.githubpages']
 
@@ -94,11 +94,8 @@ htmlhelp_basename = 'ADLES'
 
 # -- Options for LaTeX output ---------------------------------------------
 latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    'papersize': 'letterpaper',
-
-    # The font size ('10pt', '11pt' or '12pt').
-    'pointsize': '12pt',
+    'papersize': 'letterpaper',  # The paper size ('letterpaper' or 'a4paper')
+    'pointsize': '12pt',  # The font size ('10pt', '11pt' or '12pt')
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
