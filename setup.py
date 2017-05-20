@@ -57,9 +57,10 @@ setup(
     ],
     test_suite='test',
     platforms=['Windows', 'Linux', 'Solaris', 'Mac OS-X', 'Unix'],
-    keywords="adles virtualization automation vmware vsphere yaml labs virtual vms python pyvmomi "
-             "cybersecurity education uidaho radicl environments deployment docker lol 1337 setup",
-    classifiers=[  # Used by PyPI to classify the project and make searchable by others
+    keywords="adles virtualization automation vmware vsphere yaml labs virtual "
+             "vms python pyvmomi cybersecurity education uidaho radicl "
+             "environments deployment docker lol 1337 setup",
+    classifiers=[  # Used by PyPI to classify the project and make it searchable
         'Development Status :: 4 - Beta',
         'Environment :: Console',
         'License :: OSI Approved :: Apache Software License',
