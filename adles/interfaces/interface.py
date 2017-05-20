@@ -14,12 +14,11 @@
 
 import logging
 
-from adles.utils import time_execution
-
 
 class Interface:
-    """ Generic interface used to uniformly interact with platform-specific interfaces. """
-    __version__ = "1.1.1"
+    """ Generic interface used to uniformly interact with 
+    platform-specific interfaces. """
+    __version__ = "1.1.2"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -54,21 +53,21 @@ class Interface:
                 self._log.error("Invalid platform: %s", str(platform))
                 raise ValueError
 
-    @time_execution
+    # @time_execution
     def create_masters(self):
         """ Master creation phase. """
         self._log.info("Creating Master instances for %s", self.metadata["name"])
         for i in self.interfaces:
             i.create_masters()
 
-    @time_execution
+    # @time_execution
     def deploy_environment(self):
         """ Environment deployment phase. """
         self._log.info("Deploying environment for %s", self.metadata["name"])
         for i in self.interfaces:
             i.deploy_environment()
 
-    @time_execution
+    # @time_execution
     def cleanup_masters(self, network_cleanup=False):
         """
         Cleans up master instances.
@@ -81,7 +80,7 @@ class Interface:
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
 
-    @time_execution
+    # @time_execution
     def cleanup_environment(self, network_cleanup=False):
         """
         Cleans up a deployed environment.

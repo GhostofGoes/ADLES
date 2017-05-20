@@ -21,14 +21,16 @@ import adles.utils as utils
 from adles.vsphere.folder_utils import find_in_folder
 
 
-# Docs: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
+# Docs:
+# http://pubs.vmware.com/vsphere-60/topic/
+# com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
 class VM:
     """ Represents a VMware vSphere Virtual Machine instance.
 
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object
                     is not used to initialize the instance.
     """
-    __version__ = "0.7.1"
+    __version__ = "0.7.2"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -64,7 +66,6 @@ class VM:
             self.datastore = datastore  # vim.Datastore object to store VM on
             self.host = host  # vim.HostSystem
 
-    @utils.time_execution
     def create(self, template=None, cpus=None, cores=None, memory=None,
                max_consoles=None, version=None, firmware='efi',
                datastore_path=None):
@@ -191,12 +192,15 @@ class VM:
             elif state == "suspend":
                 task = self._vm.SuspendVM_Task()
             else:
-                self._log.error("Invalid state arg %s for VM %s", state, self.name)
+                self._log.error("Invalid state arg %s for VM %s",
+                                state, self.name)
                 return False
-            self._log.debug("Changing power state of VM %s to: '%s'", self.name, state)
+            self._log.debug("Changing power state of VM %s to: '%s'",
+                            self.name, state)
             return bool(task.wait())
 
-    def edit_resources(self, cpus=None, cores=None, memory=None, max_consoles=None):
+    def edit_resources(self, cpus=None, cores=None,
+                       memory=None, max_consoles=None):
         """
         Edits resource limits for the VM.
 
@@ -303,7 +307,8 @@ class VM:
         try:
             prog_spec = vim.vm.guest.ProcessManager.ProgramSpec(
                 programPath=program_path, arguments=program_args)
-            pid = process_manager.StartProgramInGuest(self._vm, creds, prog_spec)
+            pid = process_manager.StartProgramInGuest(self._vm,
+                                                      creds, prog_spec)
             self._log.debug("Successfully started program %s in VM %s. PID: %s",
                             prog_name, self.name, pid)
             return pid
@@ -343,7 +348,8 @@ class VM:
         """
         self._log.info("Creating snapshot '%s' of VM '%s'", name, self.name)
         if not self._vm.CreateSnapshot_Task(name=name, description=description,
-                                            memory=bool(memory), quiesce=quiesce).wait():
+                                            memory=bool(memory),
+                                            quiesce=quiesce).wait():
             self._log.error("Failed to take snapshot of VM %s", self.name)
 
     def revert_to_snapshot(self, snapshot):
@@ -352,7 +358,8 @@ class VM:
 
         :param str snapshot: Name of the snapshot to revert to
         """
-        self._log.info("Reverting '%s' to the snapshot '%s'", self.name, snapshot)
+        self._log.info("Reverting '%s' to the snapshot '%s'",
+                       self.name, snapshot)
         self.get_snapshot(snapshot).RevertToSnapshot_Task().wait()
 
     def revert_to_current_snapshot(self):
@@ -360,7 +367,8 @@ class VM:
         self._log.info("Reverting '%s' to the current snapshot", self.name)
         self._vm.RevertToCurrentSnapshot_Task().wait()
 
-    def remove_snapshot(self, snapshot, remove_children=True, consolidate_disks=True):
+    def remove_snapshot(self, snapshot, remove_children=True,
+                        consolidate_disks=True):
         """
         Removes the named snapshot from the VM.
 
@@ -371,7 +379,8 @@ class VM:
         will be merged with other disks if possible [default: True]
         """
         self._log.info("Removing snapshot '%s' from '%s'", snapshot, self.name)
-        self.get_snapshot(snapshot).RemoveSnapshot_Task(remove_children, consolidate_disks).wait()
+        self.get_snapshot(snapshot).RemoveSnapshot_Task(
+            remove_children, consolidate_disks).wait()
 
     def remove_all_snapshots(self, consolidate_disks=True):
         """
@@ -390,12 +399,17 @@ class VM:
 
         :param network: Network to attach NIC to
         :type network: vim.Network
-        :param str summary: Human-readable device info [default: default-summary]
+        :param str summary: Human-readable device info 
+        [default: default-summary]
         :param str model: Model of virtual network adapter. [default: e1000]
-        Options: (e1000 | e1000e | vmxnet | vmxnet2 | vmxnet3 | pcnet32 | sriov)
-        e1000 will work on Windows Server 2003+, and e1000e is supported on Windows Server 2012+.
-        VMXNET adapters require VMware Tools to be installed, and provide enhanced performance.
-        Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
+        Options: (e1000 | e1000e | vmxnet | vmxnet2 
+        | vmxnet3 | pcnet32 | sriov)
+        e1000 will work on Windows Server 2003+, 
+        and e1000e is supported on Windows Server 2012+.
+        VMXNET adapters require VMware Tools to be installed, 
+        and provide enhanced performance.
+        `Read this for more details: 
+        <http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/>`_
         """
         if not isinstance(network, vim.Network):
             self._log.error("Invalid network type when adding vNIC "
@@ -403,44 +417,55 @@ class VM:
         self._log.debug("Adding NIC to VM '%s'\nNetwork: '%s'"
                         "\tSummary: '%s'\tNIC Model: '%s'",
                         self.name, network.name, summary, model)
-        nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create base object to add configurations to
-        nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
+
+        # Create base object to add configurations to
+        spec = vim.vm.device.VirtualDeviceSpec()
+        spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
 
         # Set the type of network adapter
         if model == "e1000":
-            nic_spec.device = vim.vm.device.VirtualE1000()
+            spec.device = vim.vm.device.VirtualE1000()
         elif model == "e1000e":
-            nic_spec.device = vim.vm.device.VirtualE1000e()
+            spec.device = vim.vm.device.VirtualE1000e()
         elif model == "vmxnet":
-            nic_spec.device = vim.vm.device.VirtualVmxnet()
+            spec.device = vim.vm.device.VirtualVmxnet()
         elif model == "vmxnet2":
-            nic_spec.device = vim.vm.device.VirtualVmxnet2()
+            spec.device = vim.vm.device.VirtualVmxnet2()
         elif model == "vmxnet3":
-            nic_spec.device = vim.vm.device.VirtualVmxnet3()
+            spec.device = vim.vm.device.VirtualVmxnet3()
         elif model == "pcnet32":
-            nic_spec.device = vim.vm.device.VirtualPCNet32()
+            spec.device = vim.vm.device.VirtualPCNet32()
         elif model == "sriov":
-            nic_spec.device = vim.vm.device.VirtualSriovEthernetCard()
+            spec.device = vim.vm.device.VirtualSriovEthernetCard()
         else:
-            self._log.error("Invalid NIC model: '%s'\nDefaulting to e1000...", model)
-            nic_spec.device = vim.vm.device.VirtualE1000()
-        nic_spec.device.addressType = 'generated'  # Sets how MAC address is assigned
-        nic_spec.device.wakeOnLanEnabled = False  # Disables Wake-on-lan capabilities
+            self._log.error("Invalid NIC model: '%s'\n"
+                            "Defaulting to e1000...", model)
+            spec.device = vim.vm.device.VirtualE1000()
 
-        nic_spec.device.deviceInfo = vim.Description()
-        nic_spec.device.deviceInfo.summary = summary
+        # Sets how MAC address is assigned
+        spec.device.addressType = 'generated'
+        # Disables Wake-on-lan capabilities
+        spec.device.wakeOnLanEnabled = False
 
-        nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
-        nic_spec.device.backing.useAutoDetect = False
-        nic_spec.device.backing.network = network  # Sets port group to assign adapter to
-        nic_spec.device.backing.deviceName = network.name  # Sets name of device on host system
+        spec.device.deviceInfo = vim.Description()
+        spec.device.deviceInfo.summary = summary
 
-        nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-        nic_spec.device.connectable.startConnected = True  # Ensures adapter is connected at boot
-        nic_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
-        nic_spec.device.connectable.connected = True
-        nic_spec.device.connectable.status = 'untried'
-        self._edit(vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply change to VM
+        spec.device.backing = \
+            vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
+        spec.device.backing.useAutoDetect = False
+        # Sets port group to assign adapter to
+        spec.device.backing.network = network
+        # Sets name of device on host system
+        spec.device.backing.deviceName = network.name
+
+        spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
+        # Ensures adapter is connected at boot
+        spec.device.connectable.startConnected = True
+        # Allows guest OS to control device
+        spec.device.connectable.allowGuestControl = True
+        spec.device.connectable.connected = True
+        spec.device.connectable.status = 'untried'
+        self._edit(vim.vm.ConfigSpec(deviceChange=[spec]))  # Apply change to VM
 
     def edit_nic(self, nic_id, network=None, summary=None):
         """
@@ -484,7 +509,8 @@ class VM:
         virtual_nic_device = self.get_nic_by_name(nic_label)
         if virtual_nic_device is not None:
             virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
-            virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
+            virtual_nic_spec.operation = \
+                vim.vm.device.VirtualDeviceSpec.Operation.remove
             virtual_nic_spec.device = virtual_nic_device
 
             # Apply change to VM
@@ -541,31 +567,35 @@ class VM:
         if datastore is None:
             datastore = self.datastore
 
-        drive_spec = vim.vm.device.VirtualDeviceSpec()
-        drive_spec.device = vim.vm.device.VirtualCdrom()
-        drive_spec.device.key = -1
-        drive_spec.device.unitNumber = 0
+        spec = vim.vm.device.VirtualDeviceSpec()
+        spec.device = vim.vm.device.VirtualCdrom()
+        spec.device.key = -1
+        spec.device.unitNumber = 0
 
         # Find a disk controller to attach to
         controller = self._find_free_ide_controller()
         if controller:
-            drive_spec.device.controllerKey = controller.key
+            spec.device.controllerKey = controller.key
         else:
             self._log.error("Could not find a free IDE controller "
                             "on '%s' to attach ISO '%s'",
                             self.name, iso_path)
             return
 
-        drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
-        drive_spec.device.backing.fileName = "[%s] %s" % (datastore.name, iso_path)  # Attach ISO
-        drive_spec.device.backing.datastore = datastore  # Set datastore containing the ISO file
+        spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
+        # Attach ISO
+        spec.device.backing.fileName = "[%s] %s" % (datastore.name, iso_path)
+        # Set datastore containing the ISO file
+        spec.device.backing.datastore = datastore
 
-        drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
-        drive_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
-        drive_spec.device.connectable.startConnected = True  # Ensures ISO is connected at boot
+        spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
+        # Allows guest OS to control device
+        spec.device.connectable.allowGuestControl = True
+        # Ensures ISO is connected at boot
+        spec.device.connectable.startConnected = True
 
-        drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
-        vm_spec = vim.vm.ConfigSpec(deviceChange=[drive_spec])
+        spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
+        vm_spec = vim.vm.ConfigSpec(deviceChange=[spec])
         if boot:  # Set the VM to boot from the ISO upon power on
             self._log.debug("Setting '%s' to boot from ISO '%s'",
                             self.name, iso_path)
@@ -582,8 +612,10 @@ class VM:
         :rtype: vim.vm.device.VirtualIDEController or None
         """
         for dev in self._vm.config.hardware.device:
-            if isinstance(dev, vim.vm.device.VirtualIDEController) and len(dev.device) < 2:
-                return dev  # If there are less than 2 devices attached, we can use it
+            if isinstance(dev, vim.vm.device.VirtualIDEController) \
+                    and len(dev.device) < 2:
+                # If there are less than 2 devices attached, we can use it
+                return dev
         return None
 
     def mount_tools(self):
@@ -752,20 +784,25 @@ class VM:
         :rtype: str
         """
         info_string = "\n"
-        # http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.vm.Summary.html
+        # http://pubs.vmware.com/vsphere-60/topic/
+        # com.vmware.wssdk.apiref.doc/vim.vm.Summary.html
         summary = self._vm.summary
-        # http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.vm.ConfigInfo.html
+        # http://pubs.vmware.com/vsphere-60/topic/
+        # com.vmware.wssdk.apiref.doc/vim.vm.ConfigInfo.html
         config = self._vm.config
         info_string += "Name          : %s\n" % self.name
         info_string += "Status        : %s\n" % str(summary.overallStatus)
         info_string += "Power State   : %s\n" % summary.runtime.powerState
         if self._vm.guest:
             info_string += "Guest State   : %s\n" % self._vm.guest.guestState
-        info_string += "Last modified : %s\n" % str(self._vm.config.modified)  # datetime object
+        info_string += "Last modified : %s\n" \
+                       % str(self._vm.config.modified)  # datetime object
         if hasattr(summary.runtime, 'cleanPowerOff'):
-            info_string += "Clean poweroff: %s\n" % summary.runtime.cleanPowerOff
+            info_string += "Clean poweroff: %s\n" % \
+                           summary.runtime.cleanPowerOff
         if detailed:
-            info_string += "Num consoles  : %d\n" % summary.runtime.numMksConnections
+            info_string += "Num consoles  : %d\n" % \
+                           summary.runtime.numMksConnections
         info_string += "Host          : %s\n" % self.host.name
         info_string += "Datastore     : %s\n" % self.datastore
         info_string += "HW Version    : %s\n" % config.version
@@ -773,8 +810,10 @@ class VM:
         info_string += "Num CPUs      : %s\n" % summary.config.numCpu
         info_string += "Memory (MB)   : %s\n" % summary.config.memorySizeMB
         if detailed:
-            info_string += "Num vNICs     : %s\n" % summary.config.numEthernetCards
-            info_string += "Num Disks     : %s\n" % summary.config.numVirtualDisks
+            info_string += "Num vNICs     : %s\n" % \
+                           summary.config.numEthernetCards
+            info_string += "Num Disks     : %s\n" % \
+                           summary.config.numVirtualDisks
         info_string += "IsTemplate    : %s\n" % summary.config.template  # bool
         if detailed:
             info_string += "Config Path   : %s\n" % summary.config.vmPathName
@@ -782,28 +821,39 @@ class VM:
         if self._vm.guest:
             info_string += "IP            : %s\n" % self._vm.guest.ipAddress
             info_string += "Hostname:     : %s\n" % self._vm.guest.hostName
-            info_string += "Tools status  : %s\n" % self._vm.guest.toolsRunningStatus
-            info_string += "Tools version : %s\n" % self._vm.guest.toolsVersionStatus2
+            info_string += "Tools status  : %s\n" % \
+                           self._vm.guest.toolsRunningStatus
+            info_string += "Tools version : %s\n" % \
+                           self._vm.guest.toolsVersionStatus2
         if vnics:
             vm_nics = self.get_nics()
             for num, vnic in zip(range(1, len(vm_nics) + 1), vm_nics):
-                info_string += "vNIC %d label   : %s\n" % (num, vnic.deviceInfo.label)
-                info_string += "vNIC %d summary : %s\n" % (num, vnic.deviceInfo.summary)
-                info_string += "vNIC %d network : %s\n" % (num, vnic.backing.network.name)
+                info_string += "vNIC %d label   : %s\n" % \
+                               (num, vnic.deviceInfo.label)
+                info_string += "vNIC %d summary : %s\n" % \
+                               (num, vnic.deviceInfo.summary)
+                info_string += "vNIC %d network : %s\n" % \
+                               (num, vnic.backing.network.name)
         if uuids:
             info_string += "Instance UUID : %s\n" % summary.config.instanceUuid
             info_string += "Bios UUID     : %s\n" % summary.config.uuid
         if summary.runtime.question:
-            info_string += "Question      : %s\n" % summary.runtime.question.text
+            info_string += "Question      : %s\n" % \
+                           summary.runtime.question.text
         if summary.config.annotation:
             info_string += "Annotation    : %s\n" % summary.config.annotation
-        if snapshot and self._vm.snapshot and hasattr(self._vm.snapshot, 'currentSnapshot'):
-            info_string += "Current Snapshot: %s\n" % self._vm.snapshot.currentSnapshot.config.name
-            info_string += "Disk usage of all snapshots: %s\n" % self.snapshot_disk_usage()
+        if snapshot and self._vm.snapshot and hasattr(self._vm.snapshot,
+                                                      'currentSnapshot'):
+            info_string += "Current Snapshot: %s\n" % \
+                           self._vm.snapshot.currentSnapshot.config.name
+            info_string += "Disk usage of all snapshots: %s\n" % \
+                           self.snapshot_disk_usage()
         if detailed and summary.runtime:
-            info_string += "Last Poweron  : %s\n" % str(summary.runtime.bootTime)  # datetime object
+            info_string += "Last Poweron  : %s\n" % \
+                           str(summary.runtime.bootTime)  # datetime object
             info_string += "Max CPU usage : %s\n" % summary.runtime.maxCpuUsage
-            info_string += "Max Mem usage : %s\n" % summary.runtime.maxMemoryUsage
+            info_string += "Max Mem usage : %s\n" % \
+                           summary.runtime.maxMemoryUsage
             info_string += "Last suspended: %s\n" % summary.runtime.suspendTime
         return info_string
 
