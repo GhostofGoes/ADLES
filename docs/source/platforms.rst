@@ -12,12 +12,11 @@ vSphere
 
 The vSphere platform serves as a wrapper around the pyVmomi library.
 
+.. automodule:: adles.vsphere
+
 
 Vsphere
 -------
-
-
-
 Holds the state and provides methods to interact with the vCenter server
 or ESXi host.
 
@@ -32,12 +31,14 @@ Represents a Virtual Machine.
 .. automodule:: adles.vsphere.vm
    :members:
 
+
 Host
 ----
 Represents an ESXi host.
 
 .. automodule:: adles.vsphere.host
    :members:
+
 
 Utility functions
 -----------------

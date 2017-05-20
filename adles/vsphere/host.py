@@ -33,7 +33,8 @@ class Host:
 
     def reboot(self, force=False):
         """
-        Reboots the host
+        Reboots the host.
+
         :param bool force: Force a reboot even if the host 
         is not in maintenance mode
         """
@@ -42,7 +43,8 @@ class Host:
 
     def shutdown(self, force=False):
         """
-        Shuts down the host
+        Shuts down the host.
+
         :param bool force: Force a reboot even if the host 
         is not in maintenance mode
         """
@@ -51,7 +53,8 @@ class Host:
 
     def enter_maintenance_mode(self, timeout=0, spec=None):
         """
-        Enter maintenance mode
+        Enter maintenance mode.
+
         :param int timeout: Seconds to wait [default: 0]
         :param spec: Actions to be taken upon entering maintenance mode
         :type spec: vim.HostMaintenanceSpec
@@ -62,7 +65,8 @@ class Host:
 
     def exit_maintenance_mode(self, timeout=0):
         """
-        Exit maintenance mode
+        Exit maintenance mode.
+
         :param int timeout: Seconds to wait [default: 0]
         """
         self._log.info("%s is exiting maintainence mode", self.name)
@@ -70,7 +74,8 @@ class Host:
 
     def create_vswitch(self, name, num_ports=512):
         """
-        Creates a vSwitch
+        Creates a vSwitch.
+
         :param str name: Name of the vSwitch to create
         :param int num_ports: Number of ports the vSwitch should have 
         [default: 512]
@@ -88,7 +93,8 @@ class Host:
 
     def create_portgroup(self, name, vswitch_name, vlan=0, promiscuous=False):
         """
-        Creates a portgroup
+        Creates a portgroup.
+
         :param str name: Name of portgroup to create
         :param str vswitch_name: Name of vSwitch to create the port group on
         :param int vlan: VLAN ID of the port group [default: 0]
@@ -117,7 +123,8 @@ class Host:
 
     def delete_network(self, name, network_type):
         """
-        Deletes the named network from the host
+        Deletes the named network from the host.
+
         :param str name: Name of the vSwitch to delete
         :param str network_type: Type of the network to remove 
         ("vswitch" | "portgroup")
@@ -140,7 +147,8 @@ class Host:
 
     def get_info(self):
         """
-        Get information about the host
+        Get information about the host.
+
         :return: Formatted host information
         :rtype: str
         """
@@ -148,7 +156,8 @@ class Host:
 
     def get_net_item(self, object_type, name):
         """
-        Retrieves a network object of the specified type and name from a host
+        Retrieves a network object of the specified type and name from a host.
+
         :param str object_type: Type of object to get: 
         (portgroup | vswitch | proxyswitch | vnic | pnic)
         :param str name: Name of network object [default: first object found]
@@ -164,7 +173,8 @@ class Host:
 
     def get_net_obj(self, object_type, name, refresh=False):
         """
-        Retrieves a network object of the specified type and name from a host
+        Retrieves a network object of the specified type and name from a host.
+
         :param str object_type: Type of object to get: 
         (portgroup | vswitch | proxyswitch | vnic | pnic)
         :param name: Name of network object
@@ -192,7 +202,8 @@ class Host:
 
     def get_net_objs(self, object_type, refresh=False):
         """
-        Retrieves all network objects of the specified type from the host
+        Retrieves all network objects of the specified type from the host.
+
         :param str object_type: Type of object to get: 
         (portgroup | vswitch | proxyswitch | vnic | pnic)
         :param bool refresh: Refresh the host's network system information 

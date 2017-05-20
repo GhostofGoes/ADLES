@@ -27,6 +27,7 @@ class Vsphere:
                  port=443, use_ssl=False):
         """
         Connects to a vCenter server and initializes a class instance.
+
         :param str username: Username of account to login with
         [default: prompt user]
         :param str password: Password of account to login with
@@ -97,7 +98,8 @@ class Vsphere:
     # From: create_folder_in_datacenter.py in pyvmomi-community-samples
     def create_folder(self, folder_name, create_in=None):
         """
-        Creates a VM folder in the specified folder
+        Creates a VM folder in the specified folder.
+
         :param str folder_name: Name of folder to create
         :param create_in: Folder to create the new folder in
         [default: root folder of datacenter]
@@ -118,7 +120,8 @@ class Vsphere:
 
     def set_motd(self, message):
         """
-        Sets vCenter server Message of the Day (MOTD)
+        Sets vCenter server Message of the Day (MOTD).
+
         :param str message: Message to set
         """
         self._log.info("Setting vCenter MOTD to %s", message)
@@ -127,7 +130,8 @@ class Vsphere:
     def map_items(self, vimtypes, func, name=None,
                   container=None, recursive=True):
         """
-        Apply a function to item(s) in a container
+        Apply a function to item(s) in a container.
+
         :param list vimtypes: List of vimtype objects to look for
         :param func: Function to apply
         :param str name: Name of item to apply to [default: None]
@@ -152,7 +156,8 @@ class Vsphere:
 
     def set_entity_permissions(self, entity, permission):
         """
-        Defines or updates rule(s) for the given user or group on the entity
+        Defines or updates rule(s) for the given user or group on the entity.
+
         :param entity: The entity on which to set permissions
         :type entity: vim.ManagedEntity
         :param permission: The permission to set
@@ -186,7 +191,8 @@ class Vsphere:
 
     def get_entity_permissions(self, entity, inherited=True):
         """
-        Gets permissions defined on or effective on a managed entity
+        Gets permissions defined on or effective on a managed entity.
+
         :param entity: The entity to get permissions for
         :type entity: vim.ManagedEntity
         :param bool inherited: Include propagating permissions
@@ -204,7 +210,8 @@ class Vsphere:
 
     def get_role_permissions(self, role_id):
         """
-        Gets all permissions that use a particular role
+        Gets all permissions that use a particular role.
+
         :param int role_id: ID of the role
         :return: The role permissions
         :rtype: vim.AuthorizationManager.Permission or None
@@ -220,8 +227,10 @@ class Vsphere:
                   find_users=True, find_groups=False):
         """
         Returns a list of the users and groups defined for the server
-        NOTE: You must hold the Authorization.ModifyPermissions 
-        privilege to invoke this method!
+
+        .. note:: You must hold the Authorization.ModifyPermissions 
+        privilege to invoke this method.
+
         :param str search: Case insensitive substring used to filter results
         [default: all users]
         :param str domain: Domain to be searched [default: local machine]
@@ -259,7 +268,8 @@ class Vsphere:
 
     def get_info(self):
         """
-        Retrieves and formats basic information about the vSphere instance
+        Retrieves and formats basic information about the vSphere instance.
+
         :return: formatted server information
         :rtype: str
         """
@@ -278,7 +288,8 @@ class Vsphere:
 
     def get_folder(self, folder_name=None):
         """
-        Finds and returns the named Folder
+        Finds and returns the named Folder.
+
         :param str folder_name: Name of folder [default: Datacenter vmFolder]
         :return: The folder found
         :rtype: vim.Folder
@@ -294,7 +305,8 @@ class Vsphere:
 
     def get_vm(self, vm_name):
         """
-        Finds and returns the named VM
+        Finds and returns the named VM.
+
         :param str vm_name: Name of the VM
         :return: The VM found
         :rtype: vim.VirtualMachine or None
@@ -303,7 +315,8 @@ class Vsphere:
 
     def get_network(self, network_name, distributed=False):
         """
-        Finds and returns the named Network
+        Finds and returns the named Network.
+
         :param str network_name: Name or path of the Network
         :param bool distributed: If the Network is a Distributed PortGroup
         [default: False]
@@ -320,7 +333,8 @@ class Vsphere:
 
     def get_host(self, host_name=None):
         """
-        Finds and returns the named Host System
+        Finds and returns the named Host System.
+
         :param str host_name: Name of the host
         [default: first host found in datacenter]
         :return: The host found
@@ -330,7 +344,8 @@ class Vsphere:
 
     def get_cluster(self, cluster_name=None):
         """
-        Finds and returns the named Cluster
+        Finds and returns the named Cluster.
+
         :param str cluster_name: Name of the cluster
         [default: first cluster found in datacenter]
         :return: The cluster found
@@ -340,7 +355,8 @@ class Vsphere:
 
     def get_clusters(self):
         """
-        Get all the clusters associated with the vCenter server
+        Get all the clusters associated with the vCenter server.
+
         :return: All clusters associated with the vCenter server
         :rtype: list(vim.ClusterComputeResource)
         """
@@ -349,7 +365,8 @@ class Vsphere:
 
     def get_datastore(self, datastore_name=None):
         """
-        Finds and returns the named Datastore
+        Finds and returns the named Datastore.
+
         :param str datastore_name: Name of the datastore
         [default: first datastore in datacenter]
         :return: The datastore found
@@ -359,7 +376,8 @@ class Vsphere:
 
     def get_pool(self, pool_name=None):
         """
-        Finds and returns the named Resource Pool
+        Finds and returns the named vim.ResourcePool.
+
         :param str pool_name: Name of the resource pool
         [default: first pool found in datacenter]
         :return: The resource pool found
@@ -369,7 +387,8 @@ class Vsphere:
 
     def get_all_vms(self):
         """
-        Finds and returns all VMs registered in the Datacenter
+        Finds and returns all VMs registered in the Datacenter.
+
         :return: All VMs in the Datacenter defined for the class
         :rtype: list(vim.VirtualMachine)
         """
@@ -377,7 +396,8 @@ class Vsphere:
 
     def get_obj(self, container, vimtypes, name, recursive=True):
         """
-        Finds and returns named vSphere object of specified type
+        Finds and returns named vim object of specified type.
+
         :param container: Container to search in
         :param list vimtypes: vimtype objects to look for
         :param str name: Name of the object
@@ -399,7 +419,8 @@ class Vsphere:
     # From: https://github.com/sijis/pyvmomi-examples/vmutils.py
     def get_objs(self, container, vimtypes, recursive=True):
         """
-        Get all the vSphere objects associated with a given type
+        Get all the vim objects associated with a given type.
+
         :param container: Container to search in
         :param list vimtypes: Objects to search for
         :param bool recursive: Recursively search for the item [default: True]
@@ -418,7 +439,8 @@ class Vsphere:
     def get_item(self, vimtype, name=None, container=None, recursive=True):
         """
         Get a item of specified name and type.
-        Intended to be simple version of get_obj()
+        Intended to be simple version of :meth: get_obj
+
         :param vimtype: Type of item
         :type vimtype: vimtype
         :param str name: Name of item [default: None]
@@ -436,7 +458,8 @@ class Vsphere:
 
     def find_by_uuid(self, uuid, instance_uuid=True):
         """
-        Find a VM in the datacenter with the given Instance or BIOS UUID
+        Find a VM in the datacenter with the given Instance or BIOS UUID.
+
         :param str uuid: UUID to search for (Instance or BIOS for VMs)
         :param bool instance_uuid: If True, search by VM Instance UUID, 
         otherwise search by BIOS UUID [default: True]
@@ -449,7 +472,8 @@ class Vsphere:
 
     def find_by_ds_path(self, path):
         """
-        Finds a VM by it's location on a Datastore
+        Finds a VM by it's location on a Datastore.
+
         :param str path: Path to the VM's .vmx file on the Datastore
         :return: The VM found
         :rtype: vim.VirtualMachine or None
@@ -463,7 +487,8 @@ class Vsphere:
 
     def find_by_ip(self, ip, vm_search=True):
         """
-        Find a VM or Host using a IP address
+        Find a VM or Host using a IP address.
+
         :param str ip: IP address string as returned by VMware Tools ipAddress
         :param vm_search: Search for VMs if True, Hosts if False [default: True]
         :return: The VM or host found
@@ -474,8 +499,9 @@ class Vsphere:
 
     def find_by_hostname(self, hostname, vm_search=True):
         """
-        Find a VM or Host using a fully-qualified domain name
-        :param str hostname: Fully-qualified domain name
+        Find a VM or Host using a Fully-Qualified Domain Name (FQDN).
+
+        :param str hostname: FQDN of the VM to find
         :param vm_search: Search for VMs if True, Hosts if False [default: True]
         :return: The VM or host found
         :rtype: vim.VirtualMachine or vim.HostSystem or None
@@ -486,7 +512,8 @@ class Vsphere:
 
     def find_by_inv_path(self, path, datacenter=None):
         """
-        Finds a vim.ManagedEntity (VM, host, folder, etc) in a inventory
+        Finds a vim.ManagedEntity (VM, host, folder, etc) in a inventory.
+
         :param str path: Path to the entity. This must include the hidden 
         Vsphere folder for the type: vm | network | datastore | host
         Example: "vm/some-things/more-things/vm-name"

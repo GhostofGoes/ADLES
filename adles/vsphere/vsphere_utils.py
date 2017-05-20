@@ -23,11 +23,14 @@ LONG_SLEEP = 1.0
 
 def wait_for_task(task, timeout=60.0, pause_timeout=True):
     """
-    Waits for a single vCenter task to finish and returns its result
+    Waits for a single vim.Task to finish and returns its result.
+
     :param task: The task to wait for
     :type task: vim.Task
-    :param float timeout: Number of seconds to wait before terminating task [default: 60.0]
-    :param bool pause_timeout: Pause timeout counter while task is queued on server [default: True]
+    :param float timeout: Number of seconds to wait before terminating task 
+    [default: 60.0]
+    :param bool pause_timeout: Pause timeout counter while task 
+    is queued on server [default: True]
     :return: Task result information (task.info.result)
     :rtype: str or None
     """
@@ -41,63 +44,80 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
     try:
         while True:
             if task.info.state == 'success':  # It succeeded!
-                return task.info.result  # Return the task result if it was successful
+                # Return the task result if it was successful
+                return task.info.result
             elif task.info.state == 'error':  # It failed...
                 logging.error("Error during task %s on object '%s': %s",
                               name, obj, str(task.info.error.msg))
                 return None
             elif time() > end_time:  # Check if it has exceeded the timeout
-                logging.error("Task %s timed out after %s seconds", name, str(wait_time))
+                logging.error("Task %s timed out after %s seconds",
+                              name, str(wait_time))
                 task.CancelTask()  # Cancel the task since we've timed out
                 return None
             elif task.info.state == 'queued':
                 sleep(LONG_SLEEP)  # Sleep longer if it's queued up on system
-                if pause_timeout is True:  # Don't count queue time against the timeout
+                # Don't count queue time against the timeout
+                if pause_timeout is True:
                     end_time += LONG_SLEEP
                 wait_time += LONG_SLEEP
             else:
-                sleep(SLEEP_INTERVAL)  # Wait a bit so we don't waste resources checking state
+                # Wait a bit so we don't waste resources checking state
+                sleep(SLEEP_INTERVAL)
                 wait_time += SLEEP_INTERVAL
     except vim.fault.NoPermission as e:
         logging.error("Permission denied for task %s on %s: need privilege %s",
                       name, obj, e.privilegeId)
     except vim.fault.TaskInProgress as e:
-        logging.error("Cannot complete task %s: task %s is already in progress on %s",
+        logging.error("Cannot complete task %s: "
+                      "task %s is already in progress on %s",
                       name, e.task.info.name, obj)
     except vim.fault.InvalidPowerState as e:
-        logging.error("Cannot complete task %s: %s is in invalid power state %s",
+        logging.error("Cannot complete task %s: "
+                      "%s is in invalid power state %s",
                       name, obj, e.existingState)
     except vim.fault.InvalidState as e:
-        logging.error("Cannot complete task %s: invalid state for %s\n%s", name, obj, str(e))
+        logging.error("Cannot complete task %s: "
+                      "invalid state for %s\n%s", name, obj, str(e))
     except vim.fault.CustomizationFault:
-        logging.error("Cannot complete task %s: invalid customization for %s", name, obj)
+        logging.error("Cannot complete task %s: "
+                      "invalid customization for %s", name, obj)
     except vim.fault.VmConfigFault:
-        logging.error("Cannot complete task %s: invalid configuration for VM %s", name, obj)
+        logging.error("Cannot complete task %s: "
+                      "invalid configuration for VM %s", name, obj)
     except vim.fault.InvalidName as e:
-        logging.error("Cannot complete task %s for object %s: name '%s' is not valid",
-                      name, obj, e.name)
+        logging.error("Cannot complete task %s for object %s: "
+                      "name '%s' is not valid", name, obj, e.name)
     except vim.fault.DuplicateName as e:
-        logging.error("Cannot complete task %s for %s: there is a duplicate named %s",
-                      name, obj, e.name)
+        logging.error("Cannot complete task %s for %s: "
+                      "there is a duplicate named %s", name, obj, e.name)
     except vim.fault.InvalidDatastore as e:
-        logging.error("Cannot complete task %s for %s: invalid Datastore '%s'",
-                      name, obj, e.datastore)
+        logging.error("Cannot complete task %s for %s: "
+                      "invalid Datastore '%s'", name, obj, e.datastore)
     except vim.fault.AlreadyExists:
-        logging.error("Cannot complete task %s: %s already exists", name, obj)
+        logging.error("Cannot complete task %s: "
+                      "%s already exists", name, obj)
     except vim.fault.NotFound:
-        logging.error("Cannot complete task %s: %s does not exist", name, obj)
+        logging.error("Cannot complete task %s: "
+                      "%s does not exist", name, obj)
     except vim.fault.ResourceInUse:
-        logging.error("Cannot complete task %s: resource %s is in use", name, obj)
+        logging.error("Cannot complete task %s: "
+                      "resource %s is in use", name, obj)
     return None
-# This line allows calling "<task>.wait(<params>)" instead of "wait_for_task(task, params)"
-# This works because the implicit first argument to a class method call in Python is the instance
+
+# This line allows calling "<task>.wait(<params>)"
+# instead of "wait_for_task(task, params)"
+#
+# This works because the implicit first argument
+# to a class method call in Python is the instance
 vim.Task.wait = wait_for_task  # Inject into vim.Task class
 
 
 # From: list_dc_datastore_info in pyvmomi-community-samples
 def get_datastore_info(ds_obj):
     """
-    Gets a human-readable summary of a Datastore
+    Gets a human-readable summary of a Datastore.
+
     :param ds_obj: The datastore to get information on
     :type ds_obj: vim.Datastore
     :return: The datastore's information

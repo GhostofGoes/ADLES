@@ -9,8 +9,8 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 
 # Documentation
 * Development guide: how to setup development environment, contribute, etc.
-* Generate Sphinx docs
-* Mirror Sphinx docs to ReadTheDocs automatically
+* ~~Generate Sphinx docs~~
+* ~~Mirror Sphinx docs to ReadTheDocs automatically~~
 * Put READMEs in sub-directories with code, e.g for Vsphere, Interfaces
 * Spec writing guides, how much time it takes
 * Overall tutorial walkthrough and usage guide
@@ -21,6 +21,7 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 * Add stuff from thesis/paper
 * Triple/quadruple nested folder exercise example
 * Logo or icon image for the project
+* Insert terminology definitions and links into docs, e.g "Master", "Template", etc.
 
 
 # Specs

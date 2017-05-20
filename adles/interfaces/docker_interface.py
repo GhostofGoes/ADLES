@@ -17,7 +17,8 @@ import logging
 try:
     import docker
 except ImportError:
-    logging.error("Could not import docker module. Install it using 'pip install docker'")
+    logging.error("Could not import docker module. "
+                  "Install it using 'pip install docker'")
     exit(0)
 
 import adles.utils as utils
@@ -36,7 +37,8 @@ class DockerInterface(Interface):
         :param dict spec: Dict of a parsed specification
         """
         self._log = logging.getLogger('DockerInterface')
-        self._log.debug("Initializing DockerInterface %s", DockerInterface.__version__)
+        self._log.debug("Initializing DockerInterface %s",
+                        DockerInterface.__version__)
 
         self.infra = infra
         self.spec = spec
@@ -45,10 +47,14 @@ class DockerInterface(Interface):
         self.networks = spec["networks"]
         self.folders = spec["folders"]
 
-        # If needed, a wrapper class that simplifies the creation of containers will be made
-        # Reference: https://docker-py.readthedocs.io/en/stable/client.html#client-reference
+        # If needed, a wrapper class that simplifies
+        # the creation of containers will be made
+        # Reference:
+        # https://docker-py.readthedocs.io/en/stable/client.html#client-reference
         # Initialize the Docker client
-        self.client = docker.DockerClient(base_url=infra.get("url", "unix:///var/run/docker.sock"),
+        self.client = docker.DockerClient(base_url=infra.get("url",
+                                                             "unix:///var/run/"
+                                                             "docker.sock"),
                                           tls=bool(infra.get("tls", True)))
 
         # Verify the connection to the client
@@ -61,7 +67,8 @@ class DockerInterface(Interface):
         if "registry" in self.infra:
             reg = self.infra["registry"]
             reg_logins = utils.read_json(reg["login-file"])
-            self.client.login(username=reg_logins["user"], password=reg_logins["pass"],
+            self.client.login(username=reg_logins["user"],
+                              password=reg_logins["pass"],
                               registry=reg["url"])
 
         # List images currently on the server
@@ -83,4 +90,5 @@ class DockerInterface(Interface):
         return str(self.client.info() + "\nVersion:\t" + self.client.version())
 
     def __eq__(self, other):
-        return super(DockerInterface, self).__eq__(other) and self.client == other.client
+        return super(DockerInterface, self).__eq__(other) \
+               and self.client == other.client

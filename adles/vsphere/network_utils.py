@@ -19,7 +19,8 @@ from pyVmomi import vim
 
 def create_portgroup(name, host, vswitch_name, vlan=0, promiscuous=False):
     """
-    Creates a portgroup
+    Creates a portgroup on a ESXi host.
+
     :param name: Name of portgroup to create
     :param host: vim.HostSystem on which to create the port group
     :param vswitch_name: Name of vSwitch on which to create the port group

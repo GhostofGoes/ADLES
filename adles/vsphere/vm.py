@@ -69,7 +69,8 @@ class VM:
                max_consoles=None, version=None, firmware='efi',
                datastore_path=None):
         """
-        Creates a Virtual Machine
+        Creates a Virtual Machine.
+
         :param template: Template VM to clone
         :type template: vim.VirtualMachine
         :param int cpus: Number of processors [default: 1]
@@ -146,7 +147,8 @@ class VM:
 
     def change_state(self, state, attempt_guest=True):
         """
-        Generic power state change that uses guest OS operations if available
+        Generic power state change that uses guest OS operations if available.
+
         :param str state: State to change to (on | off | reset | suspend)
         :param bool attempt_guest: Attempt to use guest operations
         :return: If state change succeeded
@@ -196,11 +198,13 @@ class VM:
 
     def edit_resources(self, cpus=None, cores=None, memory=None, max_consoles=None):
         """
-        Edits resource limits for the VM
+        Edits resource limits for the VM.
+
         :param int cpus: Number of CPUs
         :param int cores: Number of CPU cores
         :param int memory: Amount of RAM in MB
-        :param int max_consoles: Maximum number of simultaneous MKS console connections
+        :param int max_consoles: Maximum number of simultaneous 
+        Mouse-Keyboard-Screen (MKS) console connections
         """
         spec = vim.vm.ConfigSpec()
         if cpus is not None:
@@ -215,7 +219,8 @@ class VM:
 
     def rename(self, name):
         """
-        Renames the VM
+        Renames the VM.
+
         :param str name: New name for the VM
         """
         self._log.debug("Renaming VM %s to %s", self.name, name)
@@ -226,7 +231,8 @@ class VM:
 
     def upgrade(self, version):
         """
-        Upgrades the hardware version of the VM
+        Upgrades the hardware version of the VM.
+
         :param int version: Version of hardware to upgrade VM to
         [default: latest host supports]
         """
@@ -251,7 +257,8 @@ class VM:
 
     def set_note(self, note):
         """
-        Sets the note on the VM
+        Sets the note on the VM.
+
         :param str note: String to set the note to
         """
         self._edit(vim.vm.ConfigSpec(annotation=str(note)))
@@ -262,6 +269,7 @@ class VM:
         """
         Executes a commandline program in the VM.
         This requires VMware Tools to be installed on the VM.
+
         :param process_manager: vSphere process manager object
         :type process_manager: vim.vm.guest.ProcessManager
         :param str program_path: Path to the program inside the VM
@@ -306,7 +314,8 @@ class VM:
 
     def snapshot_disk_usage(self):
         """
-        Determines the total disk usage of a VM's snapshots
+        Determines the total disk usage of a VM's snapshots.
+
         :return: Human-readable disk usage of the snapshots
         :rtype: str
         """
@@ -323,7 +332,8 @@ class VM:
 
     def create_snapshot(self, name, description='', memory=False, quiesce=True):
         """
-        Creates a snapshot of the VM
+        Creates a snapshot of the VM.
+
         :param str name: Name of the snapshot
         :param str description: Text description of the snapshot [default: '']
         :param bool memory: Memory dump of the VM is included in the snapshot
@@ -338,7 +348,8 @@ class VM:
 
     def revert_to_snapshot(self, snapshot):
         """
-        Reverts VM to the named snapshot
+        Reverts VM to the named snapshot.
+
         :param str snapshot: Name of the snapshot to revert to
         """
         self._log.info("Reverting '%s' to the snapshot '%s'", self.name, snapshot)
@@ -351,7 +362,8 @@ class VM:
 
     def remove_snapshot(self, snapshot, remove_children=True, consolidate_disks=True):
         """
-        Removes the named snapshot from the VM
+        Removes the named snapshot from the VM.
+
         :param str snapshot: Name of the snapshot to remove
         :param bool remove_children: Removal of the entire snapshot subtree
         [default: True]
@@ -363,7 +375,8 @@ class VM:
 
     def remove_all_snapshots(self, consolidate_disks=True):
         """
-        Removes all snapshots associated with the VM
+        Removes all snapshots associated with the VM.
+
         :param bool consolidate_disks: Virtual disks of the deleted snapshot 
         will be merged with other disks if possible [default: True]
         """
@@ -373,7 +386,8 @@ class VM:
     # Originally based on: add_nic_to_vm in pyvmomi-community-samples
     def add_nic(self, network, summary="default-summary", model="e1000"):
         """
-        Add a NIC in the portgroup to the VM
+        Add a NIC in the portgroup to the VM.
+
         :param network: Network to attach NIC to
         :type network: vim.Network
         :param str summary: Human-readable device info [default: default-summary]
@@ -384,9 +398,10 @@ class VM:
         Read this for more details: http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/
         """
         if not isinstance(network, vim.Network):
-            self._log.error("Invalid network type when adding vNIC to VM '%s': %s",
-                            self.name, type(network).__name__)
-        self._log.debug("Adding NIC to VM '%s'\nNetwork: '%s'\tSummary: '%s'\tNIC Model: '%s'",
+            self._log.error("Invalid network type when adding vNIC "
+                            "to VM '%s': %s", self.name, type(network).__name__)
+        self._log.debug("Adding NIC to VM '%s'\nNetwork: '%s'"
+                        "\tSummary: '%s'\tNIC Model: '%s'",
                         self.name, network.name, summary, model)
         nic_spec = vim.vm.device.VirtualDeviceSpec()  # Create base object to add configurations to
         nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
@@ -429,7 +444,8 @@ class VM:
 
     def edit_nic(self, nic_id, network=None, summary=None):
         """
-        Edits a vNIC based on it's number
+        Edits a vNIC based on it's number.
+
         :param int nic_id: Number of network adapter on VM
         :param network: Network to assign the vNIC to [default: None]
         :type network: vim.Network
@@ -450,12 +466,15 @@ class VM:
             self._log.debug("Changing PortGroup to: '%s'", network.name)
             nic_spec.device.backing.network = network
             nic_spec.device.backing.deviceName = network.name
-        self._edit(vim.vm.ConfigSpec(deviceChange=[nic_spec]))  # Apply change to VM
+
+        # Apply change to VM
+        self._edit(vim.vm.ConfigSpec(deviceChange=[nic_spec]))
 
     # Originally based on: delete_nic_from_vm in pyvmomi-community-samples
     def remove_nic(self, nic_number):
         """
-        Deletes a vNIC based on it's number
+        Deletes a vNIC based on it's number.
+
         :param int nic_number: Number of the vNIC to delete
         :return: If removal succeeded
         :rtype: bool
@@ -467,26 +486,32 @@ class VM:
             virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
             virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
             virtual_nic_spec.device = virtual_nic_device
-            self._edit(vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))  # Apply change to VM
+
+            # Apply change to VM
+            self._edit(vim.vm.ConfigSpec(deviceChange=[virtual_nic_spec]))
             return True
         else:
-            self._log.error("Virtual %s could not be found for '%s'", nic_label, self.name)
+            self._log.error("Virtual %s could not be found for '%s'",
+                            nic_label, self.name)
             return False
 
     def remove_device(self, device_spec):
         """
-        Removes a device from the VM
+        Removes a device from the VM.
+
         :param device_spec: The specification of the device to remove
         :type device_spec: vim.vm.device.VirtualDeviceSpec
         """
-        self._log.debug("Removing device '%s' from '%s'", device_spec.name, self.name)
+        self._log.debug("Removing device '%s' from '%s'",
+                        device_spec.name, self.name)
         device_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
         self._edit(vim.vm.ConfigSpec(deviceChange=[device_spec]))
 
     # From: delete_disk_from_vm.py in pyvmomi_community_samples
     def remove_hdd(self, disk_number):
         """
-        Removes a numbered Virtual Hard Disk from the VM
+        Removes a numbered Virtual Hard Disk from the VM.
+
         :param int disk_number: Number of the HDD to remove
         :return: If the HDD was successfully removed
         :rtype: bool
@@ -504,9 +529,11 @@ class VM:
 
     def attach_iso(self, iso_path, datastore=None, boot=True):
         """
-        Attaches an ISO image to a VM
+        Attaches an ISO image to a VM.
+
         :param str iso_path: Path in the Datastore of the ISO image to attach
-        :param datastore: Datastore where the ISO resides [default: VM's datastore]
+        :param datastore: Datastore where the ISO resides 
+        [default: VM's datastore]
         :type datastore: vim.Datastore
         :param bool boot: Set VM to boot from the attached ISO [default: True]
         """
@@ -524,13 +551,14 @@ class VM:
         if controller:
             drive_spec.device.controllerKey = controller.key
         else:
-            self._log.error("Could not find a free IDE controller on '%s' to attach ISO '%s'",
+            self._log.error("Could not find a free IDE controller "
+                            "on '%s' to attach ISO '%s'",
                             self.name, iso_path)
             return
 
         drive_spec.device.backing = vim.vm.device.VirtualCdrom.IsoBackingInfo()
         drive_spec.device.backing.fileName = "[%s] %s" % (datastore.name, iso_path)  # Attach ISO
-        drive_spec.device.backing.datastore = datastore  # Set datastore ISO is in
+        drive_spec.device.backing.datastore = datastore  # Set datastore containing the ISO file
 
         drive_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
         drive_spec.device.connectable.allowGuestControl = True  # Allows guest OS to control device
@@ -539,7 +567,8 @@ class VM:
         drive_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
         vm_spec = vim.vm.ConfigSpec(deviceChange=[drive_spec])
         if boot:  # Set the VM to boot from the ISO upon power on
-            self._log.debug("Setting '%s' to boot from ISO '%s'", self.name, iso_path)
+            self._log.debug("Setting '%s' to boot from ISO '%s'",
+                            self.name, iso_path)
             order = [vim.vm.BootOptions.BootableCdromDevice()]
             order.extend(list(self._vm.config.bootOptions.bootOrder))
             vm_spec.bootOptions = vim.vm.BootOptions(bootOrder=order)
@@ -547,7 +576,8 @@ class VM:
 
     def _find_free_ide_controller(self):
         """
-        Finds a free IDE controller to use
+        Finds a free IDE controller to use.
+
         :return: The free IDE controller
         :rtype: vim.vm.device.VirtualIDEController or None
         """
@@ -563,7 +593,8 @@ class VM:
 
     def get_datastore_folder(self):
         """
-        Gets the name of the VM's folder on the datastore
+        Gets the name of the VM's folder on the datastore.
+
         :return: The name of the datastore folder with the VM's files
         :rtype: str
         """
@@ -571,7 +602,8 @@ class VM:
 
     def get_hdd_by_name(self, name):
         """
-        Gets a Virtual HDD from the VM
+        Gets a Virtual HDD from the VM.
+
         :param name: Name of the virtual HDD
         :return: The HDD device
         :rtype: vim.vm.device.VirtualDisk or None
@@ -584,7 +616,8 @@ class VM:
 
     def get_vim_vm(self):
         """
-        Get the vim.VirtualMachine instance of the VM
+        Get the vim.VirtualMachine instance of the VM.
+
         :return: The vim instance of the VM
         :rtype: vim.VirtualMachine
         """
@@ -592,7 +625,8 @@ class VM:
 
     def get_nics(self):
         """
-        Returns a list of all Virtual Network Interface Cards (vNICs) on the VM
+        Returns a list of all Virtual Network Interface Cards (vNICs) on the VM.
+
         :return: All vNICs on the VM
         :rtype: list(vim.vm.device.VirtualEthernetCard) or list
         """
@@ -600,7 +634,8 @@ class VM:
 
     def get_nic_by_name(self, name):
         """
-        Gets a Virtual Network Interface Card from a VM
+        Gets a Virtual Network Interface Card from a VM.
+
         :param str  name: Name of the vNIC
         :return: The vNIC found
         :rtype: vim.vm.device.VirtualEthernetCard or None
@@ -613,7 +648,8 @@ class VM:
 
     def get_nic_by_id(self, nic_id):
         """
-        Get a vNIC by integer ID
+        Get a vNIC by integer ID.
+
         :param int nic_id: ID of the vNIC
         :return: The vNIC found
         :rtype: vim.vm.device.VirtualEthernetCard or None
@@ -622,7 +658,8 @@ class VM:
 
     def get_nic_by_network(self, network):
         """
-        Finds a vNIC by it's network backing
+        Finds a vNIC by it's network backing.
+
         :param network: Network of the vNIC to match
         :type network: vim.Network
         :return: Name of the vNIC
@@ -637,7 +674,8 @@ class VM:
 
     def get_snapshot(self, snapshot=None):
         """
-        Retrieves the named snapshot from the VM
+        Retrieves the named snapshot from the VM.
+
         :param str snapshot: Name of the snapshot [default: current snapshot]
         :return: The snapshot found
         :rtype: vim.Snapshot or None
@@ -652,7 +690,8 @@ class VM:
 
     def get_all_snapshots(self):
         """
-        Retrieves a list of all snapshots of the VM
+        Retrieves a list of all snapshots of the VM.
+
         :return: Nested List of vim.Snapshot objects
         :rtype: list(vim.Snapshot) or None
         """
@@ -661,7 +700,8 @@ class VM:
     # From: https://github.com/imsweb/ezmomi
     def _get_snapshots_recursive(self, snap_tree):
         """
-        Recursively finds all snapshots in the tree
+        Recursively finds all snapshots in the tree.
+
         :param snap_tree: Tree of snapshots
         :return: Nested List of vim.Snapshot objects
         :rtype: list(vim.Snapshot) or None
@@ -677,7 +717,8 @@ class VM:
 
     def get_snapshot_info(self, name=None):
         """
-        Human-readable info on a snapshot
+        Human-readable info on a snapshot.
+
         :param st name: Name of the snapshot to get [default: current snapshot]
         :return: Info on the snapshot found
         :rtype: str
@@ -688,17 +729,19 @@ class VM:
 
     def get_all_snapshots_info(self):
         """
-        Enumerates the full snapshot tree of the VM and makes it human-readable
+        Enumerates the full snapshot tree of the VM and makes it human-readable.
+
         :return: The human-readable snapshot tree info
         :rtype: str
         """
         # Check for ideas: snapshot_operations.py in pyvmomi_community_samples
-        pass  # TBD
+        raise NotImplementedError  # TODO: implement
 
     def get_info(self, detailed=False, uuids=False,
                  snapshot=False, vnics=False):
         """
-        Get human-readable information for a VM
+        Get human-readable information for a VM.
+
         :param bool detailed: Add detailed information, e.g maximum memory used
         [default: False]
         :param bool uuids: Whether to get UUID information [default: False]
@@ -766,7 +809,8 @@ class VM:
 
     def screenshot(self):
         """
-        Takes a screenshot of a VM
+        Takes a screenshot of a VM.
+
         :return: Path to datastore location of the screenshot
         :rtype: str
         """
@@ -775,7 +819,8 @@ class VM:
 
     def has_tools(self):
         """
-        Checks if VMware Tools is installed and working
+        Checks if VMware Tools is installed and working.
+
         :return: If tools are installed and working
         :rtype: bool
         """
@@ -784,7 +829,8 @@ class VM:
 
     def powered_on(self):
         """
-        Determines if a VM is powered on
+        Determines if a VM is powered on.
+
         :return: If VM is powered on
         :rtype: bool
         """
@@ -793,7 +839,8 @@ class VM:
 
     def is_template(self):
         """
-        Checks if VM is a template
+        Checks if VM is a template.
+
         :return: If the VM is a template
         :rtype: bool
         """
@@ -801,7 +848,8 @@ class VM:
 
     def is_windows(self):
         """
-        Checks if a VM's guest OS is Windows
+        Checks if a VM's guest OS is Windows.
+
         :return: If guest OS is Windows
         :rtype: bool
         """
@@ -809,7 +857,8 @@ class VM:
 
     def _edit(self, config):
         """
-        Reconfigures VM using the given configuration specification
+        Reconfigures VM using the given configuration specification.
+
         :param config: The configuration specification to apply
         :type config: vim.vm.ConfigSpec
         :return: If the edit was successful
@@ -822,7 +871,8 @@ class VM:
 
     def _customize(self, customization):
         """
-        Customizes the VM using the given customization specification
+        Customizes the VM using the given customization specification.
+
         :param customization: The customization specification to apply
         :type customization: vim.vm.customization.Specification
         :return: If the customization was successful
@@ -853,7 +903,8 @@ class VM:
 
 def is_vnic(device):
     """
-    Checks if the device is a VirtualEthernetCard
+    Checks if the device is a VirtualEthernetCard.
+
     :param device: The device to check
     :return: If the device is a vNIC
     :rtype: bool

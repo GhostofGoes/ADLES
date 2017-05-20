@@ -41,7 +41,8 @@ class Interface:
         self.thresholds = {}    # Thresholds for platforms
         self.groups = {}        # Groups for platforms
 
-        # Select the Interface to use based on the specified infrastructure platform
+        # Select the Interface to use based on
+        # the specified infrastructure platform
         for platform, config in infra.items():
             if platform == "vmware-vsphere":
                 from .vsphere_interface import VsphereInterface
@@ -55,14 +56,14 @@ class Interface:
 
     @time_execution
     def create_masters(self):
-        """ Master creation phase """
+        """ Master creation phase. """
         self._log.info("Creating Master instances for %s", self.metadata["name"])
         for i in self.interfaces:
             i.create_masters()
 
     @time_execution
     def deploy_environment(self):
-        """ Environment deployment phase """
+        """ Environment deployment phase. """
         self._log.info("Deploying environment for %s", self.metadata["name"])
         for i in self.interfaces:
             i.deploy_environment()
@@ -70,18 +71,23 @@ class Interface:
     @time_execution
     def cleanup_masters(self, network_cleanup=False):
         """
-        Cleans up master instances
-        :param bool network_cleanup: If networks should be cleaned up [default: False]
+        Cleans up master instances.
+
+        :param bool network_cleanup: If networks should be cleaned up 
+        [default: False]
         """
-        self._log.info("Cleaning up Master instances for %s", self.metadata["name"])
+        self._log.info("Cleaning up Master instances for %s",
+                       self.metadata["name"])
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
 
     @time_execution
     def cleanup_environment(self, network_cleanup=False):
         """
-        Cleans up a deployed environment
-        :param bool network_cleanup: If networks should be cleaned up [default: False]
+        Cleans up a deployed environment.
+
+        :param bool network_cleanup: If networks should be cleaned up 
+        [default: False]
         """
         self._log.info("Cleaning up environment for %s", self.metadata["name"])
         for i in self.interfaces:
@@ -89,7 +95,8 @@ class Interface:
 
     def _instances_handler(self, spec, obj_name, obj_type):
         """
-        Determines number of instances and optional prefix using specification
+        Determines number of instances and optional prefix using specification.
+
         :param dict spec: Dict of folder
         :param str obj_name: Name of the thing being handled
         :param str obj_type: Type of the thing being handled (folder | service)
@@ -112,23 +119,30 @@ class Interface:
                     # if num < 1:
                     num = 1  # WORKAROUND FOR AD-GROUPS
                 else:
-                    self._log.error("Unknown instances specification: %s", str(spec["instances"]))
+                    self._log.error("Unknown instances specification: %s",
+                                    str(spec["instances"]))
                     num = 0
 
-        # Check if the number of instances exceeds the configured thresholds for the interface
+        # Check if the number of instances exceeds
+        # the configured thresholds for the interface
         thr = self.thresholds[obj_type]
         if num > thr["error"]:
-            self._log.error("%d instances of %s '%s' is beyond the configured %s threshold of %d",
-                            num, obj_type, obj_name, self.__name__, thr["error"])
+            self._log.error("%d instances of %s '%s' is beyond the "
+                            "configured %s threshold of %d",
+                            num, obj_type, obj_name,
+                            self.__name__, thr["error"])
             raise Exception("Threshold exceeded")
         elif num > thr["warn"]:
-            self._log.warning("%d instances of %s '%s' is beyond the configured %s threshold of %d",
-                              num, obj_type, obj_name, self.__name__, thr["warn"])
+            self._log.warning("%d instances of %s '%s' is beyond the "
+                              "configured %s threshold of %d",
+                              num, obj_type, obj_name,
+                              self.__name__, thr["warn"])
         return num, prefix
 
     def _path(self, path, name):
         """
-        Generates next step of the path for deployment of Masters
+        Generates next step of the path for deployment of Masters.
+
         :param str path: Current path
         :param str name: Name to add to the path
         :return: The updated path
@@ -139,7 +153,8 @@ class Interface:
     @staticmethod
     def _is_enabled(spec):
         """
-        Determines if a spec is enabled
+        Determines if a spec is enabled.
+
         :param dict spec: Specification to check
         :return: If the spec is enabled
         :rtype: bool
@@ -151,7 +166,8 @@ class Interface:
 
     def _determine_net_type(self, network_label):
         """
-        Determines the type of a network
+        Determines the type of a network.
+
         :param str network_label: Name of network to determine type of
         :return: Type of the network ("generic-networks" | "unique-networks")
         :rtype: str
@@ -165,7 +181,9 @@ class Interface:
 
     def _get_group(self, group_name):
         """
-        Provides a uniform way to get information about normal groups and template groups
+        Provides a uniform way to get information about normal groups
+        and template groups.
+
         :param str group_name: Name of the group
         :return: Group object
         :rtype: :class:`Group`
@@ -178,12 +196,15 @@ class Interface:
             elif isinstance(group, list):   # Template groups
                 return group[0]
             else:
-                self._log.error("Unknown type for group '%s': %s", str(group_name), str(type(group)))
+                self._log.error("Unknown type for group '%s': %s",
+                                str(group_name), str(type(group)))
         else:
             self._log.error("Could not get group '%s' from groups", group_name)
 
     def __repr__(self):
-        return "%s(%s, %s)" % (str(self.__class__), str(self.spec), str(self.infra))
+        return "%s(%s, %s)" % (str(self.__class__),
+                               str(self.spec),
+                               str(self.infra))
 
     def __str__(self):
         return str([x for x in self.infra.keys()])
@@ -192,7 +213,8 @@ class Interface:
         return hash(str(self))
 
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.infra == other.infra and \
+        return isinstance(other, self.__class__) and \
+               self.infra == other.infra and \
                self.spec == other.spec
 
     def __ne__(self, other):
