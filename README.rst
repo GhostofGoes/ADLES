@@ -1,6 +1,6 @@
 .. image:: https://badge.fury.io/py/ADLES.svg
    :target: https://badge.fury.io/py/ADLES
-   :alt: PyPI Version
+   :alt: PyPI Version
 .. image:: https://travis-ci.org/GhostofGoes/ADLES.svg?branch=master
    :target: https://travis-ci.org/GhostofGoes/ADLES
    :alt: Build Status
@@ -16,7 +16,9 @@
 .. image:: https://readthedocs.org/projects/adles/badge/
    :target: http://adles.readthedocs.io/en/latest/
    :alt: Documentation Status
-
+.. image:: https://zenodo.org/badge/68841026.svg
+   :target: https://zenodo.org/badge/latestdoi/68841026
+   :alt: DOI Reference
 
 
 Overview
