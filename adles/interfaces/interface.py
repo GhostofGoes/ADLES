@@ -16,8 +16,7 @@ import logging
 
 
 class Interface:
-    """ Generic interface used to uniformly interact with 
-    platform-specific interfaces. """
+    """Base class for all Interfaces."""
     __version__ = "1.2.0"
 
     # Names/prefixes
@@ -29,69 +28,39 @@ class Interface:
         :param dict infra: Full infrastructure configuration
         :param dict spec: Full exercise specification
         """
-        self._log = logging.getLogger('PlatformInterface')
-        self._log.debug("Initializing Interface %s", Interface.__version__)
-
+        self._log = logging.getLogger(str(self.__class__))
         self.infra = infra      # Save the infrastructure configuration
         self.spec = spec        # Save the exercise specification
         self.metadata = spec["metadata"]    # Save the exercise spec metadata
+        self.services = spec["services"]
         self.networks = spec["networks"]    # Networks for platforms
-        self.interfaces = []    # List of instantiated platform interfaces
+        self.folders = spec["folders"]
         self.thresholds = {}    # Thresholds for platforms
         self.groups = {}        # Groups for platforms
 
-        # Select the Interface to use based on
-        # the specified infrastructure platform
-        for platform, config in infra.items():
-            if platform == "vmware-vsphere":
-                from .vsphere_interface import VsphereInterface
-                self.interfaces.append(VsphereInterface(config, spec))
-            elif platform == "docker":
-                from .docker_interface import DockerInterface
-                self.interfaces.append(DockerInterface(config, spec))
-            elif platform == "cloud":
-                from .cloud_interface import CloudInterface
-                self.interfaces.append(CloudInterface(config, spec))
-            else:
-                self._log.error("Invalid platform: %s", str(platform))
-                raise ValueError
-
-    # @time_execution
     def create_masters(self):
-        """ Master creation phase. """
-        self._log.info("Creating Master instances for %s", self.metadata["name"])
-        for i in self.interfaces:
-            i.create_masters()
+        """Master creation phase."""
+        pass
 
-    # @time_execution
     def deploy_environment(self):
-        """ Environment deployment phase. """
-        self._log.info("Deploying environment for %s", self.metadata["name"])
-        for i in self.interfaces:
-            i.deploy_environment()
+        """Environment deployment phase."""
+        pass
 
-    # @time_execution
     def cleanup_masters(self, network_cleanup=False):
         """
         Cleans up master instances.
 
-        :param bool network_cleanup: If networks should be cleaned up 
+        :param bool network_cleanup: If networks should be cleaned up
         """
-        self._log.info("Cleaning up Master instances for %s",
-                       self.metadata["name"])
-        for i in self.interfaces:
-            i.cleanup_masters(network_cleanup=network_cleanup)
+        pass
 
-    # @time_execution
     def cleanup_environment(self, network_cleanup=False):
         """
         Cleans up a deployed environment.
 
-        :param bool network_cleanup: If networks should be cleaned up 
+        :param bool network_cleanup: If networks should be cleaned up
         """
-        self._log.info("Cleaning up environment for %s", self.metadata["name"])
-        for i in self.interfaces:
-            i.cleanup_masters(network_cleanup=network_cleanup)
+        pass
 
     def _instances_handler(self, spec, obj_name, obj_type):
         """

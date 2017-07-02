@@ -63,7 +63,7 @@ from os.path import basename, exists, splitext, join
 from docopt import docopt
 from pyVmomi import vim
 
-from adles.interfaces import Interface
+from adles.interfaces import PlatformInterface
 from adles.parser import check_syntax, parse_yaml
 from adles.utils import setup_logging
 from adles import __version__
@@ -118,7 +118,7 @@ def main():
 
         # Instantiate the Interface and call functions for the specified phase
         try:
-            interface = Interface(infra=parse_yaml(
+            interface = PlatformInterface(infra=parse_yaml(
                 spec["metadata"]["infra-file"]), spec=spec)
             if args["--masters"]:
                 interface.create_masters()

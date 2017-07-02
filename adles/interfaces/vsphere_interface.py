@@ -25,10 +25,9 @@ from adles.interfaces import Interface
 
 
 class VsphereInterface(Interface):
-    """ Generic interface for the VMware vSphere platform """
-    __version__ = "1.0.6"
+    """Generic interface for the VMware vSphere platform."""
+    __version__ = "1.0.7"
 
-    # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
         """
         .. warning:: The infrastructure and spec are assumed to be valid,
@@ -38,16 +37,9 @@ class VsphereInterface(Interface):
         :param dict infra: Infrastructure information
         :param dict spec: The parsed exercise specification
         """
-        self._log = logging.getLogger('VsphereInterface')
-        self._log.debug("Initializing VsphereInterface %s",
-                        VsphereInterface.__version__)
-
-        self.spec = spec
-        self.metadata = spec["metadata"]
-        self.services = spec["services"]
-        self.networks = spec["networks"]
-        self.folders = spec["folders"]
-        self.infra = infra
+        super(self.__class__, self).__init__(infra=infra, spec=spec)
+        self._log = logging.getLogger(str(self.__class__))
+        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
         self.master_folder = None
         self.template_folder = None
         # Used to do lookups of Generic networks during deployment
@@ -762,7 +754,7 @@ class VsphereInterface(Interface):
         return str(self.server) + str(self.groups) + str(self.hosts)
 
     def __eq__(self, other):
-        return super(VsphereInterface, self).__eq__(other) and \
+        return super(self.__class__, self).__eq__(other) and \
                self.server == other.server and \
                self.groups == other.groups and \
                self.hosts == other.hosts

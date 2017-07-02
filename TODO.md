@@ -7,7 +7,11 @@ If you need help getting spun up on the VMware vSphere Python library, pyvmomi, 
 
 Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fright-pane.html).
 
+
+
 # Documentation
+* Setup and use [waffle.io](https://waffle.io/) project management board.
+* Update design docs with new class structure
 * Development guide: how to setup development environment, contribute, etc.
 * Put READMEs in sub-directories with code, e.g for Vsphere, Interfaces
 * Ensure Sphinx docs get updated when code changes are made
@@ -25,6 +29,8 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 
 # Specs
 * Add network folder(s) to vsphere infrastructure specification
+* Add example of infrastructure specification
+* Add example of package specification
 
 ## Exercise
 * Add more network services to networks section, e.g DNS/DHCP configs, NTP
@@ -33,6 +39,7 @@ e.g we want 30 students, each in their own VM, with no ability to see or mess wi
 
 
 # Code
+* Move tests from .travis.yml to their own shell script, then call that from travis
 
 ## Main Application
 * Add ability to load configurations from an INI file (for main and scripts)
@@ -124,15 +131,21 @@ Long-term, I’d like to see the creation of a open-source repository, similiar 
 Hashicorp’s Atlas and Docker’s Hub, where educators can share packages
 and contribute to improving cyber education globally.
 
-## Use Apache libcloud to implement additional platforms
+## Use Apache libcloud to implement cloud platforms
 Use Apache [libcloud](https://libcloud.readthedocs.io/en/latest/compute/examples.html) to support all cloud platforms!
 While this has a VMware vSphere driver, it is limited (can't create nodes!) and is based on pysphere, which isn't as well supported as pyVmomi, stuck on python 2.7, not official, and only works for vsphere 5.5...
 
-* Add cloud_interface
+* ~~Implement CloudInterface~~
 * Improve hardware aspects of specs, make part of interface
-* Add cost limits/desired pricing to spec(s) and possibly commandline config
 * Use Groups to do permissions properly
 * We need configuration management support to fully make use of libcloud
+
+
+## Use Libvirt to implement hypervisors
+Use [Libvirt](http://libvirt.org/drivers.html#hypervisor) to support most hypervisor platforms
+
+* ~~Add LibvirtInterface~~
+* Implement LibvirtInterface
 
 ## Additional platforms to support
 * Docker: good for simulating large environments, with low resource overhead and quick load times
@@ -215,6 +228,5 @@ While this has a VMware vSphere driver, it is limited (can't create nodes!) and 
     * Dockerfile that builds a lightweight Docker image running the system
 
 
-
-# Stretch/wack
+# Stretch goals
 * Dockerfile/Vagrantfile to setup a server instance that can run ADLES

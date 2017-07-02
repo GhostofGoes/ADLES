@@ -3,7 +3,7 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    February 6th, 2017
-# Current Version:  1.5.0
+# Current Version:  1.6.0
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -44,10 +44,14 @@ docker:
 
 # Cloud platforms
 cloud:
-  provider: "provider"      # REQUIRED    Provider from list of Apache libcloud providers
+  provider: "provider"      # REQUIRED    Provider from list of Apache libcloud Compute providers (http://bit.ly/2tACoIM)
   login-file: "cloud.json"  # REQUIRED    Information used to access the cloud service
-  max-instance-price: 0.0   # Suggested   Max USD to spend on a single instance
-  max-total-price: 0.0      # Suggested   Max USD to spend on the entire deployment
+  max-instance-price: 0.0   # Suggested   Max USD to spend on a single instance [default: 5.0]
+  max-total-price: 0.0      # Suggested   Max USD to spend on the entire deployment [default: 20.0]
+
+# Libvirt
+libvirt:
+  uri: "vbox:///session"    # REQUIRED    What hypervisor connection to use (http://libvirt.org/uri.html)
 
 # Microsoft Hyper-V Server
 hyper-v:

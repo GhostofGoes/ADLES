@@ -26,26 +26,17 @@ from adles.interfaces import Interface
 
 
 class DockerInterface(Interface):
-    """ Generic interface for the Docker platform """
+    """Generic interface for the Docker platform."""
+    __version__ = "0.2.2"
 
-    __version__ = "0.2.1"
-
-    # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
         """
         :param dict infra: Dict of infrastructure information
         :param dict spec: Dict of a parsed specification
         """
-        self._log = logging.getLogger('DockerInterface')
-        self._log.debug("Initializing DockerInterface %s",
-                        DockerInterface.__version__)
-
-        self.infra = infra
-        self.spec = spec
-        self.metadata = spec["metadata"]
-        self.services = spec["services"]
-        self.networks = spec["networks"]
-        self.folders = spec["folders"]
+        super(self.__class__, self).__init__(infra=infra, spec=spec)
+        self._log = logging.getLogger(str(self.__class__))
+        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
 
         # If needed, a wrapper class that simplifies
         # the creation of containers will be made
@@ -90,5 +81,5 @@ class DockerInterface(Interface):
         return str(self.client.info() + "\nVersion:\t" + self.client.version())
 
     def __eq__(self, other):
-        return super(DockerInterface, self).__eq__(other) \
+        return super(self.__class__, self).__eq__(other) \
                and self.client == other.client

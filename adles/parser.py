@@ -428,8 +428,7 @@ def verify_infra_syntax(infra):
             if "registry" in config:
                 num_errors += _checker(["url", "login-file"], "infrastructure",
                                        config["registry"], "errors")
-        # TODO: remove amazon-aws, digital-ocean from this and the test cases
-        elif platform in ["amazon-aws", "digital-ocean", "hyper-v", "cloud"]:
+        elif platform in ["hyper-v", "cloud", "libvirt"]:
             logging.info("Platform %s is not yet implemented", platform)
         else:
             logging.error("Unknown infrastructure platform: %s", str(platform))

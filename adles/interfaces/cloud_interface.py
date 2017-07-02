@@ -14,54 +14,29 @@
 
 import logging
 
-try:
-    from libcloud.compute.types import Provider
-    from libcloud.compute.providers import get_driver
-except ImportError:
-    logging.error("Could not import apache-libcloud. "
-                  "Install it using 'pip install apache-libcloud'")
-    exit(0)
-
-import adles.utils as utils
-from adles.interfaces import Interface
+from adles.interfaces import LibcloudInterface
 
 
-class CloudInterface(Interface):
-    """ Generic interface for all cloud platforms. """
+class CloudInterface(LibcloudInterface):
+    """Generic interface for all cloud platforms."""
+    __version__ = "0.2.0"
 
-    __version__ = "0.1.0"
-
-    # noinspection PyMissingConstructor
     def __init__(self, infra, spec):
         """
         :param dict infra: Dict of infrastructure information
         :param dict spec: Dict of a parsed specification
         """
-        self._log = logging.getLogger('CloudInterface')
-        self._log.debug("Initializing CloudInterface %s",
-                        CloudInterface.__version__)
+        super(self.__class__, self).__init__(infra=infra, spec=spec)
+        self._log = logging.getLogger(str(self.__class__))
+        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
+        self.max_instance_price = float(infra["max-instance-price"])
+        self.max_total_price = float(infra["max-total-price"])
 
-        # Keys will be as specified for "Cloud" in infrastructure specification
-        self.infra = infra
-        self.spec = spec
-        self.metadata = spec["metadata"]
-        self.services = spec["services"]
-        self.networks = spec["networks"]
-        self.folders = spec["folders"]
-
-        # TODO: temporary for testing
-        self.username = "test"
-        self.api_key = "lol"
-
-        # TODO: temporary for testing
-        # provider_name = self.infra["cloud-provider"]
-        self.provider_name = "EC2"
-
-        driver = get_driver(getattr(Provider, self.provider_name))
-        cloud = driver(user_id=self.username, key=self.api_key)
-
-        self._log.debug(cloud.list_images())
-        self._log.debug(cloud.list_sizes())
+        # Cache currently available images and sizes
+        self.available_images = self.provider.list_images()
+        self.available_sizes = self.provider.list_sizes()
+        self._log.debug(self.available_images)
+        self._log.debug(self.available_sizes)
 
     def create_masters(self):
         pass
@@ -79,7 +54,7 @@ class CloudInterface(Interface):
         return str(self.provider_name)
 
     def __eq__(self, other):
-        return super(CloudInterface, self).__eq__(other) \
+        return super(self.__class__, self).__eq__(other) \
                and self.provider_name == other.provider_name \
                and self.username == other.username \
                and self.api_key == other.api_key
