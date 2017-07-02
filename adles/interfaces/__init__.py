@@ -2,4 +2,5 @@
 
 from .interface import Interface
 
-__all__ = ['interface', 'vsphere_interface', 'docker_interface']
+__all__ = ['interface', 'vsphere_interface',
+           'docker_interface', 'cloud_interface']

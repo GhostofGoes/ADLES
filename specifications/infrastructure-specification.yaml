@@ -2,8 +2,8 @@
 # ADLES:            https://pypi.python.org/pypi/ADLES
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
-# Creation Date:    Febuary 6th, 2017
-# Current Version:  1.4.0
+# Creation Date:    February 6th, 2017
+# Current Version:  1.5.0
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -23,7 +23,7 @@ vmware-vsphere:
   datacenter: "datacenter name"   # Suggested   Name of the Datacenter on which to create environment
   datastore: "datastore name"     # Suggested   Name of Datastore to use for environment VMs
   template-folder: "folder path"  # REQUIRED    Path from server root to folder that contains VM templates
-  server-root: "folder name"      # Suggested   Name of folder considored to be "root" for the platform
+  server-root: "folder name"      # Suggested   Name of folder considered to be "root" for the platform
   vswitch: "vswitch name"         # Suggested   Name of vSwitch to use as default
   host-list: ["a", "b"]           # Optional    List of names of ESXi hosts to use [default: first host found in the datacenter]
   thresholds:                     # Optional    Thresholds at which X number of folders/services per folder result in a warning or an error
@@ -42,14 +42,12 @@ docker:
     url: "url://"         # REQUIRED  URL of the registry
     login-file: "r.json"  # REQUIRED  JSON file containing login information for the Docker registry server
 
-# Amazon Web Services
-amazon-aws:
-  cred-file: "path"     # REQUIRED  Path to file with AWS access credentials
-  config-file: "path"   # Suggested   Path to file with service configurations
-
-# Digital Ocean
-digital-ocean:
-  token-file: "path"    # REQUIRED  Path to file containing access token
+# Cloud platforms
+cloud:
+  provider: "provider"      # REQUIRED    Provider from list of Apache libcloud providers
+  login-file: "cloud.json"  # REQUIRED    Information used to access the cloud service
+  max-instance-price: 0.0   # Suggested   Max USD to spend on a single instance
+  max-total-price: 0.0      # Suggested   Max USD to spend on the entire deployment
 
 # Microsoft Hyper-V Server
 hyper-v:

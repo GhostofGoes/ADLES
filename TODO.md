@@ -42,6 +42,8 @@ e.g we want 30 students, each in their own VM, with no ability to see or mess wi
 * Add resiliency using [`shelve`](https://docs.python.org/3/library/shelve.html) module and other methods, so long-running phases aren't killed by simple errors.
 * Implement provisioners
 * Evaluate alternatives to current syntax validator. The best I've found is [Swagger](http://swagger.io/) and it's [Python binding, `connexion`](https://pypi.python.org/pypi/connexion).
+* Improve Groups: implement AD support, flesh out
+* Move pyvmomi to optional-requirements
 
 ### Parser
 * Make the parser a class to enable passing of state between methods
@@ -122,8 +124,17 @@ Long-term, I’d like to see the creation of a open-source repository, similiar 
 Hashicorp’s Atlas and Docker’s Hub, where educators can share packages
 and contribute to improving cyber education globally.
 
+## Use Apache libcloud to implement additional platforms
+Use Apache [libcloud](https://libcloud.readthedocs.io/en/latest/compute/examples.html) to support all cloud platforms!
+While this has a VMware vSphere driver, it is limited (can't create nodes!) and is based on pysphere, which isn't as well supported as pyVmomi, stuck on python 2.7, not official, and only works for vsphere 5.5...
 
-## Support for additional platforms
+* Add cloud_interface
+* Improve hardware aspects of specs, make part of interface
+* Add cost limits/desired pricing to spec(s) and possibly commandline config
+* Use Groups to do permissions properly
+* We need configuration management support to fully make use of libcloud
+
+## Additional platforms to support
 * Docker: good for simulating large environments, with low resource overhead and quick load times
     * Docker Machine
     * Docker Compose

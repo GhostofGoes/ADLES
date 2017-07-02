@@ -56,10 +56,10 @@ setup(
         "pytest-cov==2.4.0"
     ],
     test_suite='test',
-    platforms=['Windows', 'Linux', 'Solaris', 'Mac OS-X', 'Unix'],
+    platforms=['Windows', 'Linux', 'Mac OS-X', 'Unix'],
     keywords="adles virtualization automation vmware vsphere yaml labs virtual "
-             "vms python pyvmomi cybersecurity education uidaho radicl "
-             "environments deployment docker lol 1337 setup",
+             "vms vm python pyvmomi cybersecurity education uidaho radicl "
+             "environments deployment docker libcloud setup",
     classifiers=[  # Used by PyPI to classify the project and make it searchable
         'Development Status :: 4 - Beta',
         'Environment :: Console',
@@ -72,10 +72,6 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Operating System :: OS Independent',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX',
-        'Operating System :: Unix',
-        'Operating System :: MacOS'
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',

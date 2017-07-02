@@ -18,7 +18,7 @@ import logging
 class Interface:
     """ Generic interface used to uniformly interact with 
     platform-specific interfaces. """
-    __version__ = "1.1.2"
+    __version__ = "1.2.0"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -49,6 +49,9 @@ class Interface:
             elif platform == "docker":
                 from .docker_interface import DockerInterface
                 self.interfaces.append(DockerInterface(config, spec))
+            elif platform == "cloud":
+                from .cloud_interface import CloudInterface
+                self.interfaces.append(CloudInterface(config, spec))
             else:
                 self._log.error("Invalid platform: %s", str(platform))
                 raise ValueError

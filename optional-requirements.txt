@@ -1,0 +1,2 @@
+docker >= 2.4.2
+apache-libcloud >= 2.0.0

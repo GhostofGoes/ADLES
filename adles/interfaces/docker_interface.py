@@ -15,7 +15,7 @@
 import logging
 
 try:
-    import docker
+    import docker  # NOTE(cgoes): has not been tested with Python 3.6 yet
 except ImportError:
     logging.error("Could not import docker module. "
                   "Install it using 'pip install docker'")
