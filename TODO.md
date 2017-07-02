@@ -9,10 +9,8 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 
 # Documentation
 * Development guide: how to setup development environment, contribute, etc.
-* ~~PEP8 compliance~~
-* ~~Generate Sphinx docs~~
-* ~~Mirror Sphinx docs to ReadTheDocs automatically~~
 * Put READMEs in sub-directories with code, e.g for Vsphere, Interfaces
+* Ensure Sphinx docs get updated when code changes are made
 * Spec writing guides, how much time it takes
 * Overall tutorial walkthrough and usage guide
 * GIFs with overview of operation
@@ -37,6 +35,7 @@ e.g we want 30 students, each in their own VM, with no ability to see or mess wi
 # Code
 
 ## Main Application
+* Add ability to load configurations from an INI file (for main and scripts)
 * Unit tests for utils (doctest as well)
 * Unit tests for vSphere. These could run when there is access to a server, or using the [`vcrpy`](https://pypi.python.org/pypi/vcrpy) module.
 * Integrate tests into travis, consolidate travis commandline tests into a script?
