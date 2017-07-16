@@ -10,9 +10,6 @@
 .. image:: https://codeclimate.com/github/GhostofGoes/ADLES/badges/gpa.svg
    :target: https://codeclimate.com/github/GhostofGoes/ADLES
    :alt: Code Climate
-.. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-   :target: https://opensource.org/licenses/Apache-2.0
-   :alt: License
 .. image:: https://readthedocs.org/projects/adles/badge/
    :target: http://adles.readthedocs.io/en/latest/
    :alt: Documentation Status
