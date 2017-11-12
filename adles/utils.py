@@ -14,7 +14,6 @@
 
 import logging
 import logging.handlers
-
 import sys
 import os
 
@@ -350,6 +349,25 @@ def setup_logging(filename, colors=True, console_verbose=False,
     logging.debug("Configured logging to SysLog server %s:%s",
                   server[0], str(server[1]))
 
+    # Record system information to aid in auditing and debugging
+    # We do this before configuring console output to reduce verbosity
+    from getpass import getuser
+    from os import getcwd
+    from platform import python_version, system, release, node
+    from datetime import date
+    from adles import __version__ as adles_version
+    logging.debug("Initialized logging, saving logs to %s", filename)
+    logging.debug("Date             %s", str(date.today()))
+    logging.debug("OS               %s", str(system() + " " + release()))
+    logging.debug("Hostname         %s", str(node()))
+    logging.debug("Username         %s", str(getuser()))
+    logging.debug("Directory        %s", str(getcwd()))
+    logging.debug("Python version   %s", str(python_version()))
+    logging.debug("Adles version    %s", str(adles_version))
+
+    # If any of the libraries we're using have warnings, capture them
+    logging.captureWarnings(capture=True)
+
     # Configure console output
     console = logging.StreamHandler(stream=sys.stdout)
     if colors:  # Colored console output
@@ -367,21 +385,6 @@ def setup_logging(filename, colors=True, console_verbose=False,
     console.setFormatter(formatter)
     console.setLevel((logging.DEBUG if console_verbose else logging.INFO))
     logger.addHandler(console)
-
-    # Record system information to aid in auditing and debugging
-    from getpass import getuser
-    from os import getcwd
-    from platform import python_version, system, release, node
-    from datetime import date
-    from adles import __version__ as adles_version
-    logging.debug("Initialized logging, saving logs to %s", filename)
-    logging.debug("Date             %s", str(date.today()))
-    logging.debug("OS               %s", str(system() + " " + release()))
-    logging.debug("Hostname         %s", str(node()))
-    logging.debug("Username         %s", str(getuser()))
-    logging.debug("Directory        %s", str(getcwd()))
-    logging.debug("Python version   %s", str(python_version()))
-    logging.debug("Adles version    %s", str(adles_version))
 
 
 def get_vlan():
