@@ -52,7 +52,7 @@ Examples:
     adles --print-example competition | adles -v -c -
 
 License:    Apache 2.0
-Author:     Christopher Goes <goes8945@vandals.uidaho.edu>
+Author:     Christopher Goes <goesc@acm.org>
 Project:    https://github.com/GhostofGoes/ADLES
 
 """
