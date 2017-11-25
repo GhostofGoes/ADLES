@@ -123,5 +123,6 @@ def main():
         else:
             logging.info("Destruction cancelled")
 
+
 if __name__ == '__main__':
     main()

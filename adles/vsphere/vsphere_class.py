@@ -108,7 +108,7 @@ class Vsphere:
         :rtype: vim.Folder
         """
         if create_in:
-            if isinstance(create_in, str):  # Lookup creat_in on the server
+            if isinstance(create_in, str):  # Lookup create_in on the server
                 self._log.debug("Retrieving parent folder '%s' from server",
                                 create_in)
                 parent = self.get_folder(folder_name=create_in)

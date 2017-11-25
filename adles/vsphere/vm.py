@@ -21,16 +21,14 @@ import adles.utils as utils
 from adles.vsphere.folder_utils import find_in_folder
 
 
-# Docs:
-# http://pubs.vmware.com/vsphere-60/topic/
-# com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
+# Docs: https://goo.gl/CRhYEX
 class VM:
     """ Represents a VMware vSphere Virtual Machine instance.
 
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object
                     is not used to initialize the instance.
     """
-    __version__ = "0.7.2"
+    __version__ = "0.8.0"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -546,6 +544,39 @@ class VM:
             self.remove_device(device_spec=spec)
             return True
 
+    # Source: resize_disk.py from pyvmomi-community-samples
+    def resize_hdd(self, size, disk_number=1, disk_prefix="Hard disk "):
+        """Resize a virtual HDD on the VM.
+
+        :param int size: New disk size in KB
+        :param int disk_number: Disk number
+        :param disk_prefix: Disk label prefix
+        :return: If the resize was successful
+        :rtype: bool
+        """
+        # TODO: !!UNTESTED!!
+        self._log.warning("Usage of untested method resize_hdd")
+        disk_label = disk_prefix + str(disk_number)
+        virtual_disk_device = None
+        self._log.debug("Resizing HDD %s on VM %s to %d",
+                        disk_label, self.name, size)
+
+        # Find the disk device
+        for dev in self._vm.config.hardware.device:
+            if isinstance(dev, vim.vm.device.VirtualDisk) \
+                    and dev.deviceInfo.label == disk_label:
+                virtual_disk_device = dev
+        if not virtual_disk_device:
+            self._log.error("Virtual {} could not be found.".format(disk_label))
+            return False
+
+        virtual_disk_spec = vim.vm.device.VirtualDeviceSpec()
+        virtual_disk_spec.operation = vim.vm.device.VirtualDeviceSpec.operation.edit
+        virtual_disk_spec.device = virtual_disk_device
+        virtual_disk_spec.device.capacityInKB = int(size)
+        self._edit(vim.vm.ConfigSpec(deviceChange=[virtual_disk_spec]))
+        return True
+
     def attach_iso(self, iso_path, datastore=None, boot=True):
         """
         Attaches an ISO image to a VM.
@@ -775,12 +806,8 @@ class VM:
         :rtype: str
         """
         info_string = "\n"
-        # http://pubs.vmware.com/vsphere-60/topic/
-        # com.vmware.wssdk.apiref.doc/vim.vm.Summary.html
-        summary = self._vm.summary
-        # http://pubs.vmware.com/vsphere-60/topic/
-        # com.vmware.wssdk.apiref.doc/vim.vm.ConfigInfo.html
-        config = self._vm.config
+        summary = self._vm.summary  # https://goo.gl/KJRrqS
+        config = self._vm.config    # https://goo.gl/xFdCby
         info_string += "Name          : %s\n" % self.name
         info_string += "Status        : %s\n" % str(summary.overallStatus)
         info_string += "Power State   : %s\n" % summary.runtime.powerState
