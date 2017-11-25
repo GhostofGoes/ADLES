@@ -28,7 +28,7 @@ class VM:
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object
                     is not used to initialize the instance.
     """
-    __version__ = "0.9.0"
+    __version__ = "0.10.0"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -357,7 +357,7 @@ class VM:
         self._log.info("Removing ALL snapshots for %s", self.name)
         self._vm.RemoveAllSnapshots_Task(consolidate_disks).wait()
 
-    # Originally based on: add_nic_to_vm in pyvmomi-community-samples
+    # Based on: add_nic_to_vm in pyvmomi-community-samples
     def add_nic(self, network, summary="default-summary", model="e1000"):
         """Add a NIC in the portgroup to the VM.
         :param vim.Network network: Network to attach NIC to
@@ -458,7 +458,7 @@ class VM:
         self._edit(vim.vm.ConfigSpec(deviceChange=[nic_spec]))
         return True
 
-    # Originally based on: delete_nic_from_vm in pyvmomi-community-samples
+    # Based on: delete_nic_from_vm in pyvmomi-community-samples
     def remove_nic(self, nic_number):
         """Deletes a vNIC based on it's number.
         :param int nic_number: Number of the vNIC to delete
@@ -492,7 +492,7 @@ class VM:
         device_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
         self._edit(vim.vm.ConfigSpec(deviceChange=[device_spec]))
 
-    # From: delete_disk_from_vm.py in pyvmomi_community_samples
+    # Based on: delete_disk_from_vm.py in pyvmomi_community_samples
     def remove_hdd(self, disk_number):
         """Removes a numbered Virtual Hard Disk from the VM.
         :param int disk_number: Number of the HDD to remove
@@ -510,7 +510,7 @@ class VM:
             self.remove_device(device_spec=spec)
             return True
 
-    # Source: resize_disk.py from pyvmomi-community-samples
+    # Based on: resize_disk.py from pyvmomi-community-samples
     def resize_hdd(self, size, disk_number=1, disk_prefix="Hard disk "):
         """Resize a virtual HDD on the VM.
         :param int size: New disk size in KB
@@ -539,6 +539,7 @@ class VM:
             self._edit(vim.vm.ConfigSpec(deviceChange=[virtual_disk_spec]))
             return True
 
+    # Based on: change_disk_mode.py in pyvmomi-community-samples
     def change_hdd_mode(self, mode, disk_number=1, disk_prefix="Hard disk "):
         """Change the mode on a virtual HDD.
         :param str mode: New disk mode
@@ -629,6 +630,22 @@ class VM:
                 # If there are less than 2 devices attached, we can use it
                 return dev
         return None
+
+    def relocate(self, host=None, datastore=None):
+        """Relocates the VM to a new host and/or datastore
+        :param vim.Host host:
+        :param vim.Datastore datastore:
+        """
+        # TODO: !!UNTESTED!!
+        self._log.warning("Usage of untested method relocate")
+        if host is None:
+            host = self.host
+        if datastore is None:
+            datastore = self.datastore
+        self._log.debug("Relocating VM %s to host %s and datastore %s",
+                        self.name, host.name, datastore.name)
+        self._vm.Relocate(
+            spec=vim.vm.RelocateSpec(host=host, datastore=datastore)).wait()
 
     def mount_tools(self):
         """Mount the installer for VMware Tools."""
