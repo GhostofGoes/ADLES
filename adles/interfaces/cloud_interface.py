@@ -14,7 +14,7 @@
 
 import logging
 
-from adles.interfaces import LibcloudInterface
+from adles.interfaces.libcloud_interface import LibcloudInterface
 
 
 class CloudInterface(LibcloudInterface):

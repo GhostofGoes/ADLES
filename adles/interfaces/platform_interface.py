@@ -36,16 +36,16 @@ class PlatformInterface(Interface):
         # the specified infrastructure platform
         for platform, config in infra.items():
             if platform == "vmware-vsphere":
-                from .vsphere_interface import VsphereInterface
+                from adles.interfaces.vsphere_interface import VsphereInterface
                 self.interfaces.append(VsphereInterface(config, spec))
             elif platform == "docker":
-                from .docker_interface import DockerInterface
+                from adles.interfaces.docker_interface import DockerInterface
                 self.interfaces.append(DockerInterface(config, spec))
             elif platform == "cloud":
-                from .cloud_interface import CloudInterface
+                from adles.interfaces.cloud_interface import CloudInterface
                 self.interfaces.append(CloudInterface(config, spec))
             elif platform == "libvirt":
-                from .libvirt_interface import LibvirtInterface
+                from adles.interfaces.libvirt_interface import LibvirtInterface
                 self.interfaces.append(LibvirtInterface(config, spec))
             elif platform == "hyper-v":
                 raise NotImplementedError("HypervInterface is not implemented")

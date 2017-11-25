@@ -16,10 +16,10 @@ import logging
 
 try:
     import docker  # NOTE(cgoes): has not been tested with Python 3.6 yet
-except ImportError:
+except ImportError as ex:
     logging.error("Could not import docker module. "
                   "Install it using 'pip install docker'")
-    exit(0)
+    raise ex
 
 import adles.utils as utils
 from adles.interfaces import Interface

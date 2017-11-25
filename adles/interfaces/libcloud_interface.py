@@ -17,10 +17,10 @@ import logging
 try:
     from libcloud.compute.types import Provider
     from libcloud.compute.providers import get_driver
-except ImportError:
+except ImportError as ex:
     logging.error("Could not import apache-libcloud. "
                   "Install it using 'pip install apache-libcloud'")
-    exit(0)
+    raise ex
 
 from adles.interfaces import Interface
 
