@@ -1,3 +1,0 @@
-docker >= 2.4.2
-libvirt-python >= 3.4.0
-apache-libcloud >= 2.0.0

@@ -17,9 +17,6 @@ from setuptools import setup, find_packages
 from adles import __version__, __email__, __author__, __url__, __license__
 
 
-with open('requirements.txt') as f:  # Loads in required packages
-    required = f.read().splitlines()
-
 with open('README.rst') as f:  # Loads in the README for PyPI
     long_description = f.read()
 
@@ -44,7 +41,18 @@ setup(
             'vm-snapshots = adles.scripts.vm_snapshots:main'
         ]
     },
-    install_requires=required,
+    install_requires=[
+        'pyyaml == 3.12',
+        'docopt == 0.6.2',
+        'netaddr == 0.7.19',
+        'colorlog >= 2.10.0',
+        'pyvmomi >= 6.0'  # TODO: move this into a extra?
+    ],
+    extras_require={
+        'docker': ['docker >= 2.4.2'],
+        'cloud': ['apache-libcloud >= 2.0.0'],
+        'multi-platform': ['libvirt-python >= 3.4.0']
+    },
     data_files=[('man/man1', ['docs/adles.1'])],
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,
