@@ -45,13 +45,6 @@ setup(
         ]
     },
     install_requires=required,
-    setup_requires=[
-        "pytest-runner==2.11.1"
-    ],
-    tests_require=[
-        "pytest==3.0.7",
-        "pytest-cov==2.4.0"
-    ],
     data_files=[('man/man1', ['docs/adles.1'])],
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,

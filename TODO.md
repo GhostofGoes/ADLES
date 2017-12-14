@@ -7,6 +7,15 @@ If you need help getting spun up on the VMware vSphere Python library, pyvmomi, 
 
 Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fright-pane.html).
 
+# Project
+* Unit tests for vSphere. These could run when there is access to a server, or using the [`vcrpy`](https://pypi.python.org/pypi/vcrpy) module.
+* Unit tests for other interfaces. (again, vcrpy)
+* Unit tests for utils (doctests for those functions as well)
+* Look at using doctests elsewhere
+* Call unit testing tool (pytest, tox, whatever) from travis
+* Move script tests from .travis.yml to their own shell script, then call that from travis
+* Cleanup the amount of files at the project root
+* Make man page generation automated
 
 
 # Documentation
@@ -39,13 +48,11 @@ e.g we want 30 students, each in their own VM, with no ability to see or mess wi
 
 
 # Code
-* Move tests from .travis.yml to their own shell script, then call that from travis
+
 
 ## Main Application
 * Add ability to load configurations from an INI file (for main and scripts)
-* Unit tests for utils (doctest as well)
-* Unit tests for vSphere. These could run when there is access to a server, or using the [`vcrpy`](https://pypi.python.org/pypi/vcrpy) module.
-* Integrate tests into travis, consolidate travis commandline tests into a script?
+
 * Add resiliency using [`shelve`](https://docs.python.org/3/library/shelve.html) module and other methods, so long-running phases aren't killed by simple errors.
 * Implement provisioners
 * Evaluate alternatives to current syntax validator. The best I've found is [Swagger](http://swagger.io/) and it's [Python binding, `connexion`](https://pypi.python.org/pypi/connexion).
