@@ -4,5 +4,6 @@ include LICENSE
 include NOTICE
 include infra.yaml
 include users.json
+include docs/adles.1
 recursive-include examples *
 recursive-include specifications *

@@ -34,9 +34,6 @@ setup(
     url=__url__,
     download_url='https://pypi.python.org/pypi/ADLES',
     license=__license__,
-    packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
-    include_package_data=True,
-    zip_safe=False,
     entry_points={  # These enable commandline usage of ADLES and the scripts
         'console_scripts': [
             'adles = adles.scripts.adles_main:main',
@@ -55,8 +52,12 @@ setup(
         "pytest==3.0.7",
         "pytest-cov==2.4.0"
     ],
+    data_files=[('man/man1', ['docs/adles.1'])],
+    packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
+    include_package_data=True,
+    zip_safe=False,
     test_suite='test',
-    platforms=['Windows', 'Linux', 'Mac OS-X', 'Unix'],
+    platforms=['Windows', 'Linux', 'Mac OS-X'],
     keywords="adles virtualization automation vmware vsphere yaml labs virtual "
              "vms vm python pyvmomi cybersecurity education uidaho radicl "
              "environments deployment docker libcloud setup",

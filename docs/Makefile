@@ -1,6 +1,3 @@
-# Minimal makefile for Sphinx documentation
-#
-
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
@@ -18,3 +15,13 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+# Generate Unix manual page
+man:
+	mkdir -p ./build/man
+	$(SPHINXBUILD) -b man ./source ./build/man
+	mv ./build/man/adles.1 ./
+	rm -Rf ./build/man
+
+clean:
+	rm -Rf ./build/*
