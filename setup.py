@@ -42,11 +42,10 @@ setup(
         ]
     },
     install_requires=[
-        'pyyaml == 3.12',
+        'pyyaml >= 3.12',
         'docopt == 0.6.2',
-        'netaddr == 0.7.19',
-        'colorlog >= 2.10.0',
-        'pyvmomi >= 6.0'  # TODO: move this into a extra?
+        'colorlog >= 2.10',
+        'pyvmomi >= 6.5'  # TODO: move this into a extra?
     ],
     extras_require={
         'docker': ['docker >= 2.4.2'],
@@ -71,8 +70,6 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Operating System :: OS Independent',
         'Intended Audience :: Education',
         'Intended Audience :: Developers',

@@ -40,7 +40,7 @@ Getting started
 .. code:: bash
 
 
-   pip3 install adles
+   sudo -H pip3 install adles
    adles -h
    adles --print-spec exercise
    adles --print-spec infra
@@ -72,10 +72,7 @@ Creating an environment using ADLES:
 System requirements
 ===================
 
-**Python**:
-
-* 3.4+     (Recommended)
-* 2.7.6+   (Will be deprecated in the future)
+Python: 3.4+
 
 ADLES will run on any platform supported by Python. It has been tested on:
 
@@ -87,14 +84,15 @@ ADLES will run on any platform supported by Python. It has been tested on:
 Python packages
 ~~~~~~~~~~~~~~~
 
-See ``requirements.txt`` for specific versions
+These are automatically installed.
 
-* pyvmomi
+See ``setup.py`` for specific versions
+
 * docopt
 * pyyaml
-* netaddr
 * colorlog
 * setuptools (If you are installing manually or developing)
+* pyvmomi (If you are using VMware vSphere)
 
 
 Platforms

@@ -15,8 +15,8 @@
 import logging
 from os.path import exists, basename
 import sys
+import ipaddress
 
-from netaddr import IPNetwork, AddrFormatError
 from yaml import load, YAMLError
 try:  # Attempt to use C-based YAML parser if it's available
     from yaml import CLoader as Loader
@@ -266,19 +266,20 @@ def _verify_network(name, network):
             num_warnings += 1
         else:
             try:
-                subnet = IPNetwork(value["subnet"])
-            except AddrFormatError:
-                logging.error("Invalid format for subnet '%s'",
-                              str(value["subnet"]))
+                subnet = ipaddress.ip_network(value["subnet"])
+            except ValueError as err:
+                logging.error("Invalid format for subnet '%s': %s",
+                              str(value["subnet"]), str(err))
                 num_errors += 1
             else:
-                if subnet.is_reserved() \
-                        or subnet.is_multicast() \
-                        or subnet.is_loopback():
+                if subnet.is_reserved \
+                        or subnet.is_link_local \
+                        or subnet.is_multicast \
+                        or subnet.is_loopback:
                     logging.error("%s %s is in a invalid IP address space",
                                   name, key)
                     num_errors += 1
-                elif not subnet.is_private():
+                elif not subnet.is_private:
                     logging.warning("Non-private subnet used for %s %s",
                                     name, key)
                     num_warnings += 1
