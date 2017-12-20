@@ -1,7 +1,6 @@
 language: python
 python:
   - '2.7'
-  - 'pypy'
   - '3.4'
   - '3.5'
   - '3.6'
@@ -9,6 +8,7 @@ python:
 install:
   - 'python setup.py install'
 script:
+  - adles
   - adles -h
   - adles --version
   - adles -c examples/spoofing-tutorial.yaml
@@ -25,14 +25,19 @@ script:
   - adles --list-examples
   - adles --print-example competition
   - adles --print-spec exercise
+  - clone-vms
   - clone-vms -h
   - clone-vms --version
+  - cleanup-vms
   - cleanup-vms --help
   - cleanup-vms --version
+  - vm-power
   - vm-power -h
   - vm-power --version
+  - vsphere-info
   - vsphere-info -h
   - vsphere-info --version
+  - vm-snapshots
   - vm-snapshots -h
   - vm-snapshots --version
 
