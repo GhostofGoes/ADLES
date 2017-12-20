@@ -39,6 +39,20 @@ def time_execution(func):
     return wrapper
 
 
+def handle_keyboard_interrupt(func):
+    """Function decorator to handle
+    keyboard interrupts in a consistent manner."""
+    def wrapper(*args, **kwargs):
+        try:
+            ret = func(*args, **kwargs)
+        except KeyboardInterrupt:
+            print()  # Output a blank line for readability
+            logging.info("Exiting...")
+            sys.exit(0)
+        return ret
+    return wrapper
+
+
 # From: list_dc_datastore_info in pyvmomi-community-samples
 # http://stackoverflow.com/questions/1094841/
 def sizeof_fmt(num):
@@ -111,12 +125,8 @@ def split_path(path):
     :return: Path, basename
     :rtype: tuple(list(str), str)
     """
-    # Separate basename and convert to lowercase
-    folder_path, name = os.path.split(path.lower())
-
-    # Transform path into list
-    folder_path = folder_path.split('/')
-
+    folder_path, name = os.path.split(path.lower())  # Separate basename
+    folder_path = folder_path.split('/')  # Transform path into list
     if folder_path[0] == '':
         del folder_path[0]
     return folder_path, name
@@ -131,7 +141,6 @@ def make_vsphere(filename=None):
     :rtype: :class:`Vsphere`
     """
     from adles.vsphere.vsphere_class import Vsphere
-
     if filename is not None:
         info = read_json(filename)
         return Vsphere(username=info.get("user"),
@@ -147,6 +156,7 @@ def make_vsphere(filename=None):
         return Vsphere(datacenter=datacenter, datastore=datastore)
 
 
+@handle_keyboard_interrupt
 def user_input(prompt, obj_name, func):
     """
     Continually prompts a user for input until the specified object is found.
@@ -158,12 +168,7 @@ def user_input(prompt, obj_name, func):
     :rtype: tuple(vimtype, str)
     """
     while True:
-        try:
-            item_name = str(input(prompt))
-        except KeyboardInterrupt:
-            print()
-            logging.info("Exiting...")
-            sys.exit(0)
+        item_name = str(input(prompt))
         item = func(item_name)
         if item:
             logging.info("Found %s: %s", obj_name, item.name)
@@ -174,6 +179,7 @@ def user_input(prompt, obj_name, func):
 
 
 # Based on: http://code.activestate.com/recipes/577058/
+@handle_keyboard_interrupt
 def ask_question(question, default="no"):
     """
     Prompts user to answer a question.
@@ -199,13 +205,7 @@ def ask_question(question, default="no"):
         raise ValueError("Invalid default answer: '%s'", default)
 
     while True:
-        try:
-            choice = str(input(question + prompt)).lower()
-        except KeyboardInterrupt:
-            print()  # Output a blank line for readability
-            logging.info("Exiting...")
-            sys.exit(0)
-
+        choice = str(input(question + prompt)).lower()
         if default is not None and choice == '':
             return valid[default]
         elif choice in valid:
@@ -214,6 +214,7 @@ def ask_question(question, default="no"):
             print("Please respond with 'yes' or 'no' or 'y' or 'n'")
 
 
+@handle_keyboard_interrupt
 def default_prompt(prompt, default=None):
     """
     Prompt the user for input. If they press enter, return the default.
@@ -223,23 +224,12 @@ def default_prompt(prompt, default=None):
     :return: Value entered or default
     :rtype: str or None
     """
-    try:
-        value = str(input(prompt + " [default: %s]: " % str(default)))
-    except KeyboardInterrupt:
-        print()  # Output a blank line for readability
-        logging.info("Exiting...")
-        sys.exit(0)
-    else:
-        return default if value == '' else value
+    value = str(input(prompt + " [default: %s]: " % str(default)))
+    return default if value == '' else value
 
 
 def _script_warning_prompt():
-    """
-    Generates a warning prompt.
-
-    :return: The warning prompt
-    :rtype: str
-    """
+    """Generates a warning prompt for the scripts."""
     from adles import __url__, __email__
     return str(
         '***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
@@ -251,36 +241,54 @@ def _script_warning_prompt():
         '\n' % (__url__, __email__))
 
 
-def script_setup(logging_filename, args, script=None):
+@handle_keyboard_interrupt
+def script_setup(args, script_info=None):
     """
-    Does setup tasks that are common to all automation scripts.
+    Handles setup tasks that are common to all of the automation scripts.
 
-    :param str logging_filename: Name of file to save logs to
-    :param dict args: docopt arguments dict
-    :param script: Tuple with name and version of the script
+    :param dict args: commandline arguments acquired by docopt
+    :param script_info: Tuple with name and version of the script
     :type: tuple(str, str)
     :return: vSphere object
     :rtype: :class:`Vsphere`
     """
-
-    # Setup logging
-    colors = (False if args["--no-color"] else True)
-    setup_logging(filename=logging_filename, colors=colors,
-                  console_verbose=args["--verbose"])
-
     # Print information about script itself
-    if script:
-        logging.debug("Script name      %s", os.path.basename(script[0]))
-        logging.debug("Script version   %s", script[1])
+    if script_info:
+        logging.debug("Script name      %s", os.path.basename(script_info[0]))
+        logging.debug("Script version   %s", script_info[1])
         print(_script_warning_prompt())  # Print warning for script users
 
     # Create the vsphere object and return it
-    try:
-        return make_vsphere(args["--file"])
-    except KeyboardInterrupt:
-        print()  # Output a blank line for readability
-        logging.info("Exiting...")
-        sys.exit(0)
+    return make_vsphere(args["--file"])
+
+
+@handle_keyboard_interrupt
+def get_args(docstring, version, logging_filename):
+    """
+    Handles commandline argument parsing and logging setup.
+
+    :param str docstring: docopt-formatting docstring
+    :param str version: version string
+    :param str logging_filename: Name of file to save logs to
+    :return: Commandline arguments the user provided
+    :rtype: dict
+    """
+    from docopt import docopt
+
+    # Handle case where user provides no arguments
+    if len(sys.argv) == 1:
+        sys.argv.append("--help")
+
+    # Get and process commandline arguments
+    args = docopt(docstring, version=version, help=True)
+
+    # Set if console output should be colored
+    colors = (False if args["--no-color"] else True)
+
+    # Configure logging globally
+    setup_logging(filename=logging_filename, colors=colors,
+                  console_verbose=args["--verbose"])
+    return args
 
 
 def resolve_path(server, thing, prompt=""):
@@ -338,6 +346,7 @@ def setup_logging(filename, colors=True, console_verbose=False,
                         datefmt=time_format, filename=filename, filemode='a')
 
     # Get the global root logger
+    # Handlers added to this will propagate to all loggers
     logger = logging.root
 
     # Configure logging to a SysLog server

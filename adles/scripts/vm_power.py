@@ -32,18 +32,17 @@ Examples:
 
 import logging
 
-from docopt import docopt
-
-from adles.utils import ask_question, script_setup, resolve_path, is_vm
+from adles.utils import ask_question, script_setup, \
+    get_args, resolve_path, is_vm
 from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.vm import VM
 
-__version__ = "0.3.10"
+__version__ = "0.3.11"
 
 
 def main():
-    args = docopt(__doc__, version=__version__, help=True)
-    server = script_setup('vm_power.log', args, (__file__, __version__))
+    args = get_args(__doc__, __version__, 'vm_power.log')
+    server = script_setup(args=args, script_info=(__file__, __version__))
 
     operation = str(input("Enter the power operation you wish to perform"
                           " [on | off | reset | suspend]: "))

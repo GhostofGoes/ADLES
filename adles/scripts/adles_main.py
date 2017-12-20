@@ -60,26 +60,16 @@ Project:    https://github.com/GhostofGoes/ADLES
 import logging
 from os.path import basename, exists, splitext, join
 
-from docopt import docopt
 from pyVmomi import vim
 
 from adles.interfaces import PlatformInterface
 from adles.parser import check_syntax, parse_yaml
-from adles.utils import setup_logging
+from adles.utils import get_args
 from adles import __version__
 
 
 def main():
-    # Get commandline arguments
-    args = docopt(__doc__, version=__version__, help=True)
-
-    # Set if console output should be colored
-    colors = (False if args["--no-color"] else True)
-
-    # Configure logging
-    setup_logging(filename='adles.log',
-                  colors=colors,
-                  console_verbose=args["--verbose"])
+    args = get_args(__doc__, __version__, 'adles.log')
 
     if args["--spec"]:  # If there's a specification
         override = None

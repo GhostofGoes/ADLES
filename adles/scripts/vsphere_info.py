@@ -32,17 +32,15 @@ Examples:
 
 import logging
 
-from docopt import docopt
-
-from adles.utils import script_setup, resolve_path, ask_question
+from adles.utils import script_setup, get_args, resolve_path, ask_question
 from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.6.4"
+__version__ = "0.6.5"
 
 
 def main():
-    args = docopt(__doc__, version=__version__, help=True)
-    server = script_setup('vsphere_info.log', args, (__file__, __version__))
+    args = get_args(__doc__, __version__, 'vsphere_info.log')
+    server = script_setup(args=args, script_info=(__file__, __version__))
 
     thing_type = str(input("What type of thing do you want"
                            "to get information on?"

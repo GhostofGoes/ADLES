@@ -32,19 +32,18 @@ Examples:
 
 import logging
 
-from docopt import docopt
-
-from adles.utils import script_setup, ask_question, resolve_path, is_vm
+from adles.utils import script_setup, get_args, \
+    ask_question, resolve_path, is_vm
 from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.vm import VM
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 # noinspection PyUnboundLocalVariable
 def main():
-    args = docopt(__doc__, version=__version__, help=True)
-    server = script_setup('cleanup_vms.log', args, (__file__, __version__))
+    args = get_args(__doc__, __version__, 'vm_snapshots.log')
+    server = script_setup(args=args, script_info=(__file__, __version__))
 
     op = str(input("Enter Snapshot operation [create | revert | revert-current "
                    "| remove | remove-all | get | "

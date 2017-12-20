@@ -32,18 +32,16 @@ Examples:
 
 import logging
 
-from docopt import docopt
-
 from adles.utils import ask_question, pad, default_prompt, \
-    script_setup, resolve_path, is_vm
+    script_setup, get_args, resolve_path, is_vm
 from adles.vsphere.vm import VM
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 
 
 def main():
-    args = docopt(__doc__, version=__version__, help=True)
-    server = script_setup('clone_vms.log', args, (__file__, __version__))
+    args = get_args(__doc__, __version__, 'clone_vms.log')
+    server = script_setup(args=args, script_info=(__file__, __version__))
 
     vms = []
     vm_names = []

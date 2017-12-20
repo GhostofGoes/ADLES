@@ -32,17 +32,16 @@ Examples:
 
 import logging
 
-from docopt import docopt
-
-from adles.utils import ask_question, default_prompt, script_setup, resolve_path
+from adles.utils import ask_question, default_prompt, \
+    script_setup, get_args, resolve_path
 from adles.vsphere.folder_utils import format_structure
 
-__version__ = "0.5.11"
+__version__ = "0.5.12"
 
 
 def main():
-    args = docopt(__doc__, version=__version__, help=True)
-    server = script_setup('cleanup_vms.log', args, (__file__, __version__))
+    args = get_args(__doc__, __version__, 'cleanup_vms.log')
+    server = script_setup(args=args, script_info=(__file__, __version__))
 
     if ask_question("Multiple VMs? ", default="yes"):
         folder, folder_name = resolve_path(server, "folder",

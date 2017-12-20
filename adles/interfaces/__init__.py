@@ -6,5 +6,6 @@ from .platform_interface import PlatformInterface
 # (7/2/2017) Importing VsphereInterface here might be problematic currently
 
 __all__ = ['interface', 'platform_interface',
+           'Interface', 'PlatformInterface',
            'vsphere_interface', 'docker_interface',
            'cloud_interface', 'libcloud_interface', 'libvirt_interface']
