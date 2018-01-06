@@ -45,7 +45,9 @@ setup(
         'pyyaml >= 3.12',
         'docopt == 0.6.2',
         'colorlog >= 2.10',
-        'pyvmomi >= 6.5'  # TODO: move this into a extra?
+        'pyvmomi >= 6.5',  # TODO: move this into a extra?
+
+        'ipaddress;python_version<"3.3"'
     ],
     extras_require={
         'docker': ['docker >= 2.4.2'],
