@@ -19,7 +19,6 @@ try:
 except ImportError as ex:
     logging.error("Could not import docker module. "
                   "Install it using 'pip install docker'")
-    raise ex
 
 import adles.utils as utils
 from adles.interfaces import Interface

@@ -20,7 +20,6 @@ try:
 except ImportError as ex:
     logging.error("Could not import apache-libcloud. "
                   "Install it using 'pip install apache-libcloud'")
-    raise ex
 
 from adles.interfaces import Interface
 

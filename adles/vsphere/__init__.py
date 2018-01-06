@@ -9,4 +9,5 @@ from .vm import VM
 from .host import Host
 
 __all__ = ['network_utils', 'vsphere_utils', 'folder_utils',
-           'vsphere_class', 'vm', 'host']
+           'vsphere_class', 'vm', 'host',
+           'Vsphere', 'VM', 'Host']
