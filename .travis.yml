@@ -18,7 +18,7 @@ script:
   - adles -v -c examples/edurange_total-recon.yaml
   - adles -v -c examples/pentest-tutorial.yaml
   - adles -v -c examples/firewall-tutorial.yaml
-  - adles -v -t infra -c infra.yaml
+  - adles -v -t infra -c examples/infra.yaml
   - adles -v -t exercise -c examples/experiment.yaml
   - adles --list-examples
   - adles --print-example competition

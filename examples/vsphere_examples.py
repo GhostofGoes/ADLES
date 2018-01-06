@@ -13,7 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""vsphere_testing. Used to experiment and test the Vsphere class. Has examples of API usage.
+"""vsphere_testing.
+Used to experiment and test the Vsphere class.
+
+Has (rather poor) examples of API usage.
+
+adles/scripts/ contains more examples of usage of the vSphere API methods.
 
 Usage:
     vsphere_testing.py [-v] [options]
@@ -32,11 +37,12 @@ Options:
 from docopt import docopt
 
 from adles.vsphere.vsphere_class import Vsphere
-from adles.utils import script_setup
+from adles.utils import get_args, script_setup
 
-args = docopt(__doc__, version=Vsphere.__version__, help=True)
-server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
+args = get_args(__doc__, Vsphere.__version__, 'vsphere_examples.log')
+server = script_setup(args=args, script_info=(__file__, Vsphere.__version__))
 
+# TODO: improve and codify this in the docs
 
 # test = server.find_by_inv_path("vm/cgoes_testing/script_testing/monkeys/test-vm")
 # print(test.get_info())
@@ -45,7 +51,7 @@ server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version_
 # print(test2)
 
 # folder = server.get_folder("monkeys")
-# folder.create("HAHAHAHhaHAHhaHA (hi)")
+# folder.create("(hi)")
 # print(folder.enumerate())
 
 # from adles.vsphere.vm import VM

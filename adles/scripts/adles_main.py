@@ -50,6 +50,7 @@ Examples:
     adles -vds examples/competition.yaml
     adles --cleanup-masters --nets -s examples/competition.yaml
     adles --print-example competition | adles -v -c -
+    adles -v -t infra -c examples/infra.yaml
 
 License:    Apache 2.0
 Author:     Christopher Goes <goesc@acm.org>
@@ -71,7 +72,8 @@ from adles import __version__
 def main():
     args = get_args(__doc__, __version__, 'adles.log')
 
-    if args["--spec"]:  # If there's a specification
+    # Build an environment using a specification
+    if args["--spec"]:
         override = None
         if args["--package"]:  # Package specification
             package_spec = check_syntax(args["--spec"], spec_type="package")
@@ -137,7 +139,8 @@ def main():
             logging.warning("User terminated session prematurely")
             exit(1)
 
-    elif args["--validate"]:  # Just validate syntax, no building of environment
+    # Just validate syntax, no building of environment
+    elif args["--validate"]:
         if args["--type"]:
             spec_type = args["--type"]
         else:
@@ -158,6 +161,8 @@ def main():
             # Print header for the output
             print("Name".ljust(25) + "Version".ljust(10) + "Description")
             for example in examples:
+                if "infra" in example:
+                    continue
                 metadata = parse_yaml(
                     join(example_dir, example + ".yaml"))["metadata"]
                 name = str(example).ljust(25)
@@ -173,7 +178,8 @@ def main():
             else:
                 logging.error("Invalid example: %s", example)
 
-    elif args["--print-spec"]:  # Show specifications on commandline
+    # Show specifications on commandline
+    elif args["--print-spec"]:
         from pkg_resources import Requirement, resource_filename
         spec = args["--print-spec"]
         specs = ["exercise", "package", "infrastructure"]
@@ -189,7 +195,8 @@ def main():
         else:
             logging.error("Invalid specification: %s", spec)
 
-    else:  # Handle invalid arguments
+    # Handle invalid arguments
+    else:
         logging.error("Invalid arguments. Argument dump:\n%s", str(args))
 
 

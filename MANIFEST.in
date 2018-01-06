@@ -1,9 +1,7 @@
 include README.rst
-include requirements.txt
 include LICENSE
 include NOTICE
-include infra.yaml
-include users.json
+include CHANGELOG.md
 include docs/adles.1
 recursive-include examples *
 recursive-include specifications *
