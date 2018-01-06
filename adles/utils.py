@@ -395,6 +395,12 @@ def setup_logging(filename, colors=True, console_verbose=False,
     console.setLevel((logging.DEBUG if console_verbose else logging.INFO))
     logger.addHandler(console)
 
+    # Warn if using old Python version
+    if python_version() < '3.4':
+        logger.error("Python version %s is unsupported. "
+                     "Please use Python 3.4+ instead. "
+                     "Proceed at your own risk. (Be careful with deletes!)")
+
 
 def get_vlan():
     """

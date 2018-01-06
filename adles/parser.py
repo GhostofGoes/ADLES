@@ -15,7 +15,12 @@
 import logging
 from os.path import exists, basename
 import sys
-import ipaddress
+try:
+    import ipaddress
+except ImportError:
+    logging.error("ipaddress module is not available. "
+                  "Network verifcation will not work. "
+                  "Are you using Python 3.4+?")
 
 from yaml import load, YAMLError
 try:  # Attempt to use C-based YAML parser if it's available
