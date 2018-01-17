@@ -32,6 +32,8 @@ Automated Deployment of Lab Environments System (ADLES)
 
 Complete documentation can be found at ReadTheDocs: https://adles.readthedocs.io
 
+Publication describing the system: https://doi.org/10.1016/j.cose.2017.12.007
+
 
 Getting started
 ===============
