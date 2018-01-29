@@ -42,8 +42,9 @@ setup(
         ]
     },
     install_requires=[
-        'pyyaml >= 3.12',
-        'docopt == 0.6.2',
+        'pyyaml >= 3.12',   # Specification parsing
+        'docopt == 0.6.2',  # Commandline argument parsing
+        'argopt == 0.3.4',  # argparse configured with docopt strings
         'colorlog >= 2.10',
         'pyvmomi >= 6.5',  # TODO: move this into a extra?
 
@@ -62,7 +63,7 @@ setup(
     platforms=['Windows', 'Linux', 'Mac OS-X'],
     keywords="adles virtualization automation vmware vsphere yaml labs virtual "
              "vms vm python pyvmomi cybersecurity education uidaho radicl "
-             "environments deployment docker libcloud setup",
+             "environments deployment docker libcloud setup cloud computing",
     classifiers=[  # Used by PyPI to classify the project and make it searchable
         'Development Status :: 4 - Beta',
         'Environment :: Console',

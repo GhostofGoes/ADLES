@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2018-01-28
+### Added
+- Dependency on [argopt](https://github.com/casperdcl/argopt)
+
+### Changed
+- Behind the scenes changes to commandline argument parsing.
+Parsing now generates argparse.Namespace objects using argopt library.
+This makes argparse features available to use, and enables us to use
+libraries such as argcomplete and Gooey that rely on argparse.
+
 
 ## [1.4.2] - 2018-01-06
 ### Added
@@ -13,10 +23,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Move the remaining examples in the project root into examples/.
 
+
 ## [1.4.1] - 2018-01-06
 ### Changed
 - Optional imports will no longer raise an exception,
 and will instead log an ERROR.
+
 
 ## [1.4.0] - 2017-12-19
 ### Removed
@@ -27,6 +39,7 @@ and will instead log an ERROR.
 ### Changed
 - Replaced netaddr with Python 3's ipaddress module.
 - Changed minimum require pyvmomi version to 6.5.
+
 
 ## [1.3.6] - 2017-12-19
 ### Fixed
@@ -39,13 +52,16 @@ and will instead log an ERROR.
 - Under-the-hood improvements to how arguments are parsed
 and keyboard interrupts are handled.
 
+
 ## [1.3.5] - 2017-12-13
 ### Changed
 - Move package dependencies into setup.py from requirements.txt.
 
+
 ## [1.3.4] - 2017-12-13
 ### Added
 - Man page on Linux systems!
+
 
 ## [1.3.3] - 2017-11-25
 ### Added
@@ -55,9 +71,11 @@ and keyboard interrupts are handled.
 ### Changed
 - Cleaned up docstrings in vm.py.
 
+
 ## [1.3.2] - 2017-11-25
 ### Added
 - The ability to resize a HDD to the VM class.
+
 
 ## [1.3.1] - 2017-11-24
 ### Fixed
@@ -66,6 +84,7 @@ even if they were not being used. This caused the "pip install docker" error.
 
 ### Changed
 - Minor improvements to logging.
+
 
 ## [1.3.0] - 2017-07-02
 ### Added
@@ -81,6 +100,7 @@ There is a separate PlatformInterface that has most of the functionality Interfa
 - Updated parser.
 - Formatting tweaks.
 - Moved apache-libcloud to requirements.
+
 
 ## [1.2.0] - 2017-07-02
 Initial stab at cloud interface using Apache libcloud

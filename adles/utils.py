@@ -16,6 +16,8 @@ import logging
 import logging.handlers
 import sys
 import os
+import timeit
+import json
 
 
 # Credit to: http://stackoverflow.com/a/15707426/2214380
@@ -27,12 +29,10 @@ def time_execution(func):
     :return: The decorated function
     :rtype: func
     """
-    from timeit import default_timer
-
     def wrapper(*args, **kwargs):
-        start_time = default_timer()
+        start_time = timeit.default_timer()
         ret = func(*args, **kwargs)
-        end_time = default_timer()
+        end_time = timeit.default_timer()
         logging.debug("Elapsed time for %s: %f seconds", func.__name__,
                       float(end_time - start_time))
         return ret
@@ -100,10 +100,9 @@ def read_json(filename):
     :return: Contents of the JSON file
     :rtype: dict or None
     """
-    from json import load
     try:
         with open(filename) as json_file:
-            return load(fp=json_file)
+            return json.load(fp=json_file)
     except ValueError as message:
         logging.error("Syntax Error in JSON file '%s': %s",
                       filename, str(message))
@@ -246,7 +245,7 @@ def script_setup(args, script_info=None):
     """
     Handles setup tasks that are common to all of the automation scripts.
 
-    :param dict args: commandline arguments acquired by docopt
+    :param Object args: Commandline arguments (what's returned by parse_args())
     :param script_info: Tuple with name and version of the script
     :type: tuple(str, str)
     :return: vSphere object
@@ -259,7 +258,7 @@ def script_setup(args, script_info=None):
         print(_script_warning_prompt())  # Print warning for script users
 
     # Create the vsphere object and return it
-    return make_vsphere(args["--file"])
+    return make_vsphere(args.file)
 
 
 @handle_keyboard_interrupt
@@ -271,23 +270,31 @@ def get_args(docstring, version, logging_filename):
     :param str version: version string
     :param str logging_filename: Name of file to save logs to
     :return: Commandline arguments the user provided
-    :rtype: dict
+    :rtype: Object
     """
-    from docopt import docopt
+    from argopt import argopt
+
+    # Suppress argopt logging messages (TODO: open an issue about this)
+    for noisy_logger in ['argopt', '_argopt', 'argopt._argopt']:
+        logging.getLogger(noisy_logger).setLevel(logging.CRITICAL)
+
+    # TODO: add argcomplete
+    # TODO: add shim for Gooey
 
     # Handle case where user provides no arguments
     if len(sys.argv) == 1:
         sys.argv.append("--help")
 
     # Get and process commandline arguments
-    args = docopt(docstring, version=version, help=True)
+    parser = argopt(docstring, version=version)
+    args = parser.parse_args()
 
     # Set if console output should be colored
-    colors = (False if args["--no-color"] else True)
+    colors = (False if args.no_color else True)
 
     # Configure logging globally
     setup_logging(filename=logging_filename, colors=colors,
-                  console_verbose=args["--verbose"])
+                  console_verbose=args.verbose)
     return args
 
 
@@ -361,7 +368,6 @@ def setup_logging(filename, colors=True, console_verbose=False,
     # Record system information to aid in auditing and debugging
     # We do this before configuring console output to reduce verbosity
     from getpass import getuser
-    from os import getcwd
     from platform import python_version, system, release, node
     from datetime import date
     from adles import __version__ as adles_version
@@ -370,11 +376,11 @@ def setup_logging(filename, colors=True, console_verbose=False,
     logging.debug("OS               %s", str(system() + " " + release()))
     logging.debug("Hostname         %s", str(node()))
     logging.debug("Username         %s", str(getuser()))
-    logging.debug("Directory        %s", str(getcwd()))
+    logging.debug("Directory        %s", str(os.getcwd()))
     logging.debug("Python version   %s", str(python_version()))
     logging.debug("Adles version    %s", str(adles_version))
 
-    # If any of the libraries we're using have warnings, capture them
+    # If any of the libraries we're using have warnings, capture and log them
     logging.captureWarnings(capture=True)
 
     # Configure console output
@@ -399,7 +405,7 @@ def setup_logging(filename, colors=True, console_verbose=False,
     if python_version() < '3.4':
         logger.error("Python version %s is unsupported. "
                      "Please use Python 3.4+ instead. "
-                     "Proceed at your own risk. (Be careful with deletes!)")
+                     "Proceed at your own risk!")
 
 
 def get_vlan():

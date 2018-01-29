@@ -19,10 +19,10 @@
 Uses formal YAML specifications to create virtual environments for educational purposes.
 
 Usage:
-    adles [options] [-]
-    adles [options] [-t TYPE] -c SPEC [-]
-    adles [options] (-m | -d) [-p] -s SPEC [-]
-    adles [options] (--cleanup-masters | --cleanup-enviro) [--nets] -s SPEC [-]
+    adles [options]
+    adles [options] [-t TYPE] -c SPEC
+    adles [options] (-m | -d) [-p] -s SPEC
+    adles [options] (--cleanup-masters | --cleanup-enviro) [--nets] -s SPEC
 
 Options:
     -n, --no-color          Do not color terminal output
@@ -45,11 +45,10 @@ Options:
 
 Examples:
     adles --list-examples
-    adles -c examples/tutorial.yaml
+    adles -c examples/pentest-tutorial.yaml
     adles --verbose --masters --spec examples/experiment.yaml
     adles -vds examples/competition.yaml
     adles --cleanup-masters --nets -s examples/competition.yaml
-    adles --print-example competition | adles -v -c -
     adles -v -t infra -c examples/infra.yaml
 
 License:    Apache 2.0
@@ -73,10 +72,10 @@ def main():
     args = get_args(__doc__, __version__, 'adles.log')
 
     # Build an environment using a specification
-    if args["--spec"]:
+    if args.spec:
         override = None
-        if args["--package"]:  # Package specification
-            package_spec = check_syntax(args["--spec"], spec_type="package")
+        if args.package:  # Package specification
+            package_spec = check_syntax(args.spec, spec_type="package")
             if package_spec is None:  # Ensure it passed the check
                 exit(1)
             # Extract exercise spec filename
@@ -85,18 +84,18 @@ def main():
                 # Extract infra spec filename
                 override = package_spec["contents"]["infrastructure"]
         else:
-            spec_filename = args["--spec"]
+            spec_filename = args.spec
         # Validate specification syntax before proceeding
         spec = check_syntax(spec_filename)
         if spec is None:  # Ensure it passed the check
             exit(1)
         if "name" not in spec["metadata"]:
             # Default name is the filename of the specification
-            spec["metadata"]["name"] = splitext(basename(args["--spec"]))[0]
+            spec["metadata"]["name"] = splitext(basename(args.spec))[0]
 
         # Override the infra file defined in exercise/package specification
-        if args["--infra"]:
-            infra_file = args["--infra"]
+        if args.infra:
+            infra_file = args.infra
             if not exists(infra_file):
                 logging.error("Could not find infra file '%s' to override with",
                               infra_file)
@@ -112,25 +111,25 @@ def main():
         try:
             interface = PlatformInterface(infra=parse_yaml(
                 spec["metadata"]["infra-file"]), spec=spec)
-            if args["--masters"]:
+            if args.masters:
                 interface.create_masters()
                 logging.info("Finished Master creation for %s",
                              spec["metadata"]["name"])
-            elif args["--deploy"]:
+            elif args.deploy:
                 interface.deploy_environment()
                 logging.info("Finished deployment of %s",
                              spec["metadata"]["name"])
-            elif args["--cleanup-masters"]:
-                interface.cleanup_masters(args["--nets"])
+            elif args.cleanup_masters:
+                interface.cleanup_masters(args.nets)
                 logging.info("Finished master cleanup of %s",
                              spec["metadata"]["name"])
-            elif args["--cleanup-enviro"]:
-                interface.cleanup_environment(args["--nets"])
+            elif args.cleanup_enviro:
+                interface.cleanup_environment(args.nets)
                 logging.info("Finished cleanup of %s",
                              spec["metadata"]["name"])
             else:
                 logging.critical("Invalid flags for --spec. "
-                                 "Argument dump:\n%s", str(args))
+                                 "Argument dump:\n%s", str(vars(args)))
         except vim.fault.NoPermission as e:  # Log permission errors
             logging.error("Permission error: \n%s", str(e))
             exit(1)
@@ -140,22 +139,22 @@ def main():
             exit(1)
 
     # Just validate syntax, no building of environment
-    elif args["--validate"]:
-        if args["--type"]:
-            spec_type = args["--type"]
+    elif args.validate:
+        if args.type:
+            spec_type = args.type
         else:
             spec_type = "exercise"
-        if check_syntax(args["--validate"], spec_type) is None:
+        if check_syntax(args.validate, spec_type) is None:
             logging.error("Syntax check failed")
 
     # Show examples on commandline
-    elif args["--list-examples"] or args["--print-example"]:
+    elif args.list_examples or args.print_example:
         from pkg_resources import Requirement, resource_filename
         from os import listdir
         example_dir = resource_filename(Requirement.parse("ADLES"), "examples")
         # Filter non-YAML files from the listdir output
         examples = [x[:-5] for x in listdir(example_dir) if ".yaml" in x]
-        if args["--list-examples"]:  # List all examples and their metadata
+        if args.list_examples:  # List all examples and their metadata
             print("Example scenarios that can be printed "
                   "using --print-example <name>")
             # Print header for the output
@@ -170,7 +169,7 @@ def main():
                 desc = str(metadata["description"])
                 print(name + ver + desc)
         else:
-            example = args["--print-example"]
+            example = args.print_example
             if example in examples:
                 # Print out the complete content of a named example
                 with open(join(example_dir, example + ".yaml")) as file:
@@ -179,9 +178,9 @@ def main():
                 logging.error("Invalid example: %s", example)
 
     # Show specifications on commandline
-    elif args["--print-spec"]:
+    elif args.print_spec:
         from pkg_resources import Requirement, resource_filename
-        spec = args["--print-spec"]
+        spec = args.print_spec
         specs = ["exercise", "package", "infrastructure"]
 
         # Find spec in package installation directory and print it
@@ -197,7 +196,7 @@ def main():
 
     # Handle invalid arguments
     else:
-        logging.error("Invalid arguments. Argument dump:\n%s", str(args))
+        logging.error("Invalid arguments. Argument dump:\n%s", str(vars(args)))
 
 
 if __name__ == '__main__':
