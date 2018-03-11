@@ -25,8 +25,7 @@ Usage:
     adles [options] (--cleanup-masters | --cleanup-enviro) [--nets] -s SPEC
 
 Options:
-    -n, --no-color          Do not color terminal output
-    -v, --verbose           Emit debugging logs to terminal
+
     -c, --validate SPEC     Validates syntax of an exercise specification
     -t, --type TYPE         Type of specification to validate: exercise, package, infra
     -s, --spec SPEC         Name of a YAML specification file
@@ -40,6 +39,9 @@ Options:
     --print-spec NAME       Prints the named specification: exercise, package, infrastructure
     --list-examples         Prints the list of examples available
     --print-example NAME    Prints the named example
+    -n, --no-color          Do not color terminal output
+    -v, --verbose           Emit debugging messages to terminal
+    --syslog SERVER         Send logs to a Syslog server on port 514
     -h, --help              Shows this help
     --version               Prints current version
 

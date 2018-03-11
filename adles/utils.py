@@ -292,9 +292,15 @@ def get_args(docstring, version, logging_filename):
     # Set if console output should be colored
     colors = (False if args.no_color else True)
 
+    # Syslog server
+    if args.syslog:
+        syslog = (str(args.syslog), 514)
+    else:
+        syslog = None
+
     # Configure logging globally
     setup_logging(filename=logging_filename, colors=colors,
-                  console_verbose=args.verbose)
+                  console_verbose=args.verbose, server=syslog)
     return args
 
 
@@ -327,8 +333,7 @@ def resolve_path(server, thing, prompt=""):
         return res
 
 
-def setup_logging(filename, colors=True, console_verbose=False,
-                  server=('localhost', 514)):
+def setup_logging(filename, colors=True, console_verbose=False, server=None):
     """
     Configures the logging interface used by everything for output.
 
@@ -358,12 +363,13 @@ def setup_logging(filename, colors=True, console_verbose=False,
 
     # Configure logging to a SysLog server
     # This prevents students from simply deleting the log files
-    syslog = logging.handlers.SysLogHandler(address=server)
-    syslog.setLevel(logging.DEBUG)
-    syslog.setFormatter(formatter)
-    logger.addHandler(syslog)
-    logging.debug("Configured logging to SysLog server %s:%s",
-                  server[0], str(server[1]))
+    if server is not None:
+        syslog = logging.handlers.SysLogHandler(address=server)
+        syslog.setLevel(logging.DEBUG)
+        syslog.setFormatter(formatter)
+        logger.addHandler(syslog)
+        logging.debug("Configured logging to SysLog server %s:%d",
+                      server[0], server[1])
 
     # Record system information to aid in auditing and debugging
     # We do this before configuring console output to reduce verbosity
