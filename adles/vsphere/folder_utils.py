@@ -14,6 +14,7 @@
 
 import logging
 
+import tqdm
 from pyVmomi import vim
 
 from adles.utils import split_path, is_folder, is_vm
@@ -69,6 +70,9 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
     logging.debug("Cleaning folder '%s'", folder.name)
     from adles.vsphere.vm import VM
 
+    # TODO: progress bar
+    # pbar = tqdm.tqdm(folder.childEntity, desc="Cleaning folder",
+    #                  unit="Items", clear=True)
     for item in folder.childEntity:
         # Handle VMs
         if is_vm(item) and str(item.name).startswith(vm_prefix):

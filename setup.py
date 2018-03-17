@@ -46,6 +46,8 @@ setup(
         'docopt == 0.6.2',  # Commandline argument parsing
         'argopt == 0.3.4',  # argparse configured with docopt strings
         'colorlog >= 2.10',
+        'tqdm == 4.19.6',
+
         'pyvmomi >= 6.5',  # TODO: move this into a extra?
 
         'ipaddress;python_version<"3.3"'

@@ -32,12 +32,14 @@ Examples:
 
 import logging
 
+import tqdm
+
 from adles.utils import script_setup, get_args, \
     ask_question, resolve_path, is_vm
 from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.vm import VM
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 
 # noinspection PyUnboundLocalVariable
@@ -74,8 +76,10 @@ def main():
                             "to perform snapshot operations on")[0]]
 
     # Perform the operations
-    for vm in vms:
+    pbar = tqdm.tqdm(vms, total=len(vms), desc="Taking snapshots", unit="VMs")
+    for vm in pbar:
         logging.info("Performing operation '%s' on VM '%s'", op, vm.name)
+        pbar.set_postfix_str(vm.name)
         if op == "create":
             vm.create_snapshot(name=name, description=desc,
                                memory=memory, quiesce=quiesce)
@@ -97,6 +101,8 @@ def main():
             logging.info(vm.snapshot_disk_usage())
         else:
             logging.error("Unknown operation: %s", op)
+        pbar.update()
+    pbar.close()
 
 
 if __name__ == '__main__':

@@ -32,12 +32,14 @@ Examples:
 
 import logging
 
+import tqdm
+
 from adles.utils import ask_question, script_setup, \
     get_args, resolve_path, is_vm
 from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.vm import VM
 
-__version__ = "0.3.11"
+__version__ = "0.4.0"
 
 
 def main():
@@ -57,8 +59,12 @@ def main():
             logging.info("Folder structure: \n%s", format_structure(
                 folder.enumerate(recursive=True, power_status=True)))
         if ask_question("Continue? ", default="yes"):
-            for vm in vms:
+            pbar = tqdm.tqdm(vms, unit="VMs",
+                             desc="Performing power operation " + operation)
+            for vm in pbar:
+                pbar.set_postfix_str(vm.name)
                 vm.change_state(operation, attempt_guest)
+            pbar.close()
 
     else:
         vm = resolve_path(server, "VM")[0]

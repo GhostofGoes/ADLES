@@ -32,11 +32,14 @@ Examples:
 
 import logging
 
+import tqdm
+
 from adles.utils import ask_question, pad, default_prompt, \
     script_setup, get_args, resolve_path, is_vm
 from adles.vsphere.vm import VM
 
-__version__ = "0.6.2"
+
+__version__ = "0.7.0"
 
 
 def main():
@@ -85,19 +88,26 @@ def main():
 
     logging.info("Creating %d instances under folder %s",
                  num_instances, create_in_name)
-    for instance in range(num_instances):
-        for vm, name in zip(vms, vm_names):
-            if instance_folder_base:
-                # Create instance folders for a nested clone
-                f = server.create_folder(instance_folder_base + pad(instance),
-                                         create_in=create_in)
-                vm_name = name
-            else:
-                f = create_in
-                vm_name = name + pad(instance)    # Append instance number
-            new_vm = VM(name=vm_name, folder=f,
-                        resource_pool=pool, datastore=datastore)
-            new_vm.create(template=vm.get_vim_vm())
+    for instance in tqdm.trange(num_instances, desc="Creating instances",
+                                unit="instances"):
+        with tqdm.tqdm(total=len(vm_names), leave=False,
+                       desc="Creating VMs", unit="VMs") as pbar:
+            for vm, name in zip(vms, vm_names):
+                pbar.set_postfix_str(name)
+                if instance_folder_base:
+                    # Create instance folders for a nested clone
+                    f = server.create_folder(
+                        instance_folder_base + pad(instance),
+                        create_in=create_in)
+                    vm_name = name
+                else:
+                    f = create_in
+                    vm_name = name + pad(instance)  # Append instance number
+
+                new_vm = VM(name=vm_name, folder=f,
+                            resource_pool=pool, datastore=datastore)
+                new_vm.create(template=vm.get_vim_vm())
+                pbar.update()
 
 
 if __name__ == '__main__':

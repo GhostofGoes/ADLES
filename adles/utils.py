@@ -19,6 +19,26 @@ import os
 import timeit
 import json
 
+try:
+    import tqdm
+    TQDM = True
+
+    class TqdmHandler(logging.StreamHandler):
+        def __init__(self, level=logging.NOTSET):
+            super(self.__class__, self).__init__(level)
+
+        def emit(self, record):
+            try:
+                msg = self.format(record)
+                tqdm.tqdm.write(msg)
+                self.flush()
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                self.handleError(record)
+except ImportError:
+    TQDM = False
+
 
 # Credit to: http://stackoverflow.com/a/15707426/2214380
 def time_execution(func):
@@ -333,7 +353,8 @@ def resolve_path(server, thing, prompt=""):
         return res
 
 
-def setup_logging(filename, colors=True, console_verbose=False, server=None):
+def setup_logging(filename, colors=True, console_verbose=False,
+                  server=None, show_progress=True):
     """
     Configures the logging interface used by everything for output.
 
@@ -342,6 +363,7 @@ def setup_logging(filename, colors=True, console_verbose=False, server=None):
     :param bool console_verbose: Print DEBUG logs to terminal
     :param server: SysLog server to forward logs to
     :type server: tuple(str, int)
+    :param bool show_progress: Show live status as operations progress
     """
 
     # Prepend spaces to separate logs from previous runs
@@ -390,7 +412,11 @@ def setup_logging(filename, colors=True, console_verbose=False, server=None):
     logging.captureWarnings(capture=True)
 
     # Configure console output
-    console = logging.StreamHandler(stream=sys.stdout)
+    if TQDM and show_progress:
+        console = TqdmHandler()
+    else:
+        console = logging.StreamHandler(stream=sys.stdout)
+
     if colors:  # Colored console output
         try:
             # noinspection PyUnresolvedReferences
