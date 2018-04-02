@@ -55,8 +55,7 @@ setup(
     ],
     extras_require={
         'docker': ['docker >= 2.4.2'],
-        'cloud': ['apache-libcloud >= 2.0.0'],
-        'multi-platform': ['libvirt-python >= 3.4.0']
+        'cloud': ['apache-libcloud >= 2.0.0']
     },
     data_files=[('man/man1', ['docs/adles.1'])],
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],

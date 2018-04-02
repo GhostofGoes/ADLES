@@ -14,7 +14,7 @@
 
 import logging
 import sys
-import os.path
+import os
 
 from adles.vsphere.folder_utils import format_structure
 from adles.utils import pad, read_json, is_folder, is_vm, get_vlan

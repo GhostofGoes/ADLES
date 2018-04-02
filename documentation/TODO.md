@@ -19,6 +19,8 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
     * Addition of a pricing-related sections to specification(s)
     * Improvements and additions to infrastructure spec for compute nodes
     * Specification of system resources required for a service, e.g CPU, RAM, storage space.
+    * Implement generic containers using Libcloud
+* Support for Docker provider (possibly through libcloud)
 * Initial support for provisioning
     * Improve the specifications for provisioning
     * Shell scripts
@@ -46,6 +48,8 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 * Performance improvements (subprocess, vsphere tweaks)
 * Flag for selective toggling of parts of specifications where it would be useful to do
    so without having to remove or comment out the content, e.g a folder.
+* ~~Remove Hyper-V and Libvirt~~
+* Bump versions of classes and project
 
 ## Tests
 * Add functional tests for the main `adles` script (using [`bats`](https://github.com/sstephenson/bats)).

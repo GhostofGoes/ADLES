@@ -40,3 +40,13 @@ and contribute to improving cyber education globally.
    or DigitalOcean. Clouds are dynamic, scalable, and cost only for the time utilized,
    making them perfect for short-lived tutorials or competitions.
 
+```yaml
+# Microsoft Hyper-V Server
+hyper-v:
+  hostname: "hostname"    # REQUIRED    Hostname of the Hyper-V server
+  port: 0                 # Suggested   Port used to connect to Hyper-V server
+  login-file: "path"      # REQUIRED    Path to file containing login information for the Hyper-V server
+  version: "v2"           # Suggested   Version of the Hyper-V API to use
+  vswitch: "name"         # Suggested   Name of VirtualEthernetSwitch to use as default
+```
+

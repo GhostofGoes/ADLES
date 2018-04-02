@@ -44,11 +44,6 @@ class PlatformInterface(Interface):
             elif platform == "cloud":
                 from adles.interfaces.cloud_interface import CloudInterface
                 self.interfaces.append(CloudInterface(config, spec))
-            elif platform == "libvirt":
-                from adles.interfaces.libvirt_interface import LibvirtInterface
-                self.interfaces.append(LibvirtInterface(config, spec))
-            elif platform == "hyper-v":
-                raise NotImplementedError("HypervInterface is not implemented")
             else:
                 self._log.error("Invalid platform: %s", str(platform))
                 raise ValueError

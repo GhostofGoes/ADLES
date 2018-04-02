@@ -8,4 +8,4 @@ from .platform_interface import PlatformInterface
 __all__ = ['interface', 'platform_interface',
            'Interface', 'PlatformInterface',
            'vsphere_interface', 'docker_interface',
-           'cloud_interface', 'libcloud_interface', 'libvirt_interface']
+           'cloud_interface', 'libcloud_interface']
