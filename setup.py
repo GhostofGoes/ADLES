@@ -31,7 +31,8 @@ setup(
     url=__url__,
     download_url='https://pypi.python.org/pypi/ADLES',
     license=__license__,
-    entry_points={  # These enable commandline usage of ADLES and the scripts
+    entry_points={
+        # These enable commandline usage of ADLES and the helper scripts
         'console_scripts': [
             'adles = adles.scripts.adles_main:main',
             'clone-vms = adles.scripts.clone_vms:main',
@@ -44,13 +45,13 @@ setup(
     install_requires=[
         'pyyaml >= 3.12',   # Specification parsing
         'docopt == 0.6.2',  # Commandline argument parsing
-        'argopt == 0.3.4',  # argparse configured with docopt strings
-        'colorlog >= 2.10',
-        'tqdm == 4.19.6',
+        'argopt >= 0.4.0, < 5.0.0',  # argparse configured with docopt strings
+        'colorlog >= 2.10, < 4.0.0',  # Colored commandline output using logging
+        'tqdm == 4.19.6',  # Terminal progress bars
 
-        'pyvmomi >= 6.5',  # TODO: move this into a extra?
+        'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
 
-        'ipaddress;python_version<"3.3"'
+        'ipaddress;python_version<"3.3"'  # Python 2.7 compatibility
     ],
     extras_require={
         'docker': ['docker >= 2.4.2'],
