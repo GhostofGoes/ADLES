@@ -43,7 +43,7 @@ setup(
         ]
     },
     install_requires=[
-        'pyyaml >= 3.12',   # Specification parsing
+        'pyyaml >= 3.12, < 4.0.0',   # Specification parsing
         'docopt == 0.6.2',  # Commandline argument parsing
         'argopt >= 0.4.0, < 5.0.0',  # argparse configured with docopt strings
         'colorlog >= 2.10, < 4.0.0',  # Colored commandline output using logging
@@ -55,7 +55,7 @@ setup(
     ],
     extras_require={
         'docker': ['docker >= 2.4.2'],
-        'cloud': ['apache-libcloud >= 2.0.0']
+        'cloud': ['apache-libcloud >= 2.3.0']
     },
     data_files=[('man/man1', ['docs/adles.1'])],
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
@@ -75,6 +75,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Operating System :: OS Independent',
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
