@@ -61,6 +61,7 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 ## Project
 * Setup and use [waffle.io](https://waffle.io/) project management board.
 * Automated GitHub releases: tag, zip, wheel, changelog
+* Overhaul Travis: deploy, testing platforms, test scripts, etc.
 
 ## Documentation
 #### Minor
