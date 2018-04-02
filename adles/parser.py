@@ -13,14 +13,9 @@
 # limitations under the License.
 
 import logging
-from os.path import exists, basename
+import os
 import sys
-try:
-    import ipaddress
-except ImportError:
-    logging.error("ipaddress module is not available. "
-                  "Network verifcation will not work. "
-                  "Are you using Python 3.4+?")
+import ipaddress
 
 from yaml import load, YAMLError
 try:  # Attempt to use C-based YAML parser if it's available
@@ -102,7 +97,7 @@ def _verify_exercise_metadata_syntax(metadata):
 
     if "infra-file" in metadata:
         infra_file = metadata["infra-file"]
-        if not exists(infra_file):
+        if not os.path.exists(infra_file):
             logging.error("Could not open infra-file '%s'", infra_file)
             num_errors += 1
         else:
@@ -533,10 +528,10 @@ def check_syntax(specfile_path, spec_type="exercise"):
     spec = parse_yaml(specfile_path)
     if spec is None:
         logging.critical("Failed to ingest specification file %s",
-                         basename(specfile_path))
+                         os.path.basename(specfile_path))
         return None
     logging.info("Successfully ingested specification file '%s'",
-                 basename(specfile_path))
+                 os.path.basename(specfile_path))
     if spec_type == "exercise":
         logging.info("Checking exercise syntax...")
         errors, warnings = verify_exercise_syntax(spec)
