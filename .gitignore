@@ -1,5 +1,6 @@
 # PyCharm Project files
 .idea/
+pycharmvenv/
 
 # Visual Studio Code workspace configurations
 .vscode/

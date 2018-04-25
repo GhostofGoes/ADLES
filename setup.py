@@ -17,7 +17,7 @@ from setuptools import setup, find_packages
 from adles import __version__, __email__, __author__, __url__, __license__
 
 
-with open('README.rst') as f:  # Loads in the README for PyPI
+with open('README.md') as f:  # Loads in the README for PyPI
     long_description = f.read()
 
 
@@ -28,8 +28,10 @@ setup(
     author_email=__email__,
     description='Automated Deployment of Lab Environments System (ADLES)',
     long_description=long_description,  # This is what you see on PyPI page
+    # PEP 566, PyPI Warehouse, setuptools>=38.6.0 make markdown possible
+    long_description_content_type="text/markdown",
     url=__url__,
-    download_url='https://pypi.python.org/pypi/ADLES',
+    download_url='https://pypi.org/projects/ADLES/',
     license=__license__,
     entry_points={  # These enable commandline usage of ADLES and the scripts
         'console_scripts': [
