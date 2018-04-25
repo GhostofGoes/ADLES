@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,7 +42,7 @@ setup(
     entry_points={
         # These enable commandline usage of ADLES and the helper scripts
         'console_scripts': [
-            'adles = adles.scripts.adles_main:main',
+            'adles = adles.__main__:main',
             'clone-vms = adles.scripts.clone_vms:main',
             'cleanup-vms = adles.scripts.cleanup_vms:main',
             'vm-power = adles.scripts.vm_power:main',

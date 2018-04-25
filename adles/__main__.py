@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # http://multivax.com/last_question.html
 
@@ -64,10 +63,10 @@ from os.path import basename, exists, splitext, join
 
 from pyVmomi import vim
 
-from adles.interfaces import PlatformInterface
-from adles.parser import check_syntax, parse_yaml
-from adles.utils import get_args
-from adles import __version__
+from .interfaces import PlatformInterface
+from .parser import check_syntax, parse_yaml
+from .utils import get_args
+from .__about__ import __version__
 
 
 def main():

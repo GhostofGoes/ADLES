@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from .interface import Interface
 from .platform_interface import PlatformInterface
 # (11/24/2017) Importing anything with dependencies here is problematic

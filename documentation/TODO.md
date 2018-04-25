@@ -83,7 +83,7 @@ That way they can run independantly and improve usage of network resources.
 * Link to Terminology section from docs, e.g "Master", "Template", etc.
 
 #### Major
-* Convert project README to Markdown, since PyPI [supports it now](https://dustingram.com/articles/2018/03/16/markdown-descriptions-on-pypi)
+* ~~Convert project README to Markdown, since PyPI supports it now~~
 * Introduction that outlines philosophy of project, clarifies where this
  and other systems (e.g. Salt Stack, etc.) differ, what the primary purpose is.
  Need to be percise and explicit. Address concerns raised at defense.
