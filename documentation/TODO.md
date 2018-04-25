@@ -50,6 +50,7 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
    so without having to remove or comment out the content, e.g a folder.
 * ~~Remove Hyper-V and Libvirt~~
 * Bump versions of classes and project
+* Fix base classes to import from `module`, which is the new and recommended style
 * Subprocess the API calls by the Interface to its composite interfaces (e.g vSphere, Docker, etc).
 That way they can run independantly and improve usage of network resources.
 
@@ -82,6 +83,7 @@ That way they can run independantly and improve usage of network resources.
 * Link to Terminology section from docs, e.g "Master", "Template", etc.
 
 #### Major
+* Convert project README to Markdown, since PyPI [supports it now](https://dustingram.com/articles/2018/03/16/markdown-descriptions-on-pypi)
 * Introduction that outlines philosophy of project, clarifies where this
  and other systems (e.g. Salt Stack, etc.) differ, what the primary purpose is.
  Need to be percise and explicit. Address concerns raised at defense.
