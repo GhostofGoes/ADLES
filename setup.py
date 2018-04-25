@@ -13,24 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from setuptools import setup, find_packages
-from adles import __version__, __email__, __author__, __url__, __license__
 
 
-with open('README.rst') as f:  # Loads in the README for PyPI
+# Read in project metadata
+about = {}
+info_file = os.path.join(os.path.dirname(__file__), "adles", "__about__.py")
+with open(info_file) as f:
+    exec(f.read(), about)
+
+# Loads in the README for PyPI
+with open('README.rst') as f:
     long_description = f.read()
 
 
 setup(
-    name='ADLES',
-    version=__version__,
-    author=__author__,
-    author_email=__email__,
-    description='Automated Deployment of Lab Environments System (ADLES)',
+    name=about['__title__'],
+    version=about['__version__'],
+    author=about['__author__'],
+    author_email=about['__email__'],
+    description=about['__summary__'],
     long_description=long_description,  # This is what you see on PyPI page
-    url=__url__,
-    download_url='https://pypi.python.org/pypi/ADLES',
-    license=__license__,
+    # TODO: convert README to markdown
+    # long_description_content_type="text/markdown",
+    url=about['__url__'],
+    download_url='https://pypi.org/project/ADLES/',
+    license=about['__license__'],
     entry_points={
         # These enable commandline usage of ADLES and the helper scripts
         'console_scripts': [
