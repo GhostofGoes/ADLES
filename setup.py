@@ -51,7 +51,7 @@ setup(
         ]
     },
     install_requires=[
-        'pyyaml >= 3.12, < 4.0.0',   # Specification parsing
+        'pyyaml == 3.12',   # Specification parsing
         'docopt == 0.6.2',  # Commandline argument parsing
         'argopt >= 0.4.0, < 5.0.0',  # argparse configured with docopt strings
         'colorlog >= 2.10, < 4.0.0',  # Colored commandline output using logging

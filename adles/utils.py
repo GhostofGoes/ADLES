@@ -247,7 +247,7 @@ def default_prompt(prompt, default=None):
 
 def _script_warning_prompt():
     """Generates a warning prompt for the scripts."""
-    from adles import __url__, __email__
+    from .__about__ import __url__, __email__
     return str(
         '***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
         '\n ** Help and Documentation **'
@@ -296,7 +296,6 @@ def get_args(docstring, version, logging_filename):
     for noisy_logger in ['argopt', '_argopt', 'argopt._argopt']:
         logging.getLogger(noisy_logger).setLevel(logging.CRITICAL)
 
-    # TODO: add argcomplete
     # TODO: add shim for Gooey
 
     # Handle case where user provides no arguments
