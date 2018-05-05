@@ -13,7 +13,7 @@
 import logging
 
 
-class Interface:
+class Interface(object):
     """Base class for all Interfaces."""
     __version__ = "1.2.0"
 
@@ -26,7 +26,7 @@ class Interface:
         :param dict infra: Full infrastructure configuration
         :param dict spec: Full exercise specification
         """
-        self._log = logging.getLogger(str(self.__class__))
+        self._log = logging.getLogger(self.__class__.__name__)
         self.infra = infra      # Save the infrastructure configuration
         self.spec = spec        # Save the exercise specification
         self.metadata = spec["metadata"]    # Save the exercise spec metadata

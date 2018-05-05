@@ -211,7 +211,6 @@ def ask_question(question, default="no"):
     """
     valid = {"yes": True, "y": True, "ye": True,
              "no": False, "n": False}
-    choice = ''
     if default is None:
         prompt = " [y/n] "
     elif default == "yes":
@@ -219,7 +218,7 @@ def ask_question(question, default="no"):
     elif default == "no":
         prompt = " [y/N] "
     else:
-        raise ValueError("Invalid default answer: '%s'", default)
+        raise ValueError("Invalid default answer: '%s'" % default)
 
     while True:
         choice = str(input(question + prompt)).lower()
