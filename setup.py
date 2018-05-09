@@ -59,6 +59,7 @@ setup(
 
         'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
 
+        # TODO: drop this when I add type annotations
         'ipaddress;python_version<"3.3"'  # Python 2.7 compatibility
     ],
     extras_require={

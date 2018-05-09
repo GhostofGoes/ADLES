@@ -10,12 +10,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+from distutils.version import StrictVersion
+import functools
 import logging
 
 from adles.__about__ import __url__, __email__
 
 
+@functools.total_ordering
 class Script(object):
     """Base class for all CLI scripts."""
     __version__ = '0.1.0'
@@ -34,21 +36,25 @@ class Script(object):
             '\n+ Email the script author        : %s'
             '\n', __url__, __email__)
 
-    def run(self, server):
+    @classmethod
+    def get_ver(cls):
+        return cls.name.capitalize() + ' ' + cls.__version__
+
+    def run(self):
         pass
 
     def __str__(self):
         return self.__doc__
 
     def __repr__(self):
-        return self.name + ' ' + self.__version__
+        return self.get_ver()
 
     def __hash__(self):
-        return hash(self.name + self.__version__)
+        return hash(repr(self))
 
     def __eq__(self, other):
-        return self.name == other.command \
+        return self.name == other.name \
                and self.__version__ == other.__version__
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def __gt__(self, other):
+        return StrictVersion(self.__version__) > StrictVersion(other.__version__)

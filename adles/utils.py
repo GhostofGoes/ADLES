@@ -57,20 +57,6 @@ def time_execution(func):
     return wrapper
 
 
-def handle_keyboard_interrupt(func):
-    """Function decorator to handle
-    keyboard interrupts in a consistent manner."""
-    def wrapper(*args, **kwargs):
-        try:
-            ret = func(*args, **kwargs)
-        except KeyboardInterrupt:
-            print()  # Output a blank line for readability
-            logging.info("Exiting...")
-            sys.exit(0)
-        return ret
-    return wrapper
-
-
 # From: list_dc_datastore_info in pyvmomi-community-samples
 # http://stackoverflow.com/questions/1094841/
 def sizeof_fmt(num):
@@ -124,11 +110,12 @@ def read_json(filename):
     except ValueError as message:
         logging.error("Syntax Error in JSON file '%s': %s",
                       filename, str(message))
-        return None
+    except FileNotFoundError:
+        logging.error("Could not find file %s", filename)
     except Exception as message:
-        logging.critical("Could not open JSON file '%s': %s",
-                         filename, str(message))
-        return None
+        logging.error("Could not open JSON file '%s': %s",
+                      filename, str(message))
+    return None
 
 
 def split_path(path):
@@ -149,133 +136,20 @@ def split_path(path):
     return folder_path, name
 
 
-def make_vsphere(filename=None):
-    """
-    Creates a vSphere object using either a JSON file or by prompting the user.
+def handle_keyboard_interrupt(func):
+    """Function decorator to handle
+    keyboard interrupts in a consistent manner."""
 
-    :param str filename: Name of JSON file with connection info
-    :return: vSphere object
-    :rtype: :class:`Vsphere`
-    """
-    from adles.vsphere.vsphere_class import Vsphere
-    if filename is not None:
-        info = read_json(filename)
-        return Vsphere(username=info.get("user"),
-                       password=info.get("pass"),
-                       hostname=info.get("host"),
-                       port=info.get("port", 443),
-                       datacenter=info.get("datacenter"),
-                       datastore=info.get("datastore"))
-    else:
-        logging.info("Enter information to connect to vSphere environment")
-        datacenter = input("Datacenter  : ")
-        datastore = input("Datastore   : ")
-        return Vsphere(datacenter=datacenter, datastore=datastore)
-
-
-@handle_keyboard_interrupt
-def user_input(prompt, obj_name, func):
-    """
-    Continually prompts a user for input until the specified object is found.
-
-    :param str prompt: Prompt to bother user with
-    :param str obj_name: Name of the type of the object that we seek
-    :param func: The function that shalt be called to discover the object
-    :return: The discovered object and it's human name
-    :rtype: tuple(vimtype, str)
-    """
-    while True:
-        item_name = str(input(prompt))
-        item = func(item_name)
-        if item:
-            logging.info("Found %s: %s", obj_name, item.name)
-            return item, item_name
-        else:
-            print("Couldn't find a %s with name %s. Perhaps try another? "
-                  % (obj_name, item_name))
-
-
-# Based on: http://code.activestate.com/recipes/577058/
-@handle_keyboard_interrupt
-def ask_question(question, default="no"):
-    """
-    Prompts user to answer a question.
-
-    >>> ask_question("Do you like the color yellow?")
-    Do you like the color yellow? [y/N]
-
-    :param str question: Question to ask
-    :param str default: No
-    :return: True/False
-    :rtype: bool
-    """
-    valid = {"yes": True, "y": True, "ye": True,
-             "no": False, "n": False}
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("Invalid default answer: '%s'" % default)
-
-    while True:
-        choice = str(input(question + prompt)).lower()
-        if default is not None and choice == '':
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            print("Please respond with 'yes' or 'no' or 'y' or 'n'")
-
-
-@handle_keyboard_interrupt
-def default_prompt(prompt, default=None):
-    """
-    Prompt the user for input. If they press enter, return the default.
-
-    :param str prompt: Prompt to display to user (do not include default value)
-    :param str default: Default return value
-    :return: Value entered or default
-    :rtype: str or None
-    """
-    value = str(input(prompt + " [default: %s]: " % str(default)))
-    return default if value == '' else value
-
-
-def _script_warning_prompt():
-    """Generates a warning prompt for the scripts."""
-    from .__about__ import __url__, __email__
-    return str(
-        '***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
-        '\n ** Help and Documentation **'
-        '\n+ "<script> --help": flags, arguments, and usage'
-        '\n+ Read the latest documentation  : https://adles.readthedocs.io'
-        '\n+ Open an issue on GitHub        : %s'
-        '\n+ Email the script author        : %s'
-        '\n' % (__url__, __email__))
-
-
-@handle_keyboard_interrupt
-def script_setup(args, script_info=None):
-    """
-    Handles setup tasks that are common to all of the automation scripts.
-
-    :param Object args: Commandline arguments (what's returned by parse_args())
-    :param script_info: Tuple with name and version of the script
-    :type: tuple(str, str)
-    :return: vSphere object
-    :rtype: :class:`Vsphere`
-    """
-    # Print information about script itself
-    if script_info:
-        logging.debug("Script name      %s", os.path.basename(script_info[0]))
-        logging.debug("Script version   %s", script_info[1])
-        print(_script_warning_prompt())  # Print warning for script users
-
-    # Create the vsphere object and return it
-    return make_vsphere(args.file)
+    # Based on: http://code.activestate.com/recipes/577058/
+    def wrapper(*args, **kwargs):
+        try:
+            ret = func(*args, **kwargs)
+        except KeyboardInterrupt:
+            print()  # Output a blank line for readability
+            logging.info("Exiting...")
+            sys.exit(0)
+        return ret
+    return wrapper
 
 
 @handle_keyboard_interrupt
@@ -318,35 +192,6 @@ def get_args(docstring, version, logging_filename):
     setup_logging(filename=logging_filename, colors=colors,
                   console_verbose=args.verbose, server=syslog)
     return args
-
-
-def resolve_path(server, thing, prompt=""):
-    """
-    This is a hacked together script utility to get folders or VMs.
-
-    :param server: Vsphere instance
-    :type server: :class:`Vsphere`
-    :param str thing: String name of thing to get (folder | vm)
-    :param str prompt: Message to display
-    :return: (thing, thing name)
-    :rtype: tuple(vimtype, str)
-    """
-    from adles.vsphere.vm import VM
-    if thing.lower() == "vm":
-        get = server.get_vm
-    elif thing.lower() == "folder":
-        get = server.get_folder
-    else:
-        logging.error("Invalid thing passed to resolve_path: %s", thing)
-        raise ValueError
-
-    res = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
-                     lambda x: server.find_by_inv_path("vm/" + x)
-                     if '/' in x else get(x))
-    if thing.lower() == "vm":
-        return VM(vm=res[0]), res[1]
-    else:
-        return res
 
 
 def setup_logging(filename, colors=True, console_verbose=False,

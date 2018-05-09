@@ -12,25 +12,31 @@
 
 import tqdm
 
-from adles.utils import (
-    ask_question, resolve_path, is_vm,
-    default_prompt, pad
-)
+from adles.scripts.script_base import Script
+from adles.utils import is_vm, pad
+from .script_utils import ask_question, default_prompt, resolve_path
 from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.vm import VM
 
-from .script_base import Script
+
+class VsphereScript(Script):
+    """Base class for all vSphere CLI scripts."""
+
+    def __init__(self, server_filename=None):
+        super(VsphereScript, self).__init__()
+        from .script_utils import make_vsphere
+        self.server = make_vsphere(filename=server_filename)
 
 
-class CleanupVms(Script):
+class CleanupVms(VsphereScript):
     """Cleanup and Destroy Virtual Machines (VMs)
     and VM Folders in a vSphere environment."""
     __version__ = '0.5.12'
-    name = 'clone'
+    name = 'cleanup'
 
-    def run(self, server):
+    def run(self):
         if ask_question("Multiple VMs? ", default="yes"):
-            folder, folder_name = resolve_path(server, "folder",
+            folder, folder_name = resolve_path(self.server, "folder",
                                                "that has the VMs/folders "
                                                "you want to destroy")
 
@@ -81,7 +87,7 @@ class CleanupVms(Script):
             else:
                 num_folders = 0
             self._log.info("%d VMs and %d folders match the options",
-                         num_vms, num_folders)
+                           num_vms, num_folders)
 
             # Confirm and destroy
             if ask_question("Continue with destruction? "):
@@ -94,7 +100,7 @@ class CleanupVms(Script):
             else:
                 self._log.info("Destruction cancelled")
         else:
-            vm = resolve_path(server, "vm", "to destroy")[0]
+            vm = resolve_path(self.server, "vm", "to destroy")[0]
 
             if ask_question("Display VM info? "):
                 self._log.info(vm.get_info(detailed=True, uuids=True,
@@ -112,23 +118,23 @@ class CleanupVms(Script):
                 self._log.info("Destruction cancelled")
 
 
-class CloneVms(Script):
+class CloneVms(VsphereScript):
     """Clone multiple Virtual Machines in vSphere."""
     __version__ = '0.5.12'
     name = 'clone'
 
-    def run(self, server):
+    def run(self):
         vms = []
         vm_names = []
 
         # Single-vm source
         if ask_question("Do you want to clone from a single VM?"):
-            v = resolve_path(server, "VM", "or template you wish to clone")[0]
+            v = resolve_path(self.server, "VM", "or template you wish to clone")[0]
             vms.append(v)
             vm_names.append(str(input("Base name for instances to be created: ")))
         # Multi-VM source
         else:
-            folder_from, from_name = resolve_path(server, "folder",
+            folder_from, from_name = resolve_path(self.server, "folder",
                                                   "you want to clone all VMs in")
             # Get VMs in the folder
             v = [VM(vm=x) for x in folder_from.childEntity if is_vm(x)]
@@ -142,7 +148,7 @@ class CloneVms(Script):
                 names = list(map(lambda x: x.name, v))  # Same names as sources
             vm_names.extend(names)
 
-        create_in, create_in_name = resolve_path(server, "folder",
+        create_in, create_in_name = resolve_path(self.server, "folder",
                                                  "in which to create VMs")
         instance_folder_base = None
         if ask_question("Do you want to create a folder for each instance? "):
@@ -150,13 +156,13 @@ class CloneVms(Script):
 
         num_instances = int(input("Number of instances to be created: "))
 
-        pool_name = server.get_pool().name  # Determine what will be the default
+        pool_name = self.server.get_pool().name  # Determine what will be the default
         pool_name = default_prompt(prompt="Resource pool to assign VMs to",
                                    default=pool_name)
-        pool = server.get_pool(pool_name)
+        pool = self.server.get_pool(pool_name)
 
         datastore_name = default_prompt(prompt="Datastore to put clones on")
-        datastore = server.get_datastore(datastore_name)
+        datastore = self.server.get_datastore(datastore_name)
 
         self._log.info("Creating %d instances under folder %s",
                        num_instances, create_in_name)
@@ -168,7 +174,7 @@ class CloneVms(Script):
                     pbar.set_postfix_str(name)
                     if instance_folder_base:
                         # Create instance folders for a nested clone
-                        f = server.create_folder(
+                        f = self.server.create_folder(
                             instance_folder_base + pad(instance),
                             create_in=create_in)
                         vm_name = name
@@ -182,19 +188,19 @@ class CloneVms(Script):
                     pbar.update()
 
 
-class VmPower(Script):
+class VmPower(VsphereScript):
     """Power operations for Virtual Machines in vSphere."""
     __version__ = '0.4.0'
     name = 'power'
 
-    def run(self, server):
+    def run(self):
         operation = str(input("Enter the power operation you wish to perform"
                               " [on | off | reset | suspend]: "))
         attempt_guest = ask_question("Attempt to use guest OS operations, "
                                      "if available? ")
 
         if ask_question("Multiple VMs? ", default="yes"):
-            folder, folder_name = resolve_path(server, "folder", "with VMs")
+            folder, folder_name = resolve_path(self.server, "folder", "with VMs")
             vms = [VM(vm=x) for x in folder.childEntity if is_vm(x)]
             self._log.info("Found %d VMs in folder '%s'",
                            len(vms), folder_name)
@@ -210,42 +216,43 @@ class VmPower(Script):
                 pbar.close()
 
         else:
-            vm = resolve_path(server, "VM")[0]
+            vm = resolve_path(self.server, "VM")[0]
             self._log.info("Changing power state of '%s' "
                            "to '%s'", vm.name, operation)
             vm.change_state(operation, attempt_guest)
 
 
-class VsphereInfo(Script):
+class VsphereInfo(VsphereScript):
     """Query information about a vSphere environment and objects within it."""
     __version__ = '0.6.5'
     name = 'info'
 
-    def run(self, server):
+    def run(self):
         thing_type = str(input("What type of thing do you want"
                                "to get information on?"
                                " (vm | datastore | vsphere | folder) "))
 
         # Single Virtual Machine
         if thing_type == "vm":
-            vm = resolve_path(server, "vm", "you want to get information on")[0]
+            vm = resolve_path(self.server, "vm", "you want to get information on")[0]
             self._log.info(vm.get_info(detailed=True, uuids=True,
                                        snapshot=True, vnics=True))
 
         # Datastore
         elif thing_type == "datastore":
-            ds = server.get_datastore(str(input("Enter name of the Datastore"
-                                                "[leave blank for "
-                                                "first datastore found]: ")))
+            ds = self.server.get_datastore(str(input(
+                "Enter name of the Datastore [leave "
+                "blank for first datastore found]: "))
+            )
             self._log.info(ds.get_info())
 
         # vCenter server
         elif thing_type == "vsphere":
-            self._log.info(str(server))
+            self._log.info(str(self.server))
 
         # Folder
         elif thing_type == "folder":
-            folder, folder_name = resolve_path(server, "folder")
+            folder, folder_name = resolve_path(self.server, "folder")
             if "VirtualMachine" in folder.childType \
                     and ask_question("Want to see power state "
                                      "of VMs in the folder?"):
@@ -262,13 +269,13 @@ class VsphereInfo(Script):
             self._log.info("Invalid selection: %s", thing_type)
 
 
-class VmSnapshot(Script):
+class VmSnapshot(VsphereScript):
     """Perform Snapshot operations on Virtual
     Machines in a vSphere environment."""
     __version__ = '0.3.0'
     name = 'snapshot'
 
-    def run(self, server):
+    def run(self):
         op = str(input("Enter Snapshot operation [create | revert | "
                        "revert-current | remove | remove-all | get | "
                        "get-current | get-all | disk-usage]: "))
@@ -284,7 +291,7 @@ class VmSnapshot(Script):
                                         default="yes")
 
         if ask_question("Multiple VMs? ", default="yes"):
-            f, f_name = resolve_path(server, "folder", "with VMs")
+            f, f_name = resolve_path(self.server, "folder", "with VMs")
             vms = [VM(vm=x) for x in f.childEntity if is_vm(x)]
             self._log.info("Found %d VMs in folder '%s'", len(vms), f_name)
             if ask_question("Show the status of the VMs in the folder? "):
@@ -294,7 +301,7 @@ class VmSnapshot(Script):
                 self._log.info("User cancelled operation, exiting...")
                 exit(0)
         else:
-            vms = [resolve_path(server, "vm",
+            vms = [resolve_path(self.server, "vm",
                                 "to perform snapshot operations on")[0]]
 
         # Perform the operations

@@ -32,13 +32,14 @@ Options:
 
 """
 
-from docopt import docopt
-
-from adles.vsphere.vsphere_class import Vsphere
-from adles.utils import get_args, script_setup
-
-args = get_args(__doc__, Vsphere.__version__, 'vsphere_examples.log')
-server = script_setup(args=args, script_info=(__file__, Vsphere.__version__))
+# from docopt import docopt
+#
+# from adles.vsphere.vsphere_class import Vsphere
+# from adles.utils import get_args
+# from adles.scripts.script_utils import script_setup
+#
+# args = get_args(__doc__, Vsphere.__version__, 'vsphere_examples.log')
+# server = script_setup(args=args, script_info=(__file__, Vsphere.__version__))
 
 # TODO: improve and codify this in the docs
 
