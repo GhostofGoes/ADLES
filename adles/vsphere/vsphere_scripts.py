@@ -12,11 +12,12 @@
 
 import tqdm
 
+from adles.utils import pad
 from adles.scripts.script_base import Script
-from adles.utils import is_vm, pad
-from .script_utils import ask_question, default_prompt, resolve_path
+from adles.scripts.script_utils import ask_question, default_prompt
 from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.vm import VM
+from adles.vsphere.vsphere_utils import make_vsphere, resolve_path, is_vm
 
 
 class VsphereScript(Script):
@@ -24,7 +25,6 @@ class VsphereScript(Script):
 
     def __init__(self, server_filename=None):
         super(VsphereScript, self).__init__()
-        from .script_utils import make_vsphere
         self.server = make_vsphere(filename=server_filename)
 
 

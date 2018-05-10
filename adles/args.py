@@ -15,7 +15,7 @@
 import argparse
 import sys
 
-from .__about__ import __version__
+from adles.__about__ import __version__
 
 
 description = """
@@ -48,6 +48,7 @@ def parse_cli_args():
     main_parser.add_argument('--syslog', type=str, metavar='SERVER',
                              help='Send logs to a Syslog server on port 514')
 
+    # Example/spec printing
     examples = main_parser.add_argument_group(title='Print examples and specs')
     examples.add_argument('--list-examples', action='store_true',
                           help='Prints the list of available example scenarios')
@@ -58,44 +59,25 @@ def parse_cli_args():
                           help='Prints the named example')
 
     # TODO: cleanup
-    # TODO: title?
+    # TODO: title for mutually exclusive group?
     # cleanup_group = main_parser.add_mutually_exclusive_group()
-    # cleanup_group.add_argument()
 
     # ADLES sub-commands
     adles_subs = main_parser.add_subparsers(title='ADLES Subcommands')
 
+    # TODO: validate
     validate = adles_subs.add_parser(name='validate',
                                      help='Validate syntax of a specification')
     validate.add_argument('-t', '--type', type=str,
                           metavar='TYPE', default='exercise',
                           choices=['exercise', 'package', 'infra'],
                           help='Type of specification to validate')
-    # validate.add_argument()
 
+    # TODO: deploy
     deploy = adles_subs.add_parser(name='deploy', help='Deploy an environment')
 
     # TODO: packages
     # package = adles_subs.add_parser(name='package', help='Create a package')
-
-    # vSphere scripts
-    # TODO: cli args instead of filename
-    # e.g. "--vsphere-user" on all vsphere scripts, so ConfigArgParse can do it's thing globally
-    # vs_subs = main_parser.add_subparsers(title='vSphere Scripts')
-    from .scripts.vsphere_scripts import VSPHERE_SCRIPTS
-    for s in VSPHERE_SCRIPTS:
-        subp = adles_subs.add_parser(name=s.name, help=str(s))
-        subp.set_defaults(script=s)
-        subp.add_argument('--version', action='version',
-                          version=s.get_ver())
-        subp.add_argument('-f', '--server-info', type=str,
-                          default=None, metavar='FILE',
-                          help='Name of JSON file with vSphere '
-                               'server connection information')
-        subp.add_argument('-v', '--verbose', action='store_true',
-                          help='Emit debugging logs to terminal')
-        subp.add_argument('--no-color', action='store_true',
-                          help='Do not color terminal output')
 
     # Default to printing usage if no arguments are provided
     if len(sys.argv) == 1:

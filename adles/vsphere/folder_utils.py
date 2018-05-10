@@ -12,10 +12,11 @@
 
 import logging
 
-import tqdm
+# import tqdm
 from pyVmomi import vim
 
-from adles.utils import split_path, is_folder, is_vm
+from adles.utils import split_path
+from adles.vsphere.vsphere_utils import is_folder, is_vm
 
 
 def create_folder(folder, folder_name):

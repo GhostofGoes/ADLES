@@ -43,17 +43,11 @@ setup(
         # These enable commandline usage of ADLES and the helper scripts
         'console_scripts': [
             'adles = adles.__main__:main',
-            'clone-vms = adles.scripts.clone_vms:main',
-            'cleanup-vms = adles.scripts.cleanup_vms:main',
-            'vm-power = adles.scripts.vm_power:main',
-            'vsphere-info = adles.scripts.vsphere_info:main',
-            'vm-snapshots = adles.scripts.vm_snapshots:main'
+            'vsphere = adles.vsphere.__main__:main'
         ]
     },
     install_requires=[
         'pyyaml == 3.12',   # Specification parsing
-        'docopt == 0.6.2',  # Commandline argument parsing
-        'argopt >= 0.4.0, < 5.0.0',  # argparse configured with docopt strings
         'colorlog >= 2.10, < 4.0.0',  # Colored commandline output using logging
         'tqdm == 4.19.6',  # Terminal progress bars
 

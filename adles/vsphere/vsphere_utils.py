@@ -11,9 +11,13 @@
 # limitations under the License.
 
 import logging
+import sys
 from time import sleep, time
 
 from pyVmomi import vim
+
+from adles.scripts.script_utils import user_input
+from adles.utils import read_json
 
 SLEEP_INTERVAL = 0.05
 LONG_SLEEP = 1.0
@@ -102,6 +106,7 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
                       "resource %s is in use", name, obj)
     return None
 
+
 # This line allows calling "<task>.wait(<params>)"
 # instead of "wait_for_task(task, params)"
 #
@@ -145,4 +150,86 @@ def get_datastore_info(ds_obj):
     info_string += "Hosts                 : %d\n" % len(ds_obj.host)
     info_string += "Virtual Machines      : %d" % len(ds_obj.vm)
     return info_string
+
+
 vim.Datastore.get_info = get_datastore_info
+
+
+def make_vsphere(filename=None):
+    """
+    Creates a vSphere object using either a JSON file or by prompting the user.
+
+    :param str filename: Name of JSON file with connection info
+    :return: vSphere object
+    :rtype: :class:`Vsphere`
+    """
+    # TODO: cli args instead of filename
+    # e.g. "--vsphere-user" on all vsphere scripts,
+    # so ConfigArgParse can do it's thing globally
+    from adles.vsphere.vsphere_class import Vsphere
+    if filename is not None:
+        info = read_json(filename)
+        if info is None:
+            sys.exit(1)
+        return Vsphere(username=info.get("user"),
+                       password=info.get("pass"),
+                       hostname=info.get("host"),
+                       port=info.get("port", 443),
+                       datacenter=info.get("datacenter"),
+                       datastore=info.get("datastore"))
+    else:
+        logging.info("Enter information to connect to the vSphere environment")
+        datacenter = input("Datacenter  : ")
+        datastore = input("Datastore   : ")
+        return Vsphere(datacenter=datacenter, datastore=datastore)
+
+
+def resolve_path(server, thing, prompt=""):
+    """
+    This is a hacked together script utility to get folders or VMs.
+
+    :param server: Vsphere instance
+    :type server: :class:`Vsphere`
+    :param str thing: String name of thing to get (folder | vm)
+    :param str prompt: Message to display
+    :return: (thing, thing name)
+    :rtype: tuple(vimtype, str)
+    """
+    from adles.vsphere.vm import VM
+    if thing.lower() == "vm":
+        get = server.get_vm
+    elif thing.lower() == "folder":
+        get = server.get_folder
+    else:
+        logging.error("Invalid thing passed to resolve_path: %s", thing)
+        raise ValueError
+
+    res = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
+                     lambda x: server.find_by_inv_path("vm/" + x)
+                     if '/' in x else get(x))
+    if thing.lower() == "vm":
+        return VM(vm=res[0]), res[1]
+    else:
+        return res
+
+
+def is_folder(obj):
+    """
+    Checks if object is a vim.Folder.
+
+    :param obj: The object to check
+    :return: If the object is a folder
+    :rtype: bool
+    """
+    return hasattr(obj, "childEntity")
+
+
+def is_vm(obj):
+    """
+    Checks if object is a vim.VirtualMachine.
+
+    :param obj: The object to check
+    :return: If the object is a VM
+    :rtype: bool
+    """
+    return hasattr(obj, "summary")

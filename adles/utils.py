@@ -152,48 +152,6 @@ def handle_keyboard_interrupt(func):
     return wrapper
 
 
-@handle_keyboard_interrupt
-def get_args(docstring, version, logging_filename):
-    """
-    Handles commandline argument parsing and logging setup.
-
-    :param str docstring: docopt-formatting docstring
-    :param str version: version string
-    :param str logging_filename: Name of file to save logs to
-    :return: Commandline arguments the user provided
-    :rtype: Object
-    """
-    from argopt import argopt
-
-    # Suppress argopt logging messages (TODO: open an issue about this)
-    for noisy_logger in ['argopt', '_argopt', 'argopt._argopt']:
-        logging.getLogger(noisy_logger).setLevel(logging.CRITICAL)
-
-    # TODO: add shim for Gooey
-
-    # Handle case where user provides no arguments
-    if len(sys.argv) == 1:
-        sys.argv.append("--help")
-
-    # Get and process commandline arguments
-    parser = argopt(docstring, version=version)
-    args = parser.parse_args()
-
-    # Set if console output should be colored
-    colors = (False if args.no_color else True)
-
-    # Syslog server
-    if args.syslog:
-        syslog = (str(args.syslog), 514)
-    else:
-        syslog = None
-
-    # Configure logging globally
-    setup_logging(filename=logging_filename, colors=colors,
-                  console_verbose=args.verbose, server=syslog)
-    return args
-
-
 def setup_logging(filename, colors=True, console_verbose=False,
                   server=None, show_progress=True):
     """
@@ -290,25 +248,3 @@ def get_vlan():
     """
     for i in range(2000, 4096):
         yield i
-
-
-def is_folder(obj):
-    """
-    Checks if object is a vim.Folder.
-
-    :param obj: The object to check
-    :return: If the object is a folder
-    :rtype: bool
-    """
-    return hasattr(obj, "childEntity")
-
-
-def is_vm(obj):
-    """
-    Checks if object is a vim.VirtualMachine.
-
-    :param obj: The object to check
-    :return: If the object is a VM
-    :rtype: bool
-    """
-    return hasattr(obj, "summary")

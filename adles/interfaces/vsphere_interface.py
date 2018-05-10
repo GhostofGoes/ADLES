@@ -15,7 +15,8 @@ import sys
 import os
 
 from adles.vsphere.folder_utils import format_structure
-from adles.utils import pad, read_json, is_folder, is_vm, get_vlan
+from adles.utils import pad, read_json, get_vlan
+from adles.vsphere.vsphere_utils import is_folder, is_vm
 from adles.vsphere import Vsphere
 from adles.vsphere.network_utils import create_portgroup
 from adles.vsphere.vm import VM

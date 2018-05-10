@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import inspect
-
+from adles import adles_cli
 from adles.args import parse_cli_args
 from adles.utils import setup_logging
 
@@ -25,22 +23,21 @@ def main():
     # Parse CLI arguments
     args = parse_cli_args()
 
-    # Configure logging
-    setup_logging(filename='adles.log', colors=not args.no_color,
-                  console_verbose=args.verbose, server=args.syslog)
+    # Set if console output should be colored
+    colors = (False if args.no_color else True)
 
-    # Run the proper script
-    if inspect.isclass(args.script):
-        # The vSphere scripts
-        script = args.script(args.server_info)
-        script.run()
-    elif args.script == 'main':
-        # The main CLI interface
-        from adles import adles_cli
-        adles_cli.main(args=args)
+    # Syslog server
+    if args.syslog:
+        syslog = (str(args.syslog), 514)
     else:
-        logging.error("Bad script value was set during argument parsing. "
-                      "This should never happen.\nValue: %s", str(args.script))
+        syslog = None
+
+    # Configure logging
+    setup_logging(filename='adles.log', colors=colors,
+                  console_verbose=args.verbose, server=syslog)
+
+    # Run ADLES
+    adles_cli.main(args=args)
 
 
 if __name__ == '__main__':
