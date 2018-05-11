@@ -12,67 +12,34 @@
 
 # http://multivax.com/last_question.html
 
-"""ADLES: Automated Deployment of Lab Environments System.
-Uses formal YAML specifications to create virtual environments for educational purposes.
-
-Usage:
-    adles [options]
-    adles [options] [-t TYPE] -c SPEC
-    adles [options] (-m | -d) [-p] -s SPEC
-    adles [options] (--cleanup-masters | --cleanup-enviro) [--nets] -s SPEC
-
-Options:
-
-    -c, --validate SPEC     Validates syntax of an exercise specification
-    -t, --type TYPE         Type of specification to validate: exercise, package, infra
-    -s, --spec SPEC         Name of a YAML specification file
-    -i, --infra FILE        Override infra spec with the one in FILE
-    -p, --package           Build environment from package specification
-    -m, --masters           Master creation phase of specification
-    -d, --deploy            Environment deployment phase of specification
-    --cleanup-masters       Cleanup masters created by a specification
-    --cleanup-enviro        Cleanup environment created by a specification
-    --nets                  Cleanup networks created during either phase
-    --print-spec NAME       Prints the named specification: exercise, package, infrastructure
-    --list-examples         Prints the list of examples available
-    --print-example NAME    Prints the named example
-    -n, --no-color          Do not color terminal output
-    -v, --verbose           Emit debugging messages to terminal
-    --syslog SERVER         Send logs to a Syslog server on port 514
-    -h, --help              Shows this help
-    --version               Prints current version
-
-Examples:
-    adles --list-examples
-    adles -c examples/pentest-tutorial.yaml
-    adles --verbose --masters --spec examples/experiment.yaml
-    adles -vds examples/competition.yaml
-    adles --cleanup-masters --nets -s examples/competition.yaml
-    adles -v -t infra -c examples/infra.yaml
-
-License:    Apache 2.0
-Author:     Christopher Goes <goesc@acm.org>
-Project:    https://github.com/GhostofGoes/ADLES
-
-"""
-
 import logging
 from os.path import basename, exists, splitext, join
 
-from pyVmomi import vim
+from adles.interfaces import PlatformInterface
+from adles.parser import check_syntax, parse_yaml
+from adles.utils import handle_keyboard_interrupt
 
-from .interfaces import PlatformInterface
-from .parser import check_syntax, parse_yaml
 
-
+@handle_keyboard_interrupt
 def main(args):
+    """
+    :param args:
+    :return: The exit status of the program
+    """
+    command = args.command
+
+    # Just validate syntax, no building of environment
+    if command == 'validate':
+        if check_syntax(args.spec, args.validate_type) is None:
+            return 1
+
     # Build an environment using a specification
-    if args.spec:
+    elif command in ['deploy', 'masters', 'cleanup', 'package']:
         override = None
-        if args.package:  # Package specification
-            package_spec = check_syntax(args.spec, spec_type="package")
+        if command == 'package':  # Package specification
+            package_spec = check_syntax(args.spec, spec_type='package')
             if package_spec is None:  # Ensure it passed the check
-                exit(1)
+                return 1
             # Extract exercise spec filename
             spec_filename = package_spec["contents"]["environment"]
             if "infrastructure" in package_spec["contents"]:
@@ -83,7 +50,7 @@ def main(args):
         # Validate specification syntax before proceeding
         spec = check_syntax(spec_filename)
         if spec is None:  # Ensure it passed the check
-            exit(1)
+            return 1
         if "name" not in spec["metadata"]:
             # Default name is the filename of the specification
             spec["metadata"]["name"] = splitext(basename(args.spec))[0]
@@ -92,55 +59,37 @@ def main(args):
         if args.infra:
             infra_file = args.infra
             if not exists(infra_file):
-                logging.error("Could not find infra file '%s' to override with",
-                              infra_file)
+                logging.error("Could not find infra file '%s' "
+                              "to override with", infra_file)
             else:
                 override = infra_file
 
         if override is not None:  # Override infra file in exercise config
-            logging.info("Overriding infrastructure config file with '%s'",
-                         override)
+            logging.info("Overriding infrastructure config "
+                         "file with '%s'", override)
             spec["metadata"]["infra-file"] = override
 
         # Instantiate the Interface and call functions for the specified phase
-        try:
-            interface = PlatformInterface(infra=parse_yaml(
-                spec["metadata"]["infra-file"]), spec=spec)
-            if args.masters:
-                interface.create_masters()
-                logging.info("Finished Master creation for %s",
-                             spec["metadata"]["name"])
-            elif args.deploy:
-                interface.deploy_environment()
-                logging.info("Finished deployment of %s",
-                             spec["metadata"]["name"])
-            elif args.cleanup_masters:
-                interface.cleanup_masters(args.nets)
-                logging.info("Finished master cleanup of %s",
-                             spec["metadata"]["name"])
-            elif args.cleanup_enviro:
-                interface.cleanup_environment(args.nets)
-                logging.info("Finished cleanup of %s",
-                             spec["metadata"]["name"])
-            else:
-                logging.critical("Invalid flags for --spec. "
-                                 "Argument dump:\n%s", str(vars(args)))
-        except vim.fault.NoPermission as e:  # Log permission errors
-            logging.error("Permission error: \n%s", str(e))
-            exit(1)
-        except KeyboardInterrupt:  # Handle user exits gracefully
-            print()
-            logging.warning("User terminated session prematurely")
-            exit(1)
-
-    # Just validate syntax, no building of environment
-    elif args.validate:
-        if args.type:
-            spec_type = args.type
+        interface = PlatformInterface(infra=parse_yaml(
+            spec["metadata"]["infra-file"]), spec=spec)
+        if command == 'masters':
+            interface.create_masters()
+            logging.info("Finished Master creation for %s",
+                         spec["metadata"]["name"])
+        elif command == 'deploy':
+            interface.deploy_environment()
+            logging.info("Finished deployment of %s",
+                         spec["metadata"]["name"])
+        elif command == 'cleanup':
+            if args.cleanup_type == 'masters':
+                interface.cleanup_masters(args.cleanup_nets)
+            elif args.cleanup_type == 'environment':
+                interface.cleanup_environment(args.cleanup_nets)
+            logging.info("Finished %s cleanup of %s", args.cleanup_type,
+                         spec["metadata"]["name"])
         else:
-            spec_type = "exercise"
-        if check_syntax(args.validate, spec_type) is None:
-            logging.error("Syntax check failed")
+            logging.error("INTERNAL ERROR -- Invalid command: %s", command)
+            return 1
 
     # Show examples on commandline
     elif args.list_examples or args.print_example:
@@ -171,6 +120,7 @@ def main(args):
                     print(file.read())
             else:
                 logging.error("Invalid example: %s", example)
+                return 1
 
     # Show specifications on commandline
     elif args.print_spec:
@@ -188,7 +138,12 @@ def main(args):
                 print(file.read())
         else:
             logging.error("Invalid specification: %s", spec)
+            return 1
 
     # Handle invalid arguments
     else:
         logging.error("Invalid arguments. Argument dump:\n%s", str(vars(args)))
+        return 1
+
+    # Finished successfully
+    return 0
