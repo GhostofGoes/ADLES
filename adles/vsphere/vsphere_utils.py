@@ -16,8 +16,7 @@ from time import sleep, time
 
 from pyVmomi import vim
 
-from adles.scripts.script_utils import user_input
-from adles.utils import read_json
+from adles.utils import read_json, user_input
 
 SLEEP_INTERVAL = 0.05
 LONG_SLEEP = 1.0
@@ -195,6 +194,7 @@ def resolve_path(server, thing, prompt=""):
     :return: (thing, thing name)
     :rtype: tuple(vimtype, str)
     """
+    # TODO: use pathlib?
     from adles.vsphere.vm import VM
     if thing.lower() == "vm":
         get = server.get_vm
@@ -203,7 +203,6 @@ def resolve_path(server, thing, prompt=""):
     else:
         logging.error("Invalid thing passed to resolve_path: %s", thing)
         raise ValueError
-
     res = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
                      lambda x: server.find_by_inv_path("vm/" + x)
                      if '/' in x else get(x))

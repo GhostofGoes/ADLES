@@ -50,6 +50,7 @@ setup(
         'pyyaml == 3.12',   # Specification parsing
         'colorlog >= 2.10, < 4.0.0',  # Colored commandline output using logging
         'tqdm == 4.19.6',  # Terminal progress bars
+        'humanfriendly>=4.12.1,<5.0.0',  # User interface tools
 
         'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
 

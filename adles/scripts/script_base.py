@@ -14,6 +14,8 @@ from distutils.version import StrictVersion
 import functools
 import logging
 
+from humanfriendly.prompts import prepare_friendly_prompts
+
 from adles.__about__ import __url__, __email__
 
 
@@ -24,6 +26,7 @@ class Script(object):
     name = ''
 
     def __init__(self):
+        prepare_friendly_prompts()  # Make input() more user friendly
         self._log = logging.getLogger(self.name)
         self._log.debug("Script name      %s", self.name)
         self._log.debug("Script version   %s", self.__version__)

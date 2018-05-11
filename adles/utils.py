@@ -248,3 +248,40 @@ def get_vlan():
     """
     for i in range(2000, 4096):
         yield i
+
+
+@handle_keyboard_interrupt
+def user_input(prompt, obj_name, func):
+    """
+    Continually prompts a user for input until the specified object is found.
+
+    :param str prompt: Prompt to bother user with
+    :param str obj_name: Name of the type of the object that we seek
+    :param func: The function that shalt be called to discover the object
+    :return: The discovered object and it's human name
+    :rtype: tuple(vimtype, str)
+    """
+    while True:
+        item_name = input(prompt)
+        item = func(item_name)
+        if item:
+            logging.info("Found %s: %s", obj_name, item.name)
+            return item, item_name
+        else:
+            print("Couldn't find a %s with name %s. Perhaps try another? "
+                  % (obj_name, item_name))
+
+
+@handle_keyboard_interrupt
+def default_prompt(prompt, default=None):
+    """
+    Prompt the user for input. If they press enter, return the default.
+
+    :param str prompt: Prompt to display to user (do not include default value)
+    :param str default: Default return value
+    :return: Value entered or default
+    :rtype: str or None
+    """
+    def_prompt = " [default: %s]: " % ('' if default is None else default)
+    value = input(prompt + def_prompt)
+    return default if value == '' else value
