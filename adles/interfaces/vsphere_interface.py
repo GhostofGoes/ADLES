@@ -11,12 +11,11 @@
 # limitations under the License.
 
 import logging
-import sys
 import os
 
 from adles.vsphere.folder_utils import format_structure
 from adles.utils import pad, read_json, get_vlan
-from adles.vsphere.vsphere_utils import is_folder, is_vm
+from adles.vsphere.vsphere_utils import is_folder, is_vm, VsphereException
 from adles.vsphere import Vsphere
 from adles.vsphere.network_utils import create_portgroup
 from adles.vsphere.vm import VM
@@ -36,7 +35,7 @@ class VsphereInterface(Interface):
         :param dict infra: Infrastructure information
         :param dict spec: The parsed exercise specification
         """
-        super(self.__class__, self).__init__(infra=infra, spec=spec)
+        super(VsphereInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
         self._log.debug("Initializing %s %s", self.__class__, self.__version__)
         self.master_folder = None
@@ -92,7 +91,7 @@ class VsphereInterface(Interface):
             if not self.server_root:
                 self._log.error("Could not find server-root folder '%s'",
                                 infra["server-root"])
-                sys.exit(1)
+                raise VsphereException("Could not find server root folder")
         else:  # Default to Datacenter VM folder
             self.server_root = self.server.datacenter.vmFolder
         self._log.info("Server root folder: %s", self.server_root.name)
@@ -115,7 +114,7 @@ class VsphereInterface(Interface):
             if not self.root_folder:
                 self._log.error("Could not create root folder '%s'",
                                 self.root_name)
-                sys.exit(1)
+                raise VsphereException("Could not create root folder")
         self._log.info("Environment root folder: %s", self.root_folder.name)
 
         # Set default vSwitch name
@@ -434,7 +433,7 @@ class VsphereInterface(Interface):
                             "has been run and the folder exists "
                             "before attempting Deployment",
                             self.master_root_name)
-            sys.exit(1)
+            raise VsphereException("Could not find Master folder")
         self._log.debug("Master folder name: %s\tPrefix: %s",
                         self.master_folder.name, self.master_prefix)
 

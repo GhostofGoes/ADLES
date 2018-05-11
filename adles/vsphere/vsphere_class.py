@@ -15,10 +15,12 @@ import logging
 from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
 from pyVmomi import vim, vmodl
 
+from adles.vsphere.vsphere_utils import VsphereException
 
-class Vsphere:
+
+class Vsphere(object):
     """ Maintains connection, logging, and constants for a vSphere instance """
-    __version__ = "1.0.2"
+    __version__ = "1.1.0"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -46,12 +48,12 @@ class Vsphere:
                         Vsphere.__version__, datacenter, datastore, use_ssl)
 
         if username is None:
-            username = str(input("Enter username for vSphere: "))
+            username = input("Enter username for vSphere: ")
         if password is None:
             from getpass import getpass
-            password = str(getpass("Enter password for %s: " % username))
+            password = getpass("Enter password for %s: " % username)
         if hostname is None:
-            hostname = str(input("Enter hostname for vSphere: "))
+            hostname = input("Enter hostname for vSphere: ")
         try:
             self._log.info("Connecting to vSphere: %s@%s:%d",
                            username, hostname, port)
@@ -62,12 +64,11 @@ class Vsphere:
                 self._server = SmartConnectNoSSL(host=hostname, user=username,
                                                  pwd=password, port=port)
         except vim.fault.InvalidLogin:
-            self._log.error("Invalid vSphere login credentials for user %s",
-                            username)
-            exit(1)
-        except Exception as e:
-            self._log.exception("Error connecting to vSphere: %s", str(e))
-            exit(1)
+            self._log.error("Invalid vSphere login credentials "
+                            "for user %s", username)
+            raise VsphereException("Invalid login credentials") from None
+        except TimeoutError:
+            raise VsphereException("Timed out connecting to vSphere") from None
 
         # Ensure connection to server is closed on program exit
         from atexit import register
@@ -139,9 +140,8 @@ class Vsphere:
         :rtype: list
         """
         contain = (self.content.rootFolder if not container else container)
-        con_view = self.content.viewManager.CreateContainerView(contain,
-                                                                vimtypes,
-                                                                recursive)
+        con_view = self.content.viewManager.CreateContainerView(
+            contain, vimtypes, recursive)
         returns = []
         for item in con_view.view:
             if name:

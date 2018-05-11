@@ -11,7 +11,6 @@
 # limitations under the License.
 
 import logging
-import sys
 from time import sleep, time
 
 from pyVmomi import vim
@@ -20,6 +19,10 @@ from adles.utils import read_json, user_input
 
 SLEEP_INTERVAL = 0.05
 LONG_SLEEP = 1.0
+
+
+class VsphereException(Exception):
+    pass
 
 
 def wait_for_task(task, timeout=60.0, pause_timeout=True):
@@ -169,7 +172,7 @@ def make_vsphere(filename=None):
     if filename is not None:
         info = read_json(filename)
         if info is None:
-            sys.exit(1)
+            raise VsphereException("Failed to create vSphere object")
         return Vsphere(username=info.get("user"),
                        password=info.get("pass"),
                        hostname=info.get("host"),
