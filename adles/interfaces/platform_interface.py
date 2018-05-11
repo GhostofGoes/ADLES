@@ -25,7 +25,7 @@ class PlatformInterface(Interface):
         :param dict infra: Full infrastructure configuration
         :param dict spec: Full exercise specification
         """
-        super(self.__class__, self).__init__(infra=infra, spec=spec)
+        super(PlatformInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
         self._log.debug("Initializing %s %s", self.__class__, self.__version__)
         self.interfaces = []  # List of instantiated platform interfaces
@@ -83,3 +83,12 @@ class PlatformInterface(Interface):
         self._log.info("Cleaning up environment for %s", self.metadata["name"])
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
+
+    def __getitem__(self, item):
+        return self.interfaces[item]
+
+    def __len__(self):
+        return len(self.interfaces)
+
+    def __reversed__(self):
+        return self.interfaces[::-1]

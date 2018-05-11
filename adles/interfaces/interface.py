@@ -10,9 +10,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from distutils.version import StrictVersion
+import functools
 import logging
 
 
+@functools.total_ordering
 class Interface(object):
     """Base class for all Interfaces."""
     __version__ = "1.2.0"
@@ -182,7 +185,8 @@ class Interface(object):
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
                self.infra == other.infra and \
-               self.spec == other.spec
+               self.spec == other.spec and \
+               self.__version__ == other.__version__
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def __gt__(self, other):
+        return StrictVersion(self.__version__) > StrictVersion(other.__version__)

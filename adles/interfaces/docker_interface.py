@@ -31,7 +31,7 @@ class DockerInterface(Interface):
         :param dict infra: Dict of infrastructure information
         :param dict spec: Dict of a parsed specification
         """
-        super(self.__class__, self).__init__(infra=infra, spec=spec)
+        super(DockerInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
         self._log.debug("Initializing %s %s", self.__class__, self.__version__)
 

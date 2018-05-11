@@ -33,7 +33,7 @@ class LibcloudInterface(Interface):
         :param dict spec: Dict of a parsed specification
         :param str provider_name: Name of provider, if not in "provider" key
         """
-        super(self.__class__, self).__init__(infra=infra, spec=spec)
+        super(LibcloudInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
         self._log.debug("Initializing %s %s", self.__class__, self.__version__)
 
