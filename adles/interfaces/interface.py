@@ -10,13 +10,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import ABC, abstractmethod
 from distutils.version import StrictVersion
 import functools
 import logging
 
 
 @functools.total_ordering
-class Interface(object):
+class Interface(ABC):
     """Base class for all Interfaces."""
     __version__ = "1.2.0"
 
@@ -39,14 +40,17 @@ class Interface(object):
         self.thresholds = {}    # Thresholds for platforms
         self.groups = {}        # Groups for platforms
 
+    @abstractmethod
     def create_masters(self):
         """Master creation phase."""
         pass
 
+    @abstractmethod
     def deploy_environment(self):
         """Environment deployment phase."""
         pass
 
+    @abstractmethod
     def cleanup_masters(self, network_cleanup=False):
         """
         Cleans up master instances.
@@ -55,6 +59,7 @@ class Interface(object):
         """
         pass
 
+    @abstractmethod
     def cleanup_environment(self, network_cleanup=False):
         """
         Cleans up a deployed environment.

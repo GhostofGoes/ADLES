@@ -10,6 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import ABC, abstractmethod
 from distutils.version import StrictVersion
 import functools
 import logging
@@ -20,7 +21,7 @@ from adles.__about__ import __url__, __email__
 
 
 @functools.total_ordering
-class Script(object):
+class Script(ABC):
     """Base class for all CLI scripts."""
     __version__ = '0.1.0'
     name = ''
@@ -43,6 +44,7 @@ class Script(object):
     def get_ver(cls):
         return cls.name.capitalize() + ' ' + cls.__version__
 
+    @abstractmethod
     def run(self):
         pass
 

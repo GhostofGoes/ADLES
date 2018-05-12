@@ -18,6 +18,8 @@ from pyVmomi import vim, vmodl
 from adles.vsphere.vsphere_utils import VsphereException
 
 
+# TODO: separate connection logic from init, put in a ".connect()" method
+# TODO: context manager, enter connects, exit disconnects (instead of atexit)
 class Vsphere(object):
     """ Maintains connection, logging, and constants for a vSphere instance """
     __version__ = "1.1.0"
