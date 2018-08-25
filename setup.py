@@ -37,13 +37,14 @@ setup(
     # PEP 566, PyPI Warehouse, setuptools>=38.6.0 make markdown possible
     long_description_content_type="text/markdown",
     url=about['__url__'],
-    download_url='https://pypi.org/project/ADLES/',
+    download_url=about['__urls__']['PyPI'],
+    project_urls=about['__urls__'],
     license=about['__license__'],
     entry_points={
         # These enable commandline usage of ADLES and the helper scripts
         'console_scripts': [
             'adles = adles.__main__:main',
-            'vsphere = adles.vsphere.__main__:main'
+            'vsphere = adles.vsphere.__main__:main',
         ]
     },
     install_requires=[
