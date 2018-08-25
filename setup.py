@@ -23,7 +23,7 @@ with open(info_file) as f:
     exec(f.read(), about)
 
 # Loads in the README for PyPI
-with open('README.rst') as f:
+with open('README.md') as f:
     long_description = f.read()
 
 
@@ -34,8 +34,8 @@ setup(
     author_email=about['__email__'],
     description=about['__summary__'],
     long_description=long_description,  # This is what you see on PyPI page
-    # TODO: convert README to markdown
-    # long_description_content_type="text/markdown",
+    # PEP 566, PyPI Warehouse, setuptools>=38.6.0 make markdown possible
+    long_description_content_type="text/markdown",
     url=about['__url__'],
     download_url='https://pypi.org/project/ADLES/',
     license=about['__license__'],
