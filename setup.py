@@ -49,15 +49,12 @@ setup(
     },
     install_requires=[
         'pyyaml == 3.12',   # Specification parsing
-        'colorlog >= 2.10, < 4.0.0',  # Colored commandline output using logging
+        'colorlog >= 3.1.4, < 4',  # Colored commandline output using logging
         'tqdm == 4.19.6',  # Terminal progress bars
-        'humanfriendly>=4.12.1,<5.0.0',  # User interface tools
+        'humanfriendly >= 4.12.1, < 5',  # User interface tools
         'ConfigArgParse == 0.13.0',
 
         'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
-
-        # TODO: drop this when I add type annotations
-        'ipaddress;python_version<"3.3"'  # Python 2.7 compatibility
     ],
     extras_require={
         'docker': ['docker >= 2.4.2'],
@@ -78,7 +75,6 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',

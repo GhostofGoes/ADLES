@@ -233,9 +233,9 @@ def setup_logging(filename, colors=True, console_verbose=False,
     logger.addHandler(console)
 
     # Warn if using old Python version
-    if python_version() < '3.4':
+    if python_version() < '3.5':
         logger.error("Python version %s is unsupported. "
-                     "Please use Python 3.4+ instead. "
+                     "Please use Python 3.5+ instead. "
                      "Proceed at your own risk!")
 
 

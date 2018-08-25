@@ -50,7 +50,7 @@ adles -d -s my-competition.yaml
 
 # System requirements
 
-Python: 3.4+
+Python: 3.5+
 
 ADLES will run on any platform supported by Python. It has been tested on:
 

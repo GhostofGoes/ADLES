@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 ### Removed
+- Dropped support for Python 3.4 and below
 - libvirt support (It was never implemented, will come back to this in the future)
 - Hyper-V support (It was never implemented, will come back to this in the future)
 
