@@ -60,6 +60,7 @@ setup(
         'docker': ['docker >= 2.4.2'],
         'cloud': ['apache-libcloud >= 2.3.0']
     },
+    python_requres='>=3.5',
     data_files=[('man/man1', ['docs/adles.1'])],
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,

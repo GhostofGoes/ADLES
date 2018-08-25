@@ -7,65 +7,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [2.0.0] - TODO-XX-XX
 ### Added
 - Can now be used as a package using `python -m adles`
-
-### Changed
-
-### Removed
-- Dropped support for Python 3.4 and below
-- libvirt support (It was never implemented, will come back to this in the future)
-- Hyper-V support (It was never implemented, will come back to this in the future)
-
-
-## [1.4.5] - 2018-03-17
-### Added (UNTESTED)
-- Progress bars to: `clone-vms`, `vm-power`, `vm-snapshots`
-- Dependency on [tqdm](https://github.com/tqdm/tqdm) to provide terminal
-progress bars for long-running operations (such as cloning VMs).
-
-
-## [1.4.4] - 2018-03-11
-### Added
 - New argument: `--syslog`. Configures saving of log output to the specified Syslog server.
+- Progress bars to: `clone-vms`, `vm-power`, `vm-snapshots`
+- Compatibility warnings for unsupported Python versions
+- Dependency: [tqdm](https://github.com/tqdm/tqdm)
+- Dependency: [argopt](https://github.com/casperdcl/argopt)
+
 ### Changed
+- Failing to import an optional dependency will now log an error instead
+of raising an exception and terminating execution.
+- Moved the remaining examples in the project root into `examples/`
 - Logs will not longer emit to a syslog server by default.
 Syslog server will now only be used if the parameter is set.
-
-
-## [1.4.3] - 2018-01-28
-### Added
-- Dependency on [argopt](https://github.com/casperdcl/argopt)
-
-### Changed
 - Behind the scenes changes to commandline argument parsing.
 Parsing now generates argparse.Namespace objects using argopt library.
 This makes argparse features available to use, and enables us to use
 libraries such as argcomplete and Gooey that rely on argparse.
 
+- Bumped `pyvmomi` version to 6.5
+- Bumped `colorlog` version to 3.1.4
 
-## [1.4.2] - 2018-01-06
-### Added
-- This CHANGELOG!.
-- Python 2 compatiblity warnings.
-
-### Changed
-- Move the remaining examples in the project root into examples/.
-
-
-## [1.4.1] - 2018-01-06
-### Changed
-- Optional imports will no longer raise an exception,
-and will instead log an ERROR.
-
-
-## [1.4.0] - 2017-12-19
 ### Removed
-- Python 2.7 support.
-- Python 2 tests.
-- "netaddr" package dependency.
-
-### Changed
-- Replaced netaddr with Python 3's ipaddress module.
-- Changed minimum require pyvmomi version to 6.5.
+- Dropped support for Python 2.7 and 3.4
+- Removed a dependency: `netaddr`
 
 
 ## [1.3.6] - 2017-12-19
