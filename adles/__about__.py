@@ -1,5 +1,5 @@
 
-__version__ = "1.4.5"
+__version__ = "1.4.0"
 
 __title__ = "ADLES"
 __summary__ = "Automated Deployment of Lab Environments System (ADLES)"

@@ -4,14 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - TODO-XX-XX
+## [1.4.0] - TODO-XX-XX
 ### Added
 - Can now be used as a package using `python -m adles`
 - New argument: `--syslog`. Configures saving of log output to the specified Syslog server.
 - Progress bars to: `clone-vms`, `vm-power`, `vm-snapshots`
 - Compatibility warnings for unsupported Python versions
-- Dependency: [tqdm](https://github.com/tqdm/tqdm)
-- Dependency: [argopt](https://github.com/casperdcl/argopt)
+- Added dependency: [tqdm](https://github.com/tqdm/tqdm)
+- Added dependency: [argopt](https://github.com/casperdcl/argopt)
 
 ### Changed
 - Failing to import an optional dependency will now log an error instead
@@ -29,7 +29,8 @@ libraries such as argcomplete and Gooey that rely on argparse.
 
 ### Removed
 - Dropped support for Python 2.7 and 3.4
-- Removed a dependency: `netaddr`
+- Removed dependency: `netaddr`
+- Removed `Libvirt` and `HyperV` interfaces
 
 
 ## [1.3.6] - 2017-12-19
