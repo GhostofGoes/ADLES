@@ -10,10 +10,35 @@ info_file = os.path.join(os.path.dirname(__file__), "adles", "__about__.py")
 with open(info_file) as f:
     exec(f.read(), about)
 
-# Loads in the README for PyPI
 with open('README.md') as f:
     long_description = f.read()
 
+install_requires = [
+    'pyyaml == 3.12',   # Specification parsing
+    'colorlog >= 3.1.4, < 4',  # Colored commandline output using logging
+    'tqdm == 4.19.6',  # Terminal progress bars
+    'humanfriendly >= 4.12.1, < 5',  # User interface tools
+    'ConfigArgParse == 0.13.0',
+
+    'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
+]
+
+extras_require = {
+    'docker': ['docker >= 2.4.2'],
+    'cloud': ['apache-libcloud >= 2.3.0'],
+}
+
+data_files = [
+    ('man/man1', ['docs/adles.1']),
+]
+
+entry_points = {
+    # These enable commandline usage of ADLES and the helper scripts
+    'console_scripts': [
+        'adles = adles.__main__:main',
+        'vsphere = adles.vsphere.__main__:main',
+    ]
+}
 
 setup(
     name=about['__title__'],
@@ -28,28 +53,11 @@ setup(
     download_url=about['__urls__']['PyPI'],
     project_urls=about['__urls__'],
     license=about['__license__'],
-    entry_points={
-        # These enable commandline usage of ADLES and the helper scripts
-        'console_scripts': [
-            'adles = adles.__main__:main',
-            'vsphere = adles.vsphere.__main__:main',
-        ]
-    },
-    install_requires=[
-        'pyyaml == 3.12',   # Specification parsing
-        'colorlog >= 3.1.4, < 4',  # Colored commandline output using logging
-        'tqdm == 4.19.6',  # Terminal progress bars
-        'humanfriendly >= 4.12.1, < 5',  # User interface tools
-        'ConfigArgParse == 0.13.0',
-
-        'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
-    ],
-    extras_require={
-        'docker': ['docker >= 2.4.2'],
-        'cloud': ['apache-libcloud >= 2.3.0']
-    },
+    entry_points=entry_points,
+    install_requires=install_requires,
+    extras_require=extras_require,
     python_requres='>=3.5',
-    data_files=[('man/man1', ['docs/adles.1'])],
+    data_files=data_files,
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,
     zip_safe=False,

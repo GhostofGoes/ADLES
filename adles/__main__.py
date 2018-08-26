@@ -2,7 +2,7 @@
 
 import sys
 
-from adles import adles_cli
+from adles import main
 from adles.args import parse_cli_args
 from adles.utils import setup_logging
 
@@ -22,7 +22,7 @@ def main():
                   console_verbose=args.verbose, server=syslog)
 
     # Run ADLES
-    exit_status = adles_cli.main(args=args)
+    exit_status = main.main(args=args)
     sys.exit(exit_status)
 
 
