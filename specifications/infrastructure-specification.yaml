@@ -3,9 +3,10 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goesc@acm.org>
 # Creation Date:    February 6th, 2017
-# Current Version:  1.7.0 (April 1st, 2018)
+# Current Version:  1.8.0
 # Changelog:
-#   1.7.0 (April 1st, 2018): Removed libvirt, hyper-v
+#   1.7.0 : Removed libvirt, hyper-v
+#   1.8.0 : Added "spec-type" and "spec-version"
 
 
 # *** Labels for syntactic components ***
@@ -17,6 +18,8 @@
 # Optional      Do not have to be specified
 # Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
 
+spec-type: 'infrastructure'
+spec-version: '1.8.0'
 
 # VMware vSphere
 vmware-vsphere:
