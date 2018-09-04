@@ -2,6 +2,8 @@ import logging
 import os
 import sys
 import ipaddress
+from io import TextIOWrapper
+from typing import Optional
 
 from yaml import load, YAMLError
 try:  # Attempt to use C-based YAML parser if it's available
@@ -10,6 +12,35 @@ except ImportError:  # Fallback to using pure Python YAML parser
     from yaml import Loader
 
 import adles.utils as utils
+
+
+def validate_spec(spec: dict) -> bool:
+    """Validates the syntax and correctness of a specifcation."""
+    pass
+
+
+# PyYAML Reference: http://pyyaml.org/wiki/PyYAMLDocumentation
+def parse_yaml_file(file: TextIOWrapper) -> Optional[dict]:
+    """
+    Parses a YAML file and returns a nested dictionary containing its contents.
+
+    :param TextIOWrapper file: Handle of file to parse
+    :return: Parsed file contents
+    :rtype: dict or None
+    """
+    try:
+        # Parses the YAML file into a dict
+        return load(file, Loader=Loader)
+    except YAMLError as exc:
+        logging.critical("Could not parse YAML file %s", file.name)
+        if hasattr(exc, 'problem_mark'):
+            # Tell user exactly where the syntax error is
+            mark = exc.problem_mark
+            logging.error("Error position: (%s:%s)",
+                          mark.line + 1, mark.column + 1)
+        else:
+            logging.error("Error: %s", exc)
+            return None
 
 
 # PyYAML Reference: http://pyyaml.org/wiki/PyYAMLDocumentation

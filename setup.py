@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from setuptools import setup, find_packages
+from setuptools import setup  # , find_packages
 
 
 # Read in project metadata
@@ -19,6 +19,7 @@ install_requires = [
     'tqdm == 4.19.6',  # Terminal progress bars
     'humanfriendly >= 4.12.1, < 5',  # User interface tools
     'ConfigArgParse == 0.13.0',
+    'click >= 6.7',
 
     'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
 ]
@@ -29,13 +30,14 @@ extras_require = {
 }
 
 data_files = [
-    ('man/man1', ['docs/adles.1']),
+    ('man/man1', ['docs/adles.1']),  # Man page
 ]
 
 entry_points = {
     # These enable commandline usage of ADLES and the helper scripts
     'console_scripts': [
-        'adles = adles.__main__:main',
+        # 'adles = adles.__main__:main',
+        'adles = adles.main:cli',
         'vsphere = adles.vsphere.__main__:main',
     ]
 }
@@ -58,7 +60,8 @@ setup(
     extras_require=extras_require,
     python_requres='>=3.5',
     data_files=data_files,
-    packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
+    packages=['adles', 'cli', 'specifications', 'examples'],
+    # packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,
     zip_safe=False,
     test_suite='test',

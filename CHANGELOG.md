@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [1.4.0] - TODO-XX-XX
 ### Added
-- Can now be used as a package using `python -m adles`
-- New argument: `--syslog`. Configures saving of log output to the specified Syslog server.
+- The CLI can now be ran a module (e.g. `python -m adles`, `python -m adles.vsphere`)
+- New argument: `--syslog-server`. Configures saving of log output to the specified Syslog server.
 - Progress bars to: `clone-vms`, `vm-power`, `vm-snapshots`
 - Compatibility warnings for unsupported Python versions
 - Added dependency: [tqdm](https://github.com/tqdm/tqdm)
