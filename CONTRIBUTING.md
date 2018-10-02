@@ -28,7 +28,7 @@ the user (example: how to edit a file) in addition to the normal items.
 * User interface: finishing the CLI overhaul, adding web GUI, visualizations, etc.
 
 # Getting started
-1. Create your own fork of the code through GitHub web interface
+1. Create your own fork of the code through GitHub web interface ([Here's a Guide](https://gist.github.com/Chaser324/ce0505fbed06b947d962))
 2. Clone the fork to your computer. This can be done using the
 [GitHub desktop](https://desktop.github.com/) GUI , `git clone <fork-url>`,
 or the Git tools in your favorite editor or IDE.
