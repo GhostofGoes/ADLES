@@ -16,6 +16,7 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 * Move script tests from .travis.yml to their own shell script, then call that from travis
 * Cleanup the amount of files at the project root
 * Make man page generation automated
+* `pipenv`: Pipfile, update documentation, add handy commands
 
 
 # Documentation

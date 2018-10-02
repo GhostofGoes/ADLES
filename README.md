@@ -107,6 +107,19 @@ and contribute to improving cyber education globally.
 * Implement a cloud platform interface, with Amazon AWS or Microsoft Azure being the easiest picks
 
 
+# Contributing
+Contributers are more than welcome!
+See the [contribution guide](CONTRIBUTING.md) to get started,
+and checkout the [todo list](TODO.md) for a full list of tasks and bugs.
+
+The [Python Discord server](https://discord.gg/python) is a good place
+to ask questions or discuss the project (Handle: @KnownError).
+
+## Contributers
+* Christopher Goes (ghostofgoes)
+* Daniel Conte de Leon (dcontedeleon)
+
+
 # License
 This project is licensed under the Apache License, Version 2.0. See
 LICENSE for the full license text, and NOTICES for attributions to
