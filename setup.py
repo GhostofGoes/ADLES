@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from setuptools import setup  # , find_packages
+from setuptools import setup, find_packages
 
 
 # Read in project metadata
@@ -59,8 +59,8 @@ setup(
     extras_require=extras_require,
     python_requres='>=3.5',
     data_files=data_files,
-    packages=['adles', 'cli', 'specifications', 'examples'],
-    # packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
+    # packages=['adles', 'cli', 'specifications', 'examples'],
+    packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,
     zip_safe=False,
     test_suite='test',
