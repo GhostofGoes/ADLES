@@ -26,7 +26,7 @@ Project:    https://github.com/GhostofGoes/ADLES
 
 
 # TODO: Gooey
-def parse_cli_args():
+def parse_cli_args() -> argparse.Namespace:
     main_parser = argparse.ArgumentParser(
         prog='adles', formatter_class=argparse.RawDescriptionHelpFormatter,
         description=description, epilog=epilog

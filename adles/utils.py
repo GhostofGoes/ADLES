@@ -4,6 +4,7 @@ import logging.handlers
 import os
 import sys
 import timeit
+from typing import Optional, Tuple, List, Callable
 
 try:
     import tqdm
@@ -27,14 +28,11 @@ except ImportError:
 
 
 # Credit to: http://stackoverflow.com/a/15707426/2214380
-def time_execution(func):
-    """
-    Function decorator to time the execution of a function and log to debug.
+def time_execution(func: Callable) -> Callable:
+    """Function decorator to time the execution of a function and log to debug.
 
     :param func: The function to time execution of
-    :return: The decorated function
-    :rtype: func
-    """
+    :return: The decorated function"""
     def wrapper(*args, **kwargs):
         start_time = timeit.default_timer()
         ret = func(*args, **kwargs)
@@ -47,19 +45,16 @@ def time_execution(func):
 
 # From: list_dc_datastore_info in pyvmomi-community-samples
 # http://stackoverflow.com/questions/1094841/
-def sizeof_fmt(num):
-    """
-    Generates the human-readable version of a file size.
+def sizeof_fmt(num: float) -> str:
+    """Generates the human-readable version of a file size.
 
     >>> sizeof_fmt(512)
     512bytes
     >>> sizeof_fmt(2048)
     2KB
 
-    :param float num: Robot-readable file size in bytes
-    :return: Human-readable file size
-    :rtype: str
-    """
+    :param num: Robot-readable file size in bytes
+    :return: Human-readable file size"""
     for item in ['bytes', 'KB', 'MB', 'GB']:
         if num < 1024.0:
             return "%3.1f%s" % (num, item)
@@ -67,7 +62,7 @@ def sizeof_fmt(num):
     return "%3.1f%s" % (num, 'TB')
 
 
-def pad(value, length=2):
+def pad(value: int, length: int = 2) -> str:
     """
     Adds leading and trailing zeros to value ("pads" the value).
 
@@ -76,22 +71,17 @@ def pad(value, length=2):
     >>> pad(9, 3)
     009
 
-    :param int value: integer value to pad
-    :param int length: Length to pad to
-    :return: string of padded value
-    :rtype: str
-    """
+    :param value: integer value to pad
+    :param length: Length to pad to
+    :return: string of padded value"""
     return "{0:0>{width}}".format(value, width=length)
 
 
-def read_json(filename):
-    """
-    Reads input from a JSON file and returns the contents.
+def read_json(filename: str) -> Optional[dict]:
+    """Reads input from a JSON file and returns the contents.
 
-    :param str filename: Path to JSON file to read
-    :return: Contents of the JSON file
-    :rtype: dict or None
-    """
+    :param filename: Path to JSON file to read
+    :return: Contents of the JSON file"""
     try:
         with open(filename) as json_file:
             return json.load(fp=json_file)
@@ -106,17 +96,14 @@ def read_json(filename):
     return None
 
 
-def split_path(path):
-    """
-    Splits a filepath.
+def split_path(path: str) -> Tuple[List[str], str]:
+    """Splits a filepath.
 
     >>> split_path('/path/To/A/f1le')
     (['path', 'To', 'A'], 'file')
 
-    :param str path: Path to split
-    :return: Path, basename
-    :rtype: tuple(list(str), str)
-    """
+    :param path: Path to split
+    :return: Path, basename"""
     folder_path, name = os.path.split(path.lower())  # Separate basename
     folder_path = folder_path.split('/')  # Transform path into list
     if folder_path[0] == '':
@@ -124,10 +111,8 @@ def split_path(path):
     return folder_path, name
 
 
-def handle_keyboard_interrupt(func):
-    """Function decorator to handle
-    keyboard interrupts in a consistent manner."""
-
+def handle_keyboard_interrupt(func: Callable) -> Callable:
+    """Function decorator to handle keyboard interrupts in a consistent manner."""
     # Based on: http://code.activestate.com/recipes/577058/
     def wrapper(*args, **kwargs):
         try:
@@ -140,21 +125,20 @@ def handle_keyboard_interrupt(func):
     return wrapper
 
 
-def setup_logging(filename, colors=True, console_verbose=False,
-                  server=None, show_progress=True):
-    """
-    Configures the logging interface used by everything for output.
+def setup_logging(filename: str, colors: bool = True,
+                  console_verbose: bool = False,
+                  server: Tuple[str, int] = None,
+                  show_progress: bool = True):
+    """Configures the logging interface used by everything for output.
 
-    :param str filename: Name of file that logs should be saved to
-    :param bool colors: Color the terminal output
-    :param bool console_verbose: Print DEBUG logs to terminal
+    :param filename: Name of file that logs should be saved to
+    :param colors: Color the terminal output
+    :param console_verbose: Print DEBUG logs to terminal
     :param server: SysLog server to forward logs to
-    :type server: tuple(str, int)
-    :param bool show_progress: Show live status as operations progress
-    """
+    :param show_progress: Show live status as operations progress"""
 
     # Prepend spaces to separate logs from previous runs
-    with open(filename, 'a') as logfile:
+    with open(filename, 'a', encoding='utf-8') as logfile:
         logfile.write(2 * '\n')
 
     # Format log output so it's human readable yet verbose
@@ -227,28 +211,22 @@ def setup_logging(filename, colors=True, console_verbose=False,
                      "Proceed at your own risk!")
 
 
-def get_vlan():
-    """
-    Generates globally unique VLAN tags.
+def get_vlan() -> int:
+    """Generates a globally unique VLAN tags.
 
-    :return: VLAN tag
-    :rtype: int
-    """
+    :return: VLAN tag"""
     for i in range(2000, 4096):
         yield i
 
 
 @handle_keyboard_interrupt
-def user_input(prompt, obj_name, func):
-    """
-    Continually prompts a user for input until the specified object is found.
+def user_input(prompt: str, obj_name: str, func: Callable) -> Tuple[object, str]:
+    """Continually prompts a user for input until the specified object is found.
 
-    :param str prompt: Prompt to bother user with
-    :param str obj_name: Name of the type of the object that we seek
+    :param prompt: Prompt to bother user with
+    :param obj_name: Name of the type of the object that we seek
     :param func: The function that shalt be called to discover the object
-    :return: The discovered object and it's human name
-    :rtype: tuple(vimtype, str)
-    """
+    :return: The discovered object (vimtype) and it's human name"""
     while True:
         item_name = input(prompt)
         item = func(item_name)
@@ -261,15 +239,12 @@ def user_input(prompt, obj_name, func):
 
 
 @handle_keyboard_interrupt
-def default_prompt(prompt, default=None):
-    """
-    Prompt the user for input. If they press enter, return the default.
+def default_prompt(prompt: str, default: str = None) -> Optional[str]:
+    """Prompt the user for input. If they press enter, return the default.
 
-    :param str prompt: Prompt to display to user (do not include default value)
-    :param str default: Default return value
-    :return: Value entered or default
-    :rtype: str or None
-    """
+    :param prompt: Prompt to display to user (do not include default value)
+    :param default: Default return value
+    :return: Value entered or default"""
     def_prompt = " [default: %s]: " % ('' if default is None else default)
     value = input(prompt + def_prompt)
     return default if value == '' else value

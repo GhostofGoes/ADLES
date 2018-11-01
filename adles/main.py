@@ -18,7 +18,7 @@ def run_cli():
 
 
 @handle_keyboard_interrupt
-def main(args):
+def main(args) -> int:
     """
     :param args:
     :return: The exit status of the program
