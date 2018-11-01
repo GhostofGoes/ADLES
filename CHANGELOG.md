@@ -27,7 +27,7 @@ libraries such as argcomplete and Gooey that rely on argparse.
 - Bumped `colorlog` version to 3.1.4
 
 ### Removed
-- Dropped support for Python 2.7 and 3.4
+- Dropped support for Python 2.7, 3.4, and 3.5
 - Removed dependency: `netaddr`
 - Removed `Libvirt` and `HyperV` interfaces
 
