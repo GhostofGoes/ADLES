@@ -2,46 +2,10 @@
 
 import logging
 from os.path import basename, exists, splitext, join
-from pathlib import Path
 
 from adles.interfaces import PlatformInterface
-from adles.parser import check_syntax, parse_yaml, parse_yaml_file, validate_spec
+from adles.parser import check_syntax, parse_yaml
 from adles.utils import handle_keyboard_interrupt
-from adles import __version__
-
-import click
-
-
-def validate_spec_file(ctx, param, value) -> dict:
-    spec = parse_yaml_file(value)
-    if spec is None:
-        raise click.BadParameter("Failed to parse specifciation file %s" % value.name)
-    elif validate_spec(spec):
-        return spec
-    else:
-        raise click.BadParameter("Specification %s failed validation" % value.name)
-
-
-@click.command(context_settings=dict(auto_envvar_prefix='ADLES'))
-@click.version_option(__version__)
-@click.option('-v', '--verbose', is_flag=True,
-              help='Increase the amount of terminal output')
-@click.option('-q', '--quiet', is_flag=True,
-              help='Do not output to the terminal')
-@click.option('--color/--no-color', default=True,
-              help='Do not color terminal output')
-@click.option('--syslog-server', type=str,
-              help='Send logs to the specified Syslog server on port 514')
-@click.option('--validate', 'command', flag_value='validate', default=True)
-@click.option('--create-masters', 'command', flag_value='masters')
-@click.option('--deploy', 'command', flag_value='deploy')
-@click.option('--create-package', 'command', flag_value='package')
-@click.option('--cleanup-package', 'command', flag_value='package')
-@click.argument('spec', type=click.File('r'), callback=validate_spec_file)
-@click.pass_context
-def cli(ctx, verbose, quiet, color, syslog_server, command, spec):
-    """SPEC: YAML specification to use """
-    pass
 
 
 @handle_keyboard_interrupt

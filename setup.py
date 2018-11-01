@@ -19,7 +19,6 @@ install_requires = [
     'tqdm == 4.19.6',  # Terminal progress bars
     'humanfriendly >= 4.12.1, < 5',  # User interface tools
     'ConfigArgParse == 0.13.0',
-    'click >= 6.7',
 
     'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
 ]
