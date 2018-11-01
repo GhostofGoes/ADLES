@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import os
-from setuptools import setup, find_packages
 
+from setuptools import setup, find_packages
 
 # Read in project metadata
 about = {}
@@ -10,7 +10,7 @@ info_file = os.path.join(os.path.dirname(__file__), "adles", "__about__.py")
 with open(info_file) as f:
     exec(f.read(), about)
 
-with open('README.md') as f:
+with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
 install_requires = [
@@ -18,7 +18,6 @@ install_requires = [
     'colorlog >= 3.1.4, < 4',  # Colored commandline output using logging
     'tqdm == 4.19.6',  # Terminal progress bars
     'humanfriendly >= 4.12.1, < 5',  # User interface tools
-    'ConfigArgParse == 0.13.0',
 
     'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
 ]
@@ -35,8 +34,7 @@ data_files = [
 entry_points = {
     # These enable commandline usage of ADLES and the helper scripts
     'console_scripts': [
-        # 'adles = adles.__main__:main',
-        'adles = adles.main:cli',
+        'adles = adles.__main__:run_cli',
         'vsphere = adles.vsphere.__main__:main',
     ]
 }

@@ -1,7 +1,7 @@
+import ipaddress
 import logging
 import os
 import sys
-import ipaddress
 from io import TextIOWrapper
 from typing import Optional
 

@@ -1,11 +1,20 @@
 # http://multivax.com/last_question.html
 
 import logging
+import sys
 from os.path import basename, exists, splitext, join
 
+from adles.args import parse_cli_args
 from adles.interfaces import PlatformInterface
 from adles.parser import check_syntax, parse_yaml
-from adles.utils import handle_keyboard_interrupt
+from adles.utils import handle_keyboard_interrupt, setup_logging
+
+
+def run_cli():
+    """Parse command line interface arguments and run ADLES."""
+    args = parse_cli_args()
+    exit_status = main(args=args)
+    sys.exit(exit_status)
 
 
 @handle_keyboard_interrupt
@@ -14,13 +23,19 @@ def main(args):
     :param args:
     :return: The exit status of the program
     """
+    # Configure logging, including console colors and syslog server
+    colors = (False if args.no_color else True)
+    syslog = (args.syslog, 514) if args.syslog else None
+    setup_logging(filename='adles.log', colors=colors,
+                  console_verbose=args.verbose, server=syslog)
+
+    # Set the sub-command to execute
     command = args.command
 
     # Just validate syntax, no building of environment
     if command == 'validate':
         if check_syntax(args.spec, args.validate_type) is None:
             return 1
-
     # Build an environment using a specification
     elif command in ['deploy', 'masters', 'cleanup', 'package']:
         override = None
@@ -78,7 +93,6 @@ def main(args):
         else:
             logging.error("INTERNAL ERROR -- Invalid command: %s", command)
             return 1
-
     # Show examples on commandline
     elif args.list_examples or args.print_example:
         from pkg_resources import Requirement, resource_filename
@@ -109,7 +123,6 @@ def main(args):
             else:
                 logging.error("Invalid example: %s", example)
                 return 1
-
     # Show specifications on commandline
     elif args.print_spec:
         from pkg_resources import Requirement, resource_filename
@@ -127,7 +140,6 @@ def main(args):
         else:
             logging.error("Invalid specification: %s", spec)
             return 1
-
     # Handle invalid arguments
     else:
         logging.error("Invalid arguments. Argument dump:\n%s", str(vars(args)))

@@ -1,11 +1,7 @@
-# TODO: ConfigArgParse
-# TODO: Gooey
 import argparse
 import sys
-import configargparse
 
 from adles.__about__ import __version__
-
 
 description = """
 ADLES: Automated Deployment of Lab Environments System.
@@ -29,26 +25,17 @@ Project:    https://github.com/GhostofGoes/ADLES
 """
 
 
+# TODO: Gooey
 def parse_cli_args():
-    main_parser = configargparse.ArgParser(
-        prog='adles', description=description, epilog=epilog,
-        formatter_class=configargparse.ArgumentDefaultsRawHelpFormatter
+    main_parser = argparse.ArgumentParser(
+        prog='adles', formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=description, epilog=epilog
     )
-    # main_parser = argparse.ArgumentParser(
-    #     prog='adles', formatter_class=argparse.RawDescriptionHelpFormatter,
-    #     description=description, epilog=epilog
-    # )
     main_parser.set_defaults(command='main')
     main_parser.add_argument('--version', action='version',
                              version='ADLES %s' % __version__)
     main_parser.add_argument('-v', '--verbose', action='store_true',
                              help='Emit debugging logs to terminal')
-
-    main_parser.add('-c', '--config-file', required=True,
-                    is_config_file=True, help='config file path')
-
-
-
 
     # TODO: break out logging config into a separate group
     main_parser.add_argument('--syslog', type=str, metavar='SERVER',

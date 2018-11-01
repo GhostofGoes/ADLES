@@ -8,10 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - The CLI can now be ran a module (e.g. `python -m adles`, `python -m adles.vsphere`)
 - New argument: `--syslog-server`. Configures saving of log output to the specified Syslog server.
-- Progress bars to: `clone-vms`, `vm-power`, `vm-snapshots`
-- Compatibility warnings for unsupported Python versions
-- Added dependency: [tqdm](https://github.com/tqdm/tqdm)
-- Added dependency: [argopt](https://github.com/casperdcl/argopt)
+- Added progress bars to: `clone-vms`, `vm-power`, `vm-snapshots`
+- Added compatibility warnings for unsupported Python versions
+- New dependency: [tqdm](https://github.com/tqdm/tqdm)
+- New dependency: [humanfriendly](https://pypi.org/project/humanfriendly/)
 
 ### Changed
 - Failing to import an optional dependency will now log an error instead
@@ -23,7 +23,6 @@ Syslog server will now only be used if the parameter is set.
 Parsing now generates argparse.Namespace objects using argopt library.
 This makes argparse features available to use, and enables us to use
 libraries such as argcomplete and Gooey that rely on argparse.
-
 - Bumped `pyvmomi` version to 6.5
 - Bumped `colorlog` version to 3.1.4
 

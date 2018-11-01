@@ -1,9 +1,9 @@
+import json
 import logging
 import logging.handlers
-import sys
 import os
+import sys
 import timeit
-import json
 
 try:
     import tqdm
