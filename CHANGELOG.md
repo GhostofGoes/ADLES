@@ -14,15 +14,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New dependency: [humanfriendly](https://pypi.org/project/humanfriendly/)
 
 ### Changed
+- Overhauled Command line interface. It is now subcommand based.
 - Failing to import an optional dependency will now log an error instead
 of raising an exception and terminating execution.
 - Moved the remaining examples in the project root into `examples/`
 - Logs will not longer emit to a syslog server by default.
 Syslog server will now only be used if the parameter is set.
-- Behind the scenes changes to commandline argument parsing.
-Parsing now generates argparse.Namespace objects using argopt library.
-This makes argparse features available to use, and enables us to use
-libraries such as argcomplete and Gooey that rely on argparse.
+- Behind the scenes changes to commandline argument parsing that will
+make adding future functionality easier and enable usage of other
+third-party librareis that use `argparse`.
 - Bumped `pyvmomi` version to 6.5
 - Bumped `colorlog` version to 3.1.4
 
