@@ -63,9 +63,12 @@ setup(
     zip_safe=False,
     test_suite='test',
     platforms=['Windows', 'Linux', 'Mac OS-X'],
-    keywords="adles virtualization automation vmware vsphere yaml labs virtual "
-             "vms vm python pyvmomi cybersecurity education uidaho radicl "
-             "environments deployment docker libcloud setup cloud computing",
+    keywords=[
+        'adles', 'virtualization', 'automation', 'vmware', 'vsphere', 'yaml',
+        'labs', 'virtual', 'vms', 'vm', 'python', 'pyvmomi', 'cybersecurity',
+        'education', 'uidaho', 'radicl', 'environments', 'deployment',
+        'docker', 'libcloud', 'setup', 'cloud', 'computing',
+    ],
     classifiers=[  # Used by PyPI to classify the project and make it searchable
         'Development Status :: 4 - Beta',
         'Environment :: Console',
