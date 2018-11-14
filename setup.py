@@ -55,7 +55,7 @@ setup(
     entry_points=entry_points,
     install_requires=install_requires,
     extras_require=extras_require,
-    python_requres='>=3.5',
+    python_requires='>=3.6',
     data_files=data_files,
     # packages=['adles', 'cli', 'specifications', 'examples'],
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
