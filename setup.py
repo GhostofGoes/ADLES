@@ -4,10 +4,11 @@ import os
 
 from setuptools import setup, find_packages
 
+
 # Read in project metadata
 about = {}
 info_file = os.path.join(os.path.dirname(__file__), "adles", "__about__.py")
-with open(info_file) as f:
+with open(info_file, encoding='utf-8') as f:
     exec(f.read(), about)
 
 with open('README.md', encoding='utf-8') as f:
@@ -57,7 +58,6 @@ setup(
     extras_require=extras_require,
     python_requires='>=3.6',
     data_files=data_files,
-    # packages=['adles', 'cli', 'specifications', 'examples'],
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,
     zip_safe=False,
@@ -90,6 +90,6 @@ setup(
         'Topic :: System :: Distributed Computing',
         'Topic :: System :: Systems Administration',
         'Topic :: System :: Installation/Setup',
-        'Topic :: Utilities'
+        'Topic :: Utilities',
     ]
 )
