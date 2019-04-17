@@ -1,9 +1,9 @@
-include README.md
-include requirements.txt
-include LICENSE
-include NOTICE
-include CHANGELOG.md
+include LICENSE README.md CHANGELOG.md CONTRIBUTING.md NOTICE
 include docs/adles.1
-recursive-include examples *
-recursive-include specifications *
+
+graft adles
+graft test
+graft examples
+graft specifications
+
 global-exclude *.py[cdo] __pycache__ *.so *.pyd .DS_Store

@@ -11,8 +11,12 @@ info_file = os.path.join(os.path.dirname(__file__), "adles", "__about__.py")
 with open(info_file, encoding='utf-8') as f:
     exec(f.read(), about)
 
+# Build the page that will be displayed on PyPI from the README and CHANGELOG
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
+long_description += '\n\n'
+with open('CHANGELOG.md', encoding='utf-8') as f:
+    long_description += f.read()
 
 install_requires = [
     'pyyaml == 3.12',   # Specification parsing
@@ -46,11 +50,9 @@ setup(
     author=about['__author__'],
     author_email=about['__email__'],
     description=about['__summary__'],
-    long_description=long_description,  # This is what you see on PyPI page
-    # PEP 566, PyPI Warehouse, setuptools>=38.6.0 make markdown possible
-    long_description_content_type="text/markdown",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     url=about['__url__'],
-    download_url=about['__urls__']['PyPI'],
     project_urls=about['__urls__'],
     license=about['__license__'],
     entry_points=entry_points,
@@ -61,35 +63,37 @@ setup(
     packages=find_packages(exclude=['test']) + ['specifications', 'examples'],
     include_package_data=True,
     zip_safe=False,
-    test_suite='test',
-    platforms=['Windows', 'Linux', 'Mac OS-X'],
     keywords=[
-        'adles', 'virtualization', 'automation', 'vmware', 'vsphere', 'yaml',
-        'labs', 'virtual', 'vms', 'vm', 'python', 'pyvmomi', 'cybersecurity',
-        'education', 'uidaho', 'radicl', 'environments', 'deployment',
-        'docker', 'libcloud', 'setup', 'cloud', 'computing',
+        'adles', 'virtualization', 'vmware', 'vsphere', 'pyvmomi',
+        'cybersecurity', 'education', 'radicl', 'deployment',
     ],
-    classifiers=[  # Used by PyPI to classify the project and make it searchable
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
         'License :: OSI Approved :: Apache Software License',
+
+        'Operating System :: OS Independent',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Operating System :: MacOS',
+
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Operating System :: OS Independent',
+
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
         'Intended Audience :: Information Technology',
         'Intended Audience :: Science/Research',
         'Intended Audience :: End Users/Desktop',
+
         'Topic :: Education',
         'Topic :: Education :: Testing',
         'Topic :: Security',
         'Topic :: System :: Distributed Computing',
         'Topic :: System :: Systems Administration',
-        'Topic :: System :: Installation/Setup',
         'Topic :: Utilities',
     ]
 )

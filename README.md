@@ -1,8 +1,6 @@
 
 [![Latest version on PyPI](https://badge.fury.io/py/ADLES.svg)](https://pypi.org/project/ADLES/)
 [![Travis CI build status](https://travis-ci.org/GhostofGoes/ADLES.svg?branch=master)](https://travis-ci.org/GhostofGoes/ADLES)
-[![Dependency Status](https://www.versioneye.com/user/projects/589eac206a7781003b24318b/badge.svg)](https://www.versioneye.com/user/projects/589eac206a7781003b24318b)
-[![Code Climate](https://codeclimate.com/github/GhostofGoes/ADLES/badges/gpa.svg)](https://codeclimate.com/github/GhostofGoes/ADLES)
 [![Documentation](https://readthedocs.org/projects/adles/badge/)](http://adles.readthedocs.io/en/latest/)
 [![DOI Reference](https://zenodo.org/badge/68841026.svg)](https://zenodo.org/badge/latestdoi/68841026)
 
