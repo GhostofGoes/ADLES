@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from distutils.version import StrictVersion
 import functools
 import logging
 
@@ -48,6 +47,3 @@ class Script(ABC):
     def __eq__(self, other):
         return self.name == other.name \
                and self.__version__ == other.__version__
-
-    def __gt__(self, other):
-        return StrictVersion(self.__version__) > StrictVersion(other.__version__)

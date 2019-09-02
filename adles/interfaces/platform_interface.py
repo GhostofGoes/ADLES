@@ -6,7 +6,6 @@ from adles.interfaces import Interface
 class PlatformInterface(Interface):
     """Generic interface used to uniformly interact with
     platform-specific interfaces."""
-    __version__ = "1.0.0"
 
     def __init__(self, infra, spec):
         """
@@ -15,7 +14,7 @@ class PlatformInterface(Interface):
         """
         super(PlatformInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
-        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
+        self._log.debug("Initializing %s", self.__class__)
         self.interfaces = []  # List of instantiated platform interfaces
 
         # Select the Interface to use based on

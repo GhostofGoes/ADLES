@@ -14,7 +14,6 @@ class VM:
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object
                     is not used to initialize the instance.
     """
-    __version__ = "0.10.0"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -181,7 +180,7 @@ class VM:
         :param int cpus: Number of CPUs
         :param int cores: Number of CPU cores
         :param int memory: Amount of RAM in MB
-        :param int max_consoles: Maximum number of simultaneous 
+        :param int max_consoles: Maximum number of simultaneous
         Mouse-Keyboard-Screen (MKS) console connections
         """
         spec = vim.vm.ConfigSpec()
@@ -247,7 +246,7 @@ class VM:
         :param str password: Plaintext password for the User
         [default: prompt user]
         :param str program_args: Commandline arguments for the program
-        :return: Program Process ID (PID) if it was executed successfully, 
+        :return: Program Process ID (PID) if it was executed successfully,
         -1 if not
         :rtype: int
         """
@@ -328,7 +327,7 @@ class VM:
         """Removes the named snapshot from the VM.
         :param str snapshot: Name of the snapshot to remove
         :param bool remove_children: Removal of the entire snapshot subtree
-        :param bool consolidate_disks: Virtual disks of deleted snapshot 
+        :param bool consolidate_disks: Virtual disks of deleted snapshot
         will be merged with other disks if possible
         """
         self._log.info("Removing snapshot '%s' from '%s'", snapshot, self.name)
@@ -337,7 +336,7 @@ class VM:
 
     def remove_all_snapshots(self, consolidate_disks=True):
         """Removes all snapshots associated with the VM.
-        :param bool consolidate_disks: Virtual disks of the deleted snapshot 
+        :param bool consolidate_disks: Virtual disks of the deleted snapshot
         will be merged with other disks if possible
         """
         self._log.info("Removing ALL snapshots for %s", self.name)
@@ -350,13 +349,13 @@ class VM:
         :param str summary: Human-readable device info
         [default: default-summary]
         :param str model: Model of virtual network adapter.
-        Options: (e1000 | e1000e | vmxnet | vmxnet2 
+        Options: (e1000 | e1000e | vmxnet | vmxnet2
         | vmxnet3 | pcnet32 | sriov)
-        e1000 will work on Windows Server 2003+, 
+        e1000 will work on Windows Server 2003+,
         and e1000e is supported on Windows Server 2012+.
-        VMXNET adapters require VMware Tools to be installed, 
+        VMXNET adapters require VMware Tools to be installed,
         and provide enhanced performance.
-        `Read this for more details: 
+        `Read this for more details:
         <http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/>`_
         """
         if not isinstance(network, vim.Network):

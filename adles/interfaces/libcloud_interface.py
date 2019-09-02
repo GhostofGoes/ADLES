@@ -12,7 +12,6 @@ from adles.interfaces import Interface
 
 class LibcloudInterface(Interface):
     """Base class for all interfaces that use Apache libcloud."""
-    __version__ = "0.1.0"
 
     # noinspection PyMissingConstructor
     def __init__(self, infra, spec, provider_name=None):
@@ -23,7 +22,7 @@ class LibcloudInterface(Interface):
         """
         super(LibcloudInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
-        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
+        self._log.debug("Initializing %s", self.__class__)
 
         # Used for interfaces such as libvirt
         if provider_name is None:

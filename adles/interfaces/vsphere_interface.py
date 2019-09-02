@@ -12,12 +12,11 @@ from adles.interfaces import Interface
 
 class VsphereInterface(Interface):
     """Generic interface for the VMware vSphere platform."""
-    __version__ = "1.0.7"
 
     def __init__(self, infra, spec):
         """
         .. warning:: The infrastructure and spec are assumed to be valid,
-        therefore checks on key existence and types are NOT performed 
+        therefore checks on key existence and types are NOT performed
         for REQUIRED elements.
 
         :param dict infra: Infrastructure information
@@ -25,7 +24,7 @@ class VsphereInterface(Interface):
         """
         super(VsphereInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
-        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
+        self._log.debug("Initializing %s", self.__class__)
         self.master_folder = None
         self.template_folder = None
         # Used to do lookups of Generic networks during deployment
@@ -330,9 +329,9 @@ class VsphereInterface(Interface):
         """
         Creates a network as part of the Master creation phase.
 
-        :param str net_type: Top-level type of the network 
+        :param str net_type: Top-level type of the network
         (unique | generic | base)
-        :param bool default_create: Whether to create networks 
+        :param bool default_create: Whether to create networks
         if they don't already exist
         """
         # Pick up any recent changes to the host's network status
@@ -359,13 +358,13 @@ class VsphereInterface(Interface):
 
     def _configure_nics(self, vm, networks, instance=None):
         """
-        Configures Virtual Network Interfaces Cards (vNICs) 
+        Configures Virtual Network Interfaces Cards (vNICs)
         for a service instance.
 
         :param vm: Virtual Machine to configure vNICs on
         :type vm: vim.VirtualMachine
         :param list networks: List of networks to configure
-        :param int instance: Current instance of a folder 
+        :param int instance: Current instance of a folder
         for Deployment purposes
         """
         self._log.info("Editing NICs for VM '%s'", vm.name)
@@ -638,7 +637,7 @@ class VsphereInterface(Interface):
         """
         Checks if a service instance is defined as a vSphere service.
 
-        :param str service_name: Name of the service to lookup in 
+        :param str service_name: Name of the service to lookup in
         list of defined services
         :return: If a service is a vSphere-type service
         :rtype: bool
@@ -653,10 +652,10 @@ class VsphereInterface(Interface):
     def _get_net(self, name, instance=-1):
         """
         Resolves network names. This is mainly to handle generic-type networks.
-        If a generic network does not exist, it is created and added to 
+        If a generic network does not exist, it is created and added to
         the interface lookup table.
         :param str name: Name of the network
-        :param int instance: Instance number 
+        :param int instance: Instance number
 
         .. note:: Only applies to generic-type networks
 
@@ -704,7 +703,7 @@ class VsphereInterface(Interface):
         """
         Cleans up any master instances.
 
-        :param bool network_cleanup: If networks should be cleaned up 
+        :param bool network_cleanup: If networks should be cleaned up
         """
         # Get the folder to cleanup in
         master_folder = self.root_folder.find_in(self.master_root_name)
@@ -727,7 +726,7 @@ class VsphereInterface(Interface):
         """
         Cleans up a deployed environment.
 
-        :param bool network_cleanup: If networks should be cleaned up 
+        :param bool network_cleanup: If networks should be cleaned up
         """
         # Get the root environment folder to cleanup in
         enviro_folder = self.root_folder

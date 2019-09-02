@@ -12,7 +12,6 @@ from adles.interfaces import Interface
 
 class DockerInterface(Interface):
     """Generic interface for the Docker platform."""
-    __version__ = "0.2.2"
 
     def __init__(self, infra, spec):
         """
@@ -21,7 +20,7 @@ class DockerInterface(Interface):
         """
         super(DockerInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
-        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
+        self._log.debug("Initializing %s", self.__class__)
 
         # If needed, a wrapper class that simplifies
         # the creation of containers will be made

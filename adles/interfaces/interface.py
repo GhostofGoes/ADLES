@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from distutils.version import StrictVersion
 import functools
 import logging
 
@@ -7,7 +6,6 @@ import logging
 @functools.total_ordering
 class Interface(ABC):
     """Base class for all Interfaces."""
-    __version__ = "1.2.0"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -178,8 +176,4 @@ class Interface(ABC):
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
                self.infra == other.infra and \
-               self.spec == other.spec and \
-               self.__version__ == other.__version__
-
-    def __gt__(self, other):
-        return StrictVersion(self.__version__) > StrictVersion(other.__version__)
+               self.spec == other.spec

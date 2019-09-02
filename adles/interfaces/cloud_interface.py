@@ -5,7 +5,6 @@ from adles.interfaces.libcloud_interface import LibcloudInterface
 
 class CloudInterface(LibcloudInterface):
     """Generic interface for all cloud platforms."""
-    __version__ = "0.2.0"
 
     def __init__(self, infra, spec):
         """
@@ -14,7 +13,7 @@ class CloudInterface(LibcloudInterface):
         """
         super(CloudInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
-        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
+        self._log.debug("Initializing %s", self.__class__)
         self.max_instance_price = float(infra["max-instance-price"])
         self.max_total_price = float(infra["max-total-price"])
 

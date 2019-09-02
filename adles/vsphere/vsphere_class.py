@@ -10,7 +10,6 @@ from adles.vsphere.vsphere_utils import VsphereException
 # TODO: context manager, enter connects, exit disconnects (instead of atexit)
 class Vsphere(object):
     """ Maintains connection, logging, and constants for a vSphere instance """
-    __version__ = "1.1.0"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -33,9 +32,9 @@ class Vsphere(object):
         :raises LookupError: if a datacenter or datastore cannot be found
         """
         self._log = logging.getLogger('Vsphere')
-        self._log.debug("Initializing Vsphere %s\nDatacenter: %s"
+        self._log.debug("Initializing Vsphere\nDatacenter: %s"
                         "\tDatastore: %s\tSSL: %s",
-                        Vsphere.__version__, datacenter, datastore, use_ssl)
+                        datacenter, datastore, use_ssl)
 
         if username is None:
             username = input("Enter username for vSphere: ")
@@ -216,7 +215,7 @@ class Vsphere(object):
         """
         Returns a list of the users and groups defined for the server
 
-        .. note:: You must hold the Authorization.ModifyPermissions 
+        .. note:: You must hold the Authorization.ModifyPermissions
         privilege to invoke this method.
 
         :param str search: Case insensitive substring used to filter results
@@ -446,7 +445,7 @@ class Vsphere(object):
         Find a VM in the datacenter with the given Instance or BIOS UUID.
 
         :param str uuid: UUID to search for (Instance or BIOS for VMs)
-        :param bool instance_uuid: If True, search by VM Instance UUID, 
+        :param bool instance_uuid: If True, search by VM Instance UUID,
         otherwise search by BIOS UUID
         :return: The VM found
         :rtype: vim.VirtualMachine or None
@@ -499,7 +498,7 @@ class Vsphere(object):
         """
         Finds a vim.ManagedEntity (VM, host, folder, etc) in a inventory.
 
-        :param str path: Path to the entity. This must include the hidden 
+        :param str path: Path to the entity. This must include the hidden
         Vsphere folder for the type: vm | network | datastore | host
         Example: "vm/some-things/more-things/vm-name"
         :param str datacenter: Name of datacenter to search in

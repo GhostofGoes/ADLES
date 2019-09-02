@@ -5,7 +5,6 @@ from pyVmomi import vim
 
 class Host:
     """ Represents an ESXi host in a VMware vSphere environment. """
-    __version__ = "0.3.0"
 
     def __init__(self, host):
         """
@@ -21,7 +20,7 @@ class Host:
         """
         Reboots the host.
 
-        :param bool force: Force a reboot even if the host 
+        :param bool force: Force a reboot even if the host
         is not in maintenance mode
         """
         self._log.warning("Rebooting host %s", self.name)
@@ -31,7 +30,7 @@ class Host:
         """
         Shuts down the host.
 
-        :param bool force: Force a reboot even if the host 
+        :param bool force: Force a reboot even if the host
         is not in maintenance mode
         """
         self._log.warning("Shutting down host %s", self.name)
@@ -63,7 +62,7 @@ class Host:
         Creates a vSwitch.
 
         :param str name: Name of the vSwitch to create
-        :param int num_ports: Number of ports the vSwitch should have 
+        :param int num_ports: Number of ports the vSwitch should have
         """
         self._log.info("Creating vSwitch %s with %d ports on host %s",
                        name, num_ports, self.name)
@@ -83,7 +82,7 @@ class Host:
         :param str name: Name of portgroup to create
         :param str vswitch_name: Name of vSwitch to create the port group on
         :param int vlan: VLAN ID of the port group
-        :param bool promiscuous: Put portgroup in promiscuous mode 
+        :param bool promiscuous: Put portgroup in promiscuous mode
         """
         self._log.debug("Creating PortGroup %s on vSwitch %s on host %s;"
                         " VLAN: %d; Promiscuous: %s",
@@ -110,7 +109,7 @@ class Host:
         Deletes the named network from the host.
 
         :param str name: Name of the vSwitch to delete
-        :param str network_type: Type of the network to remove 
+        :param str network_type: Type of the network to remove
         ("vswitch" | "portgroup")
         """
         self._log.info("Deleting %s '%s' from host '%s'",
@@ -142,11 +141,11 @@ class Host:
         """
         Retrieves a network object of the specified type and name from a host.
 
-        :param str object_type: Type of object to get: 
+        :param str object_type: Type of object to get:
         (portgroup | vswitch | proxyswitch | vnic | pnic)
         :param str name: Name of network object [default: first object found]
         :return: The network object
-        :rtype: vim.Network or vim.VirtualSwitch 
+        :rtype: vim.Network or vim.VirtualSwitch
         or vim.VirtualEthernetCard or None
         .. todo:: determine what possible return types there are
         """
@@ -159,12 +158,12 @@ class Host:
         """
         Retrieves a network object of the specified type and name from a host.
 
-        :param str object_type: Type of object to get: 
+        :param str object_type: Type of object to get:
         (portgroup | vswitch | proxyswitch | vnic | pnic)
         :param name: Name of network object
-        :param bool refresh: Refresh the host's network system information 
+        :param bool refresh: Refresh the host's network system information
         :return: The network object
-        :rtype: vim.Network or vim.VirtualSwitch 
+        :rtype: vim.Network or vim.VirtualSwitch
         or vim.VirtualEthernetCard or None
 
         .. todo:: determine what possible return types there are
@@ -187,7 +186,7 @@ class Host:
         """
         Retrieves all network objects of the specified type from the host.
 
-        :param str object_type: Type of object to get: 
+        :param str object_type: Type of object to get:
         (portgroup | vswitch | proxyswitch | vnic | pnic)
         :param bool refresh: Refresh the host's network system information
         :return: list of the network objects
