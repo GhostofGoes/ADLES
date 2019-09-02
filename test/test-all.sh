@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-adles
 adles -h
 adles --version
 adles validate examples/spoofing-tutorial.yaml
