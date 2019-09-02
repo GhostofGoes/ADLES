@@ -2,7 +2,7 @@
 
 import logging
 import sys
-from os.path import basename, exists, splitext, join
+from os.path import basename, exists, join, splitext
 
 from adles.args import parse_cli_args
 from adles.interfaces import PlatformInterface
@@ -101,10 +101,10 @@ def main(args) -> int:
         # Filter non-YAML files from the listdir output
         examples = [x[:-5] for x in listdir(example_dir) if ".yaml" in x]
         if args.list_examples:  # List all examples and their metadata
-            print("Example scenarios that can be printed "
+            print("Example scenarios that can be printed "  # noqa: T001
                   "using --print-example <name>")
             # Print header for the output
-            print("Name".ljust(25) + "Version".ljust(10) + "Description")
+            print("Name".ljust(25) + "Version".ljust(10) + "Description")  # noqa: T001
             for example in examples:
                 if "infra" in example:
                     continue
@@ -113,13 +113,13 @@ def main(args) -> int:
                 name = str(example).ljust(25)
                 ver = str(metadata["version"]).ljust(10)
                 desc = str(metadata["description"])
-                print(name + ver + desc)
+                print(name + ver + desc)  # noqa: T001
         else:
             example = args.print_example
             if example in examples:
                 # Print out the complete content of a named example
                 with open(join(example_dir, example + ".yaml")) as file:
-                    print(file.read())
+                    print(file.read())  # noqa: T001
             else:
                 logging.error("Invalid example: %s", example)
                 return 1
@@ -136,7 +136,7 @@ def main(args) -> int:
                                          join("specifications",
                                               spec + "-specification.yaml"))
             with open(filename) as file:
-                print(file.read())
+                print(file.read())  # noqa: T001
         else:
             logging.error("Invalid specification: %s", spec)
             return 1

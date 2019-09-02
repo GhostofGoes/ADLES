@@ -3,7 +3,7 @@ import logging
 try:
     from libcloud.compute.types import Provider
     from libcloud.compute.providers import get_driver
-except ImportError as ex:
+except ImportError:
     logging.error("Could not import apache-libcloud. "
                   "Install it using 'pip install apache-libcloud'")
 

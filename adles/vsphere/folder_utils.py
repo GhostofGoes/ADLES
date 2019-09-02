@@ -47,11 +47,11 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
 
     :param folder: Folder to cleanup
     :type folder: vim.Folder
-    :param str vm_prefix: Only destroy VMs with names starting with the prefix 
-    :param str folder_prefix: Only destroy or search in folders with names 
+    :param str vm_prefix: Only destroy VMs with names starting with the prefix
+    :param str folder_prefix: Only destroy or search in folders with names
     starting with the prefix
-    :param bool recursive: Recursively descend into any sub-folders 
-    :param bool destroy_folders: Destroy folders in addition to VMs 
+    :param bool recursive: Recursively descend into any sub-folders
+    :param bool destroy_folders: Destroy folders in addition to VMs
     :param bool destroy_self: Destroy the folder specified
     """
     logging.debug("Cleaning folder '%s'", folder.name)
@@ -149,7 +149,7 @@ def traverse_path(folder, path, lookup_root=None, generate=False):
     :type folder: vim.Folder
     :param str path: Path in POSIX format
     (Templates/Windows/ to get the 'Windows' folder)
-    :param lookup_root: If root of path is not found in folder, 
+    :param lookup_root: If root of path is not found in folder,
     lookup using this Vsphere object
     :type lookup_root: :class:`Vsphere` or None
     :param bool generate: Parts of the path that do not exist are created.
@@ -207,7 +207,7 @@ def enumerate_folder(folder, recursive=True, power_status=False):
     as a python object with the same structure
     :param folder: Folder to enumerate
     :type folder: vim.Folder
-    :param bool recursive: Whether to recurse into any sub-folders 
+    :param bool recursive: Whether to recurse into any sub-folders
     :param bool power_status: Display the power state of the VMs in the folder
     :return: The nested python object with the enumerated folder structure
     :rtype: list(list, str)
@@ -246,7 +246,7 @@ def format_structure(structure, indent=4, _depth=0):
 
     :param structure: structure to format
     :type structure: tuple(list(str), str)
-    :param int indent: Number of spaces to indent each level of nesting 
+    :param int indent: Number of spaces to indent each level of nesting
     :param int _depth: Current depth (USED INTERNALLY BY FUNCTION)
     :return: Formatted string of the folder structure
     :rtype: str
@@ -272,13 +272,13 @@ def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
     """
     Retrieves VMs and folders from a folder structure.
 
-    :param folder: Folder to begin search in 
+    :param folder: Folder to begin search in
     (Note: it is NOT returned in list of folders)
     :type folder: vim.Folder
     :param str vm_prefix: VM prefix to search for
     :param str folder_prefix: Folder prefix to search for
-    :param bool recursive: Recursively descend into sub-folders 
-    
+    :param bool recursive: Recursively descend into sub-folders
+
     .. warning:: This will recurse regardless of folder prefix!
 
     :return: The VMs and folders found in the folder

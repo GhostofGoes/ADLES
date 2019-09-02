@@ -61,14 +61,14 @@ and if it's relevant, the rationale (thinking) for the change.
 * All methods must have type annotations
 * Must work on Python 3.5+
 * Must work on Windows 10+, Ubuntu 16.04+, and Kali Rolling 2017+
-* Try to match the general code style (loosly PEP8)
+* Try to match the general code style (loosely PEP8)
 * Be respectful.
 Memes, references, and jokes are ok.
 Explicit language (cursing/swearing), NSFW text/content, or racism are NOT ok.
 
 ## Checklist before submitting a pull request
 * [ ] Update the [CHANGELOG](CHANGELOG.md) (For non-trivial changes, e.g. changing functionality or adding tests)
-* [ ] Add your name to the contributers list in the [README](README.md)
+* [ ] Add your name to the contributors list in the [README](README.md)
 * [ ] All tests pass locally
 * [ ] Pylint is happy
 
@@ -90,4 +90,4 @@ Instead, email: ghostofgoes(at)gmail(dot)com
 
 # Features and ideas
 Ideas for features or other things are welcomed. Open an issue on GitHub
-detailing the idea, and tag it appropriatly (e.g. "Feature" for a new feature).
+detailing the idea, and tag it appropriately (e.g. "Feature" for a new feature).

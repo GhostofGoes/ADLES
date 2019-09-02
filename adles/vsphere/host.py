@@ -44,7 +44,7 @@ class Host:
         :param spec: Actions to be taken upon entering maintenance mode
         :type spec: vim.HostMaintenanceSpec
         """
-        self._log.warning("%s is entering maintainence mode", self.name)
+        self._log.warning("%s is entering maintenance mode", self.name)
         self.host.EnterMaintenanceMode_Task(timeout=int(timeout),
                                             maintenanceSpec=spec).wait()
 
@@ -54,7 +54,7 @@ class Host:
 
         :param int timeout: Seconds to wait
         """
-        self._log.info("%s is exiting maintainence mode", self.name)
+        self._log.info("%s is exiting maintenance mode", self.name)
         self.host.ExitMaintenanceMode_Task(timeout=int(timeout)).wait()
 
     def create_vswitch(self, name, num_ports=512):

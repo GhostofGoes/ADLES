@@ -2,11 +2,11 @@ import logging
 
 try:
     import docker  # NOTE(cgoes): has not been tested with Python 3.6 yet
-except ImportError as ex:
+except ImportError:
     logging.error("Could not import docker module. "
                   "Install it using 'pip install docker'")
 
-import adles.utils as utils
+from adles import utils
 from adles.interfaces import Interface
 
 
@@ -66,4 +66,4 @@ class DockerInterface(Interface):
 
     def __eq__(self, other):
         return super(self.__class__, self).__eq__(other) \
-               and self.client == other.client
+            and self.client == other.client

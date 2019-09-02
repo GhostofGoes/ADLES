@@ -5,8 +5,8 @@
 import argparse
 import sys
 
-from adles.vsphere.vsphere_scripts import VSPHERE_SCRIPTS
 from adles.utils import setup_logging
+from adles.vsphere.vsphere_scripts import VSPHERE_SCRIPTS
 
 
 def main():

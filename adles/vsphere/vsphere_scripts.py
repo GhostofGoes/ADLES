@@ -12,13 +12,13 @@
 import sys
 
 import tqdm
-from humanfriendly.prompts import prompt_for_confirmation, prompt_for_choice
+from humanfriendly.prompts import prompt_for_choice, prompt_for_confirmation
 
-from adles.utils import pad, default_prompt
 from adles.scripts.script_base import Script
+from adles.utils import default_prompt, pad
 from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.vm import VM
-from adles.vsphere.vsphere_utils import make_vsphere, resolve_path, is_vm
+from adles.vsphere.vsphere_utils import is_vm, make_vsphere, resolve_path
 
 
 class VsphereScript(Script):
@@ -47,7 +47,7 @@ class CleanupVms(VsphereScript):
                     folder.enumerate(recursive=True, power_status=True)))
 
             # Prompt user to configure destruction options
-            print("Answer the following questions to configure the cleanup")
+            print("Answer the following questions to configure the cleanup")  # noqa: T001
             if prompt_for_confirmation("Destroy everything in and "
                                        "including the folder? "):
                 vm_prefix = ''
@@ -200,7 +200,7 @@ class VmPower(VsphereScript):
     name = 'power'
 
     def run(self):
-        print("Enter the power operation you wish to perform")
+        print("Enter the power operation you wish to perform")  # noqa: T001
         operation = prompt_for_choice(['on', 'off', 'reset',
                                        'suspend'], padding=False)
         attempt_guest = prompt_for_confirmation("Attempt to use guest OS "
@@ -236,7 +236,7 @@ class VsphereInfo(VsphereScript):
     name = 'info'
 
     def run(self):
-        print("What type of thing do you want to get information on?")
+        print("What type of thing do you want to get information on?")  # noqa: T001
         thing_type = prompt_for_choice(['vm', 'datastore', 'vsphere',
                                         'folder'], padding=False)
 
@@ -285,7 +285,7 @@ class VmSnapshot(VsphereScript):
     name = 'snapshot'
 
     def run(self):
-        print("Enter Snapshot operation to perform")
+        print("Enter Snapshot operation to perform")  # noqa: T001
         op = prompt_for_choice(['create', 'revert', 'revert-current', 'remove',
                                 'remove-all', 'get', 'get-current', 'get-all',
                                 'disk-usage'], padding=False)

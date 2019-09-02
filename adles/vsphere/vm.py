@@ -3,7 +3,7 @@ import os
 
 from pyVmomi import vim
 
-import adles.utils as utils
+from adles import utils
 from adles.vsphere.folder_utils import find_in_folder
 
 
@@ -652,7 +652,7 @@ class VM:
         """
         for dev in self._vm.config.hardware.device:
             if isinstance(dev, vim.vm.device.VirtualDisk) and \
-                            dev.deviceInfo.label.lower() == name.lower():
+                    dev.deviceInfo.label.lower() == name.lower():
                 return dev
         return None
 
@@ -890,7 +890,8 @@ class VM:
 
     def _customize(self, customization):
         """Customizes the VM using the given customization specification.
-        :param vim.vm.customization.Specification customization: The customization specification to apply
+        :param vim.vm.customization.Specification customization:
+            The customization specification to apply
         :return: If the customization was successful
         :rtype: bool
         """
@@ -911,7 +912,7 @@ class VM:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.name == other.name \
-               and hash(self) == hash(other)
+            and hash(self) == hash(other)
 
     def __ne__(self, other):
         return not self.__eq__(other)

@@ -111,6 +111,3 @@ def parse_cli_args() -> argparse.Namespace:
 
     args = main_parser.parse_args()
     return args
-
-
-

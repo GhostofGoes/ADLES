@@ -24,7 +24,7 @@ While this has a VMware vSphere driver, it is limited (can't create nodes!) and 
 * Compression utility for implementing packages (Use [`gzip`](https://docs.python.org/3.5/library/gzip.html) standard library module for this. Intro to it [here](https://pymotw.com/3/gzip/))
 
 ## Repository
-Long-term, I’d like to see the creation of a public open-source repository of packages, similiar to
+Long-term, I’d like to see the creation of a public open-source repository of packages, similar to
 Hashicorp’s Atlas and Docker’s Hub, where educators can share packages
 and contribute to improving cyber education globally.
 

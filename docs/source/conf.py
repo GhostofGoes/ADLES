@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'ADLES'
-copyright = '2016 - 2017, Christopher Goes'
+copyright = '2016 - 2019, Christopher Goes'
 author = 'Christopher Goes'
 
 import adles

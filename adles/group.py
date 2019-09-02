@@ -63,7 +63,7 @@ class Group:
 
     def __eq__(self, other):
         return self.name == other.name and self.users == other.users and \
-               self.group_type == other.group_type
+            self.group_type == other.group_type
 
     def __ne__(self, other):
         return not self.__eq__(other)

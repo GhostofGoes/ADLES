@@ -1,13 +1,13 @@
 import logging
 import os
 
-from adles.vsphere.folder_utils import format_structure
-from adles.utils import pad, read_json, get_vlan
-from adles.vsphere.vsphere_utils import is_folder, is_vm, VsphereException
+from adles.interfaces import Interface
+from adles.utils import get_vlan, pad, read_json
 from adles.vsphere import Vsphere
+from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.network_utils import create_portgroup
 from adles.vsphere.vm import VM
-from adles.interfaces import Interface
+from adles.vsphere.vsphere_utils import VsphereException, is_folder, is_vm
 
 
 class VsphereInterface(Interface):
@@ -729,7 +729,7 @@ class VsphereInterface(Interface):
         :param bool network_cleanup: If networks should be cleaned up
         """
         # Get the root environment folder to cleanup in
-        enviro_folder = self.root_folder
+        # enviro_folder = self.root_folder
 
         # Cleanup networks
         if network_cleanup:

@@ -5,13 +5,14 @@ import sys
 from io import TextIOWrapper
 from typing import Optional, Tuple
 
-from yaml import load, YAMLError
+from yaml import YAMLError, load
+
 try:  # Attempt to use C-based YAML parser if it's available
     from yaml import CLoader as Loader
 except ImportError:  # Fallback to using pure Python YAML parser
-    from yaml import Loader
+    from yaml import Loader  # noqa: T484
 
-import adles.utils as utils
+from adles import utils
 
 
 # PyYAML Reference: http://pyyaml.org/wiki/PyYAMLDocumentation

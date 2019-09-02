@@ -4,7 +4,7 @@ import logging.handlers
 import os
 import sys
 import timeit
-from typing import Optional, Tuple, List, Callable
+from typing import Callable, List, Optional, Tuple
 
 try:
     import tqdm
@@ -21,7 +21,7 @@ try:
                 self.flush()
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except:
+            except:  # noqa
                 self.handleError(record)
 except ImportError:
     TQDM = False
@@ -118,7 +118,8 @@ def handle_keyboard_interrupt(func: Callable) -> Callable:
         try:
             ret = func(*args, **kwargs)
         except KeyboardInterrupt:
-            print()  # Output a blank line for readability
+            # Output a blank line for readability
+            print()  # noqa: T001
             logging.info("Exiting...")
             sys.exit(0)
         return ret
@@ -231,7 +232,7 @@ def user_input(prompt: str, obj_name: str, func: Callable) -> Tuple[object, str]
             logging.info("Found %s: %s", obj_name, item.name)
             return item, item_name
         else:
-            print("Couldn't find a %s with name %s. Perhaps try another? "
+            print("Couldn't find a %s with name %s. Perhaps try another? "  # noqa: T001
                   % (obj_name, item_name))
 
 

@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 
 
 class Interface(ABC):
@@ -132,7 +132,7 @@ class Interface(ABC):
         :rtype: str
         """
         for net_name, net_value in self.networks.items():
-            vals = set(k for k in net_value)
+            vals = {k for k in net_value}
             if network_label in vals:
                 return net_name
         self._log.error("Could not find type for network '%s'", network_label)
@@ -173,5 +173,5 @@ class Interface(ABC):
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
-               self.infra == other.infra and \
-               self.spec == other.spec
+            self.infra == other.infra and \
+            self.spec == other.spec

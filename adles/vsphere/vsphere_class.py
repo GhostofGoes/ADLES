@@ -1,6 +1,6 @@
 import logging
 
-from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
+from pyVim.connect import Disconnect, SmartConnect, SmartConnectNoSSL
 from pyVmomi import vim, vmodl
 
 from adles.vsphere.vsphere_utils import VsphereException
@@ -524,9 +524,9 @@ class Vsphere(object):
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) \
-               and self.hostname == other.hostname \
-               and self.port == other.port \
-               and self.username == other.username
+            and self.hostname == other.hostname \
+            and self.port == other.port \
+            and self.username == other.username
 
     def __ne__(self, other):
         return not self.__eq__(other)

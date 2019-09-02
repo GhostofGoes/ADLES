@@ -40,6 +40,6 @@ class CloudInterface(LibcloudInterface):
 
     def __eq__(self, other):
         return super(self.__class__, self).__eq__(other) \
-               and self.provider_name == other.provider_name \
-               and self.username == other.username \
-               and self.api_key == other.api_key
+            and self.provider_name == other.provider_name \
+            and self.username == other.username \
+            and self.api_key == other.api_key
