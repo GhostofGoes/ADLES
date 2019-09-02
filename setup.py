@@ -8,7 +8,7 @@ from setuptools import find_packages, setup
 about = {}
 info_file = os.path.join(os.path.dirname(__file__), "adles", "__about__.py")
 with open(info_file, encoding='utf-8') as f:
-    exec(f.read(), about)
+    exec(f.read(), about)  # nosec
 
 # Build the page that will be displayed on PyPI from the README and CHANGELOG
 with open('README.md', encoding='utf-8') as f:

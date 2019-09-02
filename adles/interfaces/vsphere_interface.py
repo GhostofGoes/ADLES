@@ -740,6 +740,6 @@ class VsphereInterface(Interface):
 
     def __eq__(self, other):
         return super(self.__class__, self).__eq__(other) and \
-               self.server == other.server and \
-               self.groups == other.groups and \
-               self.hosts == other.hosts
+            self.server == other.server and \
+            self.groups == other.groups and \
+            self.hosts == other.hosts

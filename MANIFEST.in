@@ -2,11 +2,11 @@ include LICENSE README.md CHANGELOG.md CONTRIBUTING.md NOTICE
 include docs/adles.1 tox.ini
 
 graft adles
+graft docs
 graft test
 graft examples
 graft specifications
 
-prune docs
 prune documentation
 prune misc
 
