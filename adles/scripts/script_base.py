@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import functools
 import logging
 
 from humanfriendly.prompts import prepare_friendly_prompts
@@ -7,7 +6,6 @@ from humanfriendly.prompts import prepare_friendly_prompts
 from adles.__about__ import __url__, __email__
 
 
-@functools.total_ordering
 class Script(ABC):
     """Base class for all CLI scripts."""
     __version__ = '0.1.0'

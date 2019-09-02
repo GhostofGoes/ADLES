@@ -41,9 +41,17 @@ Creating an environment using ADLES:
 .. code:: bash
 
 
-   adles -c my-competition.yaml
-   adles -m -s my-competition.yaml
-   adles -d -s my-competition.yaml
+   # Validate spec
+   adles validate my-competition.yaml
+
+   # Create Master images
+   adles masters my-competition.yaml
+
+   # Deploy the exercise
+   adles deploy my-competition.yaml
+
+   # Cleanup the environment
+   adles cleanup my-competition.yaml
 
 
 API Documentation
