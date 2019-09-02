@@ -21,8 +21,8 @@ script:
   - adles -v validate examples/edurange_total-recon.yaml
   - adles -v validate examples/pentest-tutorial.yaml
   - adles -v validate examples/firewall-tutorial.yaml
-  - adles -v -t infra validate infra.yaml
-  - adles -v -t exercise validate examples/experiment.yaml
+  - adles -v validate -t infra examples/infra.yaml
+  - adles -v validate -t exercise examples/experiment.yaml
   - adles --list-examples
   - adles --print-example competition
   - adles --print-spec exercise
