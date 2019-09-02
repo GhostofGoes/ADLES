@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
-import functools
 import logging
 
 
-@functools.total_ordering
 class Interface(ABC):
     """Base class for all Interfaces."""
 
