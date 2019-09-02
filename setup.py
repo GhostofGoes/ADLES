@@ -18,8 +18,8 @@ with open('CHANGELOG.md', encoding='utf-8') as f:
     long_description += f.read()
 
 install_requires = [
-    'pyyaml == 3.12',   # Specification parsing
-    'colorlog >= 3.1.4, < 4',  # Colored commandline output using logging
+    'pyyaml == 5.1.2',   # Specification parsing
+    'colorlog == 3.1.4',  # Colored commandline output using logging
     'tqdm == 4.19.6',  # Terminal progress bars
     'humanfriendly >= 4.12.1, < 5',  # User interface tools
 
