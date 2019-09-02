@@ -153,9 +153,6 @@ def make_vsphere(filename=None):
     :return: vSphere object
     :rtype: :class:`Vsphere`
     """
-    # TODO: cli args instead of filename
-    # e.g. "--vsphere-user" on all vsphere scripts,
-    # so ConfigArgParse can do it's thing globally
     from adles.vsphere.vsphere_class import Vsphere
     if filename is not None:
         info = read_json(filename)
@@ -185,7 +182,7 @@ def resolve_path(server, thing, prompt=""):
     :return: (thing, thing name)
     :rtype: tuple(vimtype, str)
     """
-    # TODO: use pathlib?
+    # TODO: use pathlib
     from adles.vsphere.vm import VM
     if thing.lower() == "vm":
         get = server.get_vm

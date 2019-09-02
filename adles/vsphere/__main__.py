@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# TODO: ConfigArgParse
-# TODO: Gooey
 import argparse
 import sys
 
@@ -32,9 +30,6 @@ def parse_args():
     )
     subparsers = parser.add_subparsers(title='vSphere scripts')
 
-    # TODO: cli args instead of filename
-    #   e.g. "--vsphere-user" on all vsphere scripts,
-    #   so ConfigArgParse can do it's thing globally.
     for s in VSPHERE_SCRIPTS:
         subp = subparsers.add_parser(name=s.name, help=s.__doc__)
         subp.set_defaults(script=s)

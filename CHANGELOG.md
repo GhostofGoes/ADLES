@@ -16,14 +16,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Overhauled Command line interface. It is now subcommand based.
 - Failing to import an optional dependency will now log an error instead
 of raising an exception and terminating execution.
-- Moved the remaining examples in the project root into `examples/`
 - Logs will not longer emit to a syslog server by default.
 Syslog server will now only be used if the parameter is set.
 - Behind the scenes changes to commandline argument parsing that will
 make adding future functionality easier and enable usage of other
 third-party libraries that use `argparse`.
-- Bumped `pyvmomi` version to 6.5
-- Bumped `colorlog` version to 3.1.4
+- Bumped dependency versions
 
 ### Removed
 - Dropped support for Python 2.7, 3.4, and 3.5
@@ -31,9 +29,11 @@ third-party libraries that use `argparse`.
 - Removed `Libvirt` and `HyperV` interfaces
 
 ### Dev
+- Added Tox for test running and linting
 - Added .editorconfig
 - Reorganized some documentation
 - Removed CodeClimate
+- Moved the remaining examples in the project root into `examples/`
 
 ## [1.3.6] - 2017-12-19
 ### Fixed

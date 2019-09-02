@@ -1,6 +1,5 @@
 import logging
 
-# import tqdm
 from pyVmomi import vim
 
 from adles.utils import split_path
