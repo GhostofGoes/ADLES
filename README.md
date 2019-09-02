@@ -57,7 +57,7 @@ adles deploy my-competition.yaml
 adles cleanup my-competition.yaml
 ```
 
-## Complete usage
+## Detailed usage
 ```bash
 usage: adles [-h] [--version] [-v] [--syslog SERVER] [--no-color]
              [--list-examples] [--print-spec NAME] [--print-example NAME]
@@ -98,6 +98,18 @@ ADLES Subcommands:
 
 ## vSphere Utility Scripts
 There are a number of utility scripts to make certain vSphere tasks bearable.
+
+```bash
+# Basic usage
+vsphere --help
+vsphere <script> --help
+vsphere <script --version
+
+# Running as a Python module
+python -m adles.vsphere --help
+```
+
+### Detailed usage
 ```bash
 usage: vsphere [-h] {cleanup,clone,power,info,snapshot} ...
 

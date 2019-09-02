@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.4.0] - 2019-XX-XX
 
 **Notable changes**
-- New CLI command syntax, checkout the Usage section in the README for details or `adles --help`
+- New CLI command syntax, run `adles --help` for details or checkout the Usage section in the README 
 - Consolidated the vSphere helper scripts (e.g. `vm-power`) into a single command, `vsphere` . For usage, run `vsphere --help`.
-- ADLES now requires Python 3.6+, which is included or easily installable on any modern Linux distribution.
+- ADLES now requires Python 3.6+, which is included or easily installable on any modern Linux distribution
 
 ### Added
 - The CLI can now be invoked a Python module (e.g. `python -m adles`, `python -m adles.vsphere`)
@@ -39,7 +39,8 @@ third-party libraries that use `argparse`.
 
 ### Dev
 - Added Tox for test running and linting
-- Added .editorconfig
+- Added `.editorconfig`
+- Added `.gitattributes`
 - Reorganized some documentation
 - Removed CodeClimate
 - Moved the remaining examples in the project root into `examples/`
