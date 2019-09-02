@@ -1,9 +1,6 @@
 import logging
 
 
-# TODO: user management overhaul
-
-
 class Group:
     """ Manages a group of users that has been loaded from a specification """
 

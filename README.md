@@ -21,10 +21,17 @@ Complete documentation can be found at [ReadTheDocs](https://adles.readthedocs.i
 
 # Getting started
 ```bash
+# Install
 pip3 install adles
+
+# Usage
 adles -h
+
+# Specification syntax
 adles --print-spec exercise
 adles --print-spec infra
+
+# Examples
 adles --list-examples
 adles --print-example competition
 ```

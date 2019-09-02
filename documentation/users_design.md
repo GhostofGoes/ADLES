@@ -1,11 +1,7 @@
 # Users and Groups
 Design of the user and group management and related things.
 
-
-
-
 Ingest methods: CSV, JSON, CLI prompts
-
 
 # Types
 Type: user
@@ -33,7 +29,6 @@ Users assigned to this group will be placed in *one* of the instances.
 Type: ad  (TODO: shelve these for now...)
 * name: Name of the AD group
 * domain: The domain the AD group belongs to (Optional)
-
 
 # Misc.
 * Spaces and other whitespace will be removed from all names and passwords
@@ -64,6 +59,3 @@ adles_output/
           ...
       ...
 ```
-
-
-
