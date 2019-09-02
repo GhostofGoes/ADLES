@@ -64,8 +64,8 @@ setup(
     include_package_data=True,
     zip_safe=False,
     keywords=[
-        'adles', 'virtualization', 'vmware', 'vsphere', 'pyvmomi',
-        'cybersecurity', 'education', 'radicl', 'deployment',
+        'virtualization', 'vmware', 'vsphere',
+        'cybersecurity', 'education', 'radicl',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

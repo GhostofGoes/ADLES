@@ -188,9 +188,8 @@ def setup_logging(filename: str, colors: bool = True,
     else:
         console = logging.StreamHandler(stream=sys.stdout)
 
-    if colors:  # Colored console output
+    if colors and "NO_COLOR" not in os.environ:
         try:
-            # noinspection PyUnresolvedReferences
             from colorlog import ColoredFormatter
             formatter = ColoredFormatter(fmt="%(log_color)s" + base_format,
                                          datefmt=time_format, reset=True)
@@ -198,16 +197,14 @@ def setup_logging(filename: str, colors: bool = True,
         except ImportError:
             logging.error("Colorlog is not installed. "
                           "Using STANDARD console output...")
-    else:  # Bland console output
-        logging.debug("Configured STANDARD console logging output")
     console.setFormatter(formatter)
     console.setLevel((logging.DEBUG if console_verbose else logging.INFO))
     logger.addHandler(console)
 
     # Warn if using old Python version
-    if python_version() < '3.5':
+    if python_version() < '3.6':
         logger.error("Python version %s is unsupported. "
-                     "Please use Python 3.5+ instead. "
+                     "Please use Python 3.6+ instead. "
                      "Proceed at your own risk!")
 
 

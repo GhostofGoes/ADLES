@@ -31,9 +31,3 @@ end_of_line = crlf
 
 [Vagrantfile]
 indent_size = 2
-
-# Ignore formatting for samples
-[**/tests/samples/**]
-indent_style = unset
-indent_size = unset
-end_of_line = unset

@@ -8,7 +8,7 @@ If you need help getting spun up on the VMware vSphere Python library, pyvmomi, 
 Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fright-pane.html).
 
 
-# Version 2 (2018)
+# Version 2
 **Focus**: The Cloud
 * Support for cloud platforms
 * Overhaul of internal design to support the changes in this and future releases
@@ -30,7 +30,7 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
     * Make the parser a class to enable passing of state between methods
     * Add type checking to _checker()
     * Check if networks, services, groups, and resources are properly configured and matched.
-    * Verify group existance
+    * Verify group existence
 
 #### Minor
 * Add ability to load configurations from a file (for main and scripts, INI/JSON/other)
@@ -48,11 +48,9 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
 * Performance improvements (subprocess, vsphere tweaks)
 * Flag for selective toggling of parts of specifications where it would be useful to do
    so without having to remove or comment out the content, e.g a folder.
-* ~~Remove Hyper-V and Libvirt~~
-* Bump versions of classes and project
 * Fix base classes to import from `module`, which is the new and recommended style
 * Subprocess the API calls by the Interface to its composite interfaces (e.g vSphere, Docker, etc).
-That way they can run independantly and improve usage of network resources.
+That way they can run independently and improve usage of network resources.
 
 ## Tests
 * Add functional tests for the main `adles` script (using [`bats`](https://github.com/sstephenson/bats)).
@@ -62,17 +60,15 @@ That way they can run independantly and improve usage of network resources.
 * Unit tests for group
 
 ## Project
-* Setup and use [waffle.io](https://waffle.io/) project management board.
 * Automated GitHub releases: tag, zip, wheel, changelog
 * Overhaul Travis: deploy, testing platforms, test scripts, etc.
 
 ## Documentation
 #### Minor
-* Move TODO into docs/ or documentation/
 * Ensure ReadTheDocs is being auto-generated properly when code changes are made
-* Update supported and tested platforms, Python versions
-* Triple/quadruple nested folder exercise example
-* Add a "Contributing" (Hacking?) section: how to setup development environment, contribute, etc.
+* Update supported and tested platforms
+* Triple and quadruple nested folder exercise examples
+* Add a "Contributing" (Hacking?) section to the docs (in addition to CONTRIBUTING.md)
 * Add a "Tutorial" section, walk through usage at a high level
 * Add a "FAQ" section
 * Add a "Examples" section
@@ -83,10 +79,9 @@ That way they can run independantly and improve usage of network resources.
 * Link to Terminology section from docs, e.g "Master", "Template", etc.
 
 #### Major
-* ~~Convert project README to Markdown, since PyPI supports it now~~
 * Introduction that outlines philosophy of project, clarifies where this
  and other systems (e.g. Salt Stack, etc.) differ, what the primary purpose is.
- Need to be percise and explicit. Address concerns raised at defense.
+ Need to be precise and explicit. Address concerns raised at defense.
 * Add a "Design and Architecture" section with overall design of ADLES
 * Add several sections on how to write specifications
 * Improve documentation of classes
@@ -101,7 +96,7 @@ That way they can run independantly and improve usage of network resources.
     * Greater variety of tutorials
 
 
-# Version 3 (2019)
+# Version 3
 **Focus**: Rounding out the core
 * Implementing remaining core features: Packages, Provisioning
 * Full Test coverage
@@ -116,7 +111,7 @@ That way they can run independantly and improve usage of network resources.
 * Full support for provisioning
     * Additions and improvements to the specifications for provisioning
     * Utilize a provisioner in the backend (Puppet, Chef, Ansible, or another)
-    * Update installation to include tooling neccessary for provisioning
+    * Update installation to include tooling necessary for provisioning
 
 ### Minor
 * Implement Active-Directory support for vSphere authentication of specified Groups
@@ -134,7 +129,7 @@ That way they can run independantly and improve usage of network resources.
 ## Documentation
 * Auto-generation of Man page
 * Put READMEs in sub-directories with code, e.g for Vsphere, include in doc build?
-* How to extend specificiation and implement the extension to the specification
+* How to extend specification and implement the extension to the specification
  (e.g. adding a new section to the syntax of one of the core specifications
  that implements a in-house custom or add-on tool)
 * Package specification example
@@ -142,7 +137,7 @@ That way they can run independantly and improve usage of network resources.
 * Add subsections for creating packages, syntax, examples, full API and spec
 
 
-# Version 4 (2019)
+# Version 4
 **Focus**: Expanding the feature set
 * Adding Host platform support
 * Adding new features
@@ -156,12 +151,12 @@ That way they can run independantly and improve usage of network resources.
     * Dockerfile that builds a lightweight Docker image running the system
 
 
-# Version 5 (2020)
+# Version 5
 **Focus**: Transforming the user experience
 
 ## Features
 * Addition of a standalone server module
-    * Seperate GitHub project that depends on ADLES
+    * Separate GitHub project that depends on ADLES
     * Web-based GUI
         * Create and manage exercises
         * Monitor running exercises
@@ -174,10 +169,10 @@ That way they can run independantly and improve usage of network resources.
        cyber-physical testbeds, connected labs, and monitoring components if their corresponding
        extensions are implemented.
 * Setup a cloud-hosted public repository of packages
-    * Source code for this repository in a seperate GitHub project
+    * Source code for this repository in a separate GitHub project
 
 
-# Version 6 (2020-2021)
+# Version 6
 **Focus**: Extending the specifications
 
 ## Features

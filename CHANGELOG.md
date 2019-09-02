@@ -6,12 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [1.4.0] - TODO-XX-XX
 ### Added
-- The CLI can now be ran a module (e.g. `python -m adles`, `python -m adles.vsphere`)
-- New argument: `--syslog-server`. Configures saving of log output to the specified Syslog server.
+- The CLI can now be invoked a Python module (e.g. `python -m adles`, `python -m adles.vsphere`)
+- New argument: `--syslog`. Configures saving of log output to the specified Syslog server.
 - Added progress bars to: `clone-vms`, `vm-power`, `vm-snapshots`
-- Added compatibility warnings for unsupported Python versions
-- New dependency: [tqdm](https://github.com/tqdm/tqdm)
-- New dependency: [humanfriendly](https://pypi.org/project/humanfriendly/)
+- Support the `NO_COLOR` environment variable (per [no-color.org](https://no-color.org/))
+- New dependencies: [tqdm](https://github.com/tqdm/tqdm) and [humanfriendly](https://pypi.org/project/humanfriendly/)
 
 ### Changed
 - Overhauled Command line interface. It is now subcommand based.
@@ -22,7 +21,7 @@ of raising an exception and terminating execution.
 Syslog server will now only be used if the parameter is set.
 - Behind the scenes changes to commandline argument parsing that will
 make adding future functionality easier and enable usage of other
-third-party librareis that use `argparse`.
+third-party libraries that use `argparse`.
 - Bumped `pyvmomi` version to 6.5
 - Bumped `colorlog` version to 3.1.4
 
@@ -31,6 +30,10 @@ third-party librareis that use `argparse`.
 - Removed dependency: `netaddr`
 - Removed `Libvirt` and `HyperV` interfaces
 
+### Dev
+- Added .editorconfig
+- Reorganized some documentation
+- Removed CodeClimate
 
 ## [1.3.6] - 2017-12-19
 ### Fixed
