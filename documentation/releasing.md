@@ -4,27 +4,28 @@ python -m venv ./venv
 source ./venv/bin/activate
 ```
 
-If `twine` isn't installed, get it: `pip install -U twine`
-
 Release steps:
 1. Increment version number in `adles/__about__.py`
 2. Update CHANGELOG header from UNRELEASED to the version and add the date
 3. Run static analysis and lint checks: `tox -e check`
 4. Run the test suite: `tox`
-5. Ensure a pip install from source works on the main platforms:
+5. Ensure a pip install from GitHub source works:
 ```bash
 pip install https://github.com/ghostofgoes/adles/archive/master.tar.gz
 ```
 6. Clean the environment: `bash scripts/clean.sh`
 7. Build the wheels
+If wheel isn't installed, get it: `pip install -U wheel setuptools`
 ```bash
 python setup.py sdist bdist_wheel --universal
 ```
 8. Upload the wheels
+If `twine` isn't installed, get it: `pip install -U twine`
 ```bash
 twine upload dist/*
 ```
 9. Build the Debian package
+See `packaging.md` for details on required tools and setup.
 ```bash
 python setup.py --command-packages=stdeb.command bdist_deb
 ```

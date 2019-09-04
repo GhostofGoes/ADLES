@@ -7,6 +7,8 @@ find . -name '*~' -delete
 
 rm -rf build/
 rm -rf dist/
+rm -rf deb_dist/
+rm -f ./ADLES-*.tar.gz
 rm -rf *.egg
 rm -rf *.egg-info
 
@@ -14,4 +16,5 @@ rm -rf .tox/
 rm -rf .pytest_cache/
 rm -rf .mypy_cache/
 rm -rf htmlcov
-rm -f .coverage.coverage
+rm -f .coverage
+rm -f ./*.log

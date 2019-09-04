@@ -17,8 +17,11 @@ automation/vsphere.yaml
 **/*-logins.json
 
 # Packaging
+/deb_dist
 pip-packages/
-*.zip
+/*.zip
+/*.tar.gz
+/*.tgz
 
 # Notepad++ backups
 *.bak
