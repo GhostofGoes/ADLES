@@ -23,22 +23,22 @@ def test_pad():
 
 
 def test_split_path():
-    from adles.utils import split_path
-
+    # from adles.utils import split_path
     # TODO: fix case-sensitivity on Windows!
     # assert split_path('/path/To/A/file') == (['path', 'To', 'A'], 'file')
     # TODO: fix
     # assert split_path('') == ([''], '')
     # TODO: fix
     # assert split_path('/') == (['', ''], '')
+    pass
 
 
 def test_get_vlan():
-    from adles.utils import get_vlan
-
+    # from adles.utils import get_vlan
     # todo: fix "'>=' not supported between instances of 'generator' and 'int"
     # assert get_vlan() >= 2000
     # assert get_vlan() <= 4096
+    pass
 
 
 def test_read_json():
