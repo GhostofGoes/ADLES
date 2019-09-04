@@ -68,12 +68,3 @@ class PlatformInterface(Interface):
         self._log.info("Cleaning up environment for %s", self.metadata["name"])
         for i in self.interfaces:
             i.cleanup_masters(network_cleanup=network_cleanup)
-
-    def __getitem__(self, item):
-        return self.interfaces[item]
-
-    def __len__(self):
-        return len(self.interfaces)
-
-    def __reversed__(self):
-        return self.interfaces[::-1]

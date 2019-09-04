@@ -154,16 +154,17 @@ See ``setup.py`` for specific versions
 * vCenter Server: 6.0+
 * ESXi: 6.0+
 
-# Contributing
-Contributors are more than welcome!
-See the [contribution guide](CONTRIBUTING.md) to get started,
-and checkout the [todo list](TODO.md) for a full list of tasks and bugs.
+# Reporting issues and getting help
+If there is a bug in ADLES or you run into issues getting it working, please open an [issue on GitHub](https://github.com/GhostofGoes/ADLES/issues). I'm happy to help, though it may take a few days to a week for me to respond. If it's time-sensitive (I know the feeling well), feel free to contact me directly (see below).
+ 
+If you have general questions, want help with using ADLES for your project or students, or just want to discuss the project, drop me a line via email (`adles/__about__.py`), Twitter (@GhostOfGoes), or on Discord (@KnownError). The [Python Discord server](https://discord.gg/python) is a good place
+to ask questions or discuss the project.
 
-The [Python Discord server](https://discord.gg/python) is a good place
-to ask questions or discuss the project (Handle: @KnownError).
+# Contributing
+Contributors are more than welcome! See the [contribution guide](CONTRIBUTING.md) to get started, and checkout the [TODO list](TODO.md) and [GitHub issues](https://github.com/GhostofGoes/ADLES/issues) for a full list of tasks and bugs.
 
 ## Contributors
-* Christopher Goes (ghostofgoes)
+* Christopher Goes (@GhostOfGoes)
 * Daniel Conte de Leon (dcontedeleon)
 
 # Goals and TODO
