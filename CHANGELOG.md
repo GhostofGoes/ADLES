@@ -4,12 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.4.0] - 2019-XX-XX
+## [1.4.0] - 2019-09-04
 
 **Notable changes**
 - New CLI command syntax, run `adles --help` for details or checkout the Usage section in the README 
 - Consolidated the vSphere helper scripts (e.g. `vm-power`) into a single command, `vsphere` . For usage, run `vsphere --help`.
-- ADLES now requires Python 3.6+, which is included or easily installable on any modern Linux distribution
+- **ADLES now requires Python 3.6+**. It is included or easily installable on any modern Linux distribution, Windows, and OSX.
 
 ### Added
 - The CLI can now be invoked a Python module (e.g. `python -m adles`, `python -m adles.vsphere`)
@@ -34,8 +34,8 @@ third-party libraries that use `argparse`.
 
 ### Removed
 - Dropped support for Python < 3.6
-- Removed dependency: `netaddr`
 - Removed `Libvirt` and `HyperV` interfaces
+- Removed dependency: `netaddr`
 
 ### Dev
 - Added Tox for test running and linting
