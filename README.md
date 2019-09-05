@@ -2,6 +2,7 @@
 [![Latest version on PyPI](https://badge.fury.io/py/ADLES.svg)](https://pypi.org/project/ADLES/)
 [![Travis CI build status](https://travis-ci.org/GhostofGoes/ADLES.svg?branch=master)](https://travis-ci.org/GhostofGoes/ADLES)
 [![Documentation](https://readthedocs.org/projects/adles/badge/)](http://adles.readthedocs.io/en/latest/)
+[![Monthly PyPI Downloads](https://pepy.tech/badge/adles/month)](https://pepy.tech/project/adles/month)
 [![DOI Reference](https://zenodo.org/badge/68841026.svg)](https://zenodo.org/badge/latestdoi/68841026)
 
 
