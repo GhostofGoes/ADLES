@@ -9,9 +9,9 @@ The goal of the system is to enable educators to easily build environments for t
 without the need for a specific platform or advanced IT knowledge.
 
 
-Complete documentation can be found at ReadTheDocs: https://adles.readthedocs.io
+Complete documentation can be found at ReadTheDocs: [adles.readthedocs.io](https://adles.readthedocs.io)
 
-Publication describing the system: https://doi.org/10.1016/j.cose.2017.12.007
+Publication describing the system: [doi.org](https://doi.org/10.1016/j.cose.2017.12.007)
 
 
 ## Getting started
@@ -43,10 +43,7 @@ adles -d -s my-competition.yaml
 
 ## Requirements
 
-**Python**:
-
-* 3.4+     (Recommended)
-* 2.7.6+   (Will be deprecated in the future)
+Python: 3.5+
 
 ADLES will run on any platform supported by Python. It has been tested on:
 
@@ -62,6 +59,11 @@ ADLES will run on any platform supported by Python. It has been tested on:
 * vCenter Server: 6.0+
 * ESXi: 6.0+
 
+
+# License
+This project is licensed under the Apache License, Version 2.0. See
+LICENSE for the full license text, and NOTICES for attributions to
+external projects that this project uses code from.
 
 
 # Project History

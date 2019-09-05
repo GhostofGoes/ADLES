@@ -1,19 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""vsphere_testing.
+Used to experiment and test the Vsphere class.
 
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+Has (rather poor) examples of API usage.
 
-"""vsphere_testing. Used to experiment and test the Vsphere class. Has examples of API usage.
+adles/scripts/ contains more examples of usage of the vSphere API methods.
 
 Usage:
     vsphere_testing.py [-v] [options]
@@ -29,14 +20,16 @@ Options:
 
 """
 
-from docopt import docopt
+# from docopt import docopt
+#
+# from adles.vsphere.vsphere_class import Vsphere
+# from adles.utils import get_args
+# from adles.scripts.script_utils import script_setup
+#
+# args = get_args(__doc__, Vsphere.__version__, 'vsphere_examples.log')
+# server = script_setup(args=args, script_info=(__file__, Vsphere.__version__))
 
-from adles.vsphere.vsphere_class import Vsphere
-from adles.utils import script_setup
-
-args = docopt(__doc__, version=Vsphere.__version__, help=True)
-server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version__))
-
+# TODO: improve and codify this in the docs
 
 # test = server.find_by_inv_path("vm/cgoes_testing/script_testing/monkeys/test-vm")
 # print(test.get_info())
@@ -45,7 +38,7 @@ server = script_setup('vsphere_testing.log', args, (__file__, Vsphere.__version_
 # print(test2)
 
 # folder = server.get_folder("monkeys")
-# folder.create("HAHAHAHhaHAHhaHA (hi)")
+# folder.create("(hi)")
 # print(folder.enumerate())
 
 # from adles.vsphere.vm import VM

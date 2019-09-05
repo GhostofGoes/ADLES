@@ -1,23 +1,9 @@
-# -*- coding: utf-8 -*-
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
+from abc import ABC, abstractmethod
 
 
-class Interface:
+class Interface(ABC):
     """Base class for all Interfaces."""
-    __version__ = "1.2.0"
 
     # Names/prefixes
     master_prefix = "(MASTER) "
@@ -28,7 +14,7 @@ class Interface:
         :param dict infra: Full infrastructure configuration
         :param dict spec: Full exercise specification
         """
-        self._log = logging.getLogger(str(self.__class__))
+        self._log = logging.getLogger(self.__class__.__name__)
         self.infra = infra      # Save the infrastructure configuration
         self.spec = spec        # Save the exercise specification
         self.metadata = spec["metadata"]    # Save the exercise spec metadata
@@ -38,14 +24,17 @@ class Interface:
         self.thresholds = {}    # Thresholds for platforms
         self.groups = {}        # Groups for platforms
 
+    @abstractmethod
     def create_masters(self):
         """Master creation phase."""
         pass
 
+    @abstractmethod
     def deploy_environment(self):
         """Environment deployment phase."""
         pass
 
+    @abstractmethod
     def cleanup_masters(self, network_cleanup=False):
         """
         Cleans up master instances.
@@ -54,6 +43,7 @@ class Interface:
         """
         pass
 
+    @abstractmethod
     def cleanup_environment(self, network_cleanup=False):
         """
         Cleans up a deployed environment.
@@ -142,7 +132,7 @@ class Interface:
         :rtype: str
         """
         for net_name, net_value in self.networks.items():
-            vals = set(k for k in net_value)
+            vals = {k for k in net_value}
             if network_label in vals:
                 return net_name
         self._log.error("Could not find type for network '%s'", network_label)
@@ -183,8 +173,5 @@ class Interface:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
-               self.infra == other.infra and \
-               self.spec == other.spec
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+            self.infra == other.infra and \
+            self.spec == other.spec

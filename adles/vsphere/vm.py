@@ -1,23 +1,9 @@
-# -*- coding: utf-8 -*-
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 import os
 
 from pyVmomi import vim
 
-import adles.utils as utils
+from adles import utils
 from adles.vsphere.folder_utils import find_in_folder
 
 
@@ -28,7 +14,6 @@ class VM:
     .. warning::    You must call :meth:`create` if a vim.VirtualMachine object
                     is not used to initialize the instance.
     """
-    __version__ = "0.10.0"
 
     def __init__(self, vm=None, name=None, folder=None, resource_pool=None,
                  datastore=None, host=None):
@@ -195,7 +180,7 @@ class VM:
         :param int cpus: Number of CPUs
         :param int cores: Number of CPU cores
         :param int memory: Amount of RAM in MB
-        :param int max_consoles: Maximum number of simultaneous 
+        :param int max_consoles: Maximum number of simultaneous
         Mouse-Keyboard-Screen (MKS) console connections
         """
         spec = vim.vm.ConfigSpec()
@@ -261,7 +246,7 @@ class VM:
         :param str password: Plaintext password for the User
         [default: prompt user]
         :param str program_args: Commandline arguments for the program
-        :return: Program Process ID (PID) if it was executed successfully, 
+        :return: Program Process ID (PID) if it was executed successfully,
         -1 if not
         :rtype: int
         """
@@ -342,7 +327,7 @@ class VM:
         """Removes the named snapshot from the VM.
         :param str snapshot: Name of the snapshot to remove
         :param bool remove_children: Removal of the entire snapshot subtree
-        :param bool consolidate_disks: Virtual disks of deleted snapshot 
+        :param bool consolidate_disks: Virtual disks of deleted snapshot
         will be merged with other disks if possible
         """
         self._log.info("Removing snapshot '%s' from '%s'", snapshot, self.name)
@@ -351,7 +336,7 @@ class VM:
 
     def remove_all_snapshots(self, consolidate_disks=True):
         """Removes all snapshots associated with the VM.
-        :param bool consolidate_disks: Virtual disks of the deleted snapshot 
+        :param bool consolidate_disks: Virtual disks of the deleted snapshot
         will be merged with other disks if possible
         """
         self._log.info("Removing ALL snapshots for %s", self.name)
@@ -364,13 +349,13 @@ class VM:
         :param str summary: Human-readable device info
         [default: default-summary]
         :param str model: Model of virtual network adapter.
-        Options: (e1000 | e1000e | vmxnet | vmxnet2 
+        Options: (e1000 | e1000e | vmxnet | vmxnet2
         | vmxnet3 | pcnet32 | sriov)
-        e1000 will work on Windows Server 2003+, 
+        e1000 will work on Windows Server 2003+,
         and e1000e is supported on Windows Server 2012+.
-        VMXNET adapters require VMware Tools to be installed, 
+        VMXNET adapters require VMware Tools to be installed,
         and provide enhanced performance.
-        `Read this for more details: 
+        `Read this for more details:
         <http://rickardnobel.se/vmxnet3-vs-e1000e-and-e1000-part-1/>`_
         """
         if not isinstance(network, vim.Network):
@@ -667,7 +652,7 @@ class VM:
         """
         for dev in self._vm.config.hardware.device:
             if isinstance(dev, vim.vm.device.VirtualDisk) and \
-                            dev.deviceInfo.label.lower() == name.lower():
+                    dev.deviceInfo.label.lower() == name.lower():
                 return dev
         return None
 
@@ -905,7 +890,8 @@ class VM:
 
     def _customize(self, customization):
         """Customizes the VM using the given customization specification.
-        :param vim.vm.customization.Specification customization: The customization specification to apply
+        :param vim.vm.customization.Specification customization:
+            The customization specification to apply
         :return: If the customization was successful
         :rtype: bool
         """
@@ -926,7 +912,7 @@ class VM:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.name == other.name \
-               and hash(self) == hash(other)
+            and hash(self) == hash(other)
 
     def __ne__(self, other):
         return not self.__eq__(other)

@@ -3,10 +3,11 @@
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
 # Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
 # Creation Date:    March 29th, 2017
-# Current Version:  0.2.0
+# Current Version:  0.3.0
 # Changelog:
 #   0.1.0:  Created
 #   0.2.0:  Removed "payloads", added "results"
+#   0.3.0:  Added "spec-type" and "spec-version"
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -21,6 +22,9 @@
 # VM    Virtual Machine
 # YAML  Yaml Ain't Markup Language, a file format syntax (http://yaml.org/spec/1.1/)
 # JSON  JavaScript Object Notation, a file format syntax (http://www.json.org/)
+
+spec-type: 'package'
+spec-version: '0.3.0'
 
 metadata:
   timestamp: "date"   # REQUIRED   Date package was created in UTC format: YYYY-MM-DD

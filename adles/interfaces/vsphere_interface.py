@@ -1,45 +1,30 @@
-# -*- coding: utf-8 -*-
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
-import sys
-import os.path
+import os
 
-from adles.vsphere.folder_utils import format_structure
-from adles.utils import pad, read_json, is_folder, is_vm, get_vlan
+from adles.interfaces import Interface
+from adles.utils import get_vlan, pad, read_json
 from adles.vsphere import Vsphere
+from adles.vsphere.folder_utils import format_structure
 from adles.vsphere.network_utils import create_portgroup
 from adles.vsphere.vm import VM
-from adles.interfaces import Interface
+from adles.vsphere.vsphere_utils import VsphereException, is_folder, is_vm
 
 
 class VsphereInterface(Interface):
     """Generic interface for the VMware vSphere platform."""
-    __version__ = "1.0.7"
 
     def __init__(self, infra, spec):
         """
         .. warning:: The infrastructure and spec are assumed to be valid,
-        therefore checks on key existence and types are NOT performed 
+        therefore checks on key existence and types are NOT performed
         for REQUIRED elements.
 
         :param dict infra: Infrastructure information
         :param dict spec: The parsed exercise specification
         """
-        super(self.__class__, self).__init__(infra=infra, spec=spec)
+        super(VsphereInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
-        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
+        self._log.debug("Initializing %s", self.__class__)
         self.master_folder = None
         self.template_folder = None
         # Used to do lookups of Generic networks during deployment
@@ -93,7 +78,7 @@ class VsphereInterface(Interface):
             if not self.server_root:
                 self._log.error("Could not find server-root folder '%s'",
                                 infra["server-root"])
-                sys.exit(1)
+                raise VsphereException("Could not find server root folder")
         else:  # Default to Datacenter VM folder
             self.server_root = self.server.datacenter.vmFolder
         self._log.info("Server root folder: %s", self.server_root.name)
@@ -116,7 +101,7 @@ class VsphereInterface(Interface):
             if not self.root_folder:
                 self._log.error("Could not create root folder '%s'",
                                 self.root_name)
-                sys.exit(1)
+                raise VsphereException("Could not create root folder")
         self._log.info("Environment root folder: %s", self.root_folder.name)
 
         # Set default vSwitch name
@@ -344,9 +329,9 @@ class VsphereInterface(Interface):
         """
         Creates a network as part of the Master creation phase.
 
-        :param str net_type: Top-level type of the network 
+        :param str net_type: Top-level type of the network
         (unique | generic | base)
-        :param bool default_create: Whether to create networks 
+        :param bool default_create: Whether to create networks
         if they don't already exist
         """
         # Pick up any recent changes to the host's network status
@@ -373,13 +358,13 @@ class VsphereInterface(Interface):
 
     def _configure_nics(self, vm, networks, instance=None):
         """
-        Configures Virtual Network Interfaces Cards (vNICs) 
+        Configures Virtual Network Interfaces Cards (vNICs)
         for a service instance.
 
         :param vm: Virtual Machine to configure vNICs on
         :type vm: vim.VirtualMachine
         :param list networks: List of networks to configure
-        :param int instance: Current instance of a folder 
+        :param int instance: Current instance of a folder
         for Deployment purposes
         """
         self._log.info("Editing NICs for VM '%s'", vm.name)
@@ -435,7 +420,7 @@ class VsphereInterface(Interface):
                             "has been run and the folder exists "
                             "before attempting Deployment",
                             self.master_root_name)
-            sys.exit(1)
+            raise VsphereException("Could not find Master folder")
         self._log.debug("Master folder name: %s\tPrefix: %s",
                         self.master_folder.name, self.master_prefix)
 
@@ -652,7 +637,7 @@ class VsphereInterface(Interface):
         """
         Checks if a service instance is defined as a vSphere service.
 
-        :param str service_name: Name of the service to lookup in 
+        :param str service_name: Name of the service to lookup in
         list of defined services
         :return: If a service is a vSphere-type service
         :rtype: bool
@@ -667,10 +652,10 @@ class VsphereInterface(Interface):
     def _get_net(self, name, instance=-1):
         """
         Resolves network names. This is mainly to handle generic-type networks.
-        If a generic network does not exist, it is created and added to 
+        If a generic network does not exist, it is created and added to
         the interface lookup table.
         :param str name: Name of the network
-        :param int instance: Instance number 
+        :param int instance: Instance number
 
         .. note:: Only applies to generic-type networks
 
@@ -718,7 +703,7 @@ class VsphereInterface(Interface):
         """
         Cleans up any master instances.
 
-        :param bool network_cleanup: If networks should be cleaned up 
+        :param bool network_cleanup: If networks should be cleaned up
         """
         # Get the folder to cleanup in
         master_folder = self.root_folder.find_in(self.master_root_name)
@@ -741,10 +726,10 @@ class VsphereInterface(Interface):
         """
         Cleans up a deployed environment.
 
-        :param bool network_cleanup: If networks should be cleaned up 
+        :param bool network_cleanup: If networks should be cleaned up
         """
         # Get the root environment folder to cleanup in
-        enviro_folder = self.root_folder
+        # enviro_folder = self.root_folder
 
         # Cleanup networks
         if network_cleanup:
@@ -755,6 +740,6 @@ class VsphereInterface(Interface):
 
     def __eq__(self, other):
         return super(self.__class__, self).__eq__(other) and \
-               self.server == other.server and \
-               self.groups == other.groups and \
-               self.hosts == other.hosts
+            self.server == other.server and \
+            self.groups == other.groups and \
+            self.hosts == other.hosts

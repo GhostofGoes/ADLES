@@ -1,42 +1,26 @@
-# -*- coding: utf-8 -*-
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 
 try:
     import docker  # NOTE(cgoes): has not been tested with Python 3.6 yet
-except ImportError as ex:
+except ImportError:
     logging.error("Could not import docker module. "
                   "Install it using 'pip install docker'")
-    raise ex
 
-import adles.utils as utils
+from adles import utils
 from adles.interfaces import Interface
 
 
 class DockerInterface(Interface):
     """Generic interface for the Docker platform."""
-    __version__ = "0.2.2"
 
     def __init__(self, infra, spec):
         """
         :param dict infra: Dict of infrastructure information
         :param dict spec: Dict of a parsed specification
         """
-        super(self.__class__, self).__init__(infra=infra, spec=spec)
+        super(DockerInterface, self).__init__(infra=infra, spec=spec)
         self._log = logging.getLogger(str(self.__class__))
-        self._log.debug("Initializing %s %s", self.__class__, self.__version__)
+        self._log.debug("Initializing %s", self.__class__)
 
         # If needed, a wrapper class that simplifies
         # the creation of containers will be made
@@ -82,4 +66,4 @@ class DockerInterface(Interface):
 
     def __eq__(self, other):
         return super(self.__class__, self).__eq__(other) \
-               and self.client == other.client
+            and self.client == other.client

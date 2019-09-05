@@ -1,7 +1,7 @@
 Cybersecurity Environment Automation
-Copyright 2016-2017 Christopher Goes.
+Copyright 2016-2019 Christopher Goes.
 
 This software contains code derived from the pyvmomi-community-samples project, which is Copyright 2014 VMware Inc. 
-Contributers to those samples used include: Michael Rice, Chinmaya Bharadwaj, Dann Bohn, Jose Manuel Lopez, Nathan Prziborowski, nickcooper-zhangtonghao. 
+Contributors to those samples used include: Michael Rice, Chinmaya Bharadwaj, Dann Bohn, Jose Manuel Lopez, Nathan Prziborowski, nickcooper-zhangtonghao.
 A good-faith effort has been made to include links to the original sources when used.
 pyvmomi-community-samples can be found here: https://github.com/vmware/pyvmomi-community-samples

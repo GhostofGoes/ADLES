@@ -5,7 +5,7 @@ metadata:
   prefix: "total-recon"
   date-created: "2017-02-16"
   version: "0.2.1"
-  infra-file: "infra.yaml"
+  infra-file: "examples/infra.yaml"
   folder-name: "EduRange"
 
 groups:

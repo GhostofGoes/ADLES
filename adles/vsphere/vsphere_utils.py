@@ -1,24 +1,16 @@
-# -*- coding: utf-8 -*-
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 from time import sleep, time
 
 from pyVmomi import vim
 
+from adles.utils import read_json, user_input
+
 SLEEP_INTERVAL = 0.05
 LONG_SLEEP = 1.0
+
+
+class VsphereException(Exception):
+    pass
 
 
 def wait_for_task(task, timeout=60.0, pause_timeout=True):
@@ -27,8 +19,8 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
 
     :param task: The task to wait for
     :type task: vim.Task
-    :param float timeout: Number of seconds to wait before terminating task 
-    :param bool pause_timeout: Pause timeout counter while task 
+    :param float timeout: Number of seconds to wait before terminating task
+    :param bool pause_timeout: Pause timeout counter while task
     is queued on server
     :return: Task result information (task.info.result)
     :rtype: str or None
@@ -104,6 +96,7 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
                       "resource %s is in use", name, obj)
     return None
 
+
 # This line allows calling "<task>.wait(<params>)"
 # instead of "wait_for_task(task, params)"
 #
@@ -147,4 +140,83 @@ def get_datastore_info(ds_obj):
     info_string += "Hosts                 : %d\n" % len(ds_obj.host)
     info_string += "Virtual Machines      : %d" % len(ds_obj.vm)
     return info_string
+
+
 vim.Datastore.get_info = get_datastore_info
+
+
+def make_vsphere(filename=None):
+    """
+    Creates a vSphere object using either a JSON file or by prompting the user.
+
+    :param str filename: Name of JSON file with connection info
+    :return: vSphere object
+    :rtype: :class:`Vsphere`
+    """
+    from adles.vsphere.vsphere_class import Vsphere
+    if filename is not None:
+        info = read_json(filename)
+        if info is None:
+            raise VsphereException("Failed to create vSphere object")
+        return Vsphere(username=info.get("user"),
+                       password=info.get("pass"),
+                       hostname=info.get("host"),
+                       port=info.get("port", 443),
+                       datacenter=info.get("datacenter"),
+                       datastore=info.get("datastore"))
+    else:
+        logging.info("Enter information to connect to the vSphere environment")
+        datacenter = input("Datacenter  : ")
+        datastore = input("Datastore   : ")
+        return Vsphere(datacenter=datacenter, datastore=datastore)
+
+
+def resolve_path(server, thing, prompt=""):
+    """
+    This is a hacked together script utility to get folders or VMs.
+
+    :param server: Vsphere instance
+    :type server: :class:`Vsphere`
+    :param str thing: String name of thing to get (folder | vm)
+    :param str prompt: Message to display
+    :return: (thing, thing name)
+    :rtype: tuple(vimtype, str)
+    """
+    # TODO: use pathlib
+    from adles.vsphere.vm import VM
+    if thing.lower() == "vm":
+        get = server.get_vm
+    elif thing.lower() == "folder":
+        get = server.get_folder
+    else:
+        logging.error("Invalid thing passed to resolve_path: %s", thing)
+        raise ValueError
+    res = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
+                     lambda x: server.find_by_inv_path("vm/" + x)
+                     if '/' in x else get(x))
+    if thing.lower() == "vm":
+        return VM(vm=res[0]), res[1]
+    else:
+        return res
+
+
+def is_folder(obj):
+    """
+    Checks if object is a vim.Folder.
+
+    :param obj: The object to check
+    :return: If the object is a folder
+    :rtype: bool
+    """
+    return hasattr(obj, "childEntity")
+
+
+def is_vm(obj):
+    """
+    Checks if object is a vim.VirtualMachine.
+
+    :param obj: The object to check
+    :return: If the object is a VM
+    :rtype: bool
+    """
+    return hasattr(obj, "summary")

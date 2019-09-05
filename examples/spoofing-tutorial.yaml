@@ -5,7 +5,7 @@ metadata:
   prefix: "CS439"
   date-created: "2016-11-06"
   version: "0.6.1"
-  infra-file: "infra.yaml"
+  infra-file: "examples/infra.yaml"
   folder-name: "CS-439/TR-01/TU-03"  # CS 439, Tutorial Round 1,Tutorial 03
 
 groups:

@@ -1,9 +1,13 @@
 # Specification of syntax for file for describing the infrastructure used by ADLES to create virtual educational environments.
 # ADLES:            https://pypi.python.org/pypi/ADLES
 # Format:           YAML 1.1 (See: http://yaml.org/spec/1.1/)
-# Author:           Christopher Goes <goes8945@vandals.uidaho.edu>
+# Author:           Christopher Goes <goesc@acm.org>
 # Creation Date:    February 6th, 2017
-# Current Version:  1.6.0
+# Current Version:  1.8.0
+# Changelog:
+#   1.7.0 : Removed libvirt, hyper-v
+#   1.8.0 : Added "spec-type" and "spec-version"
+
 
 # *** Labels for syntactic components ***
 # Children do not have to be specified if parent is not defined
@@ -14,6 +18,8 @@
 # Optional      Do not have to be specified
 # Option X      One of the options specified at that level must be defined. Not doing so is a parse-time error
 
+spec-type: 'infrastructure'
+spec-version: '1.8.0'
 
 # VMware vSphere
 vmware-vsphere:
@@ -44,19 +50,7 @@ docker:
 
 # Cloud platforms
 cloud:
-  provider: "provider"      # REQUIRED    Provider from list of Apache libcloud Compute providers (http://bit.ly/2tACoIM)
+  provider: "provider"      # REQUIRED    Provider from list of Apache Libcloud Compute providers (http://bit.ly/2tACoIM)
   login-file: "cloud.json"  # REQUIRED    Information used to access the cloud service
   max-instance-price: 0.0   # Suggested   Max USD to spend on a single instance [default: 5.0]
   max-total-price: 0.0      # Suggested   Max USD to spend on the entire deployment [default: 20.0]
-
-# Libvirt
-libvirt:
-  uri: "vbox:///session"    # REQUIRED    What hypervisor connection to use (http://libvirt.org/uri.html)
-
-# Microsoft Hyper-V Server
-hyper-v:
-  hostname: "hostname"    # REQUIRED    Hostname of the Hyper-V server
-  port: 0                 # Suggested   Port used to connect to Hyper-V server
-  login-file: "path"      # REQUIRED    Path to file containing login information for the Hyper-V server
-  version: "v2"           # Suggested   Version of the Hyper-V API to use
-  vswitch: "name"         # Suggested   Name of VirtualEthernetSwitch to use as default

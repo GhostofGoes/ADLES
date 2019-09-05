@@ -1,26 +1,15 @@
-# -*- coding: utf-8 -*-
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 
-from pyVim.connect import SmartConnect, SmartConnectNoSSL, Disconnect
+from pyVim.connect import Disconnect, SmartConnect, SmartConnectNoSSL
 from pyVmomi import vim, vmodl
 
+from adles.vsphere.vsphere_utils import VsphereException
 
-class Vsphere:
+
+# TODO: separate connection logic from init, put in a ".connect()" method
+# TODO: context manager, enter connects, exit disconnects (instead of atexit)
+class Vsphere(object):
     """ Maintains connection, logging, and constants for a vSphere instance """
-    __version__ = "1.0.2"
 
     def __init__(self, username=None, password=None, hostname=None,
                  datacenter=None, datastore=None,
@@ -43,17 +32,17 @@ class Vsphere:
         :raises LookupError: if a datacenter or datastore cannot be found
         """
         self._log = logging.getLogger('Vsphere')
-        self._log.debug("Initializing Vsphere %s\nDatacenter: %s"
+        self._log.debug("Initializing Vsphere\nDatacenter: %s"
                         "\tDatastore: %s\tSSL: %s",
-                        Vsphere.__version__, datacenter, datastore, use_ssl)
+                        datacenter, datastore, use_ssl)
 
         if username is None:
-            username = str(input("Enter username for vSphere: "))
+            username = input("Enter username for vSphere: ")
         if password is None:
             from getpass import getpass
-            password = str(getpass("Enter password for %s: " % username))
+            password = getpass("Enter password for %s: " % username)
         if hostname is None:
-            hostname = str(input("Enter hostname for vSphere: "))
+            hostname = input("Enter hostname for vSphere: ")
         try:
             self._log.info("Connecting to vSphere: %s@%s:%d",
                            username, hostname, port)
@@ -64,12 +53,11 @@ class Vsphere:
                 self._server = SmartConnectNoSSL(host=hostname, user=username,
                                                  pwd=password, port=port)
         except vim.fault.InvalidLogin:
-            self._log.error("Invalid vSphere login credentials for user %s",
-                            username)
-            exit(1)
-        except Exception as e:
-            self._log.exception("Error connecting to vSphere: %s", str(e))
-            exit(1)
+            self._log.error("Invalid vSphere login credentials "
+                            "for user %s", username)
+            raise VsphereException("Invalid login credentials") from None
+        except TimeoutError:
+            raise VsphereException("Timed out connecting to vSphere") from None
 
         # Ensure connection to server is closed on program exit
         from atexit import register
@@ -141,9 +129,8 @@ class Vsphere:
         :rtype: list
         """
         contain = (self.content.rootFolder if not container else container)
-        con_view = self.content.viewManager.CreateContainerView(contain,
-                                                                vimtypes,
-                                                                recursive)
+        con_view = self.content.viewManager.CreateContainerView(
+            contain, vimtypes, recursive)
         returns = []
         for item in con_view.view:
             if name:
@@ -228,7 +215,7 @@ class Vsphere:
         """
         Returns a list of the users and groups defined for the server
 
-        .. note:: You must hold the Authorization.ModifyPermissions 
+        .. note:: You must hold the Authorization.ModifyPermissions
         privilege to invoke this method.
 
         :param str search: Case insensitive substring used to filter results
@@ -458,7 +445,7 @@ class Vsphere:
         Find a VM in the datacenter with the given Instance or BIOS UUID.
 
         :param str uuid: UUID to search for (Instance or BIOS for VMs)
-        :param bool instance_uuid: If True, search by VM Instance UUID, 
+        :param bool instance_uuid: If True, search by VM Instance UUID,
         otherwise search by BIOS UUID
         :return: The VM found
         :rtype: vim.VirtualMachine or None
@@ -511,7 +498,7 @@ class Vsphere:
         """
         Finds a vim.ManagedEntity (VM, host, folder, etc) in a inventory.
 
-        :param str path: Path to the entity. This must include the hidden 
+        :param str path: Path to the entity. This must include the hidden
         Vsphere folder for the type: vm | network | datastore | host
         Example: "vm/some-things/more-things/vm-name"
         :param str datacenter: Name of datacenter to search in
@@ -537,9 +524,9 @@ class Vsphere:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) \
-               and self.hostname == other.hostname \
-               and self.port == other.port \
-               and self.username == other.username
+            and self.hostname == other.hostname \
+            and self.port == other.port \
+            and self.username == other.username
 
     def __ne__(self, other):
         return not self.__eq__(other)
