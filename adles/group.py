@@ -10,7 +10,7 @@ class Group:
         :param dict group: Dict specification of the group
         :param int instance: Instance number of a template group
         """
-        self._log = logging.getLogger('Group')
+        self._log = logging.getLogger("Group")
         self._log.debug("Initializing Group '%s'", name)
 
         if instance:
@@ -30,37 +30,43 @@ class Group:
 
         elif "filename" in group:
             from adles.utils import read_json
+
             group_type = "standard"
-            if instance:    # Template group
-                users = [(user, pw)
-                         for user, pw in read_json(group["filename"])
-                         [str(instance)].items()]
-            else:           # Standard group
-                users = [(user, pw)
-                         for user, pw in read_json(group["filename"]).items()]
+            if instance:  # Template group
+                users = [
+                    (user, pw)
+                    for user, pw in read_json(group["filename"])[str(instance)].items()
+                ]
+            else:  # Standard group
+                users = [
+                    (user, pw) for user, pw in read_json(group["filename"]).items()
+                ]
 
         elif "user-list" in group:
             group_type = "standard"
             users = group["user-list"]
 
         else:
-            self._log.error("Invalid group dict for group '%s': %s",
-                            name, str(group))
+            self._log.error("Invalid group dict for group '%s': %s", name, str(group))
             raise Exception()
 
         self.group_type = group_type
         self.users = users
         self.size = int(len(self.users))
         self.name = str(name)
-        self._log.debug("Finished initializing Group '%s' with %d users",
-                        self.name, self.size)
+        self._log.debug(
+            "Finished initializing Group '%s' with %d users", self.name, self.size
+        )
 
     def __str__(self):
         return self.name
 
     def __eq__(self, other):
-        return self.name == other.name and self.users == other.users and \
-            self.group_type == other.group_type
+        return (
+            self.name == other.name
+            and self.users == other.users
+            and self.group_type == other.group_type
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -85,6 +91,9 @@ def get_ad_groups(groups):
             if group.group_type == "ad":
                 ad_groups.append(group)
         else:
-            logging.error("Invalid type '%s' for a group in get_ad_groups: %s",
-                          type(group).__name__, str(group))
+            logging.error(
+                "Invalid type '%s' for a group in get_ad_groups: %s",
+                type(group).__name__,
+                str(group),
+            )
     return ad_groups

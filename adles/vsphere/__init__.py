@@ -6,6 +6,14 @@ from .host import Host  # noqa
 from .vm import VM  # noqa
 from .vsphere_class import Vsphere  # noqa
 
-__all__ = ['network_utils', 'vsphere_utils', 'folder_utils',
-           'vsphere_class', 'vm', 'host',
-           'Vsphere', 'VM', 'Host']
+__all__ = [
+    "network_utils",
+    "vsphere_utils",
+    "folder_utils",
+    "vsphere_class",
+    "vm",
+    "host",
+    "Vsphere",
+    "VM",
+    "Host",
+]

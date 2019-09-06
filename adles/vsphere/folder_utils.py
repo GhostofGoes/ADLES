@@ -19,28 +19,41 @@ def create_folder(folder, folder_name):
     # Check if the folder already exists
     exists = find_in_folder(folder, folder_name)
     if exists:
-        logging.warning("Folder '%s' already exists in folder '%s'",
-                        folder_name, folder.name)
+        logging.warning(
+            "Folder '%s' already exists in folder '%s'", folder_name, folder.name
+        )
         return exists  # Return the folder that already existed
     else:
-        logging.debug("Creating folder '%s' in folder '%s'",
-                      folder_name, folder.name)
+        logging.debug("Creating folder '%s' in folder '%s'", folder_name, folder.name)
         try:
             # Create the folder and return it
             return folder.CreateFolder(folder_name)
         except vim.fault.DuplicateName as dupe:
-            logging.error("Could not create folder '%s' in '%s': "
-                          "folder already exists as '%s'",
-                          folder_name, folder.name, dupe.name)
+            logging.error(
+                "Could not create folder '%s' in '%s': "
+                "folder already exists as '%s'",
+                folder_name,
+                folder.name,
+                dupe.name,
+            )
         except vim.fault.InvalidName as invalid:
-            logging.error("Could not create folder '%s' in '%s': "
-                          "Invalid folder name '%s'",
-                          folder_name, folder.name, invalid.name)
+            logging.error(
+                "Could not create folder '%s' in '%s': " "Invalid folder name '%s'",
+                folder_name,
+                folder.name,
+                invalid.name,
+            )
     return None
 
 
-def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
-            destroy_folders=False, destroy_self=False):
+def cleanup(
+    folder,
+    vm_prefix="",
+    folder_prefix="",
+    recursive=False,
+    destroy_folders=False,
+    destroy_self=False,
+):
     """
     Cleans a folder by selectively destroying any VMs and folders it contains.
 
@@ -69,8 +82,12 @@ def cleanup(folder, vm_prefix='', folder_prefix='', recursive=False,
             if destroy_folders:  # Destroys folder and ALL of it's sub-objects
                 cleanup(item, destroy_folders=True, destroy_self=True)
             elif recursive:  # Simply recurses to find more items
-                cleanup(item, vm_prefix=vm_prefix,
-                        folder_prefix=folder_prefix, recursive=True)
+                cleanup(
+                    item,
+                    vm_prefix=vm_prefix,
+                    folder_prefix=folder_prefix,
+                    recursive=True,
+                )
 
     # Note: UnregisterAndDestroy does NOT delete VM files off the datastore
     # Only use if folder is already empty!
@@ -93,8 +110,7 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
     """
     item = None
     if name is not None:
-        item = find_in_folder(folder, name, recursive=recursive,
-                              vimtype=vimtype)
+        item = find_in_folder(folder, name, recursive=recursive, vimtype=vimtype)
 
     # Get first found of type if can't find in folder or name isn't specified
     if item is None:
@@ -104,8 +120,11 @@ def get_in_folder(folder, name, recursive=False, vimtype=None):
             for i in folder.childEntity:
                 if isinstance(i, vimtype):
                     return i
-            logging.error("Could not find item of type '%s' in folder '%s'",
-                          vimtype.__name__, folder.name)
+            logging.error(
+                "Could not find item of type '%s' in folder '%s'",
+                vimtype.__name__,
+                folder.name,
+            )
         else:
             logging.error("There are no items in folder %s", folder.name)
     return item
@@ -128,13 +147,14 @@ def find_in_folder(folder, name, recursive=False, vimtype=None):
     found = None
     for item in folder.childEntity:
         # Check if the name matches
-        if hasattr(item, 'name') and item.name.lower() == item_name:
+        if hasattr(item, "name") and item.name.lower() == item_name:
             if vimtype is not None and not isinstance(item, vimtype):
                 continue
             found = item
         elif recursive and is_folder(item):  # Recurse into sub-folders
-            found = find_in_folder(item, name=item_name,
-                                   recursive=recursive, vimtype=vimtype)
+            found = find_in_folder(
+                item, name=item_name, recursive=recursive, vimtype=vimtype
+            )
         if found is not None:
             return found
     return None
@@ -160,18 +180,21 @@ def traverse_path(folder, path, lookup_root=None, generate=False):
 
     # Check if root of the path is in the folder
     # This is to allow relative paths to be used if lookup_root is defined
-    folder_items = [x.name.lower() for x in folder.childEntity
-                    if hasattr(x, 'name')]
+    folder_items = [x.name.lower() for x in folder.childEntity if hasattr(x, "name")]
     if len(folder_path) > 0 and folder_path[0] not in folder_items:
         if lookup_root is not None:
-            logging.debug("Root %s not in folder %s, looking up...",
-                          folder_path[0], folder.name)
+            logging.debug(
+                "Root %s not in folder %s, looking up...", folder_path[0], folder.name
+            )
             # Lookup the path root on server
             folder = lookup_root.get_folder(folder_path.pop(0))
         else:
-            logging.error("Could not find root '%s' "
-                          "of path '%s' in folder '%s'",
-                          folder_path[0], path, folder.name)
+            logging.error(
+                "Could not find root '%s' " "of path '%s' in folder '%s'",
+                folder_path[0],
+                path,
+                folder.name,
+            )
             return None
 
     current = folder  # Start with the defined folder
@@ -193,7 +216,7 @@ def traverse_path(folder, path, lookup_root=None, generate=False):
             current = found
 
     # Since the split had a basename, look for an item with matching name
-    if name != '':
+    if name != "":
         return find_in_folder(current, name)
     else:  # No basename, so just return whatever was at the end of the path
         return current
@@ -217,25 +240,24 @@ def enumerate_folder(folder, recursive=True, power_status=False):
             if recursive:  # Recurse into sub-folders and append the sub-tree
                 children.append(enumerate_folder(item, recursive))
             else:  # Don't recurse, just append the folder
-                children.append('- ' + item.name)
+                children.append("- " + item.name)
         elif is_vm(item):
             if power_status:
-                if item.runtime.powerState == \
-                        vim.VirtualMachine.PowerState.poweredOn:
-                    children.append('* ON  ' + item.name)
-                elif item.runtime.powerState == \
-                        vim.VirtualMachine.PowerState.poweredOff:
-                    children.append('* OFF ' + item.name)
-                elif item.runtime.powerState == \
-                        vim.VirtualMachine.PowerState.suspended:
-                    children.append('* SUS ' + item.name)
+                if item.runtime.powerState == vim.VirtualMachine.PowerState.poweredOn:
+                    children.append("* ON  " + item.name)
+                elif (
+                    item.runtime.powerState == vim.VirtualMachine.PowerState.poweredOff
+                ):
+                    children.append("* OFF " + item.name)
+                elif item.runtime.powerState == vim.VirtualMachine.PowerState.suspended:
+                    children.append("* SUS " + item.name)
                 else:
                     logging.error("Invalid power state for VM: %s", item.name)
             else:
-                children.append('* ' + item.name)
+                children.append("* " + item.name)
         else:
             children.append("UNKNOWN ITEM: %s" % str(item))
-    return '+ ' + folder.name, children  # Return tuple of parent and children
+    return "+ " + folder.name, children  # Return tuple of parent and children
 
 
 # Similar to: https://docs.python.org/3/library/pprint.html
@@ -251,7 +273,7 @@ def format_structure(structure, indent=4, _depth=0):
     :rtype: str
     """
     fmat = ""
-    newline = '\n' + str(_depth * str(indent * ' '))
+    newline = "\n" + str(_depth * str(indent * " "))
 
     if isinstance(structure, tuple):
         fmat += newline + str(structure[0])
@@ -262,12 +284,15 @@ def format_structure(structure, indent=4, _depth=0):
     elif isinstance(structure, str):
         fmat += newline + structure
     else:
-        logging.error("Unexpected type in folder structure for item '%s': %s",
-                      str(structure), type(structure))
+        logging.error(
+            "Unexpected type in folder structure for item '%s': %s",
+            str(structure),
+            type(structure),
+        )
     return fmat
 
 
-def retrieve_items(folder, vm_prefix='', folder_prefix='', recursive=False):
+def retrieve_items(folder, vm_prefix="", folder_prefix="", recursive=False):
     """
     Retrieves VMs and folders from a folder structure.
 
@@ -308,8 +333,9 @@ def move_into(folder, entity_list):
     :param entity_list: Entities to move into the folder
     :type entity_list: list(vim.ManagedEntity)
     """
-    logging.debug("Moving a list of %d entities into folder %s",
-                  len(entity_list), folder.name)
+    logging.debug(
+        "Moving a list of %d entities into folder %s", len(entity_list), folder.name
+    )
     folder.MoveIntoFolder_Task(entity_list).wait()
 
 

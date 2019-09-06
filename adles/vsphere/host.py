@@ -11,7 +11,7 @@ class Host:
         :param host: The host to use
         :type host: vim.HostSystem
         """
-        self._log = logging.getLogger('Host')
+        self._log = logging.getLogger("Host")
         self.host = host
         self.name = str(host.name)
         self.config = host.config
@@ -45,8 +45,9 @@ class Host:
         :type spec: vim.HostMaintenanceSpec
         """
         self._log.warning("%s is entering maintenance mode", self.name)
-        self.host.EnterMaintenanceMode_Task(timeout=int(timeout),
-                                            maintenanceSpec=spec).wait()
+        self.host.EnterMaintenanceMode_Task(
+            timeout=int(timeout), maintenanceSpec=spec
+        ).wait()
 
     def exit_maintenance_mode(self, timeout=0):
         """
@@ -64,16 +65,15 @@ class Host:
         :param str name: Name of the vSwitch to create
         :param int num_ports: Number of ports the vSwitch should have
         """
-        self._log.info("Creating vSwitch %s with %d ports on host %s",
-                       name, num_ports, self.name)
+        self._log.info(
+            "Creating vSwitch %s with %d ports on host %s", name, num_ports, self.name
+        )
         vswitch_spec = vim.host.VirtualSwitch.Specification()
         vswitch_spec.numPorts = int(num_ports)
         try:
-            self.host.configManager.networkSystem.AddVirtualSwitch(name,
-                                                                   vswitch_spec)
+            self.host.configManager.networkSystem.AddVirtualSwitch(name, vswitch_spec)
         except vim.fault.AlreadyExists:
-            self._log.error("vSwitch %s already exists on host %s",
-                            name, self.name)
+            self._log.error("vSwitch %s already exists on host %s", name, self.name)
 
     def create_portgroup(self, name, vswitch_name, vlan=0, promiscuous=False):
         """
@@ -84,25 +84,31 @@ class Host:
         :param int vlan: VLAN ID of the port group
         :param bool promiscuous: Put portgroup in promiscuous mode
         """
-        self._log.debug("Creating PortGroup %s on vSwitch %s on host %s;"
-                        " VLAN: %d; Promiscuous: %s",
-                        name, vswitch_name, self.name, vlan, promiscuous)
+        self._log.debug(
+            "Creating PortGroup %s on vSwitch %s on host %s;"
+            " VLAN: %d; Promiscuous: %s",
+            name,
+            vswitch_name,
+            self.name,
+            vlan,
+            promiscuous,
+        )
         policy = vim.host.NetworkPolicy()
         policy.security = vim.host.NetworkPolicy.SecurityPolicy()
         policy.security.allowPromiscuous = bool(promiscuous)
         policy.security.macChanges = False
         policy.security.forgedTransmits = False
-        spec = vim.host.PortGroup.Specification(name=name, vlanId=int(vlan),
-                                                vswitchName=vswitch_name,
-                                                policy=policy)
+        spec = vim.host.PortGroup.Specification(
+            name=name, vlanId=int(vlan), vswitchName=vswitch_name, policy=policy
+        )
         try:
             self.host.configManager.networkSystem.AddPortGroup(spec)
         except vim.fault.AlreadyExists:
-            self._log.error("PortGroup %s already exists on host %s",
-                            name, self.name)
+            self._log.error("PortGroup %s already exists on host %s", name, self.name)
         except vim.fault.NotFound:
-            self._log.error("vSwitch %s does not exist on host %s",
-                            vswitch_name, self.name)
+            self._log.error(
+                "vSwitch %s does not exist on host %s", vswitch_name, self.name
+            )
 
     def delete_network(self, name, network_type):
         """
@@ -112,21 +118,26 @@ class Host:
         :param str network_type: Type of the network to remove
         ("vswitch" | "portgroup")
         """
-        self._log.info("Deleting %s '%s' from host '%s'",
-                       network_type, name, self.name)
+        self._log.info("Deleting %s '%s' from host '%s'", network_type, name, self.name)
         try:
             if network_type.lower() == "vswitch":
                 self.host.configManager.networkSystem.RemoveVirtualSwitch(name)
             elif network_type.lower() == "portgroup":
                 self.host.configManager.networkSystem.RemovePortGroup(name)
         except vim.fault.NotFound:
-            self._log.error("Tried to remove %s '%s' that does not exist "
-                            "from host '%s'",
-                            network_type, name, self.name)
+            self._log.error(
+                "Tried to remove %s '%s' that does not exist " "from host '%s'",
+                network_type,
+                name,
+                self.name,
+            )
         except vim.fault.ResourceInUse:
-            self._log.error("%s '%s' can't be removed because there are "
-                            "vNICs associated with it",
-                            network_type, name)
+            self._log.error(
+                "%s '%s' can't be removed because there are "
+                "vNICs associated with it",
+                network_type,
+                name,
+            )
 
     def get_info(self):
         """

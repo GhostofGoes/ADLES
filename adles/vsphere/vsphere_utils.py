@@ -34,19 +34,24 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
     end_time = time() + float(timeout)  # Set end time
     try:
         while True:
-            if task.info.state == 'success':  # It succeeded!
+            if task.info.state == "success":  # It succeeded!
                 # Return the task result if it was successful
                 return task.info.result
-            elif task.info.state == 'error':  # It failed...
-                logging.error("Error during task %s on object '%s': %s",
-                              name, obj, str(task.info.error.msg))
+            elif task.info.state == "error":  # It failed...
+                logging.error(
+                    "Error during task %s on object '%s': %s",
+                    name,
+                    obj,
+                    str(task.info.error.msg),
+                )
                 return None
             elif time() > end_time:  # Check if it has exceeded the timeout
-                logging.error("Task %s timed out after %s seconds",
-                              name, str(wait_time))
+                logging.error(
+                    "Task %s timed out after %s seconds", name, str(wait_time)
+                )
                 task.CancelTask()  # Cancel the task since we've timed out
                 return None
-            elif task.info.state == 'queued':
+            elif task.info.state == "queued":
                 sleep(LONG_SLEEP)  # Sleep longer if it's queued up on system
                 # Don't count queue time against the timeout
                 if pause_timeout is True:
@@ -57,43 +62,65 @@ def wait_for_task(task, timeout=60.0, pause_timeout=True):
                 sleep(SLEEP_INTERVAL)
                 wait_time += SLEEP_INTERVAL
     except vim.fault.NoPermission as e:
-        logging.error("Permission denied for task %s on %s: need privilege %s",
-                      name, obj, e.privilegeId)
+        logging.error(
+            "Permission denied for task %s on %s: need privilege %s",
+            name,
+            obj,
+            e.privilegeId,
+        )
     except vim.fault.TaskInProgress as e:
-        logging.error("Cannot complete task %s: "
-                      "task %s is already in progress on %s",
-                      name, e.task.info.name, obj)
+        logging.error(
+            "Cannot complete task %s: " "task %s is already in progress on %s",
+            name,
+            e.task.info.name,
+            obj,
+        )
     except vim.fault.InvalidPowerState as e:
-        logging.error("Cannot complete task %s: "
-                      "%s is in invalid power state %s",
-                      name, obj, e.existingState)
+        logging.error(
+            "Cannot complete task %s: " "%s is in invalid power state %s",
+            name,
+            obj,
+            e.existingState,
+        )
     except vim.fault.InvalidState as e:
-        logging.error("Cannot complete task %s: "
-                      "invalid state for %s\n%s", name, obj, str(e))
+        logging.error(
+            "Cannot complete task %s: " "invalid state for %s\n%s", name, obj, str(e)
+        )
     except vim.fault.CustomizationFault:
-        logging.error("Cannot complete task %s: "
-                      "invalid customization for %s", name, obj)
+        logging.error(
+            "Cannot complete task %s: " "invalid customization for %s", name, obj
+        )
     except vim.fault.VmConfigFault:
-        logging.error("Cannot complete task %s: "
-                      "invalid configuration for VM %s", name, obj)
+        logging.error(
+            "Cannot complete task %s: " "invalid configuration for VM %s", name, obj
+        )
     except vim.fault.InvalidName as e:
-        logging.error("Cannot complete task %s for object %s: "
-                      "name '%s' is not valid", name, obj, e.name)
+        logging.error(
+            "Cannot complete task %s for object %s: " "name '%s' is not valid",
+            name,
+            obj,
+            e.name,
+        )
     except vim.fault.DuplicateName as e:
-        logging.error("Cannot complete task %s for %s: "
-                      "there is a duplicate named %s", name, obj, e.name)
+        logging.error(
+            "Cannot complete task %s for %s: " "there is a duplicate named %s",
+            name,
+            obj,
+            e.name,
+        )
     except vim.fault.InvalidDatastore as e:
-        logging.error("Cannot complete task %s for %s: "
-                      "invalid Datastore '%s'", name, obj, e.datastore)
+        logging.error(
+            "Cannot complete task %s for %s: " "invalid Datastore '%s'",
+            name,
+            obj,
+            e.datastore,
+        )
     except vim.fault.AlreadyExists:
-        logging.error("Cannot complete task %s: "
-                      "%s already exists", name, obj)
+        logging.error("Cannot complete task %s: " "%s already exists", name, obj)
     except vim.fault.NotFound:
-        logging.error("Cannot complete task %s: "
-                      "%s does not exist", name, obj)
+        logging.error("Cannot complete task %s: " "%s does not exist", name, obj)
     except vim.fault.ResourceInUse:
-        logging.error("Cannot complete task %s: "
-                      "resource %s is in use", name, obj)
+        logging.error("Cannot complete task %s: " "resource %s is in use", name, obj)
     return None
 
 
@@ -119,6 +146,7 @@ def get_datastore_info(ds_obj):
         logging.error("No Datastore was given to get_datastore_info")
         return ""
     from adles.utils import sizeof_fmt
+
     info_string = "\n"
     summary = ds_obj.summary
     ds_capacity = summary.capacity
@@ -135,8 +163,10 @@ def get_datastore_info(ds_obj):
     info_string += "Uncommitted           : %s\n" % sizeof_fmt(ds_uncommitted)
     info_string += "Provisioned           : %s\n" % sizeof_fmt(ds_provisioned)
     if ds_overp > 0:
-        info_string += "Over-provisioned      : %s / %s %%\n" \
-                       % (sizeof_fmt(ds_overp), ds_overp_pct)
+        info_string += "Over-provisioned      : %s / %s %%\n" % (
+            sizeof_fmt(ds_overp),
+            ds_overp_pct,
+        )
     info_string += "Hosts                 : %d\n" % len(ds_obj.host)
     info_string += "Virtual Machines      : %d" % len(ds_obj.vm)
     return info_string
@@ -154,16 +184,19 @@ def make_vsphere(filename=None):
     :rtype: :class:`Vsphere`
     """
     from adles.vsphere.vsphere_class import Vsphere
+
     if filename is not None:
         info = read_json(filename)
         if info is None:
             raise VsphereException("Failed to create vSphere object")
-        return Vsphere(username=info.get("user"),
-                       password=info.get("pass"),
-                       hostname=info.get("host"),
-                       port=info.get("port", 443),
-                       datacenter=info.get("datacenter"),
-                       datastore=info.get("datastore"))
+        return Vsphere(
+            username=info.get("user"),
+            password=info.get("pass"),
+            hostname=info.get("host"),
+            port=info.get("port", 443),
+            datacenter=info.get("datacenter"),
+            datastore=info.get("datastore"),
+        )
     else:
         logging.info("Enter information to connect to the vSphere environment")
         datacenter = input("Datacenter  : ")
@@ -184,6 +217,7 @@ def resolve_path(server, thing, prompt=""):
     """
     # TODO: use pathlib
     from adles.vsphere.vm import VM
+
     if thing.lower() == "vm":
         get = server.get_vm
     elif thing.lower() == "folder":
@@ -191,9 +225,11 @@ def resolve_path(server, thing, prompt=""):
     else:
         logging.error("Invalid thing passed to resolve_path: %s", thing)
         raise ValueError
-    res = user_input("Name of or path to %s %s: " % (thing, prompt), thing,
-                     lambda x: server.find_by_inv_path("vm/" + x)
-                     if '/' in x else get(x))
+    res = user_input(
+        "Name of or path to %s %s: " % (thing, prompt),
+        thing,
+        lambda x: server.find_by_inv_path("vm/" + x) if "/" in x else get(x),
+    )
     if thing.lower() == "vm":
         return VM(vm=res[0]), res[1]
     else:

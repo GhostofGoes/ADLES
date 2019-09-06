@@ -8,8 +8,9 @@ from adles.__about__ import __url__, __email__
 
 class Script(ABC):
     """Base class for all CLI scripts."""
-    __version__ = '0.1.0'
-    name = ''
+
+    __version__ = "0.1.0"
+    name = ""
 
     def __init__(self):
         prepare_friendly_prompts()  # Make input() more user friendly
@@ -17,17 +18,20 @@ class Script(ABC):
         self._log.debug("Script name      %s", self.name)
         self._log.debug("Script version   %s", self.__version__)
         self._log.info(
-            '\n***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n'
-            '\n** Help and Documentation **'
+            "\n***** YOU RUN THIS SCRIPT AT YOUR OWN RISK *****\n"
+            "\n** Help and Documentation **"
             '\n+ "<script> --help": flags, arguments, and usage'
-            '\n+ Read the latest documentation  : https://adles.readthedocs.io'
-            '\n+ Open an issue on GitHub        : %s'
-            '\n+ Email the script author        : %s'
-            '\n', __url__, __email__)
+            "\n+ Read the latest documentation  : https://adles.readthedocs.io"
+            "\n+ Open an issue on GitHub        : %s"
+            "\n+ Email the script author        : %s"
+            "\n",
+            __url__,
+            __email__,
+        )
 
     @classmethod
     def get_ver(cls):
-        return cls.name.capitalize() + ' ' + cls.__version__
+        return cls.name.capitalize() + " " + cls.__version__
 
     @abstractmethod
     def run(self):
@@ -43,5 +47,4 @@ class Script(ABC):
         return hash(repr(self))
 
     def __eq__(self, other):
-        return self.name == other.name \
-               and self.__version__ == other.__version__
+        return self.name == other.name and self.__version__ == other.__version__

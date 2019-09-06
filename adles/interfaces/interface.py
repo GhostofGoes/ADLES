@@ -15,14 +15,14 @@ class Interface(ABC):
         :param dict spec: Full exercise specification
         """
         self._log = logging.getLogger(self.__class__.__name__)
-        self.infra = infra      # Save the infrastructure configuration
-        self.spec = spec        # Save the exercise specification
-        self.metadata = spec["metadata"]    # Save the exercise spec metadata
+        self.infra = infra  # Save the infrastructure configuration
+        self.spec = spec  # Save the exercise specification
+        self.metadata = spec["metadata"]  # Save the exercise spec metadata
         self.services = spec["services"]
-        self.networks = spec["networks"]    # Networks for platforms
+        self.networks = spec["networks"]  # Networks for platforms
         self.folders = spec["folders"]
-        self.thresholds = {}    # Thresholds for platforms
-        self.groups = {}        # Groups for platforms
+        self.thresholds = {}  # Thresholds for platforms
+        self.groups = {}  # Groups for platforms
 
     @abstractmethod
     def create_masters(self):
@@ -78,24 +78,35 @@ class Interface(ABC):
                     # if num < 1:
                     num = 1  # WORKAROUND FOR AD-GROUPS
                 else:
-                    self._log.error("Unknown instances specification: %s",
-                                    str(spec["instances"]))
+                    self._log.error(
+                        "Unknown instances specification: %s", str(spec["instances"])
+                    )
                     num = 0
 
         # Check if the number of instances exceeds
         # the configured thresholds for the interface
         thr = self.thresholds[obj_type]
         if num > thr["error"]:
-            self._log.error("%d instances of %s '%s' is beyond the "
-                            "configured %s threshold of %d",
-                            num, obj_type, obj_name,
-                            self.__name__, thr["error"])
+            self._log.error(
+                "%d instances of %s '%s' is beyond the "
+                "configured %s threshold of %d",
+                num,
+                obj_type,
+                obj_name,
+                self.__name__,
+                thr["error"],
+            )
             raise Exception("Threshold exceeded")
         elif num > thr["warn"]:
-            self._log.warning("%d instances of %s '%s' is beyond the "
-                              "configured %s threshold of %d",
-                              num, obj_type, obj_name,
-                              self.__name__, thr["warn"])
+            self._log.warning(
+                "%d instances of %s '%s' is beyond the "
+                "configured %s threshold of %d",
+                num,
+                obj_type,
+                obj_name,
+                self.__name__,
+                thr["warn"],
+            )
         return num, prefix
 
     def _path(self, path, name):
@@ -107,7 +118,7 @@ class Interface(ABC):
         :return: The updated path
         :rtype: str
         """
-        return str(path + '/' + self.master_prefix + name)
+        return str(path + "/" + self.master_prefix + name)
 
     @staticmethod
     def _is_enabled(spec):
@@ -148,22 +159,22 @@ class Interface(ABC):
         :rtype: :class:`Group`
         """
         from adles.group import Group
+
         if group_name in self.groups:
             group = self.groups[group_name]
-            if isinstance(group, Group):    # Normal groups
+            if isinstance(group, Group):  # Normal groups
                 return group
-            elif isinstance(group, list):   # Template groups
+            elif isinstance(group, list):  # Template groups
                 return group[0]
             else:
-                self._log.error("Unknown type for group '%s': %s",
-                                str(group_name), str(type(group)))
+                self._log.error(
+                    "Unknown type for group '%s': %s", str(group_name), str(type(group))
+                )
         else:
             self._log.error("Could not get group '%s' from groups", group_name)
 
     def __repr__(self):
-        return "%s(%s, %s)" % (str(self.__class__),
-                               str(self.spec),
-                               str(self.infra))
+        return "%s(%s, %s)" % (str(self.__class__), str(self.spec), str(self.infra))
 
     def __str__(self):
         return str([x for x in self.infra.keys()])
@@ -172,6 +183,8 @@ class Interface(ABC):
         return hash(str(self))
 
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and \
-            self.infra == other.infra and \
-            self.spec == other.spec
+        return (
+            isinstance(other, self.__class__)
+            and self.infra == other.infra
+            and self.spec == other.spec
+        )

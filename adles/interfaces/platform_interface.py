@@ -22,12 +22,15 @@ class PlatformInterface(Interface):
         for platform, config in infra.items():
             if platform == "vmware-vsphere":
                 from adles.interfaces.vsphere_interface import VsphereInterface
+
                 self.interfaces.append(VsphereInterface(config, spec))
             elif platform == "docker":
                 from adles.interfaces.docker_interface import DockerInterface
+
                 self.interfaces.append(DockerInterface(config, spec))
             elif platform == "cloud":
                 from adles.interfaces.cloud_interface import CloudInterface
+
                 self.interfaces.append(CloudInterface(config, spec))
             else:
                 self._log.error("Invalid platform: %s", str(platform))

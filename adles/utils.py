@@ -8,6 +8,7 @@ from typing import Callable, List, Optional, Tuple
 
 try:
     import tqdm
+
     TQDM = True
 
     class TqdmHandler(logging.StreamHandler):
@@ -23,6 +24,8 @@ try:
                 raise
             except:  # noqa
                 self.handleError(record)
+
+
 except ImportError:
     TQDM = False
 
@@ -33,13 +36,18 @@ def time_execution(func: Callable) -> Callable:
 
     :param func: The function to time execution of
     :return: The decorated function"""
+
     def wrapper(*args, **kwargs):
         start_time = timeit.default_timer()
         ret = func(*args, **kwargs)
         end_time = timeit.default_timer()
-        logging.debug("Elapsed time for %s: %f seconds", func.__name__,
-                      float(end_time - start_time))
+        logging.debug(
+            "Elapsed time for %s: %f seconds",
+            func.__name__,
+            float(end_time - start_time),
+        )
         return ret
+
     return wrapper
 
 
@@ -55,11 +63,11 @@ def sizeof_fmt(num: float) -> str:
 
     :param num: Robot-readable file size in bytes
     :return: Human-readable file size"""
-    for item in ['bytes', 'KB', 'MB', 'GB']:
+    for item in ["bytes", "KB", "MB", "GB"]:
         if num < 1024.0:
             return "%3.1f%s" % (num, item)
         num /= 1024.0
-    return "%3.1f%s" % (num, 'TB')
+    return "%3.1f%s" % (num, "TB")
 
 
 def pad(value: int, length: int = 2) -> str:
@@ -86,13 +94,11 @@ def read_json(filename: str) -> Optional[dict]:
         with open(filename) as json_file:
             return json.load(fp=json_file)
     except ValueError as message:
-        logging.error("Syntax Error in JSON file '%s': %s",
-                      filename, str(message))
+        logging.error("Syntax Error in JSON file '%s': %s", filename, str(message))
     except FileNotFoundError:
         logging.error("Could not find file %s", filename)
     except Exception as message:
-        logging.error("Could not open JSON file '%s': %s",
-                      filename, str(message))
+        logging.error("Could not open JSON file '%s': %s", filename, str(message))
     return None
 
 
@@ -105,8 +111,8 @@ def split_path(path: str) -> Tuple[List[str], str]:
     :param path: Path to split
     :return: Path, basename"""
     folder_path, name = os.path.split(path.lower())  # Separate basename
-    folder_path = folder_path.split('/')  # Transform path into list
-    if folder_path[0] == '':
+    folder_path = folder_path.split("/")  # Transform path into list
+    if folder_path[0] == "":
         del folder_path[0]
     return folder_path, name
 
@@ -123,13 +129,17 @@ def handle_keyboard_interrupt(func: Callable) -> Callable:
             logging.info("Exiting...")
             sys.exit(0)
         return ret
+
     return wrapper
 
 
-def setup_logging(filename: str, colors: bool = True,
-                  console_verbose: bool = False,
-                  server: Tuple[str, int] = None,
-                  show_progress: bool = True):
+def setup_logging(
+    filename: str,
+    colors: bool = True,
+    console_verbose: bool = False,
+    server: Tuple[str, int] = None,
+    show_progress: bool = True,
+):
     """Configures the logging interface used by everything for output.
 
     :param filename: Name of file that logs should be saved to
@@ -139,8 +149,8 @@ def setup_logging(filename: str, colors: bool = True,
     :param show_progress: Show live status as operations progress"""
 
     # Prepend spaces to separate logs from previous runs
-    with open(filename, 'a', encoding='utf-8') as logfile:
-        logfile.write(2 * '\n')
+    with open(filename, "a", encoding="utf-8") as logfile:
+        logfile.write(2 * "\n")
 
     # Format log output so it's human readable yet verbose
     base_format = "%(asctime)s %(levelname)-8s %(name)-7s %(message)s"
@@ -148,8 +158,13 @@ def setup_logging(filename: str, colors: bool = True,
     formatter = logging.Formatter(fmt=base_format, datefmt=time_format)
 
     # Configures the base logger to append to a file
-    logging.basicConfig(level=logging.DEBUG, format=base_format,
-                        datefmt=time_format, filename=filename, filemode='a')
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format=base_format,
+        datefmt=time_format,
+        filename=filename,
+        filemode="a",
+    )
 
     # Get the global root logger
     # Handlers added to this will propagate to all loggers
@@ -162,8 +177,7 @@ def setup_logging(filename: str, colors: bool = True,
         syslog.setLevel(logging.DEBUG)
         syslog.setFormatter(formatter)
         logger.addHandler(syslog)
-        logging.debug("Configured logging to SysLog server %s:%d",
-                      server[0], server[1])
+        logging.debug("Configured logging to SysLog server %s:%d", server[0], server[1])
 
     # Record system information to aid in auditing and debugging
     # We do this before configuring console output to reduce verbosity
@@ -171,6 +185,7 @@ def setup_logging(filename: str, colors: bool = True,
     from platform import python_version, system, release, node
     from datetime import date
     from adles import __version__ as adles_version
+
     logging.debug("Initialized logging, saving logs to %s", filename)
     logging.debug("Date             %s", str(date.today()))
     logging.debug("OS               %s", str(system() + " " + release()))
@@ -192,21 +207,26 @@ def setup_logging(filename: str, colors: bool = True,
     if colors and "NO_COLOR" not in os.environ:
         try:
             from colorlog import ColoredFormatter
-            formatter = ColoredFormatter(fmt="%(log_color)s" + base_format,
-                                         datefmt=time_format, reset=True)
+
+            formatter = ColoredFormatter(
+                fmt="%(log_color)s" + base_format, datefmt=time_format, reset=True
+            )
             logging.debug("Configured COLORED console logging output")
         except ImportError:
-            logging.error("Colorlog is not installed. "
-                          "Using STANDARD console output...")
+            logging.error(
+                "Colorlog is not installed. " "Using STANDARD console output..."
+            )
     console.setFormatter(formatter)
     console.setLevel((logging.DEBUG if console_verbose else logging.INFO))
     logger.addHandler(console)
 
     # Warn if using old Python version
-    if python_version() < '3.6':
-        logger.error("Python version %s is unsupported. "
-                     "Please use Python 3.6+ instead. "
-                     "Proceed at your own risk!")
+    if python_version() < "3.6":
+        logger.error(
+            "Python version %s is unsupported. "
+            "Please use Python 3.6+ instead. "
+            "Proceed at your own risk!"
+        )
 
 
 def get_vlan() -> int:
@@ -232,8 +252,10 @@ def user_input(prompt: str, obj_name: str, func: Callable) -> Tuple[object, str]
             logging.info("Found %s: %s", obj_name, item.name)
             return item, item_name
         else:
-            print("Couldn't find a %s with name %s. Perhaps try another? "  # noqa: T001
-                  % (obj_name, item_name))
+            print(
+                "Couldn't find a %s with name %s. Perhaps try another? "  # noqa: T001
+                % (obj_name, item_name)
+            )
 
 
 @handle_keyboard_interrupt
@@ -243,6 +265,6 @@ def default_prompt(prompt: str, default: str = None) -> Optional[str]:
     :param prompt: Prompt to display to user (do not include default value)
     :param default: Default return value
     :return: Value entered or default"""
-    def_prompt = " [default: %s]: " % ('' if default is None else default)
+    def_prompt = " [default: %s]: " % ("" if default is None else default)
     value = input(prompt + def_prompt)
-    return default if value == '' else value
+    return default if value == "" else value

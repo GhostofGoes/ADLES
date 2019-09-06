@@ -4,8 +4,10 @@ try:
     from libcloud.compute.types import Provider
     from libcloud.compute.providers import get_driver
 except ImportError:
-    logging.error("Could not import apache-libcloud. "
-                  "Install it using 'pip install apache-libcloud'")
+    logging.error(
+        "Could not import apache-libcloud. "
+        "Install it using 'pip install apache-libcloud'"
+    )
 
 from adles.interfaces import Interface
 

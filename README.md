@@ -4,6 +4,7 @@
 [![Documentation](https://readthedocs.org/projects/adles/badge/)](http://adles.readthedocs.io/en/latest/)
 [![Monthly PyPI Downloads](https://pepy.tech/badge/adles/month)](https://pepy.tech/project/adles/month)
 [![DOI Reference](https://zenodo.org/badge/68841026.svg)](https://zenodo.org/badge/latestdoi/68841026)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 
 # Overview

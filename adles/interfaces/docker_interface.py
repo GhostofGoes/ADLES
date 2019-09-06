@@ -3,8 +3,9 @@ import logging
 try:
     import docker  # NOTE(cgoes): has not been tested with Python 3.6 yet
 except ImportError:
-    logging.error("Could not import docker module. "
-                  "Install it using 'pip install docker'")
+    logging.error(
+        "Could not import docker module. " "Install it using 'pip install docker'"
+    )
 
 from adles import utils
 from adles.interfaces import Interface
@@ -27,10 +28,10 @@ class DockerInterface(Interface):
         # Reference:
         # https://docker-py.readthedocs.io/en/stable/client.html#client-reference
         # Initialize the Docker client
-        self.client = docker.DockerClient(base_url=infra.get("url",
-                                                             "unix:///var/run/"
-                                                             "docker.sock"),
-                                          tls=bool(infra.get("tls", True)))
+        self.client = docker.DockerClient(
+            base_url=infra.get("url", "unix:///var/run/" "docker.sock"),
+            tls=bool(infra.get("tls", True)),
+        )
 
         # Verify the connection to the client
         self.client.ping()
@@ -42,9 +43,11 @@ class DockerInterface(Interface):
         if "registry" in self.infra:
             reg = self.infra["registry"]
             reg_logins = utils.read_json(reg["login-file"])
-            self.client.login(username=reg_logins["user"],
-                              password=reg_logins["pass"],
-                              registry=reg["url"])
+            self.client.login(
+                username=reg_logins["user"],
+                password=reg_logins["pass"],
+                registry=reg["url"],
+            )
 
         # List images currently on the server
         self._log.debug("Images: %s", str(self.client.images.list()))
@@ -65,5 +68,4 @@ class DockerInterface(Interface):
         return str(self.client.info() + "\nVersion:\t" + self.client.version())
 
     def __eq__(self, other):
-        return super(self.__class__, self).__eq__(other) \
-            and self.client == other.client
+        return super(self.__class__, self).__eq__(other) and self.client == other.client
