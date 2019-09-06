@@ -8,21 +8,24 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../adles'))
+
+sys.path.insert(0, os.path.abspath("../../adles"))
 
 
 # -- General configuration ------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.doctest',
-              'sphinx.ext.intersphinx',
-              'sphinx.ext.todo',
-              'sphinx.ext.coverage',
-              'sphinx.ext.ifconfig',
-              'sphinx.ext.viewcode',
-              'sphinx.ext.githubpages']
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx.ext.coverage",
+    "sphinx.ext.ifconfig",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.githubpages",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []  # '_templates'
@@ -30,18 +33,19 @@ templates_path = []  # '_templates'
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
-source_encoding = 'utf-8'
+source_suffix = ".rst"
+source_encoding = "utf-8"
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'ADLES'
-copyright = '2016 - 2019, Christopher Goes'
-author = 'Christopher Goes'
+project = "ADLES"
+copyright = "2016 - 2019, Christopher Goes"
+author = "Christopher Goes"
 
 import adles
+
 version = adles.__version__
 release = adles.__version__
 
@@ -59,7 +63,7 @@ language = None
 exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
@@ -68,7 +72,7 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'classic'
+html_theme = "classic"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -84,20 +88,19 @@ html_static_path = []  # '_static'
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'ADLES'
+htmlhelp_basename = "ADLES"
 
 # -- Options for LaTeX output ---------------------------------------------
 latex_elements = {
-    'papersize': 'letterpaper',  # The paper size ('letterpaper' or 'a4paper')
-    'pointsize': '12pt',  # The font size ('10pt', '11pt' or '12pt')
+    "papersize": "letterpaper",  # The paper size ('letterpaper' or 'a4paper')
+    "pointsize": "12pt",  # The font size ('10pt', '11pt' or '12pt')
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ADLES.tex', 'ADLES Documentation',
-     'Christopher Goes', 'manual'),
+    (master_doc, "ADLES.tex", "ADLES Documentation", "Christopher Goes", "manual")
 ]
 
 # -- Options for manual page output ---------------------------------------
@@ -105,11 +108,13 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('manpage',
-     'adles',
-     'automated creation of virtualized educational environments',
-     [author],
-     1)  # Section 1 - General Commands
+    (
+        "manpage",
+        "adles",
+        "automated creation of virtualized educational environments",
+        [author],
+        1,
+    )  # Section 1 - General Commands
 ]
 
 # -- Options for Texinfo output -------------------------------------------
@@ -118,10 +123,16 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ADLES', 'ADLES Documentation',
-     author, 'ADLES', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc,
+        "ADLES",
+        "ADLES Documentation",
+        author,
+        "ADLES",
+        "One line description of project.",
+        "Miscellaneous",
+    )
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/3': None}
+intersphinx_mapping = {"https://docs.python.org/3": None}

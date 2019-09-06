@@ -239,7 +239,8 @@ class VM:
                         username=None, password=None, program_args=""):
         """Executes a commandline program in the VM.
         This requires VMware Tools to be installed on the VM.
-        :param vim.vm.guest.ProcessManager process_manager: vSphere process manager object
+        :param vim.vm.guest.ProcessManager process_manager:
+            vSphere process manager object
         :param str program_path: Path to the program inside the VM
         :param str username: User on VM to execute program using
         [default: current ADLES user]

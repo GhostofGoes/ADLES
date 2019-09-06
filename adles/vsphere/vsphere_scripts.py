@@ -47,7 +47,7 @@ class CleanupVms(VsphereScript):
                     folder.enumerate(recursive=True, power_status=True)))
 
             # Prompt user to configure destruction options
-            print("Answer the following questions to configure the cleanup")  # noqa: T001
+            print("Answer the following questions to configure the cleanup")  # noqa
             if prompt_for_confirmation("Destroy everything in and "
                                        "including the folder? "):
                 vm_prefix = ''
