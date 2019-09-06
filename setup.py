@@ -1,30 +1,28 @@
 #!/usr/bin/env python3
 
-import os
+from os.path import abspath, dirname, join
 
 from setuptools import find_packages, setup
 
+INST_DIR = abspath(dirname(__file__))
+
 # Read in project metadata
 about = {}
-info_file = os.path.join(os.path.dirname(__file__), "adles", "__about__.py")
+info_file = join(INST_DIR, "adles", "__about__.py")
 with open(info_file, encoding='utf-8') as f:
     exec(f.read(), about)  # nosec
 
 # Build the page that will be displayed on PyPI from the README and CHANGELOG
-with open('README.md', encoding='utf-8') as f:
+with open(join(INST_DIR, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 long_description += '\n\n'
-with open('CHANGELOG.md', encoding='utf-8') as f:
+with open(join(INST_DIR, 'CHANGELOG.md'), encoding='utf-8') as f:
     long_description += f.read()
 
-install_requires = [
-    'pyyaml == 5.1.2',   # Specification parsing
-    'colorlog == 3.1.4',  # Colored commandline output using logging
-    'tqdm == 4.19.6',  # Terminal progress bars
-    'humanfriendly >= 4.12.1, < 5',  # User interface tools
-
-    'pyvmomi >= 6.5, < 7.0.0',  # TODO: move this into a extra?
-]
+# Read dependencies
+reqs_file = join(INST_DIR, 'requirements', 'install-requirements.txt')
+with open(reqs_file, encoding='utf-8') as f:
+    install_requires = f.read().splitlines()
 
 extras_require = {
     'docker': ['docker >= 2.4.2'],

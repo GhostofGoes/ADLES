@@ -33,6 +33,7 @@ Documentation for vSphere is [here](https://pubs.vmware.com/vsphere-60/index.jsp
     * Verify group existence
 
 #### Minor
+* Move `pyvmomi` from required dependencies into extra dependencies?
 * Add ability to load configurations from a file (for main and scripts, INI/JSON/other)
 * Add network folder(s) to vsphere infrastructure specification
 * Exercise specification
