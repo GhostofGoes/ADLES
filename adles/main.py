@@ -103,9 +103,8 @@ def main(args) -> int:
         # Filter non-YAML files from the listdir output
         examples = [x[:-5] for x in listdir(example_dir) if ".yaml" in x]
         if args.list_examples:  # List all examples and their metadata
-            print(
-                "Example scenarios that can be printed "  # noqa: T001
-                "using --print-example <name>"
+            print(  # noqa: T001
+                "Example scenarios that can be printed " "using --print-example <name>"
             )
             # Print header for the output
             print("Name".ljust(25) + "Version".ljust(10) + "Description")  # noqa: T001

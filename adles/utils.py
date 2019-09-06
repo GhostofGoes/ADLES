@@ -252,8 +252,8 @@ def user_input(prompt: str, obj_name: str, func: Callable) -> Tuple[object, str]
             logging.info("Found %s: %s", obj_name, item.name)
             return item, item_name
         else:
-            print(
-                "Couldn't find a %s with name %s. Perhaps try another? "  # noqa: T001
+            print(  # noqa: T001
+                "Couldn't find a %s with name %s. Perhaps try another? "
                 % (obj_name, item_name)
             )
 

@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## NEXT - XXXX-XX-XX
+
+### Added
+- 
+
+### Changed
+- Moved install dependencies to a requirements file
+
+### Dev
+- Standardized formatting on [Black](https://github.com/psf/black)
+- Linting: added several `flake8` plugins, added check using `vulture`
+- Moved requirements out of tox and into files
+
 ## [1.4.0] - 2019-09-04
 
 **Notable changes**
