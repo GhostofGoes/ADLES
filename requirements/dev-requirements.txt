@@ -1,0 +1,7 @@
+tox
+wheel
+stdeb
+-r style-requirements.txt
+-r doc-requirements.txt
+-r test-requirements.txt
+-r install-requirements.txt

@@ -50,17 +50,18 @@ Again, this can be done using the GUI, your favorite editor, or `git checkout -b
         python -m virtualenv "$Env:USERPROFILE\.virtualenvs\ADLES"
         $Env:USERPROFILE\.virtualenvs\ADLES\Scripts\Activate.ps1
         ```
-5. Install the package: `python -m pip install -e .`
-6. Setup and run the tests (wait, what tests? ...yeah, hey, what a great area to contribute!)
-7. Write some code! Git commit messages should information about what changed,
+5. Install the development requirements: `pip install -r requirements/dev-requirements.txt`        
+6. Install the package: `pip install -e .`
+7. Setup and run the tests (wait, what tests? ...yeah, hey, what a great area to contribute!)
+8. Write some code! Git commit messages should information about what changed,
 and if it's relevant, the rationale (thinking) for the change.
-8. Follow the checklist
-9. Submit a pull request!
+9. Follow the checklist
+10. Submit a pull request!
 
 ## Code requirements
 * All methods must have type annotations
-* Must work on Python 3.5+
-* Must work on Windows 10+, Ubuntu 16.04+, and Kali Rolling 2017+
+* Must work on Python 3.6+
+* Must work on Windows 10+ and Ubuntu 16.04+
 * Try to match the general code style (loosely PEP8)
 * Be respectful.
 Memes, references, and jokes are ok.

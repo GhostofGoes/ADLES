@@ -1,0 +1,37 @@
+# Verify MANIFEST.in is fully deterministic (includes or excludes everything)
+check-manifest
+
+# The venerable linter we all know and love/abhor
+flake8
+flake8-bugbear
+flake8-import-order
+flake8-tidy-imports
+flake8-print
+flake8-builtins
+flake8-blind-except
+flake8-comprehensions
+flake8-debugger
+pep8-naming
+flake8-string-format
+# flake8-2020
+# flake8-broken-line
+# flake8-mutable
+# flake8-executable
+# flake8-black
+
+# flake8-spellcheck
+
+# Type checking
+# TODO: enable type checking
+# NOTE: the released version of flake8-mypy is buggy on Windows (17.8.0)
+# flake8-mypy
+# https://github.com/ambv/flake8-mypy/archive/master.tar.gz
+
+# Check for security issues. 1.6.0 added "--quiet" option.
+bandit>=1.6.0
+
+# Formatting
+black
+
+# Finds unused code
+vulture
